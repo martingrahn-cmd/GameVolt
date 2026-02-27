@@ -1,5 +1,5 @@
 /**
- * Pulse Block Game - Leaderboard Module
+ * BlockStorm - Leaderboard Module
  * Firebase leaderboard with random name generator
  */
 
@@ -53,17 +53,17 @@ function generatePlayerName() {
 }
 
 function getPlayerName() {
-  let name = localStorage.getItem('pulse_player_name');
+  let name = localStorage.getItem('gamevolt_player_name');
   if (!name) {
     name = generatePlayerName();
-    localStorage.setItem('pulse_player_name', name);
+    localStorage.setItem('gamevolt_player_name', name);
   }
   return name;
 }
 
 function regeneratePlayerName() {
   const name = generatePlayerName();
-  localStorage.setItem('pulse_player_name', name);
+  localStorage.setItem('gamevolt_player_name', name);
   return name;
 }
 

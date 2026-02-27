@@ -78,6 +78,6 @@
 - Gran Vals (ringsignal): ✅ Public domain (1902)
 
 ### Länkar
-- PulseGames portal: pulsegames.eu (separat tråd)
+- GameVolt portal: gamevolt.io (separat tråd)
 - Breakout: itch.io (klar)
 - Click Rush: itch.io (klar)

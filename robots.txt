@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pulsegames.eu/sitemap-pulsegames.xml
+Sitemap: https://gamevolt.io/sitemap.xml

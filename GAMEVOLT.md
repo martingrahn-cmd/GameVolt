@@ -51,7 +51,7 @@ When writing code for this project, follow these rules:
 |---|---|---|---|
 | 1 | Breakout | ✅ Live | ❌ Not yet |
 | 2 | ClickRush | ✅ Live | ❌ Not yet |
-| 3 | Tetris | ✅ Live | ❌ Not yet |
+| 3 | BlockStorm (Tetris) | ✅ Live | ❌ Not yet |
 | 4 | Solitaire Collection | ✅ Live | ❌ Not yet |
 | 5 | Snake Neo (3 modes) | ✅ Live | ❌ Not yet |
 | 6 | Connect 4 | ✅ Live | ❌ Not yet |

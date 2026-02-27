@@ -1,127 +1,133 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://pulsegames.eu/</loc>
+    <loc>https://gamevolt.io/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/snake/</loc>
+    <loc>https://gamevolt.io/snake/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/breakout/</loc>
+    <loc>https://gamevolt.io/breakout/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/taprush/</loc>
+    <loc>https://gamevolt.io/taprush/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/solitaire/</loc>
+    <loc>https://gamevolt.io/solitaire/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/pulseblocks/</loc>
+    <loc>https://gamevolt.io/blockstorm/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/connect4/</loc>
+    <loc>https://gamevolt.io/connect4/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/axeluga/</loc>
+    <loc>https://gamevolt.io/axeluga/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/solitaire/klondike.html</loc>
+    <loc>https://gamevolt.io/hoverdash/</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://gamevolt.io/solitaire/klondike.html</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/solitaire/freecell.html</loc>
+    <loc>https://gamevolt.io/solitaire/freecell.html</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/solitaire/spider.html</loc>
+    <loc>https://gamevolt.io/solitaire/spider.html</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/solitaire/pyramid.html</loc>
+    <loc>https://gamevolt.io/solitaire/pyramid.html</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/solitaire/tripeaks.html</loc>
+    <loc>https://gamevolt.io/solitaire/tripeaks.html</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/solitaire/golf.html</loc>
+    <loc>https://gamevolt.io/solitaire/golf.html</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/arcade-games/</loc>
+    <loc>https://gamevolt.io/arcade-games/</loc>
     <lastmod>2026-02-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/action-games/</loc>
+    <loc>https://gamevolt.io/action-games/</loc>
     <lastmod>2026-02-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/puzzle-games/</loc>
+    <loc>https://gamevolt.io/puzzle-games/</loc>
     <lastmod>2026-02-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/board-games/</loc>
+    <loc>https://gamevolt.io/board-games/</loc>
     <lastmod>2026-02-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/about/</loc>
+    <loc>https://gamevolt.io/about/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/contact/</loc>
+    <loc>https://gamevolt.io/contact/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://pulsegames.eu/privacy/</loc>
+    <loc>https://gamevolt.io/privacy/</loc>
     <lastmod>2026-02-23</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>

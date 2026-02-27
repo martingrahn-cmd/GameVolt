@@ -1,6 +1,6 @@
 {
-  "name": "PulseBlocks",
-  "short_name": "PulseBlocks",
+  "name": "BlockStorm",
+  "short_name": "BlockStorm",
   "description": "A modern synthwave block puzzle game with Marathon, Sprint, and Ultra modes",
   "start_url": "/",
   "display": "standalone",

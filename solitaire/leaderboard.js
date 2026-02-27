@@ -1,5 +1,5 @@
 /**
- * PulseGames Solitaire - Firebase Leaderboard Module
+ * GameVolt Solitaire - Firebase Leaderboard Module
  * Shared leaderboard functionality for all solitaire games
  */
 
@@ -68,10 +68,10 @@ function loadScript(url) {
  * Get or create player ID (anonymous)
  */
 function getPlayerId() {
-    let playerId = localStorage.getItem('pulsegames_player_id');
+    let playerId = localStorage.getItem('gamevolt_player_id');
     if (!playerId) {
         playerId = 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('pulsegames_player_id', playerId);
+        localStorage.setItem('gamevolt_player_id', playerId);
     }
     return playerId;
 }
@@ -80,7 +80,7 @@ function getPlayerId() {
  * Get player nickname
  */
 function getPlayerNickname() {
-    return localStorage.getItem('pulsegames_nickname') || 'Anonymous';
+    return localStorage.getItem('gamevolt_nickname') || 'Anonymous';
 }
 
 /**
@@ -88,7 +88,7 @@ function getPlayerNickname() {
  */
 function setPlayerNickname(nickname) {
     const clean = nickname.trim().substring(0, 20) || 'Anonymous';
-    localStorage.setItem('pulsegames_nickname', clean);
+    localStorage.setItem('gamevolt_nickname', clean);
     return clean;
 }
 

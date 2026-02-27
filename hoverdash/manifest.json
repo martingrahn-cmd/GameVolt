@@ -1,0 +1,22 @@
+{
+  "name": "Hover Dash - Lane Runner",
+  "short_name": "Hover Dash",
+  "description": "Dodge obstacles, collect coins, and boost through neon lanes in this fast-paced arcade runner.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#050508",
+  "theme_color": "#00e5ff",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

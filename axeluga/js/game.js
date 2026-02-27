@@ -3290,7 +3290,7 @@ export class Game {
         // Version / branding
         ctx.fillStyle = '#334';
         ctx.font = '8px "Courier New", monospace';
-        ctx.fillText('PULSEGAMES.EU', cx, GAME_H - 12);
+        ctx.fillText('GAMEVOLT.IO', cx, GAME_H - 12);
     }
 
     drawOptions(ctx) {
@@ -3495,7 +3495,7 @@ export class Game {
 
         section('— GAME —', [
             'Martin Grahn',
-            'SmartProc / PulseGames.eu',
+            'SmartProc / GameVolt.io',
         ], '#0ff');
 
         section('— PIXEL ART —', [
@@ -3529,7 +3529,7 @@ export class Game {
 
         ctx.fillStyle = '#334';
         ctx.font = '8px "Courier New", monospace';
-        ctx.fillText('© 2025 PulseGames.eu', cx, GAME_H - 15);
+        ctx.fillText('© 2026 GameVolt.io', cx, GAME_H - 15);
     }
 
     drawLevelSelect(ctx) {
@@ -4763,7 +4763,7 @@ export class Game {
             ctx.font = '11px "Courier New", monospace';
             ctx.fillText('THANK YOU FOR PLAYING!', GAME_W / 2, GAME_H / 2 + 115);
             ctx.fillStyle = '#666';
-            ctx.fillText('PULSEGAMES.EU', GAME_W / 2, GAME_H / 2 + 135);
+            ctx.fillText('GAMEVOLT.IO', GAME_W / 2, GAME_H / 2 + 135);
         }
 
         // "Press to continue"
