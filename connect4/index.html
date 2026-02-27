@@ -1,0 +1,3936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Play Connect 4 Online Free – Classic Strategy Game | PulseGames</title>
+
+    <!-- SEO -->
+    <meta name="description" content="Play Connect 4 free online in your browser! Challenge a friend or play against AI. Classic four-in-a-row strategy fun – no download, no signup needed.">
+    <meta name="keywords" content="connect 4, connect four, four in a row, play connect 4 online, free connect 4, 2 player game, strategy game, browser game">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://pulsegames.eu/connect4/">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pulsegames.eu/connect4/">
+    <meta property="og:title" content="Play Connect 4 Online Free – Classic Strategy Game">
+    <meta property="og:description" content="Classic four-in-a-row fun! Play against a friend or challenge the AI. Free in your browser.">
+    <meta property="og:image" content="https://pulsegames.eu/assets/thumbnails/connect4-thumbnail.webp">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Play Connect 4 Online Free – Classic Strategy Game">
+    <meta name="twitter:description" content="Classic four-in-a-row fun! Play against a friend or challenge the AI. Free in your browser.">
+    <meta name="twitter:image" content="https://pulsegames.eu/assets/thumbnails/connect4-thumbnail.webp">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Connect 4",
+      "description": "Classic four-in-a-row strategy game. Play against a friend or challenge the AI. Free browser game.",
+      "url": "https://pulsegames.eu/connect4/",
+      "image": "https://pulsegames.eu/assets/thumbnails/connect4-thumbnail.webp",
+      "genre": ["Strategy", "Classic", "Board Game"],
+      "gamePlatform": "Web Browser",
+      "applicationCategory": "Game",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Organization", "name": "PulseGames", "url": "https://pulsegames.eu" },
+      "numberOfPlayers": { "@type": "QuantitativeValue", "minValue": 1, "maxValue": 2 },
+      "playMode": ["SinglePlayer", "MultiPlayer"]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://pulsegames.eu/"},
+        {"@type": "ListItem", "position": 2, "name": "Board Games", "item": "https://pulsegames.eu/board-games/"},
+        {"@type": "ListItem", "position": 3, "name": "Connect 4", "item": "https://pulsegames.eu/connect4/"}
+      ]
+    }
+    </script>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a1a2e">
+    
+    <!-- iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Connect 4">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #252542;
+            --bg-board: #3d5a80;
+            --accent-yellow: #ffd93d;
+            --accent-red: #ff6b6b;
+            --accent-blue: #4ecdc4;
+            --text-primary: #ffffff;
+            --text-secondary: #a8b2d1;
+            --cell-empty: #1a1a2e;
+            --cell-shadow: rgba(0,0,0,0.6);
+            --glow-yellow: rgba(255, 217, 61, 0.5);
+            --glow-red: rgba(255, 107, 107, 0.5);
+        }
+        
+        /* Light Theme */
+        [data-theme="light"] {
+            --bg-primary: #e8e8e8;
+            --bg-secondary: #ffffff;
+            --bg-board: #5a8fc4;
+            --text-primary: #1a1a2e;
+            --text-secondary: #555577;
+            --cell-empty: #2a2a4a;
+            --cell-shadow: rgba(0,0,0,0.4);
+        }
+        
+        /* Synthwave Theme */
+        [data-theme="synthwave"] {
+            --bg-primary: #0f0a1a;
+            --bg-secondary: #1a1025;
+            --bg-board: #2d1b4e;
+            --accent-yellow: #f0f;
+            --accent-red: #0ff;
+            --accent-blue: #ff6ad5;
+            --text-primary: #ffffff;
+            --text-secondary: #c49bd9;
+            --cell-empty: #150d20;
+            --cell-shadow: rgba(0,0,0,0.8);
+            --glow-yellow: rgba(255, 0, 255, 0.6);
+            --glow-red: rgba(0, 255, 255, 0.6);
+        }
+        
+        /* Ocean Theme */
+        [data-theme="ocean"] {
+            --bg-primary: #0a192f;
+            --bg-secondary: #112240;
+            --bg-board: #1d4e89;
+            --accent-yellow: #ffc857;
+            --accent-red: #e63946;
+            --accent-blue: #64dfdf;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --cell-empty: #0d2137;
+            --cell-shadow: rgba(0,0,0,0.6);
+            --glow-yellow: rgba(255, 200, 87, 0.5);
+            --glow-red: rgba(230, 57, 70, 0.5);
+        }
+        
+        /* Forest Theme */
+        [data-theme="forest"] {
+            --bg-primary: #1a2f1a;
+            --bg-secondary: #243524;
+            --bg-board: #3d5c3d;
+            --accent-yellow: #f4d35e;
+            --accent-red: #ee6c4d;
+            --accent-blue: #98c9a3;
+            --text-primary: #f0f7f0;
+            --text-secondary: #a8c5a8;
+            --cell-empty: #152415;
+            --cell-shadow: rgba(0,0,0,0.6);
+            --glow-yellow: rgba(244, 211, 94, 0.5);
+            --glow-red: rgba(238, 108, 77, 0.5);
+        }
+        
+        /* Sunset Theme */
+        [data-theme="sunset"] {
+            --bg-primary: #2c1810;
+            --bg-secondary: #3d261c;
+            --bg-board: #8b4513;
+            --accent-yellow: #ffd166;
+            --accent-red: #ef476f;
+            --accent-blue: #06d6a0;
+            --text-primary: #fff5e6;
+            --text-secondary: #d4a574;
+            --cell-empty: #1f110a;
+            --cell-shadow: rgba(0,0,0,0.6);
+            --glow-yellow: rgba(255, 209, 102, 0.5);
+            --glow-red: rgba(239, 71, 111, 0.5);
+        }
+        
+        /* Monochrome Theme */
+        [data-theme="mono"] {
+            --bg-primary: #111111;
+            --bg-secondary: #1a1a1a;
+            --bg-board: #333333;
+            --accent-yellow: #ffffff;
+            --accent-red: #888888;
+            --accent-blue: #cccccc;
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --cell-empty: #0a0a0a;
+            --cell-shadow: rgba(0,0,0,0.8);
+            --glow-yellow: rgba(255, 255, 255, 0.4);
+            --glow-red: rgba(136, 136, 136, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.03;
+            background-image: 
+                radial-gradient(circle at 25% 25%, var(--accent-yellow) 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, var(--accent-red) 2px, transparent 2px);
+            background-size: 60px 60px;
+            animation: patternMove 20s linear infinite;
+        }
+
+        @keyframes patternMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(60px, 60px); }
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        .logo {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: 700;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, var(--accent-red) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 60px var(--glow-yellow);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        
+        /* Game Mode Selection */
+        .mode-selection {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 20px 16px;
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .mode-btn:hover {
+            background: var(--bg-board);
+            transform: translateY(-2px);
+        }
+        
+        .mode-btn.active {
+            border-color: var(--accent-yellow);
+            background: var(--bg-board);
+        }
+        
+        .mode-btn-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .mode-btn-text {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .mode-btn-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        
+        /* Section header */
+        .section-header {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .difficulty-grid.hidden {
+            display: none;
+        }
+        
+        /* 2 Player Turn Indicator */
+        .turn-indicator-2p {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 24px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            transition: all 0.4s ease;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .turn-indicator-2p.active {
+            display: flex;
+        }
+        
+        .turn-indicator-2p.yellow-turn {
+            background: linear-gradient(135deg, rgba(255, 217, 61, 0.15) 0%, rgba(255, 217, 61, 0.03) 100%);
+            border: 3px solid var(--accent-yellow);
+            box-shadow: 0 0 40px var(--glow-yellow), inset 0 0 40px rgba(255, 217, 61, 0.05);
+            animation: glowYellow 1.5s ease-in-out infinite alternate;
+        }
+        
+        .turn-indicator-2p.red-turn {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(255, 107, 107, 0.03) 100%);
+            border: 3px solid var(--accent-red);
+            box-shadow: 0 0 40px var(--glow-red), inset 0 0 40px rgba(255, 107, 107, 0.05);
+            animation: glowRed 1.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glowYellow {
+            0% { box-shadow: 0 0 30px var(--glow-yellow), inset 0 0 30px rgba(255, 217, 61, 0.05); }
+            100% { box-shadow: 0 0 50px var(--glow-yellow), 0 0 80px var(--glow-yellow), inset 0 0 40px rgba(255, 217, 61, 0.1); }
+        }
+        
+        @keyframes glowRed {
+            0% { box-shadow: 0 0 30px var(--glow-red), inset 0 0 30px rgba(255, 107, 107, 0.05); }
+            100% { box-shadow: 0 0 50px var(--glow-red), 0 0 80px var(--glow-red), inset 0 0 40px rgba(255, 107, 107, 0.1); }
+        }
+        
+        .turn-indicator-2p .turn-disc {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            animation: turnPulse 1s ease-in-out infinite;
+        }
+        
+        .turn-indicator-2p.yellow-turn .turn-disc {
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5) 0%, transparent 40%),
+                radial-gradient(circle at 70% 70%, rgba(0,0,0,0.2) 0%, transparent 40%),
+                linear-gradient(135deg, #ffe066 0%, var(--accent-yellow) 40%, #e6b800 100%);
+            box-shadow: 0 0 30px var(--glow-yellow), 0 0 60px var(--glow-yellow);
+            border: 3px solid rgba(255,255,255,0.4);
+        }
+        
+        .turn-indicator-2p.red-turn .turn-disc {
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(255,255,255,0.5) 0%, transparent 40%),
+                radial-gradient(circle at 70% 70%, rgba(0,0,0,0.2) 0%, transparent 40%),
+                linear-gradient(135deg, #ff8787 0%, var(--accent-red) 40%, #e64545 100%);
+            box-shadow: 0 0 30px var(--glow-red), 0 0 60px var(--glow-red);
+            border: 3px solid rgba(255,255,255,0.4);
+        }
+        
+        @keyframes turnPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .turn-player-name {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .turn-indicator-2p.yellow-turn .turn-player-name {
+            color: var(--accent-yellow);
+            text-shadow: 0 0 20px var(--glow-yellow);
+        }
+        
+        .turn-indicator-2p.red-turn .turn-player-name {
+            color: var(--accent-red);
+            text-shadow: 0 0 20px var(--glow-red);
+        }
+        
+        .turn-instruction {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+        
+        /* Hide 1P status bar in 2P mode */
+        .game-area.two-player .status-bar {
+            display: none;
+        }
+
+        /* Menu Screen */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .difficulty-grid {
+            display: grid;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+            margin-top: 40px;
+        }
+
+        .difficulty-btn {
+            position: relative;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px 24px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            overflow: hidden;
+        }
+
+        .difficulty-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--btn-accent, var(--accent-blue));
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .difficulty-btn:hover {
+            background: var(--bg-board);
+            transform: translateX(8px);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .difficulty-btn:hover::before {
+            transform: scaleY(1);
+        }
+
+        .difficulty-btn[data-level="1"] { --btn-accent: #6bcb77; }
+        .difficulty-btn[data-level="2"] { --btn-accent: #4ecdc4; }
+        .difficulty-btn[data-level="3"] { --btn-accent: var(--accent-yellow); }
+        .difficulty-btn[data-level="4"] { --btn-accent: #ffa502; }
+        .difficulty-btn[data-level="5"] { --btn-accent: var(--accent-red); }
+
+        .difficulty-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .difficulty-level {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            background: var(--btn-accent, var(--accent-blue));
+            color: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        .difficulty-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            font-weight: 300;
+        }
+
+        .difficulty-stats {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            opacity: 0.7;
+        }
+
+        /* Game Board */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            padding: 16px 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .player-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-disc {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .player-disc.yellow {
+            background: var(--accent-yellow);
+            box-shadow: 0 0 20px var(--glow-yellow);
+        }
+
+        .player-disc.red {
+            background: var(--accent-red);
+            box-shadow: 0 0 20px var(--glow-red);
+        }
+
+        .player-disc.inactive {
+            opacity: 0.3;
+            box-shadow: none;
+        }
+
+        .turn-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .level-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            color: var(--text-secondary);
+        }
+        
+        .move-counter {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Theme Selector */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            z-index: 50;
+        }
+        
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            background: var(--bg-board);
+        }
+        
+        .theme-menu {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 8px;
+            z-index: 51;
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .theme-menu.open {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+        
+        .theme-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+        }
+        
+        .theme-option:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .theme-option.active {
+            background: var(--bg-board);
+        }
+        
+        .theme-preview {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .theme-preview-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        /* Sound Toggle */
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            right: 128px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            z-index: 50;
+        }
+        
+        .sound-toggle:hover {
+            transform: scale(1.1);
+            background: var(--bg-board);
+        }
+        
+        .sound-toggle.muted {
+            opacity: 0.5;
+        }
+        
+        /* Install PWA Button */
+        .install-btn {
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, #e6b800 100%);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 24px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 20px var(--glow-yellow);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .install-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 30px var(--glow-yellow);
+        }
+        
+        .install-btn.show {
+            display: flex;
+        }
+        
+        /* Hide on very small screens */
+        @media (max-height: 600px) {
+            .install-btn {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+            }
+        }
+        
+        /* Fullscreen Button */
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 182px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            z-index: 50;
+        }
+        
+        .fullscreen-btn:hover {
+            transform: scale(1.1);
+            background: var(--bg-board);
+        }
+        
+        /* AI Thinking Visualization */
+        .ai-thinking-display {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .ai-thinking-display.active {
+            display: flex;
+        }
+        
+        .ai-thinking-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .ai-columns {
+            display: flex;
+            gap: 6px;
+            align-items: flex-end;
+            height: 60px;
+        }
+        
+        .ai-column-score {
+            width: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .ai-column-bar {
+            width: 100%;
+            background: var(--bg-board);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            min-height: 4px;
+        }
+        
+        .ai-column-bar.positive {
+            background: linear-gradient(to top, var(--accent-red), #ff8787);
+        }
+        
+        .ai-column-bar.negative {
+            background: linear-gradient(to top, #666, #888);
+        }
+        
+        .ai-column-bar.best {
+            background: linear-gradient(to top, var(--accent-red), #ff4444);
+            box-shadow: 0 0 10px var(--glow-red);
+        }
+        
+        .ai-column-bar.blocked {
+            background: #333;
+        }
+        
+        .ai-column-num {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Intro Screen */
+        .intro-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        
+        .intro-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .intro-logo {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin-bottom: 30px;
+        }
+        
+        .intro-board {
+            width: 160px;
+            height: 120px;
+            background: var(--bg-board);
+            border-radius: 12px;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 6px;
+            padding: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+        
+        .intro-hole {
+            background: var(--bg-primary);
+            border-radius: 50%;
+        }
+        
+        .intro-disc {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+        }
+        
+        .intro-disc.yellow {
+            background: radial-gradient(circle at 30% 30%, #ffe066, var(--accent-yellow), #e6b800);
+            animation: introDropYellow 0.6s ease-out 0.5s forwards;
+        }
+        
+        .intro-disc.red {
+            background: radial-gradient(circle at 30% 30%, #ff8787, var(--accent-red), #e64545);
+            animation: introDropRed 0.6s ease-out 1s forwards;
+        }
+        
+        @keyframes introDropYellow {
+            0% { top: -40px; opacity: 1; }
+            70% { top: 95px; }
+            85% { top: 85px; }
+            100% { top: 90px; opacity: 1; }
+        }
+        
+        @keyframes introDropRed {
+            0% { top: -40px; opacity: 1; }
+            70% { top: 55px; }
+            85% { top: 45px; }
+            100% { top: 50px; opacity: 1; }
+        }
+        
+        .intro-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out 1.3s forwards;
+        }
+        
+        .intro-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out 1.5s forwards;
+            margin-top: 8px;
+        }
+        
+        .intro-loading {
+            margin-top: 40px;
+            display: flex;
+            gap: 8px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out 1.7s forwards;
+        }
+        
+        .intro-loading-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-yellow);
+            animation: loadingBounce 1s ease-in-out infinite;
+        }
+        
+        .intro-loading-dot:nth-child(2) {
+            animation-delay: 0.1s;
+            background: var(--accent-red);
+        }
+        
+        .intro-loading-dot:nth-child(3) {
+            animation-delay: 0.2s;
+            background: var(--accent-yellow);
+        }
+        
+        @keyframes loadingBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Extra Particle Effects */
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            animation: sparkleAnim 0.6s ease-out forwards;
+        }
+        
+        @keyframes sparkleAnim {
+            0% { transform: scale(0) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1) rotate(180deg); opacity: 1; }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+        
+        .disc-trail {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: trailFade 0.4s ease-out forwards;
+        }
+        
+        @keyframes trailFade {
+            from { opacity: 0.6; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.5); }
+        }
+        
+        /* Win celebration extra effects */
+        .celebration-ring {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border: 4px solid var(--accent-yellow);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .celebration-ring.animate {
+            animation: ringExpand 1s ease-out forwards;
+        }
+        
+        @keyframes ringExpand {
+            0% { width: 100px; height: 100px; opacity: 1; border-width: 4px; }
+            100% { width: 600px; height: 600px; opacity: 0; border-width: 1px; }
+        }
+        
+        /* Keyboard hints */
+        .keyboard-hints {
+            display: none;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 12px;
+        }
+        
+        @media (hover: hover) and (pointer: fine) {
+            .keyboard-hints {
+                display: flex;
+            }
+        }
+        
+        .key-hint {
+            width: 28px;
+            height: 28px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            transition: all 0.15s ease;
+        }
+        
+        .key-hint.active {
+            background: var(--bg-board);
+            border-color: var(--accent-yellow);
+            color: var(--text-primary);
+            transform: scale(0.95);
+        }
+
+        /* Achievements Button */
+        .achievements-btn {
+            position: fixed;
+            top: 20px;
+            right: 74px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            z-index: 50;
+        }
+        
+        .achievements-btn:hover {
+            transform: scale(1.1);
+            background: var(--bg-board);
+        }
+        
+        .achievements-btn.has-new::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            animation: pulse-dot 1s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+        
+        /* Achievements Panel */
+        .achievements-panel {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            max-width: 90vw;
+            height: 100vh;
+            background: var(--bg-secondary);
+            box-shadow: -5px 0 30px rgba(0,0,0,0.5);
+            z-index: 200;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        
+        .achievements-panel.open {
+            right: 0;
+        }
+        
+        .achievements-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 199;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .achievements-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .achievements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .achievements-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.3rem;
+            color: var(--text-primary);
+        }
+        
+        .achievements-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            transition: color 0.2s ease;
+        }
+        
+        .achievements-close:hover {
+            color: var(--text-primary);
+        }
+        
+        .achievement-card {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .achievement-card.unlocked {
+            opacity: 1;
+            border-color: var(--accent-yellow);
+        }
+        
+        .achievement-card.new {
+            animation: achievement-glow 1s ease-in-out 3;
+        }
+        
+        @keyframes achievement-glow {
+            0%, 100% { box-shadow: 0 0 0 rgba(255, 217, 61, 0); }
+            50% { box-shadow: 0 0 20px var(--glow-yellow); }
+        }
+        
+        .achievement-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .achievement-info {
+            flex: 1;
+        }
+        
+        .achievement-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+        
+        .achievement-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .achievement-progress {
+            margin-top: 8px;
+            height: 4px;
+            background: var(--bg-secondary);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .achievement-progress-bar {
+            height: 100%;
+            background: var(--accent-yellow);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        /* Achievement Toast */
+        .achievement-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent-yellow);
+            border-radius: 16px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 300;
+            opacity: 0;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        
+        .achievement-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        .achievement-toast-icon {
+            font-size: 2.5rem;
+        }
+        
+        .achievement-toast-text {
+            text-align: left;
+        }
+        
+        .achievement-toast-label {
+            font-size: 0.75rem;
+            color: var(--accent-yellow);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .achievement-toast-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+        
+        /* Touch Feedback Animations (for devices without haptic) */
+        .tap-pulse {
+            animation: tapPulse 0.3s ease-out;
+        }
+        
+        @keyframes tapPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        
+        .tap-shake {
+            animation: tapShake 0.4s ease-out;
+        }
+        
+        @keyframes tapShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-4px); }
+            40% { transform: translateX(4px); }
+            60% { transform: translateX(-3px); }
+            80% { transform: translateX(3px); }
+        }
+        
+        .cell.tap-feedback {
+            animation: cellTap 0.2s ease-out;
+        }
+        
+        @keyframes cellTap {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.92); box-shadow: inset 0 4px 12px var(--cell-shadow); }
+            100% { transform: scale(1); }
+        }
+        
+        .win-shake {
+            animation: winShake 0.6s ease-out;
+        }
+        
+        @keyframes winShake {
+            0%, 100% { transform: translateX(0) rotate(0); }
+            10% { transform: translateX(-5px) rotate(-1deg); }
+            20% { transform: translateX(5px) rotate(1deg); }
+            30% { transform: translateX(-5px) rotate(-1deg); }
+            40% { transform: translateX(5px) rotate(1deg); }
+            50% { transform: translateX(-3px) rotate(0); }
+            60% { transform: translateX(3px) rotate(0); }
+            70% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+            90% { transform: translateX(-1px); }
+        }
+        
+        .lose-shake {
+            animation: loseShake 0.5s ease-out;
+        }
+        
+        @keyframes loseShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-4px); }
+        }
+        
+        .btn.tap-pulse {
+            animation: btnPulse 0.3s ease-out;
+        }
+        
+        @keyframes btnPulse {
+            0% { transform: scale(1); box-shadow: none; }
+            50% { transform: scale(0.97); box-shadow: 0 0 15px var(--accent-yellow); }
+            100% { transform: scale(1); box-shadow: none; }
+        }
+        
+        .difficulty-btn.tap-pulse {
+            animation: diffPulse 0.3s ease-out;
+        }
+        
+        @keyframes diffPulse {
+            0% { transform: translateX(8px); }
+            50% { transform: translateX(12px); background: var(--bg-board); }
+            100% { transform: translateX(8px); }
+        }
+        
+        /* 2 Player Mode Selector */
+        .mode-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 16px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .mode-btn:hover {
+            background: var(--bg-board);
+            border-color: rgba(255,255,255,0.2);
+        }
+        
+        .mode-btn.active {
+            border-color: var(--accent-yellow);
+            background: rgba(255, 217, 61, 0.1);
+        }
+        
+        .mode-btn-icon {
+            font-size: 1.5rem;
+        }
+        
+        /* Turn indicator overlay for 2 player */
+        .turn-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .turn-overlay.active {
+            opacity: 1;
+        }
+        
+        .turn-overlay.yellow {
+            background: radial-gradient(circle at 50% 30%, rgba(255, 217, 61, 0.15) 0%, transparent 70%);
+        }
+        
+        .turn-overlay.red {
+            background: radial-gradient(circle at 50% 30%, rgba(255, 107, 107, 0.15) 0%, transparent 70%);
+        }
+        
+        /* Big turn banner for 2 player */
+        .turn-banner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            padding: 24px 48px;
+            border-radius: 20px;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            text-align: center;
+        }
+        
+        .turn-banner.show {
+            animation: bannerPop 1.5s ease-out forwards;
+        }
+        
+        .turn-banner.yellow {
+            background: linear-gradient(135deg, var(--accent-yellow) 0%, #e6b800 100%);
+            color: #1a1a2e;
+            box-shadow: 0 10px 40px var(--glow-yellow);
+        }
+        
+        .turn-banner.red {
+            background: linear-gradient(135deg, var(--accent-red) 0%, #e64545 100%);
+            color: white;
+            box-shadow: 0 10px 40px var(--glow-red);
+        }
+        
+        @keyframes bannerPop {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            15% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+            25% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            75% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        }
+        
+        /* Enhanced status bar for 2 player */
+        .status-bar.two-player {
+            transition: all 0.3s ease;
+        }
+        
+        .status-bar.two-player.yellow-turn {
+            background: linear-gradient(135deg, rgba(255, 217, 61, 0.2) 0%, var(--bg-secondary) 100%);
+            border: 2px solid var(--accent-yellow);
+        }
+        
+        .status-bar.two-player.red-turn {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2) 0%, var(--bg-secondary) 100%);
+            border: 2px solid var(--accent-red);
+        }
+        
+        /* Player labels */
+        .player-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .player-label.active {
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.05);
+        }
+        
+        .player-label .player-disc {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .player-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        /* Board glow for current player */
+        .board-wrapper.yellow-turn {
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.4),
+                0 0 30px var(--glow-yellow),
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                inset 0 -1px 0 rgba(0,0,0,0.2);
+        }
+        
+        .board-wrapper.red-turn {
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.4),
+                0 0 30px var(--glow-red),
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                inset 0 -1px 0 rgba(0,0,0,0.2);
+        }
+
+        /* Board */
+        .board-wrapper {
+            position: relative;
+            padding: 16px;
+            background: linear-gradient(145deg, #4a6fa5 0%, var(--bg-board) 50%, #2d4a6f 100%);
+            border-radius: 20px;
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.1),
+                inset 0 -1px 0 rgba(0,0,0,0.2);
+            border: 3px solid #5a7aa5;
+        }
+
+        .column-indicators {
+            display: flex;
+            gap: 8px;
+            margin: 0 4px 8px 4px;
+            padding: 0;
+        }
+
+        .column-indicator {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: transparent;
+            transition: background 0.2s ease;
+        }
+
+        .column-indicator.active.yellow {
+            background: var(--accent-yellow);
+            box-shadow: 0 0 15px var(--glow-yellow);
+        }
+
+        .column-indicator.active.red {
+            background: var(--accent-red);
+            box-shadow: 0 0 15px var(--glow-red);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin: 0 4px 4px 4px;
+        }
+
+        .cell {
+            width: clamp(40px, 10vw, 60px);
+            height: clamp(40px, 10vw, 60px);
+            background: var(--cell-empty);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            box-shadow: inset 0 4px 8px var(--cell-shadow);
+        }
+
+        .cell:hover:not(.filled) {
+            background: rgba(255,255,255,0.08);
+            transform: scale(1.02);
+        }
+        
+        .cell:active:not(.filled) {
+            transform: scale(0.98);
+        }
+
+        .cell.filled {
+            cursor: default;
+        }
+        
+        .cell.filled:hover {
+            transform: none;
+        }
+
+        .cell .disc {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border-radius: 50%;
+            transform: translateY(-400px);
+            opacity: 0;
+        }
+
+        .cell .disc.dropped {
+            animation: dropDisc 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .cell .disc.dropped.winning {
+            animation: winPulse 0.8s ease-in-out infinite alternate;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .cell .disc.dropped.red.winning {
+            animation: winPulseRed 0.8s ease-in-out infinite alternate;
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .cell .disc.yellow {
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 40%),
+                radial-gradient(circle at 70% 70%, rgba(0,0,0,0.2) 0%, transparent 40%),
+                linear-gradient(135deg, #ffe066 0%, var(--accent-yellow) 40%, #e6b800 100%);
+            box-shadow: 
+                0 4px 12px var(--glow-yellow),
+                inset 0 2px 4px rgba(255,255,255,0.5),
+                inset 0 -2px 4px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .cell .disc.red {
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 40%),
+                radial-gradient(circle at 70% 70%, rgba(0,0,0,0.2) 0%, transparent 40%),
+                linear-gradient(135deg, #ff8787 0%, var(--accent-red) 40%, #e64545 100%);
+            box-shadow: 
+                0 4px 12px var(--glow-red),
+                inset 0 2px 4px rgba(255,255,255,0.5),
+                inset 0 -2px 4px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        @keyframes winPulse {
+            0% {
+                transform: scale(1);
+                filter: brightness(1);
+                box-shadow: 
+                    0 4px 12px var(--glow-yellow),
+                    inset 0 2px 4px rgba(255,255,255,0.5),
+                    inset 0 -2px 4px rgba(0,0,0,0.2);
+            }
+            100% {
+                transform: scale(1.08);
+                filter: brightness(1.4);
+                box-shadow: 
+                    0 0 30px var(--glow-yellow),
+                    0 0 60px var(--glow-yellow),
+                    inset 0 2px 4px rgba(255,255,255,0.5),
+                    inset 0 -2px 4px rgba(0,0,0,0.2);
+            }
+        }
+
+        @keyframes winPulseRed {
+            0% {
+                transform: scale(1);
+                filter: brightness(1);
+                box-shadow: 
+                    0 4px 12px var(--glow-red),
+                    inset 0 2px 4px rgba(255,255,255,0.5),
+                    inset 0 -2px 4px rgba(0,0,0,0.2);
+            }
+            100% {
+                transform: scale(1.08);
+                filter: brightness(1.4);
+                box-shadow: 
+                    0 0 30px var(--glow-red),
+                    0 0 60px var(--glow-red),
+                    inset 0 2px 4px rgba(255,255,255,0.5),
+                    inset 0 -2px 4px rgba(0,0,0,0.2);
+            }
+        }
+
+        /* Win glow effect - no line, just enhanced disc glow */
+        .cell.winning-cell {
+            z-index: 10;
+        }
+        
+        .cell.winning-cell::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+            animation: glowRing 0.8s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        
+        @keyframes glowRing {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* Preview disc above board */
+        .preview-area {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin: 0 4px 8px 4px;
+        }
+        
+        /* Hide preview on touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .preview-area {
+                height: 20px;
+            }
+            
+            .preview-disc {
+                display: none;
+            }
+        }
+
+        .preview-disc {
+            width: clamp(36px, 9vw, 52px);
+            height: clamp(36px, 9vw, 52px);
+            border-radius: 50%;
+            position: absolute;
+            transition: left 0.1s ease-out, opacity 0.2s ease;
+            opacity: 0;
+        }
+
+        .preview-disc.visible {
+            opacity: 1;
+        }
+
+        .preview-disc.yellow {
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 40%),
+                radial-gradient(circle at 70% 70%, rgba(0,0,0,0.2) 0%, transparent 40%),
+                linear-gradient(135deg, #ffe066 0%, var(--accent-yellow) 40%, #e6b800 100%);
+            box-shadow: 0 4px 20px var(--glow-yellow);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .preview-disc.red {
+            background: 
+                radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 40%),
+                radial-gradient(circle at 70% 70%, rgba(0,0,0,0.2) 0%, transparent 40%),
+                linear-gradient(135deg, #ff8787 0%, var(--accent-red) 40%, #e64545 100%);
+            box-shadow: 0 4px 20px var(--glow-red);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        @keyframes dropDisc {
+            0% {
+                transform: translateY(-400px);
+                opacity: 1;
+            }
+            60% {
+                transform: translateY(10px);
+            }
+            80% {
+                transform: translateY(-5px);
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+
+
+        /* Confetti effect */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 99;
+            overflow: hidden;
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+        }
+        
+        .confetti.active {
+            animation: confettiFall 3s ease-out forwards;
+        }
+        
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Game Over Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .modal-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .modal-title.win { color: var(--accent-yellow); }
+        .modal-title.lose { color: var(--accent-red); }
+        .modal-title.draw { color: var(--accent-blue); }
+
+        .modal-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--accent-yellow);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background: #ffe066;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.05);
+            border: none;
+            color: var(--text-secondary);
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-primary);
+        }
+
+        /* Stats section on menu */
+        .stats-section {
+            margin-top: 40px;
+            padding: 24px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .stats-title {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 12px;
+        }
+
+        .stat-value {
+            font-family: 'Space Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-yellow);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Thinking indicator */
+        .thinking {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .thinking.active {
+            display: flex;
+        }
+
+        .thinking-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .thinking-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            animation: thinking 1.4s infinite;
+        }
+
+        .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes thinking {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 500px) {
+            .board {
+                gap: 6px;
+            }
+            
+            .board-wrapper {
+                padding: 12px;
+                border-radius: 16px;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    
+    <!-- Intro Screen -->
+    <div class="intro-screen" id="intro-screen">
+        <div class="intro-logo">
+            <div class="intro-board">
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+                <div class="intro-hole"></div>
+            </div>
+            <div class="intro-disc yellow"></div>
+            <div class="intro-disc red"></div>
+        </div>
+        <div class="intro-title">CONNECT 4</div>
+        <div class="intro-subtitle">Four in a Row</div>
+        <div class="intro-loading">
+            <div class="intro-loading-dot"></div>
+            <div class="intro-loading-dot"></div>
+            <div class="intro-loading-dot"></div>
+        </div>
+    </div>
+    
+    <!-- Turn Banner for 2 Player -->
+    <div class="turn-banner" id="turn-banner">PLAYER 1</div>
+    
+    <!-- Turn Overlay for 2 Player -->
+    <div class="turn-overlay" id="turn-overlay"></div>
+    
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="theme-toggle" title="Change theme">🎨</button>
+    
+    <!-- Sound Toggle -->
+    <button class="sound-toggle" id="sound-toggle" title="Toggle sound">🔊</button>
+    
+    <!-- Fullscreen Button -->
+    <button class="fullscreen-btn" id="fullscreen-btn" title="Fullscreen">⛶</button>
+    
+    <!-- Theme Menu -->
+    <div class="theme-menu" id="theme-menu">
+        <button class="theme-option" data-theme="dark">
+            <div class="theme-preview">
+                <span class="theme-preview-dot" style="background: #1a1a2e;"></span>
+                <span class="theme-preview-dot" style="background: #ffd93d;"></span>
+                <span class="theme-preview-dot" style="background: #ff6b6b;"></span>
+            </div>
+            Dark
+        </button>
+        <button class="theme-option" data-theme="light">
+            <div class="theme-preview">
+                <span class="theme-preview-dot" style="background: #e8e8e8;"></span>
+                <span class="theme-preview-dot" style="background: #ffd93d;"></span>
+                <span class="theme-preview-dot" style="background: #ff6b6b;"></span>
+            </div>
+            Light
+        </button>
+        <button class="theme-option" data-theme="synthwave">
+            <div class="theme-preview">
+                <span class="theme-preview-dot" style="background: #0f0a1a;"></span>
+                <span class="theme-preview-dot" style="background: #f0f;"></span>
+                <span class="theme-preview-dot" style="background: #0ff;"></span>
+            </div>
+            Synthwave
+        </button>
+        <button class="theme-option" data-theme="ocean">
+            <div class="theme-preview">
+                <span class="theme-preview-dot" style="background: #0a192f;"></span>
+                <span class="theme-preview-dot" style="background: #ffc857;"></span>
+                <span class="theme-preview-dot" style="background: #e63946;"></span>
+            </div>
+            Ocean
+        </button>
+        <button class="theme-option" data-theme="forest">
+            <div class="theme-preview">
+                <span class="theme-preview-dot" style="background: #1a2f1a;"></span>
+                <span class="theme-preview-dot" style="background: #f4d35e;"></span>
+                <span class="theme-preview-dot" style="background: #ee6c4d;"></span>
+            </div>
+            Forest
+        </button>
+        <button class="theme-option" data-theme="sunset">
+            <div class="theme-preview">
+                <span class="theme-preview-dot" style="background: #2c1810;"></span>
+                <span class="theme-preview-dot" style="background: #ffd166;"></span>
+                <span class="theme-preview-dot" style="background: #ef476f;"></span>
+            </div>
+            Sunset
+        </button>
+        <button class="theme-option" data-theme="mono">
+            <div class="theme-preview">
+                <span class="theme-preview-dot" style="background: #111111;"></span>
+                <span class="theme-preview-dot" style="background: #ffffff;"></span>
+                <span class="theme-preview-dot" style="background: #888888;"></span>
+            </div>
+            Mono
+        </button>
+    </div>
+    
+    <!-- Achievements Button -->
+    <button class="achievements-btn" id="achievements-btn" title="Prestationer">🏆</button>
+    
+    <!-- Achievements Panel -->
+    <div class="achievements-overlay" id="achievements-overlay"></div>
+    <div class="achievements-panel" id="achievements-panel">
+        <div class="achievements-header">
+            <h2 class="achievements-title">🏆 Achievements</h2>
+            <button class="achievements-close" id="achievements-close">×</button>
+        </div>
+        <div id="achievements-list"></div>
+    </div>
+    
+    <!-- Achievement Toast -->
+    <div class="achievement-toast" id="achievement-toast">
+        <div class="achievement-toast-icon" id="toast-icon">🏆</div>
+        <div class="achievement-toast-text">
+            <div class="achievement-toast-label">Achievement Unlocked!</div>
+            <div class="achievement-toast-name" id="toast-name">Achievement Name</div>
+        </div>
+    </div>
+    
+    <div class="game-container">
+        <header>
+            <h2 class="logo">CONNECT 4</h2>
+            <p class="subtitle">Four in a Row</p>
+        </header>
+
+        <!-- Menu Screen -->
+        <div id="menu-screen" class="screen active">
+            <!-- Mode Selection -->
+            <div class="mode-selection">
+                <button class="mode-btn active" id="mode-1p" data-mode="1p">
+                    <div class="mode-btn-icon">🤖</div>
+                    <div class="mode-btn-text">1 Player</div>
+                    <div class="mode-btn-desc">vs AI</div>
+                </button>
+                <button class="mode-btn" id="mode-2p" data-mode="2p">
+                    <div class="mode-btn-icon">👥</div>
+                    <div class="mode-btn-text">2 Players</div>
+                    <div class="mode-btn-desc">Local</div>
+                </button>
+            </div>
+            
+            <div class="section-header" id="difficulty-header">Select Difficulty</div>
+            
+            <div class="difficulty-grid" id="difficulty-grid">
+                <button class="difficulty-btn" data-level="1">
+                    <div class="difficulty-name">
+                        <span class="difficulty-level">LV 1</span>
+                        Beginner
+                    </div>
+                    <div class="difficulty-desc">Random moves - perfect for learning</div>
+                    <div class="difficulty-stats" id="stats-1">Played: 0 | Wins: 0</div>
+                </button>
+
+                <button class="difficulty-btn" data-level="2">
+                    <div class="difficulty-name">
+                        <span class="difficulty-level">LV 2</span>
+                        Casual
+                    </div>
+                    <div class="difficulty-desc">Blocks obvious wins</div>
+                    <div class="difficulty-stats" id="stats-2">Played: 0 | Wins: 0</div>
+                </button>
+
+                <button class="difficulty-btn" data-level="3">
+                    <div class="difficulty-name">
+                        <span class="difficulty-level">LV 3</span>
+                        Challenging
+                    </div>
+                    <div class="difficulty-desc">Thinks a few moves ahead</div>
+                    <div class="difficulty-stats" id="stats-3">Played: 0 | Wins: 0</div>
+                </button>
+
+                <button class="difficulty-btn" data-level="4">
+                    <div class="difficulty-name">
+                        <span class="difficulty-level">LV 4</span>
+                        Hard
+                    </div>
+                    <div class="difficulty-desc">Strategic thinking, random start</div>
+                    <div class="difficulty-stats" id="stats-4">Played: 0 | Wins: 0</div>
+                </button>
+
+                <button class="difficulty-btn" data-level="5">
+                    <div class="difficulty-name">
+                        <span class="difficulty-level">LV 5</span>
+                        Expert
+                    </div>
+                    <div class="difficulty-desc">Deep analysis - masters only</div>
+                    <div class="difficulty-stats" id="stats-5">Played: 0 | Wins: 0</div>
+                </button>
+            </div>
+            
+            <!-- 2 Player Start Button -->
+            <button class="difficulty-btn hidden" id="start-2p-btn" style="max-width: 400px; margin-top: 20px; --btn-accent: var(--accent-blue);">
+                <div class="difficulty-name">
+                    <span class="difficulty-level">2P</span>
+                    Start Game
+                </div>
+                <div class="difficulty-desc">Yellow goes first</div>
+            </button>
+
+            <div class="stats-section">
+                <div class="stats-title">Total Statistics</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-wins">0</div>
+                        <div class="stat-label">Wins</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-games">0</div>
+                        <div class="stat-label">Played</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="win-rate">0%</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Install PWA Button (in menu) -->
+            <button class="install-btn" id="install-btn">
+                📲 Install App
+            </button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <button class="back-btn" id="back-btn">
+                ← Menu
+            </button>
+
+            <div class="game-area" id="game-area">
+                <!-- 2 Player Turn Indicator -->
+                <div class="turn-indicator-2p" id="turn-indicator-2p">
+                    <div class="turn-disc"></div>
+                    <div class="turn-player-name" id="turn-player-name">Player 1</div>
+                    <div class="turn-instruction">Tap a column to drop your disc</div>
+                </div>
+                
+                <div class="status-bar">
+                    <div class="player-indicator">
+                        <div class="player-disc yellow" id="player-disc"></div>
+                        <span class="turn-text" id="turn-text">Your turn</span>
+                    </div>
+                    <div class="thinking" id="thinking">
+                        <div class="thinking-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        AI thinking...
+                    </div>
+                    <div class="move-counter" id="move-counter">Moves: 0</div>
+                    <div class="level-badge" id="level-badge">Level 1</div>
+                </div>
+
+                <div class="board-wrapper">
+                    <div class="preview-area" id="preview-area">
+                        <div class="preview-disc yellow" id="preview-disc"></div>
+                    </div>
+                    <div class="column-indicators" id="column-indicators"></div>
+                    <div class="board" id="board"></div>
+                </div>
+                
+                <!-- Keyboard hints for desktop -->
+                <div class="keyboard-hints" id="keyboard-hints">
+                    <div class="key-hint" data-col="0">1</div>
+                    <div class="key-hint" data-col="1">2</div>
+                    <div class="key-hint" data-col="2">3</div>
+                    <div class="key-hint" data-col="3">4</div>
+                    <div class="key-hint" data-col="4">5</div>
+                    <div class="key-hint" data-col="5">6</div>
+                    <div class="key-hint" data-col="6">7</div>
+                </div>
+                
+                <!-- AI Thinking Visualization -->
+                <div class="ai-thinking-display" id="ai-thinking-display">
+                    <div class="ai-thinking-title">AI Analysis</div>
+                    <div class="ai-columns" id="ai-columns">
+                        <div class="ai-column-score"><div class="ai-column-bar" data-col="0"></div><div class="ai-column-num">1</div></div>
+                        <div class="ai-column-score"><div class="ai-column-bar" data-col="1"></div><div class="ai-column-num">2</div></div>
+                        <div class="ai-column-score"><div class="ai-column-bar" data-col="2"></div><div class="ai-column-num">3</div></div>
+                        <div class="ai-column-score"><div class="ai-column-bar" data-col="3"></div><div class="ai-column-num">4</div></div>
+                        <div class="ai-column-score"><div class="ai-column-bar" data-col="4"></div><div class="ai-column-num">5</div></div>
+                        <div class="ai-column-score"><div class="ai-column-bar" data-col="5"></div><div class="ai-column-num">6</div></div>
+                        <div class="ai-column-score"><div class="ai-column-bar" data-col="6"></div><div class="ai-column-num">7</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="confetti-container" id="confetti-container"></div>
+    
+    <!-- Celebration Ring -->
+    <div class="celebration-ring" id="celebration-ring"></div>
+    
+    <!-- Game Over Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-icon" id="modal-icon">🎉</div>
+            <h2 class="modal-title" id="modal-title">Du vann!</h2>
+            <p class="modal-subtitle" id="modal-subtitle">Fantastiskt spelat!</p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="play-again-btn">Play Again</button>
+                <button class="btn btn-secondary" id="menu-btn">Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== GAME STATE =====
+        const ROWS = 6;
+        const COLS = 7;
+        const EMPTY = 0;
+        const PLAYER = 1;  // Yellow
+        const AI = 2;      // Red
+
+        let board = [];
+        let currentPlayer = PLAYER;
+        let gameOver = false;
+        let currentLevel = 1;
+        let isThinking = false;
+        let moveCount = 0;
+        let gameMode = '1p'; // '1p' or '2p'
+        let soundEnabled = true;
+
+        // ===== THEME =====
+        const THEMES = ['dark', 'light', 'synthwave', 'ocean', 'forest', 'sunset', 'mono'];
+        
+        function initTheme() {
+            const savedTheme = localStorage.getItem('connect4Theme') || 'dark';
+            setTheme(savedTheme);
+            updateThemeMenuActive();
+        }
+        
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('connect4Theme', theme);
+            updateThemeMenuActive();
+        }
+        
+        function updateThemeMenuActive() {
+            const currentTheme = localStorage.getItem('connect4Theme') || 'dark';
+            document.querySelectorAll('.theme-option').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.theme === currentTheme);
+            });
+        }
+        
+        function toggleThemeMenu() {
+            const menu = document.getElementById('theme-menu');
+            menu.classList.toggle('open');
+            hapticFeedback('light');
+        }
+        
+        function closeThemeMenu() {
+            document.getElementById('theme-menu').classList.remove('open');
+        }
+        
+        // ===== SOUND =====
+        function initSoundSetting() {
+            const saved = localStorage.getItem('connect4Sound');
+            soundEnabled = saved !== 'false';
+            updateSoundButton();
+        }
+        
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('connect4Sound', soundEnabled);
+            updateSoundButton();
+            hapticFeedback('light');
+            
+            // Play a test sound if enabling
+            if (soundEnabled) {
+                initAudio();
+                playSound('drop');
+            }
+        }
+        
+        function updateSoundButton() {
+            const btn = document.getElementById('sound-toggle');
+            btn.textContent = soundEnabled ? '🔊' : '🔇';
+            btn.classList.toggle('muted', !soundEnabled);
+        }
+        
+        // ===== FULLSCREEN =====
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log('Fullscreen error:', err);
+                });
+                document.getElementById('fullscreen-btn').textContent = '⛶';
+            } else {
+                document.exitFullscreen();
+                document.getElementById('fullscreen-btn').textContent = '⛶';
+            }
+            hapticFeedback('light');
+        }
+        
+        // ===== INTRO =====
+        function hideIntro() {
+            const intro = document.getElementById('intro-screen');
+            intro.classList.add('hidden');
+        }
+        
+        // ===== AI THINKING VISUALIZATION =====
+        let aiScores = [0, 0, 0, 0, 0, 0, 0];
+        
+        function showAIThinking(show) {
+            const display = document.getElementById('ai-thinking-display');
+            if (show && gameMode === '1p') {
+                display.classList.add('active');
+            } else {
+                display.classList.remove('active');
+            }
+        }
+        
+        function updateAIVisualization(scores, bestCol) {
+            const bars = document.querySelectorAll('.ai-column-bar');
+            const maxScore = Math.max(...scores.map(s => Math.abs(s === null ? 0 : s)));
+            
+            bars.forEach((bar, i) => {
+                const score = scores[i];
+                
+                if (score === null) {
+                    // Column is full
+                    bar.style.height = '4px';
+                    bar.className = 'ai-column-bar blocked';
+                } else {
+                    const normalizedHeight = maxScore > 0 ? (Math.abs(score) / maxScore) * 50 + 10 : 10;
+                    bar.style.height = normalizedHeight + 'px';
+                    
+                    if (i === bestCol) {
+                        bar.className = 'ai-column-bar best';
+                    } else if (score > 0) {
+                        bar.className = 'ai-column-bar positive';
+                    } else {
+                        bar.className = 'ai-column-bar negative';
+                    }
+                }
+            });
+        }
+        
+        // ===== ENHANCED PARTICLE EFFECTS =====
+        function createSparkle(x, y, color) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = x + 'px';
+            sparkle.style.top = y + 'px';
+            sparkle.style.width = '20px';
+            sparkle.style.height = '20px';
+            sparkle.innerHTML = `<svg viewBox="0 0 20 20" fill="${color}">
+                <polygon points="10,0 12,8 20,10 12,12 10,20 8,12 0,10 8,8"/>
+            </svg>`;
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => sparkle.remove(), 600);
+        }
+        
+        function createDiscTrail(x, y, color) {
+            const trail = document.createElement('div');
+            trail.className = 'disc-trail';
+            trail.style.left = x + 'px';
+            trail.style.top = y + 'px';
+            trail.style.width = '40px';
+            trail.style.height = '40px';
+            trail.style.background = color === 'yellow' ? 'var(--accent-yellow)' : 'var(--accent-red)';
+            document.body.appendChild(trail);
+            
+            setTimeout(() => trail.remove(), 400);
+        }
+        
+        function showCelebrationRing() {
+            const ring = document.getElementById('celebration-ring');
+            ring.classList.remove('animate');
+            void ring.offsetWidth; // Reflow
+            ring.classList.add('animate');
+            
+            // Multiple rings
+            setTimeout(() => {
+                ring.classList.remove('animate');
+                void ring.offsetWidth;
+                ring.classList.add('animate');
+            }, 300);
+        }
+        
+        function showEnhancedWinEffects() {
+            showCelebrationRing();
+            
+            // Sparkles around the screen
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+                    const color = Math.random() > 0.5 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+                    createSparkle(x, y, color);
+                }, i * 100);
+            }
+        }
+        
+        // ===== KEYBOARD =====
+        function handleKeyDown(e) {
+            // Only handle keys during gameplay
+            const gameScreen = document.getElementById('game-screen');
+            if (!gameScreen.classList.contains('active')) return;
+            if (gameOver || isThinking) return;
+            
+            // Keys 1-7 for columns
+            const key = e.key;
+            if (key >= '1' && key <= '7') {
+                const col = parseInt(key) - 1;
+                
+                // Visual feedback on key hint
+                const hint = document.querySelector(`.key-hint[data-col="${col}"]`);
+                if (hint) {
+                    hint.classList.add('active');
+                    setTimeout(() => hint.classList.remove('active'), 150);
+                }
+                
+                handleCellClick(col);
+            }
+            
+            // R for restart
+            if (key === 'r' || key === 'R') {
+                if (gameMode === '2p') {
+                    start2PGame();
+                } else {
+                    startGame(currentLevel);
+                }
+            }
+            
+            // Escape for menu
+            if (key === 'Escape') {
+                showMenu();
+            }
+        }
+        
+        // ===== HAPTIC FEEDBACK =====
+        function hapticFeedback(type = 'light', element = null) {
+            // Try vibration API first (Android)
+            if (navigator.vibrate) {
+                switch(type) {
+                    case 'light':
+                        navigator.vibrate(10);
+                        break;
+                    case 'medium':
+                        navigator.vibrate(25);
+                        break;
+                    case 'heavy':
+                        navigator.vibrate(50);
+                        break;
+                    case 'success':
+                        navigator.vibrate([30, 50, 30]);
+                        break;
+                    case 'error':
+                        navigator.vibrate([50, 30, 50, 30, 50]);
+                        break;
+                    case 'win':
+                        navigator.vibrate([30, 50, 30, 50, 100]);
+                        break;
+                }
+            }
+            
+            // Always add visual feedback as well
+            addVisualFeedback(type, element);
+        }
+        
+        function addVisualFeedback(type, element = null) {
+            // Add animation class and remove after animation completes
+            const addAndRemove = (el, className, duration) => {
+                if (!el) return;
+                el.classList.add(className);
+                setTimeout(() => el.classList.remove(className), duration);
+            };
+            
+            switch(type) {
+                case 'light':
+                case 'medium':
+                    if (element) {
+                        addAndRemove(element, 'tap-pulse', 300);
+                    }
+                    break;
+                case 'heavy':
+                    if (element) {
+                        addAndRemove(element, 'tap-shake', 400);
+                    }
+                    break;
+                case 'success':
+                    // Pulse the achievement toast
+                    const toast = document.getElementById('achievement-toast');
+                    addAndRemove(toast, 'tap-pulse', 300);
+                    break;
+                case 'error':
+                case 'lose':
+                    // Shake the board on lose
+                    const boardWrapper = document.querySelector('.board-wrapper');
+                    addAndRemove(boardWrapper, 'lose-shake', 500);
+                    break;
+                case 'win':
+                    // Shake the board on win (celebratory)
+                    const boardWin = document.querySelector('.board-wrapper');
+                    addAndRemove(boardWin, 'win-shake', 600);
+                    break;
+                case 'cell':
+                    if (element) {
+                        addAndRemove(element, 'tap-feedback', 200);
+                    }
+                    break;
+            }
+        }
+        
+        // ===== ACHIEVEMENTS =====
+        const ACHIEVEMENTS = [
+            { id: 'first_win', name: 'First Victory', desc: 'Win your first game', icon: '🌟', condition: (s) => s.totalWins >= 1 },
+            { id: 'win_5', name: 'On a Roll', desc: 'Win 5 games', icon: '🔥', condition: (s) => s.totalWins >= 5 },
+            { id: 'win_10', name: 'Veteran', desc: 'Win 10 games', icon: '⭐', condition: (s) => s.totalWins >= 10 },
+            { id: 'win_25', name: 'Master', desc: 'Win 25 games', icon: '👑', condition: (s) => s.totalWins >= 25 },
+            { id: 'win_50', name: 'Legend', desc: 'Win 50 games', icon: '🏆', condition: (s) => s.totalWins >= 50 },
+            { id: 'beat_lv1', name: 'Beginner Beaten', desc: 'Beat level 1', icon: '🟢', condition: (s) => s.levelWins[1] >= 1 },
+            { id: 'beat_lv2', name: 'Casual Crushed', desc: 'Beat level 2', icon: '🔵', condition: (s) => s.levelWins[2] >= 1 },
+            { id: 'beat_lv3', name: 'Challenger', desc: 'Beat level 3', icon: '🟡', condition: (s) => s.levelWins[3] >= 1 },
+            { id: 'beat_lv4', name: 'Tactician', desc: 'Beat level 4', icon: '🟠', condition: (s) => s.levelWins[4] >= 1 },
+            { id: 'beat_lv5', name: 'AI Slayer', desc: 'Beat level 5 - Expert', icon: '🔴', condition: (s) => s.levelWins[5] >= 1 },
+            { id: 'perfect_lv1', name: 'Perfect Beginner', desc: 'Win 10 games on level 1', icon: '💚', condition: (s) => s.levelWins[1] >= 10 },
+            { id: 'perfect_lv5', name: 'Ultimate Master', desc: 'Win 5 games on level 5', icon: '💎', condition: (s) => s.levelWins[5] >= 5 },
+            { id: 'play_10', name: 'Dedicated', desc: 'Play 10 games', icon: '🎮', condition: (s) => s.totalGames >= 10 },
+            { id: 'play_50', name: 'Enthusiast', desc: 'Play 50 games', icon: '🎯', condition: (s) => s.totalGames >= 50 },
+            { id: 'quick_win', name: 'Speed Demon', desc: 'Win in 7 moves or less', icon: '⚡', condition: (s) => s.quickestWin > 0 && s.quickestWin <= 7 },
+            { id: 'all_levels', name: 'Completionist', desc: 'Beat all 5 levels', icon: '🌈', condition: (s) => [1,2,3,4,5].every(l => s.levelWins[l] >= 1) },
+        ];
+        
+        function getAchievementStats() {
+            const stats = loadStats();
+            let totalWins = 0;
+            let totalGames = 0;
+            let levelWins = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+            
+            for (let i = 1; i <= 5; i++) {
+                const ls = stats[i] || { played: 0, wins: 0 };
+                totalWins += ls.wins;
+                totalGames += ls.played;
+                levelWins[i] = ls.wins;
+            }
+            
+            const quickestWin = stats.quickestWin || 0;
+            
+            return { totalWins, totalGames, levelWins, quickestWin };
+        }
+        
+        function getUnlockedAchievements() {
+            return JSON.parse(localStorage.getItem('connect4Achievements')) || [];
+        }
+        
+        function saveUnlockedAchievements(achievements) {
+            localStorage.setItem('connect4Achievements', JSON.stringify(achievements));
+        }
+        
+        function checkAchievements() {
+            const stats = getAchievementStats();
+            const unlocked = getUnlockedAchievements();
+            const newlyUnlocked = [];
+            
+            ACHIEVEMENTS.forEach(achievement => {
+                if (!unlocked.includes(achievement.id) && achievement.condition(stats)) {
+                    unlocked.push(achievement.id);
+                    newlyUnlocked.push(achievement);
+                }
+            });
+            
+            if (newlyUnlocked.length > 0) {
+                saveUnlockedAchievements(unlocked);
+                // Show toast for first new achievement
+                showAchievementToast(newlyUnlocked[0]);
+                // Mark button as having new achievements
+                document.getElementById('achievements-btn').classList.add('has-new');
+            }
+            
+            return newlyUnlocked;
+        }
+        
+        function showAchievementToast(achievement) {
+            const toast = document.getElementById('achievement-toast');
+            document.getElementById('toast-icon').textContent = achievement.icon;
+            document.getElementById('toast-name').textContent = achievement.name;
+            
+            toast.classList.add('show');
+            hapticFeedback('success');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+        
+        function renderAchievements() {
+            const list = document.getElementById('achievements-list');
+            const unlocked = getUnlockedAchievements();
+            const stats = getAchievementStats();
+            
+            list.innerHTML = ACHIEVEMENTS.map(achievement => {
+                const isUnlocked = unlocked.includes(achievement.id);
+                const progress = getAchievementProgress(achievement, stats);
+                
+                return `
+                    <div class="achievement-card ${isUnlocked ? 'unlocked' : ''}">
+                        <div class="achievement-icon">${isUnlocked ? achievement.icon : '🔒'}</div>
+                        <div class="achievement-info">
+                            <div class="achievement-name">${achievement.name}</div>
+                            <div class="achievement-desc">${achievement.desc}</div>
+                            ${!isUnlocked && progress !== null ? `
+                                <div class="achievement-progress">
+                                    <div class="achievement-progress-bar" style="width: ${progress}%"></div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Remove new indicator when viewing
+            document.getElementById('achievements-btn').classList.remove('has-new');
+        }
+        
+        function getAchievementProgress(achievement, stats) {
+            // Return progress percentage for trackable achievements
+            const progressMap = {
+                'first_win': { current: stats.totalWins, max: 1 },
+                'win_5': { current: stats.totalWins, max: 5 },
+                'win_10': { current: stats.totalWins, max: 10 },
+                'win_25': { current: stats.totalWins, max: 25 },
+                'win_50': { current: stats.totalWins, max: 50 },
+                'play_10': { current: stats.totalGames, max: 10 },
+                'play_50': { current: stats.totalGames, max: 50 },
+                'perfect_lv1': { current: stats.levelWins[1], max: 10 },
+                'perfect_lv5': { current: stats.levelWins[5], max: 5 },
+            };
+            
+            if (progressMap[achievement.id]) {
+                const p = progressMap[achievement.id];
+                return Math.min(100, (p.current / p.max) * 100);
+            }
+            return null;
+        }
+        
+        function openAchievements() {
+            const btn = document.getElementById('achievements-btn');
+            renderAchievements();
+            document.getElementById('achievements-panel').classList.add('open');
+            document.getElementById('achievements-overlay').classList.add('open');
+            hapticFeedback('light', btn);
+        }
+        
+        function closeAchievements() {
+            document.getElementById('achievements-panel').classList.remove('open');
+            document.getElementById('achievements-overlay').classList.remove('open');
+        }
+
+        // ===== AUDIO =====
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioCtx || !soundEnabled) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            switch(type) {
+                case 'drop':
+                    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.15);
+                    break;
+                case 'win':
+                    [523, 659, 784, 1047].forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.value = freq;
+                        g.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.15);
+                        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.15 + 0.3);
+                        o.start(audioCtx.currentTime + i * 0.15);
+                        o.stop(audioCtx.currentTime + i * 0.15 + 0.3);
+                    });
+                    break;
+                case 'lose':
+                    [400, 350, 300, 200].forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.value = freq;
+                        o.type = 'sawtooth';
+                        g.gain.setValueAtTime(0.15, audioCtx.currentTime + i * 0.2);
+                        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.2 + 0.25);
+                        o.start(audioCtx.currentTime + i * 0.2);
+                        o.stop(audioCtx.currentTime + i * 0.2 + 0.25);
+                    });
+                    break;
+                case 'draw':
+                    osc.frequency.value = 440;
+                    osc.type = 'triangle';
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.5);
+                    break;
+            }
+        }
+
+        // ===== STATS =====
+        function loadStats() {
+            const stats = JSON.parse(localStorage.getItem('connect4Stats')) || {};
+            return stats;
+        }
+
+        function saveStats(stats) {
+            localStorage.setItem('connect4Stats', JSON.stringify(stats));
+        }
+
+        function updateStatsDisplay() {
+            const stats = loadStats();
+            let totalWins = 0;
+            let totalGames = 0;
+
+            for (let i = 1; i <= 5; i++) {
+                const levelStats = stats[i] || { played: 0, wins: 0 };
+                document.getElementById(`stats-${i}`).textContent = 
+                    `Played: ${levelStats.played} | Wins: ${levelStats.wins}`;
+                totalWins += levelStats.wins;
+                totalGames += levelStats.played;
+            }
+
+            document.getElementById('total-wins').textContent = totalWins;
+            document.getElementById('total-games').textContent = totalGames;
+            document.getElementById('win-rate').textContent = 
+                totalGames > 0 ? Math.round((totalWins / totalGames) * 100) + '%' : '0%';
+        }
+
+        function recordGame(level, won, moves = 0) {
+            const stats = loadStats();
+            if (!stats[level]) {
+                stats[level] = { played: 0, wins: 0 };
+            }
+            stats[level].played++;
+            if (won) {
+                stats[level].wins++;
+                // Track quickest win
+                if (moves > 0 && (!stats.quickestWin || moves < stats.quickestWin)) {
+                    stats.quickestWin = moves;
+                }
+            }
+            saveStats(stats);
+            updateStatsDisplay();
+            
+            // Check for new achievements
+            setTimeout(() => checkAchievements(), 500);
+        }
+
+        // ===== BOARD LOGIC =====
+        function createBoard() {
+            board = Array(ROWS).fill(null).map(() => Array(COLS).fill(EMPTY));
+        }
+
+        function getValidMoves() {
+            const moves = [];
+            for (let col = 0; col < COLS; col++) {
+                if (board[0][col] === EMPTY) {
+                    moves.push(col);
+                }
+            }
+            return moves;
+        }
+
+        function getDropRow(col) {
+            for (let row = ROWS - 1; row >= 0; row--) {
+                if (board[row][col] === EMPTY) {
+                    return row;
+                }
+            }
+            return -1;
+        }
+
+        function makeMove(col, player) {
+            const row = getDropRow(col);
+            if (row === -1) return null;
+            board[row][col] = player;
+            return { row, col };
+        }
+
+        function undoMove(row, col) {
+            board[row][col] = EMPTY;
+        }
+
+        function checkWin(player) {
+            // Horizontal
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c <= COLS - 4; c++) {
+                    if (board[r][c] === player && board[r][c+1] === player && 
+                        board[r][c+2] === player && board[r][c+3] === player) {
+                        return [[r,c], [r,c+1], [r,c+2], [r,c+3]];
+                    }
+                }
+            }
+            // Vertical
+            for (let r = 0; r <= ROWS - 4; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (board[r][c] === player && board[r+1][c] === player && 
+                        board[r+2][c] === player && board[r+3][c] === player) {
+                        return [[r,c], [r+1,c], [r+2,c], [r+3,c]];
+                    }
+                }
+            }
+            // Diagonal (down-right)
+            for (let r = 0; r <= ROWS - 4; r++) {
+                for (let c = 0; c <= COLS - 4; c++) {
+                    if (board[r][c] === player && board[r+1][c+1] === player && 
+                        board[r+2][c+2] === player && board[r+3][c+3] === player) {
+                        return [[r,c], [r+1,c+1], [r+2,c+2], [r+3,c+3]];
+                    }
+                }
+            }
+            // Diagonal (up-right)
+            for (let r = 3; r < ROWS; r++) {
+                for (let c = 0; c <= COLS - 4; c++) {
+                    if (board[r][c] === player && board[r-1][c+1] === player && 
+                        board[r-2][c+2] === player && board[r-3][c+3] === player) {
+                        return [[r,c], [r-1,c+1], [r-2,c+2], [r-3,c+3]];
+                    }
+                }
+            }
+            return null;
+        }
+
+        function isBoardFull() {
+            return board[0].every(cell => cell !== EMPTY);
+        }
+
+        // ===== AI LOGIC =====
+        function evaluateWindow(window, player) {
+            const opponent = player === PLAYER ? AI : PLAYER;
+            const playerCount = window.filter(c => c === player).length;
+            const emptyCount = window.filter(c => c === EMPTY).length;
+            const oppCount = window.filter(c => c === opponent).length;
+
+            if (playerCount === 4) return 100;
+            if (playerCount === 3 && emptyCount === 1) return 5;
+            if (playerCount === 2 && emptyCount === 2) return 2;
+            if (oppCount === 3 && emptyCount === 1) return -4;
+            return 0;
+        }
+
+        function evaluateBoard(player) {
+            let score = 0;
+            
+            // Center column preference
+            const centerCol = Math.floor(COLS / 2);
+            const centerCount = board.filter(row => row[centerCol] === player).length;
+            score += centerCount * 3;
+
+            // Horizontal
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c <= COLS - 4; c++) {
+                    const window = [board[r][c], board[r][c+1], board[r][c+2], board[r][c+3]];
+                    score += evaluateWindow(window, player);
+                }
+            }
+
+            // Vertical
+            for (let c = 0; c < COLS; c++) {
+                for (let r = 0; r <= ROWS - 4; r++) {
+                    const window = [board[r][c], board[r+1][c], board[r+2][c], board[r+3][c]];
+                    score += evaluateWindow(window, player);
+                }
+            }
+
+            // Diagonal down-right
+            for (let r = 0; r <= ROWS - 4; r++) {
+                for (let c = 0; c <= COLS - 4; c++) {
+                    const window = [board[r][c], board[r+1][c+1], board[r+2][c+2], board[r+3][c+3]];
+                    score += evaluateWindow(window, player);
+                }
+            }
+
+            // Diagonal up-right
+            for (let r = 3; r < ROWS; r++) {
+                for (let c = 0; c <= COLS - 4; c++) {
+                    const window = [board[r][c], board[r-1][c+1], board[r-2][c+2], board[r-3][c+3]];
+                    score += evaluateWindow(window, player);
+                }
+            }
+
+            return score;
+        }
+
+        function minimax(depth, alpha, beta, maximizing) {
+            const validMoves = getValidMoves();
+            
+            if (checkWin(AI)) return { score: 10000 + depth };
+            if (checkWin(PLAYER)) return { score: -10000 - depth };
+            if (validMoves.length === 0) return { score: 0 };
+            if (depth === 0) return { score: evaluateBoard(AI) };
+
+            if (maximizing) {
+                let maxEval = { score: -Infinity, col: validMoves[Math.floor(Math.random() * validMoves.length)] };
+                for (const col of validMoves) {
+                    const { row } = { row: getDropRow(col) };
+                    board[row][col] = AI;
+                    const evalResult = minimax(depth - 1, alpha, beta, false);
+                    board[row][col] = EMPTY;
+                    
+                    if (evalResult.score > maxEval.score) {
+                        maxEval = { score: evalResult.score, col };
+                    }
+                    alpha = Math.max(alpha, evalResult.score);
+                    if (beta <= alpha) break;
+                }
+                return maxEval;
+            } else {
+                let minEval = { score: Infinity, col: validMoves[Math.floor(Math.random() * validMoves.length)] };
+                for (const col of validMoves) {
+                    const { row } = { row: getDropRow(col) };
+                    board[row][col] = PLAYER;
+                    const evalResult = minimax(depth - 1, alpha, beta, true);
+                    board[row][col] = EMPTY;
+                    
+                    if (evalResult.score < minEval.score) {
+                        minEval = { score: evalResult.score, col };
+                    }
+                    beta = Math.min(beta, evalResult.score);
+                    if (beta <= alpha) break;
+                }
+                return minEval;
+            }
+        }
+
+        function getAIMove(level) {
+            const validMoves = getValidMoves();
+            if (validMoves.length === 0) return null;
+
+            // Calculate scores for visualization
+            const scores = [];
+            for (let col = 0; col < COLS; col++) {
+                if (board[0][col] !== EMPTY) {
+                    scores.push(null); // Column is full
+                } else {
+                    const row = getDropRow(col);
+                    board[row][col] = AI;
+                    const score = evaluateBoard();
+                    board[row][col] = EMPTY;
+                    scores.push(score);
+                }
+            }
+
+            // Check for immediate win
+            for (const col of validMoves) {
+                const row = getDropRow(col);
+                board[row][col] = AI;
+                if (checkWin(AI)) {
+                    board[row][col] = EMPTY;
+                    updateAIVisualization(scores, col);
+                    return col;
+                }
+                board[row][col] = EMPTY;
+            }
+
+            // Check for immediate block (levels 2+)
+            if (level >= 2) {
+                for (const col of validMoves) {
+                    const row = getDropRow(col);
+                    board[row][col] = PLAYER;
+                    if (checkWin(PLAYER)) {
+                        board[row][col] = EMPTY;
+                        updateAIVisualization(scores, col);
+                        return col;
+                    }
+                    board[row][col] = EMPTY;
+                }
+            }
+
+            let bestCol;
+            
+            switch (level) {
+                case 1:
+                    // Random
+                    bestCol = validMoves[Math.floor(Math.random() * validMoves.length)];
+                    break;
+                
+                case 2:
+                    // Random with slight center preference
+                    const centerBias = validMoves.filter(c => c >= 2 && c <= 4);
+                    if (centerBias.length > 0 && Math.random() > 0.5) {
+                        bestCol = centerBias[Math.floor(Math.random() * centerBias.length)];
+                    } else {
+                        bestCol = validMoves[Math.floor(Math.random() * validMoves.length)];
+                    }
+                    break;
+                
+                case 3:
+                    // Minimax depth 3
+                    bestCol = minimax(3, -Infinity, Infinity, true).col;
+                    break;
+                
+                case 4:
+                    // Minimax depth 5
+                    bestCol = minimax(5, -Infinity, Infinity, true).col;
+                    break;
+                
+                case 5:
+                    // Minimax depth 8, but sometimes makes "mistakes"
+                    // 15% chance to pick second-best move
+                    if (Math.random() < 0.15) {
+                        // Get all moves with scores
+                        const moveScores = validMoves.map(col => {
+                            const row = getDropRow(col);
+                            board[row][col] = AI;
+                            const score = minimax(6, -Infinity, Infinity, false).score;
+                            board[row][col] = EMPTY;
+                            return { col, score };
+                        });
+                        moveScores.sort((a, b) => b.score - a.score);
+                        // Pick second best if available
+                        if (moveScores.length > 1) {
+                            bestCol = moveScores[1].col;
+                            break;
+                        }
+                    }
+                    bestCol = minimax(8, -Infinity, Infinity, true).col;
+                    break;
+                
+                default:
+                    bestCol = validMoves[Math.floor(Math.random() * validMoves.length)];
+            }
+            
+            updateAIVisualization(scores, bestCol);
+            return bestCol;
+        }
+
+        // ===== UI =====
+        function renderBoard() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+
+                    if (board[r][c] !== EMPTY) {
+                        cell.classList.add('filled');
+                        const disc = document.createElement('div');
+                        disc.className = `disc ${board[r][c] === PLAYER ? 'yellow' : 'red'}`;
+                        cell.appendChild(disc);
+                    }
+
+                    cell.addEventListener('click', () => handleCellClick(c));
+                    cell.addEventListener('mouseenter', () => highlightColumn(c));
+                    boardEl.appendChild(cell);
+                }
+            }
+
+            // Column indicators
+            const indicators = document.getElementById('column-indicators');
+            indicators.innerHTML = '';
+            for (let c = 0; c < COLS; c++) {
+                const indicator = document.createElement('div');
+                indicator.className = 'column-indicator';
+                indicator.dataset.col = c;
+                indicators.appendChild(indicator);
+            }
+            
+            // Add mouseleave to board wrapper
+            const boardWrapper = document.querySelector('.board-wrapper');
+            boardWrapper.addEventListener('mouseleave', clearColumnHighlight);
+        }
+
+        function dropDisc(row, col, player) {
+            const cellIndex = row * COLS + col;
+            const cell = document.querySelectorAll('.cell')[cellIndex];
+            cell.classList.add('filled');
+            
+            const disc = document.createElement('div');
+            disc.className = `disc ${player === PLAYER ? 'yellow' : 'red'}`;
+            cell.appendChild(disc);
+            
+            // Trigger animation
+            requestAnimationFrame(() => {
+                disc.classList.add('dropped');
+            });
+
+            playSound('drop');
+            hapticFeedback('medium');
+        }
+
+        function highlightWinningCells(cells) {
+            const boardEl = document.getElementById('board');
+            const allCells = boardEl.querySelectorAll('.cell');
+            
+            // Highlight the winning discs with staggered animation
+            cells.forEach(([r, c], index) => {
+                setTimeout(() => {
+                    const cellIndex = r * COLS + c;
+                    const cell = allCells[cellIndex];
+                    cell.classList.add('winning-cell');
+                    const disc = cell.querySelector('.disc');
+                    if (disc) disc.classList.add('winning');
+                }, index * 100); // Staggered reveal
+            });
+        }
+
+        function highlightColumn(col) {
+            if (gameOver || isThinking) return;
+            
+            // In 1P mode, only highlight when it's player's turn
+            if (gameMode === '1p' && currentPlayer !== PLAYER) return;
+            
+            // Clear all indicators first
+            document.querySelectorAll('.column-indicator').forEach(ind => {
+                ind.classList.remove('active', 'yellow', 'red');
+            });
+            
+            if (board[0][col] !== EMPTY) {
+                hidePreview();
+                return;
+            }
+            
+            const indicator = document.querySelector(`.column-indicator[data-col="${col}"]`);
+            const colorClass = currentPlayer === PLAYER ? 'yellow' : 'red';
+            
+            if (indicator) {
+                indicator.classList.add('active', colorClass);
+            }
+            
+            // Position preview disc
+            const boardEl = document.getElementById('board');
+            const cells = boardEl.querySelectorAll('.cell');
+            const cellWidth = cells[0].offsetWidth;
+            const gap = 8; // Same as CSS gap
+            const previewDisc = document.getElementById('preview-disc');
+            
+            const leftOffset = col * (cellWidth + gap) + (cellWidth / 2) - (previewDisc.offsetWidth / 2);
+            previewDisc.style.left = leftOffset + 'px';
+            previewDisc.className = `preview-disc ${colorClass} visible`;
+        }
+
+        function hidePreview() {
+            const previewDisc = document.getElementById('preview-disc');
+            previewDisc.classList.remove('visible');
+        }
+
+        function clearColumnHighlight() {
+            document.querySelectorAll('.column-indicator').forEach(ind => {
+                ind.classList.remove('active', 'yellow', 'red');
+            });
+            hidePreview();
+        }
+
+        function updateTurnDisplay() {
+            const disc = document.getElementById('player-disc');
+            const text = document.getElementById('turn-text');
+            
+            if (currentPlayer === PLAYER) {
+                disc.className = 'player-disc yellow';
+                text.textContent = 'Your turn';
+            } else {
+                disc.className = 'player-disc red';
+                text.textContent = "AI's turn";
+            }
+        }
+
+        function showThinking(show) {
+            document.getElementById('thinking').classList.toggle('active', show);
+            isThinking = show;
+            showAIThinking(show);
+        }
+
+        function showModal(type, message) {
+            const modal = document.getElementById('modal');
+            const icon = document.getElementById('modal-icon');
+            const title = document.getElementById('modal-title');
+            const subtitle = document.getElementById('modal-subtitle');
+
+            switch (type) {
+                case 'win':
+                    icon.textContent = '🎉';
+                    title.textContent = 'You Won!';
+                    title.className = 'modal-title win';
+                    subtitle.textContent = message || 'Great game!';
+                    playSound('win');
+                    hapticFeedback('win');
+                    break;
+                case 'lose':
+                    icon.textContent = '😔';
+                    title.textContent = 'You Lost';
+                    title.className = 'modal-title lose';
+                    subtitle.textContent = message || 'Better luck next time!';
+                    playSound('lose');
+                    hapticFeedback('lose');
+                    break;
+                case 'draw':
+                    icon.textContent = '🤝';
+                    title.textContent = 'Draw!';
+                    title.className = 'modal-title draw';
+                    subtitle.textContent = message || 'Evenly matched!';
+                    playSound('draw');
+                    break;
+            }
+
+            modal.classList.add('active');
+        }
+
+        function hideModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+        
+        function showConfetti() {
+            const container = document.getElementById('confetti-container');
+            container.innerHTML = '';
+            
+            const colors = ['#ffd93d', '#ff6b6b', '#4ecdc4', '#fff', '#a8e6cf'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                confetti.style.height = confetti.style.width;
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                container.appendChild(confetti);
+                
+                setTimeout(() => confetti.classList.add('active'), 10);
+            }
+            
+            // Enhanced effects
+            showEnhancedWinEffects();
+            
+            // Clear confetti after animation
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 4000);
+        }
+
+        // ===== GAME FLOW =====
+        async function handleCellClick(col) {
+            if (gameOver || isThinking) return;
+            
+            // In 1P mode, only allow clicks when it's player's turn
+            if (gameMode === '1p' && currentPlayer !== PLAYER) return;
+            
+            if (board[0][col] !== EMPTY) return;
+
+            initAudio();
+            
+            // Get the cell for visual feedback
+            const cellIndex = getDropRow(col) * COLS + col;
+            const cells = document.querySelectorAll('.cell');
+            const clickedCell = cells[cellIndex];
+            hapticFeedback('cell', clickedCell);
+
+            // Make the move
+            const result = makeMove(col, currentPlayer);
+            if (!result) return;
+
+            moveCount++;
+            document.getElementById('move-counter').textContent = `Moves: ${moveCount}`;
+            
+            dropDisc(result.row, result.col, currentPlayer);
+
+            // Check for win
+            const winningCells = checkWin(currentPlayer);
+            if (winningCells) {
+                gameOver = true;
+                hidePreview();
+                
+                if (gameMode === '2p') {
+                    // 2 Player win
+                    const winner = currentPlayer === PLAYER ? 'Player 1' : 'Player 2';
+                    const winnerColor = currentPlayer === PLAYER ? 'yellow' : 'red';
+                    setTimeout(() => {
+                        highlightWinningCells(winningCells);
+                        showConfetti();
+                    }, 400);
+                    setTimeout(() => {
+                        show2PWinModal(winner, winnerColor, moveCount);
+                    }, 2500);
+                } else {
+                    // 1 Player win
+                    setTimeout(() => {
+                        highlightWinningCells(winningCells);
+                        showConfetti();
+                    }, 400);
+                    setTimeout(() => {
+                        showModal('win', `You won in ${moveCount} moves!`);
+                        recordGame(currentLevel, true, moveCount);
+                    }, 2500);
+                }
+                return;
+            }
+
+            // Check for draw
+            if (isBoardFull()) {
+                gameOver = true;
+                setTimeout(() => {
+                    showModal('draw');
+                    if (gameMode === '1p') {
+                        recordGame(currentLevel, false);
+                    }
+                }, 800);
+                return;
+            }
+
+            // Switch turns
+            if (gameMode === '2p') {
+                // 2 Player: just switch turns
+                currentPlayer = currentPlayer === PLAYER ? AI : PLAYER;
+                update2PTurnIndicator(true); // Show banner on turn change
+            } else {
+                // 1 Player: AI's turn
+                currentPlayer = AI;
+                updateTurnDisplay();
+                showThinking(true);
+
+                await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+
+                const aiCol = getAIMove(currentLevel);
+                const aiResult = makeMove(aiCol, AI);
+
+                showThinking(false);
+                
+                moveCount++;
+                document.getElementById('move-counter').textContent = `Moves: ${moveCount}`;
+                
+                dropDisc(aiResult.row, aiResult.col, AI);
+
+                const aiWin = checkWin(AI);
+                if (aiWin) {
+                    gameOver = true;
+                    setTimeout(() => {
+                        highlightWinningCells(aiWin);
+                    }, 400);
+                    setTimeout(() => {
+                        showModal('lose', `AI won in ${moveCount} moves`);
+                        recordGame(currentLevel, false);
+                    }, 2500);
+                    return;
+                }
+
+                if (isBoardFull()) {
+                    gameOver = true;
+                    setTimeout(() => {
+                        showModal('draw');
+                        recordGame(currentLevel, false);
+                    }, 800);
+                    return;
+                }
+
+                currentPlayer = PLAYER;
+                updateTurnDisplay();
+            }
+        }
+        
+        function show2PWinModal(winner, color, moves) {
+            const modal = document.getElementById('modal');
+            const icon = document.getElementById('modal-icon');
+            const title = document.getElementById('modal-title');
+            const subtitle = document.getElementById('modal-subtitle');
+            
+            // Hide turn indicator elements
+            document.getElementById('turn-overlay').classList.remove('active');
+            document.getElementById('turn-banner').classList.remove('show');
+            
+            icon.textContent = '🎉';
+            title.textContent = `${winner} Wins!`;
+            title.className = `modal-title ${color === 'yellow' ? 'win' : 'lose'}`;
+            subtitle.textContent = `Victory in ${moves} moves!`;
+            
+            playSound('win');
+            hapticFeedback('win');
+            
+            modal.classList.add('active');
+        }
+
+        function startGame(level) {
+            gameMode = '1p';
+            currentLevel = level;
+            createBoard();
+            gameOver = false;
+            isThinking = false;
+            moveCount = 0;
+            
+            document.getElementById('move-counter').textContent = 'Moves: 0';
+
+            // Determine who starts
+            // Levels 1-2: Player always starts
+            // Levels 3-5: 50/50 chance, but level 5 player always starts for fairness
+            if (level <= 2 || level === 5) {
+                currentPlayer = PLAYER;
+            } else {
+                currentPlayer = Math.random() < 0.5 ? PLAYER : AI;
+            }
+
+            document.getElementById('level-badge').textContent = `Level ${level}`;
+            document.getElementById('menu-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            
+            // Setup 1P UI - hide all 2P elements
+            const gameArea = document.getElementById('game-area');
+            gameArea.classList.remove('two-player');
+            document.getElementById('turn-indicator-2p').classList.remove('active');
+            document.getElementById('turn-overlay').classList.remove('yellow', 'red', 'active');
+            document.getElementById('turn-banner').classList.remove('show', 'yellow', 'red');
+            
+            const boardWrapper = document.querySelector('.board-wrapper');
+            if (boardWrapper) {
+                boardWrapper.classList.remove('yellow-turn', 'red-turn');
+            }
+            
+            const statusBar = document.querySelector('.status-bar');
+            if (statusBar) {
+                statusBar.classList.remove('two-player', 'yellow-turn', 'red-turn');
+            }
+
+            renderBoard();
+            updateTurnDisplay();
+
+            // If AI starts, make its move
+            if (currentPlayer === AI) {
+                showThinking(true);
+                setTimeout(async () => {
+                    const aiCol = getAIMove(currentLevel);
+                    const aiResult = makeMove(aiCol, AI);
+                    showThinking(false);
+                    dropDisc(aiResult.row, aiResult.col, AI);
+                    currentPlayer = PLAYER;
+                    updateTurnDisplay();
+                }, 800);
+            }
+        }
+
+        function showMenu() {
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('menu-screen').classList.add('active');
+            hideModal();
+            updateStatsDisplay();
+            
+            // Reset 2P UI elements
+            const gameArea = document.getElementById('game-area');
+            gameArea.classList.remove('two-player');
+            document.getElementById('turn-indicator-2p').classList.remove('active');
+            document.getElementById('turn-overlay').classList.remove('yellow', 'red', 'active');
+            document.getElementById('turn-banner').classList.remove('show', 'yellow', 'red');
+            
+            const boardWrapper = document.querySelector('.board-wrapper');
+            if (boardWrapper) {
+                boardWrapper.classList.remove('yellow-turn', 'red-turn');
+            }
+            
+            const statusBar = document.querySelector('.status-bar');
+            if (statusBar) {
+                statusBar.classList.remove('two-player', 'yellow-turn', 'red-turn');
+            }
+        }
+        
+        // ===== MODE SELECTION =====
+        function setGameMode(mode) {
+            gameMode = mode;
+            
+            // Update button states
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            
+            // Show/hide relevant UI
+            const difficultyHeader = document.getElementById('difficulty-header');
+            const difficultyGrid = document.getElementById('difficulty-grid');
+            const start2pBtn = document.getElementById('start-2p-btn');
+            
+            if (mode === '1p') {
+                difficultyHeader.textContent = 'Select Difficulty';
+                difficultyHeader.classList.remove('hidden');
+                difficultyGrid.classList.remove('hidden');
+                start2pBtn.classList.add('hidden');
+            } else {
+                difficultyHeader.textContent = '';
+                difficultyHeader.classList.add('hidden');
+                difficultyGrid.classList.add('hidden');
+                start2pBtn.classList.remove('hidden');
+            }
+        }
+        
+        function update2PTurnIndicator(showBanner = false) {
+            const indicator = document.getElementById('turn-indicator-2p');
+            const playerName = document.getElementById('turn-player-name');
+            const overlay = document.getElementById('turn-overlay');
+            const banner = document.getElementById('turn-banner');
+            const boardWrapper = document.querySelector('.board-wrapper');
+            const statusBar = document.querySelector('.status-bar');
+            
+            // Remove old classes
+            indicator.classList.remove('yellow-turn', 'red-turn');
+            overlay.classList.remove('yellow', 'red', 'active');
+            boardWrapper.classList.remove('yellow-turn', 'red-turn');
+            statusBar.classList.remove('yellow-turn', 'red-turn');
+            banner.classList.remove('yellow', 'red', 'show');
+            
+            const isYellow = currentPlayer === PLAYER;
+            const colorClass = isYellow ? 'yellow' : 'red';
+            const name = isYellow ? 'PLAYER 1' : 'PLAYER 2';
+            
+            // Update indicator
+            indicator.classList.add(isYellow ? 'yellow-turn' : 'red-turn');
+            playerName.textContent = name;
+            
+            // Update overlay glow
+            overlay.classList.add(colorClass, 'active');
+            
+            // Update board glow
+            boardWrapper.classList.add(isYellow ? 'yellow-turn' : 'red-turn');
+            
+            // Update status bar
+            statusBar.classList.add('two-player', isYellow ? 'yellow-turn' : 'red-turn');
+            
+            // Show banner if requested (on turn change)
+            if (showBanner) {
+                banner.textContent = name;
+                banner.className = `turn-banner ${colorClass}`;
+                // Force reflow to restart animation
+                void banner.offsetWidth;
+                banner.classList.add('show');
+            }
+        }
+        
+        function start2PGame() {
+            gameMode = '2p';
+            currentLevel = 0; // No AI level
+            createBoard();
+            gameOver = false;
+            isThinking = false;
+            moveCount = 0;
+            currentPlayer = PLAYER; // Yellow always starts
+            
+            document.getElementById('move-counter').textContent = 'Moves: 0';
+            document.getElementById('menu-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            
+            // Setup 2P UI
+            const gameArea = document.getElementById('game-area');
+            gameArea.classList.add('two-player');
+            document.getElementById('turn-indicator-2p').classList.add('active');
+            
+            renderBoard();
+            
+            // Show initial turn with banner
+            setTimeout(() => {
+                update2PTurnIndicator(true);
+            }, 300);
+        }
+
+        // ===== EVENT LISTENERS =====
+        document.querySelectorAll('.difficulty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                initAudio();
+                hapticFeedback('medium', btn);
+                const level = parseInt(btn.dataset.level);
+                startGame(level);
+            });
+        });
+        
+        // Mode selection
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                hapticFeedback('light', btn);
+                setGameMode(btn.dataset.mode);
+            });
+        });
+        
+        // 2 Player start
+        document.getElementById('start-2p-btn').addEventListener('click', (e) => {
+            initAudio();
+            hapticFeedback('medium', e.target);
+            start2PGame();
+        });
+
+        document.getElementById('back-btn').addEventListener('click', (e) => {
+            hapticFeedback('light', e.target);
+            showMenu();
+        });
+        document.getElementById('play-again-btn').addEventListener('click', (e) => {
+            hapticFeedback('medium', e.target);
+            hideModal();
+            if (gameMode === '2p') {
+                start2PGame();
+            } else {
+                startGame(currentLevel);
+            }
+        });
+        document.getElementById('menu-btn').addEventListener('click', (e) => {
+            hapticFeedback('light', e.target);
+            showMenu();
+        });
+        
+        // Theme toggle
+        document.getElementById('theme-toggle').addEventListener('click', toggleThemeMenu);
+        
+        // Theme menu options
+        document.querySelectorAll('.theme-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                setTheme(opt.dataset.theme);
+                hapticFeedback('light', opt);
+                closeThemeMenu();
+            });
+        });
+        
+        // Close theme menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('theme-menu');
+            const toggle = document.getElementById('theme-toggle');
+            if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+                closeThemeMenu();
+            }
+        });
+        
+        // Achievements
+        document.getElementById('achievements-btn').addEventListener('click', openAchievements);
+        document.getElementById('achievements-close').addEventListener('click', closeAchievements);
+        document.getElementById('achievements-overlay').addEventListener('click', closeAchievements);
+        
+        // Sound toggle
+        document.getElementById('sound-toggle').addEventListener('click', toggleSound);
+        
+        // Fullscreen toggle
+        document.getElementById('fullscreen-btn').addEventListener('click', toggleFullscreen);
+        
+        document.addEventListener('fullscreenchange', () => {
+            const btn = document.getElementById('fullscreen-btn');
+            btn.textContent = document.fullscreenElement ? '⛶' : '⛶';
+        });
+        
+        // Keyboard controls
+        document.addEventListener('keydown', handleKeyDown);
+        
+        // PWA Install Prompt
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-btn').classList.add('show');
+        });
+        
+        document.getElementById('install-btn').addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log('Install outcome:', outcome);
+            deferredPrompt = null;
+            document.getElementById('install-btn').classList.remove('show');
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            console.log('App installed');
+            document.getElementById('install-btn').classList.remove('show');
+            deferredPrompt = null;
+        });
+
+        // Initialize
+        initTheme();
+        initSoundSetting();
+        updateStatsDisplay();
+        checkAchievements(); // Check on load
+        
+        // Hide intro after animation
+        setTimeout(hideIntro, 2800);
+        
+        // Click to skip intro
+        document.getElementById('intro-screen').addEventListener('click', hideIntro);
+        
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered:', reg.scope))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+
+    <nav aria-label="Breadcrumb" style="max-width:800px;margin:2rem auto 0;padding:0 2rem;font-family:sans-serif;font-size:0.85rem;">
+      <a href="/" style="color:#a0a4c0;text-decoration:none;">Home</a>
+      <span style="color:#626580;margin:0 0.4rem;">›</span>
+      <a href="/board-games/" style="color:#a0a4c0;text-decoration:none;">Board Games</a>
+      <span style="color:#626580;margin:0 0.4rem;">›</span>
+      <span style="color:#f0f0ff;">Connect 4</span>
+    </nav>
+
+    <section class="game-info" style="max-width:800px;margin:3rem auto 0;padding:2rem;color:#a8b2d1;font-size:0.95rem;line-height:1.7;position:relative;z-index:1;">
+      <h1 style="color:#fff;font-size:1.6rem;margin-bottom:0.5rem;font-family:'Outfit',sans-serif;">Play Connect 4 Online Free – Four in a Row</h1>
+      <p>
+        Play the classic Connect 4 strategy game free in your browser. Drop your discs,
+        line up four in a row horizontally, vertically or diagonally, and outsmart your
+        opponent. Challenge a friend on the same device or test your skills against the AI.
+      </p>
+
+      <h2 style="color:#e0e0e0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Outfit',sans-serif;">Two Ways to Play</h2>
+      <p>
+        <strong>vs Friend</strong> – Two players take turns on the same screen. Great
+        for a quick head-to-head match.
+      </p>
+      <p>
+        <strong>vs AI</strong> – Play against the computer. The AI provides a solid
+        challenge for both beginners and experienced Connect 4 players.
+      </p>
+
+      <h2 style="color:#e0e0e0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Outfit',sans-serif;">How to Play</h2>
+      <p>
+        Click or tap a column to drop your disc. Discs fall to the lowest available
+        spot. The first player to connect four discs in a row wins. Plan ahead, block
+        your opponent and set up multiple winning threats at once.
+      </p>
+
+      <h2 style="color:#e0e0e0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Outfit',sans-serif;">Free Browser Game</h2>
+      <p>
+        No download, no signup, no ads. PulseGames Connect 4 works on any device –
+        desktop, tablet or phone. Just open and play.
+      </p>
+    </section>
+
+  <section style="max-width:800px;margin:3rem auto 0;padding:0 2rem;">
+    <h2 style="color:#e0e0e0;font-size:1.3rem;margin-bottom:1.2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">You Might Also Like</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      <a href="/solitaire/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/solitaire.webp" alt="Solitaire" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Solitaire</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Board</div>
+        </div>
+      </a>
+      <a href="/pulseblocks/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/pulseblocks.webp" alt="PulseBlocks" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">PulseBlocks</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Puzzle</div>
+        </div>
+      </a>
+      <a href="/snake/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/snake.webp" alt="Snake Neo" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Snake Neo</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Arcade</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer style="background:#0a0e1a;border-top:1px solid rgba(255,255,255,0.06);padding:48px 24px 24px;margin-top:3rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:32px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="max-width:300px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;"><svg width="20" height="14" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span style="font-size:1.5rem;font-weight:700;color:#fff;">PulseGames</span>
+          </div>
+          <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+        </div>
+        <div style="display:flex;gap:48px;flex-wrap:wrap;">
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Games</h4>
+            <a href="/snake/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Snake Neo</a>
+            <a href="/breakout/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Breakout</a>
+            <a href="/taprush/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Tap Rush</a>
+            <a href="/solitaire/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Solitaire</a>
+            <a href="/pulseblocks/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">PulseBlocks</a>
+            <a href="/connect4/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Connect 4</a>
+            <a href="/axeluga/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Axeluga</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Categories</h4>
+            <a href="/arcade-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Arcade</a>
+            <a href="/action-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Action</a>
+            <a href="/puzzle-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Puzzle</a>
+            <a href="/board-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Board Games</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Info</h4>
+            <a href="/about/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">About</a>
+            <a href="/contact/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Contact</a>
+            <a href="/privacy/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top:24px;text-align:center;color:#888;font-size:0.85rem;">
+        <p style="margin:0;">&copy; 2026 PulseGames. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

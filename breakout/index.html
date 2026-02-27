@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-PY073ZX38N');
+  </script>
+  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  
+  <!-- SEO Meta Tags -->
+  <title>Play Breakout Online Free – Brick Breaker Game | PulseGames</title>
+  <meta name="description" content="Play Breakout free in your browser! Smash bricks, grab power-ups, beat levels and chase high scores in this classic brick breaker arcade game. No download needed.">
+  <meta name="keywords" content="breakout game, brick breaker, play breakout online, free breakout, browser breakout, arkanoid, arcade game">
+  <meta name="author" content="PulseGames">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://pulsegames.eu/breakout/">
+  <meta property="og:title" content="Play Breakout Online Free – Brick Breaker Game">
+  <meta property="og:description" content="Smash bricks, grab power-ups, beat levels and chase high scores. Free browser arcade game.">
+  <meta property="og:image" content="https://pulsegames.eu/assets/thumbnails/breakout.webp">
+  <meta property="og:url" content="https://pulsegames.eu/breakout/">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Breakout Neon Drift - Free Brick Breaker Game">
+  <meta name="twitter:description" content="Classic brick-breaker with neon graphics and power-ups. Free, no download!">
+  <meta name="twitter:image" content="https://pulsegames.eu/assets/thumbnails/breakout.webp">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://pulsegames.eu/breakout/">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Breakout Neon Drift",
+    "description": "Classic brick breaker arcade game with power-ups, multiple levels and high scores. Play free in your browser.",
+    "url": "https://pulsegames.eu/breakout/",
+    "image": "https://pulsegames.eu/assets/thumbnails/breakout.webp",
+    "genre": ["Arcade", "Classic", "Action"],
+    "gamePlatform": "Web Browser",
+    "applicationCategory": "Game",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Organization", "name": "PulseGames", "url": "https://pulsegames.eu" },
+    "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+    "playMode": "SinglePlayer"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://pulsegames.eu/"},
+      {"@type": "ListItem", "position": 2, "name": "Arcade Games", "item": "https://pulsegames.eu/arcade-games/"},
+      {"@type": "ListItem", "position": 3, "name": "Breakout", "item": "https://pulsegames.eu/breakout/"}
+    ]
+  }
+  </script>
+
+  <link rel="manifest" href="manifest.json">
+  
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      width: 100%;
+
+      background: url('assets/images/arcade_bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      background-color: #000;
+
+      font-family: 'Press Start 2P', monospace;
+
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #game-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    canvas {
+      position: absolute;
+      display: block;
+      opacity: 0;
+      animation: turnOn 2.5s ease-out forwards, flicker 0.15s infinite;
+      box-shadow: 0 0 50px rgba(0,0,0,0.8);
+    }
+
+    #crt-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                  linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+      background-size: 100% 3px, 3px 100%;
+      box-shadow: inset 0 0 100px rgba(0,0,0,0.9);
+    }
+
+    #rotate-screen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #050010;
+      z-index: 9999;
+      color: #00eaff;
+      text-align: center;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    @media screen and (orientation: portrait) {
+      #rotate-screen { display: flex; }
+      canvas, #crt-overlay { display: none; }
+    }
+
+    @keyframes turnOn {
+      0% { transform: scale(1, 0.002); opacity: 0; filter: brightness(30); }
+      20% { transform: scale(1, 0.002); opacity: 1; }
+      50% { transform: scale(1, 1); filter: brightness(5); }
+      100% { transform: scale(1, 1); opacity: 1; filter: brightness(1.1) contrast(1.1) saturate(1.2); }
+    }
+
+    @keyframes flicker {
+      0% { opacity: 0.97; } 5% { opacity: 0.99; } 10% { opacity: 0.94; } 15% { opacity: 0.98; } 100% { opacity: 0.97; }
+    }
+    
+    .rotate-icon {
+      font-size: 60px;
+      margin-bottom: 20px;
+      animation: rotateAnim 2s infinite ease-in-out;
+    }
+    @keyframes rotateAnim {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(-90deg); }
+      100% { transform: rotate(0deg); }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="game-wrapper">
+    <canvas id="gameCanvas"></canvas>
+    <div id="crt-overlay"></div>
+    <div id="rotate-screen">
+      <div class="rotate-icon">📱</div>
+      <p>PLEASE ROTATE<br>DEVICE</p>
+    </div>
+    <script type="module" src="js/main.js"></script>
+  </div>
+
+  <nav aria-label="Breadcrumb" style="max-width:800px;margin:2rem auto 0;padding:0 2rem;font-family:sans-serif;font-size:0.85rem;">
+    <a href="/" style="color:#a0a4c0;text-decoration:none;">Home</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <a href="/arcade-games/" style="color:#a0a4c0;text-decoration:none;">Arcade Games</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <span style="color:#f0f0ff;">Breakout</span>
+  </nav>
+
+  <section class="game-info" style="max-width:800px;margin:3rem auto 0;padding:2rem;color:#b0b0b0;font-size:0.95rem;line-height:1.7;position:relative;z-index:1;">
+    <h1 style="color:#e0e0e0;font-size:1.6rem;margin-bottom:0.5rem;font-family:sans-serif;">Play Breakout Online – Free Brick Breaker Game</h1>
+    <p>
+      Smash your way through colorful bricks in this free browser version of the classic
+      Breakout arcade game. Control your paddle, bounce the ball and clear every level.
+      With power-ups, increasing difficulty and satisfying brick-smashing action, this
+      is the brick breaker game you've been looking for.
+    </p>
+
+    <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">Classic Arcade Gameplay</h2>
+    <p>
+      Breakout Neon Drift brings the timeless Breakout formula to your browser with a
+      neon visual twist. Move your paddle left and right to keep the ball in play.
+      Each brick you break earns points, and some bricks drop power-ups that expand
+      your paddle, add extra balls or boost your score. Clear all the bricks to advance
+      to the next level.
+    </p>
+
+    <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">How to Play</h2>
+    <p>
+      Use your mouse, touch screen or arrow keys to move the paddle. The ball bounces
+      automatically – your job is to keep it from falling past your paddle while aiming
+      for the bricks above. Grab power-ups as they fall for an extra edge. The game
+      gets faster and trickier as you progress through levels.
+    </p>
+
+    <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">Free, Instant, No Download</h2>
+    <p>
+      No app to install, no signup needed. Breakout runs directly in your browser on
+      desktop, tablet or phone. PulseGames offers all games completely free – just
+      click and play.
+    </p>
+  </section>
+
+  <section style="max-width:800px;margin:3rem auto 0;padding:0 2rem;">
+    <h2 style="color:#e0e0e0;font-size:1.3rem;margin-bottom:1.2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">You Might Also Like</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      <a href="/snake/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/snake.webp" alt="Snake Neo" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Snake Neo</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Arcade</div>
+        </div>
+      </a>
+      <a href="/axeluga/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/axeluga.webp" alt="Axeluga" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Axeluga</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Action</div>
+        </div>
+      </a>
+      <a href="/pulseblocks/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/pulseblocks.webp" alt="PulseBlocks" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">PulseBlocks</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Puzzle</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer style="background:#0a0e1a;border-top:1px solid rgba(255,255,255,0.06);padding:48px 24px 24px;margin-top:3rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:32px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="max-width:300px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;"><svg width="20" height="14" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span style="font-size:1.5rem;font-weight:700;color:#fff;">PulseGames</span>
+          </div>
+          <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+        </div>
+        <div style="display:flex;gap:48px;flex-wrap:wrap;">
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Games</h4>
+            <a href="/snake/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Snake Neo</a>
+            <a href="/breakout/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Breakout</a>
+            <a href="/taprush/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Tap Rush</a>
+            <a href="/solitaire/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Solitaire</a>
+            <a href="/pulseblocks/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">PulseBlocks</a>
+            <a href="/connect4/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Connect 4</a>
+            <a href="/axeluga/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Axeluga</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Categories</h4>
+            <a href="/arcade-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Arcade</a>
+            <a href="/action-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Action</a>
+            <a href="/puzzle-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Puzzle</a>
+            <a href="/board-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Board Games</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Info</h4>
+            <a href="/about/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">About</a>
+            <a href="/contact/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Contact</a>
+            <a href="/privacy/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top:24px;text-align:center;color:#888;font-size:0.85rem;">
+        <p style="margin:0;">&copy; 2026 PulseGames. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

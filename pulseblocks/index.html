@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PulseBlocks – Free Block Puzzle Game Online | PulseGames</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Play PulseBlocks free in your browser! A synthwave-styled block puzzle game with Marathon, Sprint and Ultra modes plus global leaderboards. No download needed." />
+  <meta name="keywords" content="block puzzle, tetris-style game, free puzzle game, browser puzzle, block game online, falling blocks, puzzle game leaderboard" />
+  <meta name="author" content="PulseGames" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:title" content="PulseBlocks – Free Block Puzzle Game Online" />
+  <meta property="og:description" content="Synthwave block puzzle with Marathon, Sprint and Ultra modes. Global leaderboards included." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://pulsegames.eu/pulseblocks/" />
+  <meta property="og:image" content="https://pulsegames.eu/assets/thumbnails/pulseblocks.webp" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="PulseBlocks – Free Block Puzzle Game Online" />
+  <meta name="twitter:description" content="Synthwave block puzzle with Marathon, Sprint and Ultra modes. Global leaderboards included." />
+  <meta name="twitter:image" content="https://pulsegames.eu/assets/thumbnails/pulseblocks.webp" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://pulsegames.eu/pulseblocks/" />
+  
+  <!-- Viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#45d9c8" />
+  <meta name="msapplication-navbutton-color" content="#45d9c8" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  
+  <!-- PWA / Install as App -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Pulse" />
+  
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "PulseBlocks",
+    "description": "Synthwave-styled block puzzle game with Marathon, Sprint and Ultra modes. Global leaderboards. Play free in your browser.",
+    "url": "https://pulsegames.eu/pulseblocks/",
+    "image": "https://pulsegames.eu/assets/thumbnails/pulseblocks.webp",
+    "genre": ["Puzzle", "Arcade", "Strategy"],
+    "gamePlatform": "Web Browser",
+    "applicationCategory": "Game",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Organization", "name": "PulseGames", "url": "https://pulsegames.eu" },
+    "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+    "playMode": "SinglePlayer"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://pulsegames.eu/"},
+      {"@type": "ListItem", "position": 2, "name": "Puzzle Games", "item": "https://pulsegames.eu/puzzle-games/"},
+      {"@type": "ListItem", "position": 3, "name": "PulseBlocks", "item": "https://pulsegames.eu/pulseblocks/"}
+    ]
+  }
+  </script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-PY073ZX38N');
+  </script>
+</head>
+
+<body>
+  <!-- Landscape Warning Overlay -->
+  <div id="landscapeOverlay">
+    <div class="landscape-content">
+      <div class="rotate-icon">📱</div>
+      <div class="rotate-text">Please rotate your device</div>
+      <div class="rotate-subtext">This game is best played in portrait mode</div>
+    </div>
+  </div>
+
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- 🔊 TOUCH UNLOCK OVERLAY -->
+    <div id="touchBlocker">
+      <div class="start-menu">
+        <div class="title">
+          <div class="logo-blocks">
+            <div class="logo-block b1"></div>
+            <div class="logo-block b2"></div>
+            <div class="logo-block b3"></div>
+            <div class="logo-block b4"></div>
+          </div>
+          <div class="title-pulse">Pulse</div>
+          <div class="title-tetris">Blocks</div>
+        </div>
+        
+        <div class="mode-select">
+          <button class="mode-btn selected" data-mode="marathon">
+            <span class="mode-name">Marathon</span>
+            <span class="mode-desc">Classic endless mode</span>
+          </button>
+          <button class="mode-btn" data-mode="sprint">
+            <span class="mode-name">Sprint</span>
+            <span class="mode-desc">Clear 40 lines fast</span>
+          </button>
+          <button class="mode-btn" data-mode="ultra">
+            <span class="mode-name">Ultra</span>
+            <span class="mode-desc">3 min high score</span>
+          </button>
+        </div>
+        
+        <div class="level-select">
+          <div class="level-label">Start Level</div>
+          <div class="level-picker">
+            <button id="levelDown" class="level-btn">◀</button>
+            <span id="startLevel">0</span>
+            <button id="levelUp" class="level-btn">▶</button>
+          </div>
+        </div>
+        
+        <button id="startBtn" class="start-btn">PLAY <kbd>Enter</kbd></button>
+        
+        <button id="leaderboardBtn" class="leaderboard-btn">🏆 LEADERBOARD</button>
+        
+        <div class="player-name-display">
+          Playing as: <span id="playerNameDisplay">...</span>
+          <button id="rerollNameBtn" class="reroll-btn">🎲</button>
+        </div>
+        
+        <div class="keyboard-hints">
+          ↑↓ Mode &nbsp;•&nbsp; ←→ Level
+        </div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD OVERLAY -->
+    <div id="leaderboardOverlay">
+      <div class="leaderboard-container">
+        <h2>🏆 LEADERBOARD</h2>
+        
+        <div class="leaderboard-tabs">
+          <button class="lb-tab active" data-mode="marathon">Marathon</button>
+          <button class="lb-tab" data-mode="sprint">Sprint</button>
+          <button class="lb-tab" data-mode="ultra">Ultra</button>
+        </div>
+        
+        <div class="leaderboard-list" id="leaderboardList">
+          <div class="loading">Loading...</div>
+        </div>
+        
+        <button id="closeLeaderboardBtn" class="close-lb-btn">CLOSE</button>
+      </div>
+    </div>
+
+    <!-- GAME OVER OVERLAY -->
+    <div id="gameOverlay">
+      <h2 id="gameOverTitle">GAME OVER</h2>
+      <div class="final-score">Score: <span id="finalScore">0</span></div>
+      
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-value" id="statTime">0:00</span>
+          <span class="stat-label">Time</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="statPieces">0</span>
+          <span class="stat-label">Pieces</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="statLines">0</span>
+          <span class="stat-label">Lines</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="statLevel">0</span>
+          <span class="stat-label">Level</span>
+        </div>
+      </div>
+      
+      <div class="stats-details">
+        <div class="stat-row">
+          <span>Singles</span><span id="statSingles">0</span>
+        </div>
+        <div class="stat-row">
+          <span>Doubles</span><span id="statDoubles">0</span>
+        </div>
+        <div class="stat-row">
+          <span>Triples</span><span id="statTriples">0</span>
+        </div>
+        <div class="stat-row highlight">
+          <span>Tetrises</span><span id="statTetrises">0</span>
+        </div>
+        <div class="stat-row highlight purple">
+          <span>T-Spins</span><span id="statTSpins">0</span>
+        </div>
+        <div class="stat-row">
+          <span>Max Combo</span><span id="statCombo">0</span>
+        </div>
+      </div>
+      
+      <div class="game-over-buttons">
+        <button id="restartBtn">PLAY AGAIN</button>
+        <button id="menuBtn" class="secondary">MENU</button>
+      </div>
+      <div class="keyboard-hints">
+        Tab/Arrows to select • Enter to confirm
+      </div>
+    </div>
+
+    <!-- PAUSE OVERLAY -->
+    <div id="pauseOverlay">
+      <div class="pause-menu">
+        <h2>PAUSED</h2>
+        
+        <div class="options-section">
+          <label class="option-toggle">
+            <span>Ghost Piece <kbd>G</kbd></span>
+            <button id="ghostToggle" class="toggle-btn on">ON</button>
+          </label>
+          <label class="option-toggle">
+            <span>Sound FX <kbd>S</kbd></span>
+            <button id="soundToggle" class="toggle-btn on">ON</button>
+          </label>
+          <label class="option-toggle">
+            <span>Music <kbd>M</kbd></span>
+            <button id="musicToggle" class="toggle-btn on">ON</button>
+          </label>
+        </div>
+        
+        <div class="pause-buttons">
+          <button id="resumeBtn">RESUME <kbd>Enter</kbd></button>
+          <button id="quitBtn" class="secondary">QUIT <kbd>Q</kbd></button>
+        </div>
+        
+        <div class="keyboard-hints">
+          G/S/M toggle options
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME BOOT -->
+  <script type="module" src="src/js/game.js"></script>
+
+  <!-- LEADERBOARD MODULE -->
+  <script type="module">
+    import { getPlayerName, regeneratePlayerName, submitScore, getLeaderboard } from './src/js/leaderboard.js';
+    
+    // Expose to global scope for use in non-module scripts
+    window.leaderboard = {
+      getPlayerName,
+      regeneratePlayerName,
+      submitScore,
+      getLeaderboard
+    };
+    
+    // Initialize player name display
+    document.addEventListener('DOMContentLoaded', () => {
+      const nameDisplay = document.getElementById('playerNameDisplay');
+      if (nameDisplay) {
+        nameDisplay.textContent = getPlayerName();
+      }
+    });
+  </script>
+
+  <!-- 🔊 AUDIO UNLOCK HANDLER -->
+  <script>
+    const blocker = document.getElementById("touchBlocker");
+    const overlay = document.getElementById("gameOverlay");
+    const restartBtn = document.getElementById("restartBtn");
+    const menuBtn = document.getElementById("menuBtn");
+    const finalScoreEl = document.getElementById("finalScore");
+    const gameOverTitle = document.getElementById("gameOverTitle");
+    
+    // Leaderboard elements
+    const leaderboardOverlay = document.getElementById("leaderboardOverlay");
+    const leaderboardBtn = document.getElementById("leaderboardBtn");
+    const closeLeaderboardBtn = document.getElementById("closeLeaderboardBtn");
+    const leaderboardList = document.getElementById("leaderboardList");
+    const lbTabs = document.querySelectorAll(".lb-tab");
+    const playerNameDisplay = document.getElementById("playerNameDisplay");
+    const rerollNameBtn = document.getElementById("rerollNameBtn");
+    
+    let currentLeaderboardMode = 'marathon';
+    
+    // Level select
+    const levelDisplay = document.getElementById("startLevel");
+    const levelUpBtn = document.getElementById("levelUp");
+    const levelDownBtn = document.getElementById("levelDown");
+    const startBtn = document.getElementById("startBtn");
+    const modeBtns = document.querySelectorAll(".mode-btn");
+    
+    let selectedLevel = 0;
+    let selectedMode = 'marathon';
+    let selectedModeIndex = 0;
+    const maxLevel = 15;
+    const modes = ['marathon', 'sprint', 'ultra'];
+    
+    // Track which screen is active
+    let currentScreen = 'start'; // 'start', 'game', 'pause', 'gameover', 'leaderboard'
+    
+    function updateModeSelection() {
+      modeBtns.forEach((btn, i) => {
+        if (i === selectedModeIndex) {
+          btn.classList.add("selected");
+        } else {
+          btn.classList.remove("selected");
+        }
+      });
+      selectedMode = modes[selectedModeIndex];
+    }
+    
+    // Level buttons - mouse/touch
+    levelUpBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (selectedLevel < maxLevel) {
+        selectedLevel++;
+        levelDisplay.textContent = selectedLevel;
+      }
+    });
+    levelUpBtn.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (selectedLevel < maxLevel) {
+        selectedLevel++;
+        levelDisplay.textContent = selectedLevel;
+      }
+    });
+    
+    levelDownBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (selectedLevel > 0) {
+        selectedLevel--;
+        levelDisplay.textContent = selectedLevel;
+      }
+    });
+    levelDownBtn.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (selectedLevel > 0) {
+        selectedLevel--;
+        levelDisplay.textContent = selectedLevel;
+      }
+    });
+
+    // Mode selection - mouse/touch
+    modeBtns.forEach((btn, index) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        selectedModeIndex = index;
+        updateModeSelection();
+      });
+      
+      btn.addEventListener("touchstart", (e) => {
+        selectedModeIndex = index;
+        updateModeSelection();
+      });
+      
+      btn.addEventListener("touchend", (e) => {
+        e.preventDefault();
+      });
+      
+      // Hover-effekt utan att ändra val
+      btn.addEventListener("mouseenter", () => {
+        btn.classList.add("hover");
+      });
+      btn.addEventListener("mouseleave", () => {
+        btn.classList.remove("hover");
+      });
+    });
+
+    // Start game button - mouse/touch
+    startBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("PLAY clicked!");
+      await startGame();
+    });
+    startBtn.addEventListener("touchend", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("PLAY touched!");
+      await startGame();
+    });
+
+    async function startGame() {
+      const g = window.PULSE_TETRIS;
+      if (!g) return;
+
+      const audio = g.audio;
+      const ctx = audio.ctx;
+
+      // Unlock audio
+      await ctx.resume();
+
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      gain.gain.value = 0.001;
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.04);
+
+      for (const name in audio.urls) {
+        try {
+          const res = await fetch(audio.urls[name]);
+          const buf = await res.arrayBuffer();
+          audio.buffers[name] = await ctx.decodeAudioData(buf);
+        } catch (err) {
+          console.error("Decode ERROR:", name, err);
+        }
+      }
+
+      audio.unlocked = true;
+      
+      // Init och starta musik
+      await audio.initMusic();
+      audio.playMusic();
+
+      // Set game mode and start
+      blocker.classList.add("hidden");
+      currentScreen = 'game';
+      g.setGameMode(selectedMode);
+      g.setStartLevel(selectedLevel);
+      g.start();
+    }
+
+    // Restart button handler - mouse/touch
+    restartBtn.addEventListener("click", () => {
+      const g = window.PULSE_TETRIS;
+      if (!g) return;
+      
+      overlay.classList.remove("visible");
+      currentScreen = 'game';
+      g.audio.playMusic();
+      g.restart();
+    });
+    restartBtn.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      const g = window.PULSE_TETRIS;
+      if (!g) return;
+      
+      overlay.classList.remove("visible");
+      currentScreen = 'game';
+      g.audio.playMusic();
+      g.restart();
+    });
+    
+    // Hantera hover/touch - uppdatera selected state
+    restartBtn.addEventListener("mouseenter", () => {
+      restartBtn.classList.add("selected");
+      menuBtn.classList.remove("selected");
+    });
+    restartBtn.addEventListener("touchstart", (e) => {
+      restartBtn.classList.add("selected");
+      menuBtn.classList.remove("selected");
+    });
+    menuBtn.addEventListener("mouseenter", () => {
+      menuBtn.classList.add("selected");
+      restartBtn.classList.remove("selected");
+    });
+    menuBtn.addEventListener("touchstart", (e) => {
+      menuBtn.classList.add("selected");
+      restartBtn.classList.remove("selected");
+    });
+
+    // Menu button handler - mouse/touch
+    menuBtn.addEventListener("click", () => {
+      goToMenu();
+    });
+    menuBtn.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      goToMenu();
+    });
+    
+    function goToMenu() {
+      const g = window.PULSE_TETRIS;
+      if (!g) return;
+      
+      overlay.classList.remove("visible");
+      pauseOverlay.classList.remove("visible");
+      blocker.classList.remove("hidden");
+      currentScreen = 'start';
+      
+      // Reset spelet helt - inklusive grid
+      g.running = false;
+      g.paused = false;
+      g.gameOver = false;
+      g.gameWon = false;
+      g.grid.reset();
+      g.activePiece = null;
+      g.nextPiece = null;
+    }
+
+    // Expose showGameOver to game
+    window.showGameOver = async (score) => {
+      const g = window.PULSE_TETRIS;
+      const stats = g ? g.getStats() : {};
+      
+      currentScreen = 'gameover';
+      
+      // Titel baserat på läge och resultat
+      if (g && g.gameWon) {
+        gameOverTitle.textContent = "COMPLETE!";
+        gameOverTitle.style.color = "#45d9c8";
+      } else if (g && g.gameMode === 'ultra') {
+        gameOverTitle.textContent = "TIME'S UP!";
+        gameOverTitle.style.color = "#f5d63d";
+      } else {
+        gameOverTitle.textContent = "GAME OVER";
+        gameOverTitle.style.color = "#e85b6c";
+      }
+      
+      finalScoreEl.textContent = score.toLocaleString();
+      
+      // Formatera tid
+      const mins = Math.floor(stats.time / 60);
+      const secs = Math.floor(stats.time % 60);
+      document.getElementById("statTime").textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+      
+      // Övrig statistik
+      document.getElementById("statPieces").textContent = stats.piecesPlaced || 0;
+      document.getElementById("statLines").textContent = g ? g.lines : 0;
+      document.getElementById("statLevel").textContent = g ? g.level : 0;
+      document.getElementById("statSingles").textContent = stats.singles || 0;
+      document.getElementById("statDoubles").textContent = stats.doubles || 0;
+      document.getElementById("statTriples").textContent = stats.triples || 0;
+      document.getElementById("statTetrises").textContent = stats.tetrises || 0;
+      document.getElementById("statTSpins").textContent = (stats.tSpins || 0) + (stats.tSpinMinis || 0);
+      document.getElementById("statCombo").textContent = stats.maxCombo || 0;
+      
+      // Sätt selected på restart-knappen
+      restartBtn.classList.add("selected");
+      menuBtn.classList.remove("selected");
+      
+      overlay.classList.add("visible");
+      
+      // Submit score to leaderboard
+      if (g && window.submitGameScore) {
+        const gameMode = g.gameMode || 'marathon';
+        const submitStats = {
+          level: g.level,
+          lines: g.lines,
+          time: stats.time || 0
+        };
+        
+        // Only submit if score > 0 or (sprint mode and completed)
+        const shouldSubmit = score > 0 || (gameMode === 'sprint' && g.gameWon);
+        
+        if (shouldSubmit) {
+          window.submitGameScore(score, submitStats, gameMode);
+        }
+      }
+    };
+
+    // Pause menu
+    const pauseOverlay = document.getElementById("pauseOverlay");
+    const resumeBtn = document.getElementById("resumeBtn");
+    const quitBtn = document.getElementById("quitBtn");
+    const ghostToggle = document.getElementById("ghostToggle");
+    const soundToggle = document.getElementById("soundToggle");
+    const musicToggle = document.getElementById("musicToggle");
+
+    // Initialize toggle states
+    function updateToggleStates() {
+      const g = window.PULSE_TETRIS;
+      if (!g) return;
+      
+      const opts = g.getOptions();
+      ghostToggle.textContent = opts.ghostEnabled ? "ON" : "OFF";
+      ghostToggle.className = "toggle-btn " + (opts.ghostEnabled ? "on" : "off");
+      soundToggle.textContent = opts.soundEnabled ? "ON" : "OFF";
+      soundToggle.className = "toggle-btn " + (opts.soundEnabled ? "on" : "off");
+      
+      const musicEnabled = g.audio.isMusicEnabled();
+      musicToggle.textContent = musicEnabled ? "ON" : "OFF";
+      musicToggle.className = "toggle-btn " + (musicEnabled ? "on" : "off");
+    }
+
+    window.togglePauseOverlay = (show) => {
+      if (show) {
+        updateToggleStates();
+        // Sätt resume som vald
+        resumeBtn.classList.add("selected");
+        quitBtn.classList.remove("selected");
+        pauseOverlay.classList.add("visible");
+        currentScreen = 'pause';
+      } else {
+        pauseOverlay.classList.remove("visible");
+        currentScreen = 'game';
+      }
+    };
+    
+    // Hover/touch handlers för pausmenyn
+    resumeBtn.addEventListener("mouseenter", () => {
+      resumeBtn.classList.add("selected");
+      quitBtn.classList.remove("selected");
+    });
+    resumeBtn.addEventListener("touchstart", () => {
+      resumeBtn.classList.add("selected");
+      quitBtn.classList.remove("selected");
+    });
+    quitBtn.addEventListener("mouseenter", () => {
+      quitBtn.classList.add("selected");
+      resumeBtn.classList.remove("selected");
+    });
+    quitBtn.addEventListener("touchstart", () => {
+      quitBtn.classList.add("selected");
+      resumeBtn.classList.remove("selected");
+    });
+
+    // Resume button - mouse/touch
+    resumeBtn.addEventListener("click", () => {
+      const g = window.PULSE_TETRIS;
+      if (g) g.togglePause();
+    });
+    resumeBtn.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      const g = window.PULSE_TETRIS;
+      if (g) g.togglePause();
+    });
+
+    // Quit button - mouse/touch
+    quitBtn.addEventListener("click", () => {
+      const g = window.PULSE_TETRIS;
+      if (!g) return;
+      
+      pauseOverlay.classList.remove("visible");
+      g.paused = false;
+      g.running = false;
+      g.gameOver = true;
+      g.audio.stopMusic();
+      window.showGameOver(g.score);
+    });
+    quitBtn.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      const g = window.PULSE_TETRIS;
+      if (!g) return;
+      
+      pauseOverlay.classList.remove("visible");
+      g.paused = false;
+      g.running = false;
+      g.gameOver = true;
+      g.audio.stopMusic();
+      window.showGameOver(g.score);
+    });
+
+    // Toggle buttons - mouse/touch
+    ghostToggle.addEventListener("click", () => {
+      const g = window.PULSE_TETRIS;
+      if (g) {
+        g.toggleOption('ghost');
+        updateToggleStates();
+      }
+    });
+    ghostToggle.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      const g = window.PULSE_TETRIS;
+      if (g) {
+        g.toggleOption('ghost');
+        updateToggleStates();
+      }
+    });
+
+    soundToggle.addEventListener("click", () => {
+      const g = window.PULSE_TETRIS;
+      if (g) {
+        g.toggleOption('sound');
+        updateToggleStates();
+      }
+    });
+    soundToggle.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      const g = window.PULSE_TETRIS;
+      if (g) {
+        g.toggleOption('sound');
+        updateToggleStates();
+      }
+    });
+
+    musicToggle.addEventListener("click", () => {
+      const g = window.PULSE_TETRIS;
+      if (g) {
+        const newState = !g.audio.isMusicEnabled();
+        g.audio.setMusicEnabled(newState);
+        updateToggleStates();
+      }
+    });
+    musicToggle.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      const g = window.PULSE_TETRIS;
+      if (g) {
+        const newState = !g.audio.isMusicEnabled();
+        g.audio.setMusicEnabled(newState);
+        updateToggleStates();
+      }
+    });
+
+    // ==========================================
+    // KEYBOARD NAVIGATION
+    // ==========================================
+    document.addEventListener("keydown", async (e) => {
+      const key = e.key;
+      
+      // START SCREEN
+      if (currentScreen === 'start') {
+        if (key === "ArrowUp" || key === "w" || key === "W") {
+          e.preventDefault();
+          selectedModeIndex = (selectedModeIndex - 1 + modes.length) % modes.length;
+          updateModeSelection();
+        } else if (key === "ArrowDown" || key === "s" || key === "S") {
+          e.preventDefault();
+          selectedModeIndex = (selectedModeIndex + 1) % modes.length;
+          updateModeSelection();
+        } else if (key === "ArrowLeft" || key === "a" || key === "A") {
+          e.preventDefault();
+          if (selectedLevel > 0) {
+            selectedLevel--;
+            levelDisplay.textContent = selectedLevel;
+          }
+        } else if (key === "ArrowRight" || key === "d" || key === "D") {
+          e.preventDefault();
+          if (selectedLevel < maxLevel) {
+            selectedLevel++;
+            levelDisplay.textContent = selectedLevel;
+          }
+        } else if (key === "Enter" || key === " ") {
+          e.preventDefault();
+          await startGame();
+        }
+        return;
+      }
+      
+      // PAUSE SCREEN
+      if (currentScreen === 'pause') {
+        if (key === "Tab" || key === "ArrowUp" || key === "ArrowDown") {
+          e.preventDefault();
+          // Toggle mellan knapparna
+          if (resumeBtn.classList.contains("selected")) {
+            resumeBtn.classList.remove("selected");
+            quitBtn.classList.add("selected");
+          } else {
+            quitBtn.classList.remove("selected");
+            resumeBtn.classList.add("selected");
+          }
+        } else if (key === "Enter" || key === " ") {
+          e.preventDefault();
+          if (quitBtn.classList.contains("selected")) {
+            // Quit
+            const g = window.PULSE_TETRIS;
+            if (g) {
+              pauseOverlay.classList.remove("visible");
+              g.paused = false;
+              g.running = false;
+              g.gameOver = true;
+              g.audio.stopMusic();
+              window.showGameOver(g.score);
+            }
+          } else {
+            // Resume
+            const g = window.PULSE_TETRIS;
+            if (g) g.togglePause();
+          }
+        } else if (key === "Escape" || key === "p" || key === "P") {
+          e.preventDefault();
+          const g = window.PULSE_TETRIS;
+          if (g) g.togglePause();
+        } else if (key === "g" || key === "G") {
+          e.preventDefault();
+          const g = window.PULSE_TETRIS;
+          if (g) {
+            g.toggleOption('ghost');
+            updateToggleStates();
+          }
+        } else if (key === "s" || key === "S") {
+          e.preventDefault();
+          const g = window.PULSE_TETRIS;
+          if (g) {
+            g.toggleOption('sound');
+            updateToggleStates();
+          }
+        } else if (key === "m" || key === "M") {
+          e.preventDefault();
+          const g = window.PULSE_TETRIS;
+          if (g) {
+            const newState = !g.audio.isMusicEnabled();
+            g.audio.setMusicEnabled(newState);
+            updateToggleStates();
+          }
+        } else if (key === "q" || key === "Q") {
+          e.preventDefault();
+          const g = window.PULSE_TETRIS;
+          if (g) {
+            pauseOverlay.classList.remove("visible");
+            g.paused = false;
+            g.running = false;
+            g.gameOver = true;
+            g.audio.stopMusic();
+            window.showGameOver(g.score);
+          }
+        }
+        return;
+      }
+      
+      // GAME OVER SCREEN
+      if (currentScreen === 'gameover') {
+        if (key === "Tab" || key === "ArrowUp" || key === "ArrowDown" || key === "ArrowLeft" || key === "ArrowRight") {
+          e.preventDefault();
+          // Toggle selection
+          if (restartBtn.classList.contains("selected")) {
+            restartBtn.classList.remove("selected");
+            menuBtn.classList.add("selected");
+          } else {
+            menuBtn.classList.remove("selected");
+            restartBtn.classList.add("selected");
+          }
+        } else if (key === "Enter" || key === " ") {
+          e.preventDefault();
+          if (menuBtn.classList.contains("selected")) {
+            goToMenu();
+          } else {
+            const g = window.PULSE_TETRIS;
+            if (g) {
+              overlay.classList.remove("visible");
+              currentScreen = 'game';
+              g.restart();
+            }
+          }
+        } else if (key === "Escape") {
+          e.preventDefault();
+          goToMenu();
+        }
+        return;
+      }
+      
+      // LEADERBOARD SCREEN
+      if (currentScreen === 'leaderboard') {
+        if (key === "Escape" || key === "Enter") {
+          e.preventDefault();
+          closeLeaderboard();
+        }
+        return;
+      }
+    });
+    
+    // ==========================================
+    // LEADERBOARD FUNCTIONS
+    // ==========================================
+    
+    async function loadLeaderboard(mode) {
+      leaderboardList.innerHTML = '<div class="loading">Loading...</div>';
+      currentLeaderboardMode = mode;
+      
+      // Update tabs
+      lbTabs.forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.mode === mode);
+      });
+      
+      // Wait for leaderboard module to load
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      if (!window.leaderboard) {
+        leaderboardList.innerHTML = '<div class="lb-empty">Leaderboard unavailable</div>';
+        return;
+      }
+      
+      try {
+        const scores = await window.leaderboard.getLeaderboard(mode, 10);
+        const playerName = window.leaderboard.getPlayerName();
+        
+        if (scores.length === 0) {
+          leaderboardList.innerHTML = '<div class="lb-empty">No scores yet!<br>Be the first to play!</div>';
+          return;
+        }
+        
+        let html = '';
+        scores.forEach((entry, index) => {
+          const isPlayer = entry.name === playerName;
+          const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+          const topClass = index < 3 ? `top${index + 1}` : '';
+          
+          // Format display based on mode
+          let valueDisplay;
+          if (mode === 'sprint') {
+            const mins = Math.floor(entry.time / 60);
+            const secs = Math.floor(entry.time % 60);
+            valueDisplay = `<span class="lb-time">${mins}:${secs.toString().padStart(2, '0')}</span>`;
+          } else {
+            valueDisplay = `<span class="lb-score">${entry.score.toLocaleString()}</span>`;
+          }
+          
+          html += `
+            <div class="lb-entry ${topClass} ${isPlayer ? 'highlight' : ''}">
+              <span class="lb-rank ${rankClass}">#${entry.rank}</span>
+              <span class="lb-name">${entry.name}</span>
+              ${valueDisplay}
+            </div>
+          `;
+        });
+        
+        leaderboardList.innerHTML = html;
+      } catch (error) {
+        console.error('Failed to load leaderboard:', error);
+        leaderboardList.innerHTML = '<div class="lb-empty">Failed to load scores</div>';
+      }
+    }
+    
+    function openLeaderboard() {
+      leaderboardOverlay.classList.add('visible');
+      currentScreen = 'leaderboard';
+      loadLeaderboard(selectedMode);
+    }
+    
+    function closeLeaderboard() {
+      leaderboardOverlay.classList.remove('visible');
+      currentScreen = 'start';
+    }
+    
+    // Leaderboard button handlers
+    leaderboardBtn.addEventListener('click', openLeaderboard);
+    leaderboardBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      openLeaderboard();
+    });
+    
+    closeLeaderboardBtn.addEventListener('click', closeLeaderboard);
+    closeLeaderboardBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      closeLeaderboard();
+    });
+    
+    // Tab handlers
+    lbTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        loadLeaderboard(tab.dataset.mode);
+      });
+      tab.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        loadLeaderboard(tab.dataset.mode);
+      });
+    });
+    
+    // Reroll name button
+    rerollNameBtn.addEventListener('click', () => {
+      if (window.leaderboard) {
+        const newName = window.leaderboard.regeneratePlayerName();
+        playerNameDisplay.textContent = newName;
+      }
+    });
+    rerollNameBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (window.leaderboard) {
+        const newName = window.leaderboard.regeneratePlayerName();
+        playerNameDisplay.textContent = newName;
+      }
+    });
+    
+    // Submit score on game over
+    async function submitGameScore(score, stats, mode) {
+      if (!window.leaderboard) return null;
+      
+      try {
+        const result = await window.leaderboard.submitScore(mode, {
+          score: score,
+          level: stats.level || 0,
+          lines: stats.lines || 0,
+          time: stats.time || 0
+        });
+        return result;
+      } catch (error) {
+        console.error('Failed to submit score:', error);
+        return null;
+      }
+    }
+    
+    // Expose submit function globally
+    window.submitGameScore = submitGameScore;
+  </script>
+
+  <nav aria-label="Breadcrumb" style="max-width:800px;margin:2rem auto 0;padding:0 2rem;font-family:sans-serif;font-size:0.85rem;">
+    <a href="/" style="color:#a0a4c0;text-decoration:none;">Home</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <a href="/puzzle-games/" style="color:#a0a4c0;text-decoration:none;">Puzzle Games</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <span style="color:#f0f0ff;">PulseBlocks</span>
+  </nav>
+
+  <section class="game-info" style="max-width:800px;margin:3rem auto 0;padding:2rem;color:#b0b0b0;font-size:0.95rem;line-height:1.7;position:relative;z-index:1;">
+    <h1 style="color:#e0e0e0;font-size:1.6rem;margin-bottom:0.5rem;font-family:'Nunito',sans-serif;">PulseBlocks – Free Online Block Puzzle Game</h1>
+    <p>
+      PulseBlocks is a free falling-block puzzle game with a synthwave aesthetic
+      and a pumping electronic soundtrack. If you enjoy Tetris-style games, you'll
+      love the fast-paced action and the competitive leaderboards that keep you
+      coming back for one more round.
+    </p>
+
+    <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Nunito',sans-serif;">Three Game Modes</h2>
+    <p>
+      <strong>Marathon</strong> – The classic experience. Clear lines, level up, and
+      play as long as you can as the speed gradually increases.
+    </p>
+    <p>
+      <strong>Sprint</strong> – Race to clear 40 lines as fast as possible. Every
+      second counts on the leaderboard.
+    </p>
+    <p>
+      <strong>Ultra</strong> – Score as many points as you can within a fixed time
+      limit. Combos and back-to-back clears are key to a top score.
+    </p>
+
+    <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Nunito',sans-serif;">How to Play</h2>
+    <p>
+      Use arrow keys to move and rotate falling blocks. Complete horizontal lines
+      to clear them from the board. The game speeds up as you progress. Works on
+      desktop and mobile with touch controls.
+    </p>
+
+    <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Nunito',sans-serif;">Compete Globally</h2>
+    <p>
+      Every mode has its own global leaderboard. Submit your score and see how
+      you compare to block puzzle players around the world. PulseBlocks is 100%
+      free with no download needed.
+    </p>
+  </section>
+
+  <section style="max-width:800px;margin:3rem auto 0;padding:0 2rem;">
+    <h2 style="color:#e0e0e0;font-size:1.3rem;margin-bottom:1.2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">You Might Also Like</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      <a href="/solitaire/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/solitaire.webp" alt="Solitaire" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Solitaire</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Board</div>
+        </div>
+      </a>
+      <a href="/breakout/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/breakout.webp" alt="Breakout" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Breakout</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Arcade</div>
+        </div>
+      </a>
+      <a href="/connect4/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/connect4-thumbnail.webp" alt="Connect 4" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Connect 4</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Board</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer style="background:#0a0e1a;border-top:1px solid rgba(255,255,255,0.06);padding:48px 24px 24px;margin-top:3rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:32px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="max-width:300px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;"><svg width="20" height="14" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span style="font-size:1.5rem;font-weight:700;color:#fff;">PulseGames</span>
+          </div>
+          <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+        </div>
+        <div style="display:flex;gap:48px;flex-wrap:wrap;">
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Games</h4>
+            <a href="/snake/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Snake Neo</a>
+            <a href="/breakout/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Breakout</a>
+            <a href="/taprush/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Tap Rush</a>
+            <a href="/solitaire/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Solitaire</a>
+            <a href="/pulseblocks/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">PulseBlocks</a>
+            <a href="/connect4/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Connect 4</a>
+            <a href="/axeluga/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Axeluga</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Categories</h4>
+            <a href="/arcade-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Arcade</a>
+            <a href="/action-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Action</a>
+            <a href="/puzzle-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Puzzle</a>
+            <a href="/board-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Board Games</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Info</h4>
+            <a href="/about/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">About</a>
+            <a href="/contact/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Contact</a>
+            <a href="/privacy/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top:24px;text-align:center;color:#888;font-size:0.85rem;">
+        <p style="margin:0;">&copy; 2026 PulseGames. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

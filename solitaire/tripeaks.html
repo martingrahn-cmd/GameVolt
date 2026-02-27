@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag("js", new Date());
+      gtag("config", "G-PY073ZX38N");
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Play TriPeaks Solitaire Free Online | PulseGames</title>
+    <meta name="description" content="Play free TriPeaks Solitaire online! Clear three peaks by matching cards. Fast-paced fun with beautiful graphics.">
+    <meta name="keywords" content="tripeaks solitaire, tri peaks, card game, free online game, solitaire">
+    <meta name="author" content="PulseGames">
+    <meta name="robots" content="index, follow">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Play TriPeaks Solitaire Free Online | PulseGames">
+    <meta property="og:description" content="Play free TriPeaks Solitaire online! Clear three peaks.">
+    <meta property="og:image" content="https://pulsegames.eu/solitaire/og-image.png">
+    <meta property="og:url" content="https://pulsegames.eu/solitaire/tripeaks.html">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Play TriPeaks Solitaire Free Online | PulseGames">
+    <meta name="twitter:description" content="Play free TriPeaks Solitaire online! Clear three peaks by matching cards.">
+    <meta name="twitter:image" content="https://pulsegames.eu/solitaire/og-image.png">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://pulsegames.eu/solitaire/tripeaks.html">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%230d9488'/%3E%3Cpath d='M12 50 L22 25 L32 50 M22 50 L32 25 L42 50 M32 50 L42 25 L52 50' fill='none' stroke='%2314b8a6' stroke-width='4'/%3E%3C/svg%3E">
+    
+    <meta name="theme-color" content="#0d9488">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cardmeister.github.io/elements.cardmeister.full.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://pulsegames.eu/"},
+        {"@type": "ListItem", "position": 2, "name": "Solitaire", "item": "https://pulsegames.eu/solitaire/"},
+        {"@type": "ListItem", "position": 3, "name": "TriPeaks", "item": "https://pulsegames.eu/solitaire/tripeaks.html"}
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "TriPeaks Solitaire",
+      "description": "Clear three peaks by matching cards in sequence. Fast-paced solitaire with beautiful graphics. Play free online.",
+      "url": "https://pulsegames.eu/solitaire/tripeaks.html",
+      "image": "https://pulsegames.eu/solitaire/og-image.png",
+      "genre": ["Card Game", "Classic", "Puzzle"],
+      "gamePlatform": "Web Browser",
+      "applicationCategory": "Game",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Organization", "name": "PulseGames", "url": "https://pulsegames.eu" },
+      "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+      "playMode": "SinglePlayer"
+    }
+    </script>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(145deg, #0d9488 0%, #14b8a6 50%, #065f5a 100%);
+            --gold: #fbbf24;
+            --gold-light: #fcd34d;
+            --text-primary: #f5f5f0;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --card-width: 62px;
+            --card-height: 87px;
+            --card-radius: 4px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            overscroll-behavior: none;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 12px; }
+
+        .back-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary); text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .back-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateX(-3px); }
+
+        .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--gold); }
+        .logo span { color: var(--text-primary); font-weight: 400; font-size: 1.2rem; }
+
+        .game-stats { display: flex; gap: 20px; align-items: center; }
+        .stat { text-align: center; }
+        .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 2px; }
+        .stat-value { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 600; color: var(--gold-light); }
+
+        .header-actions { display: flex; gap: 8px; }
+
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 6px;
+            font-family: 'Source Sans 3', sans-serif; font-size: 0.85rem; font-weight: 500;
+            cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold) 0%, #d97706 100%);
+            color: #1a1a1a; box-shadow: 0 2px 10px rgba(251, 191, 36, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4); }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1); color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .btn-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1); border: none;
+            color: var(--text-primary); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;
+        }
+        .btn-icon:hover { background: rgba(255, 255, 255, 0.2); }
+        .btn-icon svg { width: 18px; height: 18px; }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 10px;
+            min-height: calc(100vh - 60px);
+        }
+
+        .peaks-area {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+            min-height: 220px;
+        }
+
+        .card-slot {
+            width: var(--card-width);
+            height: var(--card-height);
+            position: relative;
+            margin: 0 2px;
+        }
+
+        .card-slot.empty {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .tableau-row {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 20px;
+        }
+
+        .bottom-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .pile {
+            width: var(--card-width);
+            height: var(--card-height);
+            position: relative;
+        }
+
+        .pile-placeholder {
+            width: 100%;
+            height: 100%;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: var(--card-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        .stock-pile {
+            cursor: pointer;
+        }
+
+        .stock-pile .pile-placeholder {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .card {
+            width: var(--card-width);
+            height: var(--card-height);
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: var(--card-radius);
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .card:hover:not(.blocked):not(.face-down) {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .card.blocked, .card.face-down {
+            cursor: default;
+        }
+
+        .card.valid-move {
+            box-shadow: 0 0 0 2px var(--gold), 0 0 15px rgba(251, 191, 36, 0.4);
+        }
+
+        .card.matched {
+            animation: matchPulse 0.3s ease-out forwards;
+        }
+
+        @keyframes matchPulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); box-shadow: 0 0 30px var(--gold); }
+            100% { transform: scale(0.9) translateY(50px); opacity: 0; }
+        }
+
+        .card.hint {
+            animation: hintGlow 0.6s ease-in-out 3;
+        }
+
+        @keyframes hintGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+            50% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0.6); }
+        }
+
+        .card-face {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            border-radius: var(--card-radius);
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .card-front {
+            background: #fff;
+        }
+
+        .card-front playing-card {
+            display: block;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            box-shadow: none !important;
+            filter: none !important;
+        }
+
+        .card-front playing-card::part(card) {
+            box-shadow: none !important;
+        }
+
+        playing-card {
+            --card-shadow: none !important;
+            box-shadow: none !important;
+        }
+
+        .card-back {
+            background: linear-gradient(145deg, #0d9488, #14b8a6, #0f766e);
+            border: 3px solid #2dd4bf;
+        }
+
+        .card-back-classic { background: repeating-linear-gradient(45deg, #1a365d, #1a365d 5px, #2c5282 5px, #2c5282 10px) !important; border: 3px solid #234876 !important; }
+        .card-back-royal { background: repeating-linear-gradient(45deg, #722f37, #722f37 8px, #8b0000 8px, #8b0000 16px) !important; border: 3px solid #d4af37 !important; }
+        .card-back-emerald { background: radial-gradient(circle, #065f46, #022c22) !important; border: 3px solid #34d399 !important; }
+        .card-back-midnight { background: linear-gradient(180deg, #0f172a, #1e293b, #0f172a) !important; border: 3px solid #60a5fa !important; }
+        .card-back-tripeaks { background: linear-gradient(145deg, #0d9488, #14b8a6, #0f766e) !important; border: 3px solid #2dd4bf !important; }
+        .card-back-sunset { background: linear-gradient(145deg, #f97316, #dc2626, #7c2d12) !important; border: 3px solid #fbbf24 !important; }
+        .card-back-purple { background: linear-gradient(145deg, #7c3aed, #4c1d95, #2e1065) !important; border: 3px solid #a78bfa !important; }
+        .card-back-forest { background: linear-gradient(145deg, #166534, #14532d, #052e16) !important; border: 3px solid #4ade80 !important; }
+        .card-back-diamond { background: repeating-linear-gradient(45deg, #0ea5e9, #0ea5e9 8px, #0284c7 8px, #0284c7 16px) !important; border: 3px solid #7dd3fc !important; }
+        .card-back-cherry { background: radial-gradient(circle, #be123c, #881337) !important; border: 3px solid #fda4af !important; }
+
+        .streak-display {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--gold);
+            border: 2px solid var(--gold);
+            z-index: 100;
+            display: none;
+        }
+
+        .streak-display .streak-count {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .streak-display.active {
+            display: block;
+            animation: streakPop 0.3s ease-out;
+        }
+
+        @keyframes streakPop {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .streak-bonus {
+            position: fixed;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            pointer-events: none;
+            z-index: 200;
+            animation: bonusFloat 1s ease-out forwards;
+        }
+
+        @keyframes bonusFloat {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.2); }
+        }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal {
+            background: linear-gradient(145deg, #0f766e, #065f5a);
+            border: 1px solid rgba(45, 212, 191, 0.3); border-radius: 16px;
+            padding: 30px; max-width: 500px; width: 90%; max-height: 85vh; overflow-y: auto;
+        }
+        .modal-header { margin-bottom: 20px; }
+        .modal-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--gold); }
+        .modal-body { margin-bottom: 25px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+        .settings-group { margin-bottom: 20px; }
+        .settings-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 10px; display: block; }
+        .settings-options { display: flex; flex-wrap: wrap; gap: 10px; }
+        .settings-option {
+            padding: 10px 18px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;
+            cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
+        }
+        .settings-option:hover { background: rgba(255, 255, 255, 0.1); }
+        .settings-option.active { background: rgba(251, 191, 36, 0.2); border-color: var(--gold); color: var(--gold); }
+        .card-back-preview { width: 40px; height: 56px; border-radius: 4px; }
+        .bg-preview { width: 50px; height: 35px; border-radius: 4px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .stats-item { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; text-align: center; }
+        .stats-value { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--gold); }
+        .stats-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-top: 5px; }
+
+        .victory-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 2500; opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+        }
+        .victory-overlay.active { opacity: 1; pointer-events: auto; }
+        .victory-title {
+            font-family: 'Playfair Display', serif; font-size: 3.5rem; color: var(--gold);
+            text-shadow: 0 0 30px rgba(251, 191, 36, 0.5); margin-bottom: 20px;
+            animation: victoryPulse 2s ease-in-out infinite;
+        }
+        @keyframes victoryPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .victory-stats { display: flex; gap: 40px; margin-bottom: 30px; }
+        .victory-stat { text-align: center; }
+        .victory-stat-value { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--text-primary); }
+        .victory-stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary); }
+
+        .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2400; overflow: hidden; }
+        .confetti { position: absolute; width: 10px; height: 10px; opacity: 0; }
+        .confetti.animate { animation: confettiFall 3s ease-out forwards; }
+        @keyframes confettiFall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+        .firework { position: absolute; width: 6px; height: 6px; border-radius: 50%; opacity: 0; }
+
+        .cascade-card {
+            position: fixed;
+            width: var(--card-width);
+            height: var(--card-height);
+            border-radius: var(--card-radius);
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 2399;
+            pointer-events: none;
+        }
+
+        .toast {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(0, 0, 0, 0.9); color: var(--text-primary);
+            padding: 12px 24px; border-radius: 8px; font-size: 0.9rem;
+            opacity: 0; transition: all 0.3s ease; z-index: 3000;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .rules-hint {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 700px) {
+            :root {
+                --card-width: 48px;
+                --card-height: 67px;
+                --card-radius: 3px;
+            }
+            .game-header { padding: 8px 10px; }
+            .logo { font-size: 1.1rem; }
+            .logo span { display: none; }
+            .stat-value { font-size: 0.9rem; }
+            .game-stats { gap: 10px; }
+            .btn { padding: 6px 10px; font-size: 0.7rem; }
+            .btn svg { display: none; }
+            .btn-icon { width: 30px; height: 30px; }
+            .peak-row { margin-top: -18px; }
+            .tableau-row { gap: 2px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="game-header">
+        <div class="logo-section">
+            <a href="index.html" class="back-btn" title="Back to game selection">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <div class="logo">TriPeaks<span> | PulseGames</span></div>
+        </div>
+        
+        <div class="game-stats">
+            <div class="stat">
+                <div class="stat-label">Moves</div>
+                <div class="stat-value" id="moves">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Time</div>
+                <div class="stat-value" id="timer">0:00</div>
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <button class="btn btn-secondary" id="undoBtn" title="Undo (Ctrl+Z)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 10h10a5 5 0 0 1 5 5v2M3 10l4-4M3 10l4 4"/>
+                </svg>
+                Undo
+            </button>
+            <button class="btn btn-secondary" id="hintBtn" title="Show hint (H)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/>
+                </svg>
+                Hint
+            </button>
+            <button class="btn btn-primary" id="newGameBtn">New Game</button>
+            <button class="btn-icon" id="leaderboardBtn" title="Leaderboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 15l-2 5l-5-2l2-5m10 2l2 5l-5 2l-2-5"/>
+                    <circle cx="12" cy="8" r="5"/>
+                </svg>
+            </button>
+            <button class="btn-icon" id="settingsBtn" title="Settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+            </button>
+            <button class="btn-icon" id="statsBtn" title="Statistics">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 20V10M12 20V4M6 20v-6"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="game-container">
+        <div class="peaks-area" id="peaksArea"></div>
+        <div class="tableau-row" id="tableauRow"></div>
+        
+        <div class="bottom-area">
+            <div class="pile stock-pile" id="stockPile">
+                <div class="pile-placeholder">♠</div>
+            </div>
+            <div class="pile waste-pile" id="wastePile">
+                <div class="pile-placeholder"></div>
+            </div>
+        </div>
+        
+        <div class="rules-hint">Click cards that are ±1 from the waste card. Build streaks for bonus points!</div>
+    </main>
+
+    <div class="streak-display" id="streakDisplay">
+        Streak: <span class="streak-count">0</span>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title">Settings</h2></div>
+            <div class="modal-body">
+                <div class="settings-group">
+                    <label class="settings-label">Card Back</label>
+                    <div class="settings-options" id="cardBackOptions">
+                        <div class="settings-option" data-back="tripeaks"><div class="card-back-preview card-back-tripeaks"></div></div>
+                        <div class="settings-option" data-back="classic"><div class="card-back-preview card-back-classic"></div></div>
+                        <div class="settings-option" data-back="royal"><div class="card-back-preview card-back-royal"></div></div>
+                        <div class="settings-option" data-back="emerald"><div class="card-back-preview card-back-emerald"></div></div>
+                        <div class="settings-option" data-back="midnight"><div class="card-back-preview card-back-midnight"></div></div>
+                        <div class="settings-option" data-back="sunset"><div class="card-back-preview card-back-sunset"></div></div>
+                        <div class="settings-option" data-back="purple"><div class="card-back-preview card-back-purple"></div></div>
+                        <div class="settings-option" data-back="forest"><div class="card-back-preview card-back-forest"></div></div>
+                        <div class="settings-option" data-back="diamond"><div class="card-back-preview card-back-diamond"></div></div>
+                        <div class="settings-option" data-back="cherry"><div class="card-back-preview card-back-cherry"></div></div>
+                    </div>
+                </div>
+                <div class="settings-group">
+                    <label class="settings-label">Background</label>
+                    <div class="settings-options" id="bgOptions">
+                        <div class="settings-option" data-bg="tripeaks"><div class="bg-preview" style="background: linear-gradient(145deg, #0d9488, #065f5a)"></div></div>
+                        <div class="settings-option" data-bg="classic"><div class="bg-preview" style="background: linear-gradient(145deg, #065f46, #022c22)"></div></div>
+                        <div class="settings-option" data-bg="blue"><div class="bg-preview" style="background: linear-gradient(145deg, #1a3d5c, #0d2133)"></div></div>
+                        <div class="settings-option" data-bg="midnight"><div class="bg-preview" style="background: linear-gradient(145deg, #1a1a2e, #0d0d17)"></div></div>
+                        <div class="settings-option" data-bg="felt"><div class="bg-preview" style="background: radial-gradient(ellipse at center, #2d5a27 0%, #1a3d18 70%)"></div></div>
+                        <div class="settings-option" data-bg="wood"><div class="bg-preview" style="background: repeating-linear-gradient(90deg, #3d2914 0px, #5c4033 3px, #3d2914 6px)"></div></div>
+                        <div class="settings-option" data-bg="ocean"><div class="bg-preview" style="background: linear-gradient(180deg, #0c4a6e, #164e63, #155e75)"></div></div>
+                        <div class="settings-option" data-bg="sunset"><div class="bg-preview" style="background: linear-gradient(145deg, #7c2d12, #9a3412, #431407)"></div></div>
+                        <div class="settings-option" data-bg="purple"><div class="bg-preview" style="background: linear-gradient(145deg, #4c1d95, #5b21b6, #2e1065)"></div></div>
+                        <div class="settings-option" data-bg="pyramid"><div class="bg-preview" style="background: linear-gradient(145deg, #b45309, #78350f)"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions"><button class="btn btn-primary" id="closeSettingsBtn">Close</button></div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div class="modal-overlay" id="statsModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title">Statistics</h2></div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stats-item"><div class="stats-value" id="statGamesPlayed">0</div><div class="stats-label">Games Played</div></div>
+                    <div class="stats-item"><div class="stats-value" id="statGamesWon">0</div><div class="stats-label">Games Won</div></div>
+                    <div class="stats-item"><div class="stats-value" id="statWinRate">0%</div><div class="stats-label">Win Rate</div></div>
+                    <div class="stats-item"><div class="stats-value" id="statBestScore">0</div><div class="stats-label">Best Score</div></div>
+                    <div class="stats-item"><div class="stats-value" id="statBestStreak">0</div><div class="stats-label">Best Streak</div></div>
+                    <div class="stats-item"><div class="stats-value" id="statPeaksCleared">0</div><div class="stats-label">Peaks Cleared</div></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="resetStatsBtn">Reset Stats</button>
+                <button class="btn btn-primary" id="closeStatsBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory overlay -->
+    <div class="victory-overlay" id="victoryOverlay">
+        <h2 class="victory-title">⛰️ Peaks Cleared!</h2>
+        <div class="victory-stats">
+            <div class="victory-stat"><div class="victory-stat-value" id="victoryTime">0:00</div><div class="victory-stat-label">Time</div></div>
+            <div class="victory-stat"><div class="victory-stat-value" id="victoryMoves">0</div><div class="victory-stat-label">Moves</div></div>
+            <div class="victory-stat"><div class="victory-stat-value" id="victoryScore">0</div><div class="victory-stat-label">Score</div></div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary" id="victoryNewGame">New Game</button>
+            <button class="btn btn-secondary" id="victoryLeaderboard">🏆 Leaderboard</button>
+            <button class="btn btn-secondary" id="victoryShare">Share Result</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+    (function() {
+        const SUITS = ['♠', '♥', '♦', '♣'];
+        const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+        function createDeck() {
+            const deck = [];
+            for (const suit of SUITS) {
+                for (const rank of RANKS) {
+                    deck.push({ suit, rank, faceUp: false });
+                }
+            }
+            return deck;
+        }
+
+        function shuffleDeck(deck) {
+            const a = [...deck];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function getCardValue(rank) {
+            if (rank === 'A') return 1;
+            if (rank === 'J') return 11;
+            if (rank === 'Q') return 12;
+            if (rank === 'K') return 13;
+            return parseInt(rank);
+        }
+
+        // TriPeaks: 18 cards in peaks + 10 in tableau
+        // Peaks are numbered 0-17, laid out as 3 overlapping pyramids
+        // Position mapping for visual layout:
+        //
+        //      [0]           [1]           [2]          <- Row 0 (tops)
+        //    [3] [4]       [5] [6]       [7] [8]        <- Row 1
+        //  [9][10][11]  [12][13][14]  [15][16][17]      <- Row 2 (overlapping)
+        //
+        // But visually they overlap, so we'll render them with CSS positioning
+
+        // Cards that block each position
+        const BLOCKED_BY = {
+            0: [3, 4],
+            1: [5, 6],
+            2: [7, 8],
+            3: [9, 10],
+            4: [10, 11],
+            5: [12, 13],
+            6: [13, 14],
+            7: [15, 16],
+            8: [16, 17],
+            9: [], 10: [], 11: [], 12: [], 13: [], 14: [], 15: [], 16: [], 17: []
+        };
+
+        let game = {
+            peaks: [], // Array of 18 cards (positions 0-17), null if removed
+            tableau: [], // 10 cards at bottom
+            stock: [],
+            waste: [],
+            moves: 0,
+            score: 0,
+            streak: 0,
+            bestStreak: 0,
+            time: 0,
+            timerInterval: null,
+            gameWon: false,
+            gameStarted: false,
+            undoStack: [],
+            cardBack: 'tripeaks',
+            background: 'tripeaks'
+        };
+
+        let stats = { gamesPlayed: 0, gamesWon: 0, bestScore: 0, bestStreak: 0, peaksCleared: 0 };
+
+        const els = {
+            peaksArea: document.getElementById('peaksArea'),
+            tableauRow: document.getElementById('tableauRow'),
+            stockPile: document.getElementById('stockPile'),
+            wastePile: document.getElementById('wastePile'),
+            streakDisplay: document.getElementById('streakDisplay'),
+            moves: document.getElementById('moves'),
+            score: document.getElementById('score'),
+            timer: document.getElementById('timer'),
+            toast: document.getElementById('toast')
+        };
+
+        function newGame() {
+            clearInterval(game.timerInterval);
+            
+            game.moves = 0;
+            game.score = 0;
+            game.streak = 0;
+            game.bestStreak = 0;
+            game.time = 0;
+            game.gameWon = false;
+            game.gameStarted = false;
+            game.undoStack = [];
+            game.peaks = [];
+            game.tableau = [];
+            game.waste = [];
+            
+            const deck = shuffleDeck(createDeck());
+            let cardIndex = 0;
+            
+            // Deal 18 cards to peaks (first 3 face down, rest based on blocking)
+            for (let i = 0; i < 18; i++) {
+                const card = deck[cardIndex++];
+                card.faceUp = i >= 9; // Bottom row (9-17) is face up
+                game.peaks.push(card);
+            }
+            
+            // Deal 10 cards to tableau (all face up)
+            for (let i = 0; i < 10; i++) {
+                const card = deck[cardIndex++];
+                card.faceUp = true;
+                game.tableau.push(card);
+            }
+            
+            // Remaining 24 cards go to stock, first one to waste
+            game.stock = deck.slice(28);
+            const firstCard = game.stock.pop();
+            firstCard.faceUp = true;
+            game.waste = [firstCard];
+            
+            updateStreakDisplay();
+            render();
+            updateDisplay();
+        }
+
+        function startTimer() {
+            if (game.gameStarted) return;
+            game.gameStarted = true;
+            game.timerInterval = setInterval(() => {
+                game.time++;
+                els.timer.textContent = Math.floor(game.time / 60) + ':' + (game.time % 60).toString().padStart(2, '0');
+            }, 1000);
+        }
+
+        function updateDisplay() {
+            els.moves.textContent = game.moves;
+            els.score.textContent = game.score;
+        }
+
+        function updateStreakDisplay() {
+            const display = els.streakDisplay;
+            if (game.streak > 1) {
+                display.querySelector('.streak-count').textContent = game.streak;
+                display.classList.add('active');
+            } else {
+                display.classList.remove('active');
+            }
+        }
+
+        function showStreakBonus(points, x, y) {
+            const bonus = document.createElement('div');
+            bonus.className = 'streak-bonus';
+            bonus.textContent = '+' + points;
+            bonus.style.left = x + 'px';
+            bonus.style.top = y + 'px';
+            document.body.appendChild(bonus);
+            setTimeout(() => bonus.remove(), 1000);
+        }
+
+        function render() {
+            renderPeaks();
+            renderTableau();
+            renderStock();
+            renderWaste();
+        }
+
+        function renderPeaks() {
+            els.peaksArea.innerHTML = '';
+            els.peaksArea.style.position = 'relative';
+            els.peaksArea.style.width = '100%';
+            els.peaksArea.style.maxWidth = '650px';
+            els.peaksArea.style.height = '220px';
+            
+            const cardW = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-width'));
+            const cardH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-height'));
+            const overlapX = cardW * 0.55;
+            const overlapY = cardH * 0.3;
+            
+            // Calculate positions for each card
+            // 3 peaks, each peak is a small pyramid
+            const peakWidth = cardW * 3;
+            const totalWidth = peakWidth * 3 + cardW;
+            const startX = (650 - totalWidth) / 2;
+            
+            const positions = [];
+            
+            // Row 0: 3 peak tops (positions 0, 1, 2)
+            for (let i = 0; i < 3; i++) {
+                const peakCenterX = startX + i * (peakWidth + cardW * 0.5) + peakWidth / 2;
+                positions.push({ x: peakCenterX - cardW / 2, y: 0 });
+            }
+            
+            // Row 1: 6 cards (positions 3-8), 2 per peak
+            for (let i = 0; i < 3; i++) {
+                const peakCenterX = startX + i * (peakWidth + cardW * 0.5) + peakWidth / 2;
+                positions.push({ x: peakCenterX - overlapX - cardW / 2, y: overlapY });
+                positions.push({ x: peakCenterX + overlapX - cardW / 2, y: overlapY });
+            }
+            
+            // Row 2: 9 cards (positions 9-17), 3 per peak
+            for (let i = 0; i < 3; i++) {
+                const peakCenterX = startX + i * (peakWidth + cardW * 0.5) + peakWidth / 2;
+                positions.push({ x: peakCenterX - overlapX * 2 - cardW / 2, y: overlapY * 2 });
+                positions.push({ x: peakCenterX - cardW / 2, y: overlapY * 2 });
+                positions.push({ x: peakCenterX + overlapX * 2 - cardW / 2, y: overlapY * 2 });
+            }
+            
+            // Render cards at calculated positions
+            for (let i = 0; i < 18; i++) {
+                const card = game.peaks[i];
+                const pos = positions[i];
+                
+                if (card) {
+                    const cardEl = createCardElement(card, 'peak', i);
+                    cardEl.style.position = 'absolute';
+                    cardEl.style.left = pos.x + 'px';
+                    cardEl.style.top = pos.y + 'px';
+                    cardEl.style.zIndex = Math.floor(pos.y);
+                    
+                    const isBlocked = !isCardFree(i);
+                    if (isBlocked) cardEl.classList.add('blocked');
+                    
+                    els.peaksArea.appendChild(cardEl);
+                }
+            }
+        }
+
+        function renderTableau() {
+            els.tableauRow.innerHTML = '';
+            
+            for (let i = 0; i < game.tableau.length; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'card-slot';
+                
+                const card = game.tableau[i];
+                if (card) {
+                    const cardEl = createCardElement(card, 'tableau', i);
+                    slot.appendChild(cardEl);
+                } else {
+                    slot.classList.add('empty');
+                }
+                
+                els.tableauRow.appendChild(slot);
+            }
+        }
+
+        function renderStock() {
+            els.stockPile.innerHTML = '';
+            
+            if (game.stock.length > 0) {
+                const back = document.createElement('div');
+                back.className = 'card';
+                back.innerHTML = '<div class="card-face card-back card-back-' + game.cardBack + '"></div>';
+                back.onclick = drawFromStock;
+                els.stockPile.appendChild(back);
+            } else {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'pile-placeholder';
+                placeholder.textContent = '∅';
+                els.stockPile.appendChild(placeholder);
+            }
+        }
+
+        function renderWaste() {
+            els.wastePile.innerHTML = '';
+            
+            if (game.waste.length > 0) {
+                const card = game.waste[game.waste.length - 1];
+                const cardEl = createCardElement(card, 'waste', -1);
+                cardEl.style.cursor = 'default';
+                els.wastePile.appendChild(cardEl);
+            } else {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'pile-placeholder';
+                els.wastePile.appendChild(placeholder);
+            }
+        }
+
+        function createCardElement(card, type, idx) {
+            const el = document.createElement('div');
+            el.className = 'card' + (card.faceUp ? '' : ' face-down');
+            el.dataset.type = type;
+            el.dataset.idx = idx;
+            
+            if (card.faceUp) {
+                const suitMap = { '♠': 'S', '♥': 'H', '♦': 'D', '♣': 'C' };
+                const rankMap = { 'A': 'A', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': 'T', 'J': 'J', 'Q': 'Q', 'K': 'K' };
+                el.innerHTML = '<div class="card-face card-front"><playing-card cid="' + rankMap[card.rank] + suitMap[card.suit] + '"></playing-card></div>';
+                
+                if (type !== 'waste') {
+                    el.onclick = (e) => handleCardClick(e, type, idx, card);
+                }
+            } else {
+                el.innerHTML = '<div class="card-face card-back card-back-' + game.cardBack + '"></div>';
+            }
+            
+            return el;
+        }
+
+        function isCardFree(peakIdx) {
+            const blockers = BLOCKED_BY[peakIdx];
+            if (!blockers || blockers.length === 0) return true;
+            return blockers.every(b => game.peaks[b] === null);
+        }
+
+        function canPlayCard(card) {
+            if (game.waste.length === 0) return false;
+            const wasteCard = game.waste[game.waste.length - 1];
+            const wasteValue = getCardValue(wasteCard.rank);
+            const cardValue = getCardValue(card.rank);
+            
+            // Check ±1 with wrap (K-A)
+            const diff = Math.abs(wasteValue - cardValue);
+            return diff === 1 || diff === 12; // 12 = K to A wrap
+        }
+
+        function highlightValidMoves() {
+            document.querySelectorAll('.card.valid-move').forEach(c => c.classList.remove('valid-move'));
+            
+            if (game.waste.length === 0) return;
+            
+            // Check peaks
+            for (let i = 0; i < game.peaks.length; i++) {
+                const card = game.peaks[i];
+                if (card && card.faceUp && isCardFree(i) && canPlayCard(card)) {
+                    const cardEl = document.querySelector(`.card[data-type="peak"][data-idx="${i}"]`);
+                    if (cardEl) cardEl.classList.add('valid-move');
+                }
+            }
+            
+            // Check tableau
+            for (let i = 0; i < game.tableau.length; i++) {
+                const card = game.tableau[i];
+                if (card && canPlayCard(card)) {
+                    const cardEl = document.querySelector(`.card[data-type="tableau"][data-idx="${i}"]`);
+                    if (cardEl) cardEl.classList.add('valid-move');
+                }
+            }
+        }
+
+        function handleCardClick(e, type, idx, card) {
+            if (game.gameWon) return;
+            
+            // Check if card is playable
+            if (type === 'peak') {
+                if (!card.faceUp || !isCardFree(idx)) {
+                    showToast('Card is blocked');
+                    return;
+                }
+            }
+            
+            if (!canPlayCard(card)) {
+                showToast('Card must be ±1 from ' + game.waste[game.waste.length - 1].rank);
+                return;
+            }
+            
+            startTimer();
+            saveState();
+            
+            // Play the card
+            const cardEl = e.target.closest('.card');
+            if (cardEl) cardEl.classList.add('matched');
+            
+            setTimeout(() => {
+                // Remove from source
+                if (type === 'peak') {
+                    game.peaks[idx] = null;
+                    // Flip newly exposed cards
+                    flipExposedCards();
+                } else if (type === 'tableau') {
+                    game.tableau[idx] = null;
+                }
+                
+                // Add to waste
+                card.faceUp = true;
+                game.waste.push(card);
+                
+                // Update streak and score
+                game.streak++;
+                if (game.streak > game.bestStreak) game.bestStreak = game.streak;
+                
+                const basePoints = 10;
+                const streakBonus = Math.min(game.streak - 1, 10) * 5;
+                const points = basePoints + streakBonus;
+                game.score += points;
+                
+                if (streakBonus > 0) {
+                    const rect = cardEl?.getBoundingClientRect();
+                    if (rect) showStreakBonus(streakBonus, rect.left + rect.width / 2, rect.top);
+                }
+                
+                game.moves++;
+                updateStreakDisplay();
+                render();
+                updateDisplay();
+                checkWin();
+            }, 300);
+        }
+
+        function flipExposedCards() {
+            for (let i = 0; i < 9; i++) { // Only top 9 positions can be face down
+                const card = game.peaks[i];
+                if (card && !card.faceUp && isCardFree(i)) {
+                    card.faceUp = true;
+                }
+            }
+        }
+
+        function drawFromStock() {
+            if (game.stock.length === 0) return;
+            startTimer();
+            saveState();
+            
+            const card = game.stock.pop();
+            card.faceUp = true;
+            game.waste.push(card);
+            
+            // Reset streak when drawing
+            game.streak = 0;
+            updateStreakDisplay();
+            
+            render();
+        }
+
+        function saveState() {
+            game.undoStack.push({
+                peaks: game.peaks.map(c => c ? {...c} : null),
+                tableau: game.tableau.map(c => c ? {...c} : null),
+                stock: game.stock.map(c => ({...c})),
+                waste: game.waste.map(c => ({...c})),
+                moves: game.moves,
+                score: game.score,
+                streak: game.streak
+            });
+            if (game.undoStack.length > 30) game.undoStack.shift();
+        }
+
+        function undo() {
+            if (game.undoStack.length === 0 || game.gameWon) return;
+            const state = game.undoStack.pop();
+            game.peaks = state.peaks;
+            game.tableau = state.tableau;
+            game.stock = state.stock;
+            game.waste = state.waste;
+            game.moves = state.moves;
+            game.score = state.score;
+            game.streak = state.streak;
+            updateStreakDisplay();
+            render();
+            updateDisplay();
+        }
+
+        function checkWin() {
+            const peaksCleared = game.peaks.every(c => c === null);
+            const tableauCleared = game.tableau.every(c => c === null);
+            
+            if (peaksCleared && tableauCleared) {
+                game.gameWon = true;
+                clearInterval(game.timerInterval);
+                
+                // Bonus for remaining stock
+                const stockBonus = game.stock.length * 10;
+                game.score += stockBonus;
+                
+                // Calculate time bonus: 300 - time, minimum 0
+                const timeBonus = Math.max(0, 300 - game.time);
+                game.score += timeBonus;
+                updateDisplay();
+                
+                stats.gamesWon++;
+                stats.peaksCleared += 3;
+                if (game.score > stats.bestScore) stats.bestScore = game.score;
+                if (game.bestStreak > stats.bestStreak) stats.bestStreak = game.bestStreak;
+                saveStats();
+                
+                showVictory(timeBonus);
+            }
+        }
+
+        function findHint() {
+            // Check peaks for valid moves
+            for (let i = 0; i < game.peaks.length; i++) {
+                const card = game.peaks[i];
+                if (card && card.faceUp && isCardFree(i) && canPlayCard(card)) {
+                    return { type: 'peak', idx: i };
+                }
+            }
+            
+            // Check tableau
+            for (let i = 0; i < game.tableau.length; i++) {
+                const card = game.tableau[i];
+                if (card && canPlayCard(card)) {
+                    return { type: 'tableau', idx: i };
+                }
+            }
+            
+            // Suggest drawing
+            if (game.stock.length > 0) {
+                return { type: 'stock' };
+            }
+            
+            return null;
+        }
+
+        function showHint() {
+            const hint = findHint();
+            if (!hint) {
+                showToast('No moves available');
+                return;
+            }
+            
+            if (hint.type === 'stock') {
+                showToast('Draw from stock');
+                return;
+            }
+            
+            const cardEl = document.querySelector(`.card[data-type="${hint.type}"][data-idx="${hint.idx}"]`);
+            if (cardEl) {
+                cardEl.classList.add('hint');
+                setTimeout(() => cardEl.classList.remove('hint'), 1800);
+            }
+        }
+
+        function showVictory(timeBonus) {
+            document.getElementById('victoryTime').textContent = Math.floor(game.time / 60) + ':' + (game.time % 60).toString().padStart(2, '0');
+            document.getElementById('victoryMoves').textContent = game.moves;
+            let scoreText = game.score;
+            if (timeBonus > 0) scoreText += ' (+' + timeBonus + ')';
+            document.getElementById('victoryScore').textContent = scoreText;
+            
+            // Submit to leaderboard
+            if (window.Leaderboard) {
+                Leaderboard.submit('tripeaks', game.score, game.time, game.moves);
+            }
+            
+            playWinAnimation();
+            document.getElementById('victoryOverlay').classList.add('active');
+        }
+
+        function playWinAnimation(type) {
+            if (type === undefined) type = Math.floor(Math.random() * 3);
+            if (type === 0) confettiAnimation();
+            else if (type === 1) fireworksAnimation();
+            else cardCascadeAnimation();
+        }
+
+        function confettiAnimation() {
+            const container = document.createElement('div');
+            container.className = 'confetti-container';
+            document.body.appendChild(container);
+            const colors = ['#14b8a6', '#0d9488', '#fbbf24', '#f59e0b', '#ff6b6b', '#4ecdc4'];
+            function create() {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + '%';
+                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                c.style.width = c.style.height = (Math.random() * 10 + 5) + 'px';
+                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                container.appendChild(c);
+                requestAnimationFrame(() => c.classList.add('animate'));
+                setTimeout(() => c.remove(), 4000);
+            }
+            for (let i = 0; i < 150; i++) setTimeout(create, i * 20);
+            setTimeout(() => container.remove(), 6000);
+        }
+
+        function fireworksAnimation() {
+            const container = document.createElement('div');
+            container.className = 'confetti-container';
+            document.body.appendChild(container);
+            const colors = ['#14b8a6', '#fbbf24', '#ff6b6b', '#4ecdc4', '#a78bfa'];
+            const style = document.createElement('style');
+            style.textContent = '@keyframes fwp{0%{transform:translate(0,0)scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty))scale(0);opacity:0}}';
+            document.head.appendChild(style);
+            function burst(x, y) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                for (let i = 0; i < 35; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'firework';
+                    p.style.cssText = 'left:' + x + 'px;top:' + y + 'px;background:' + color + ';box-shadow:0 0 6px ' + color;
+                    const angle = (i / 35) * Math.PI * 2;
+                    const dist = 70 + Math.random() * 70;
+                    p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+                    p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+                    p.style.animation = 'fwp 1s ease-out forwards';
+                    container.appendChild(p);
+                    setTimeout(() => p.remove(), 1000);
+                }
+            }
+            for (let i = 0; i < 10; i++) setTimeout(() => burst(Math.random() * innerWidth * 0.8 + innerWidth * 0.1, Math.random() * innerHeight * 0.5 + innerHeight * 0.1), i * 400);
+            setTimeout(() => { container.remove(); style.remove(); }, 6000);
+        }
+
+        function cardCascadeAnimation() {
+            const suits = ['S', 'H', 'D', 'C'];
+            const ranks = ['A','2','3','4','5','6','7','8','9','T','J','Q','K'];
+            let delay = 0;
+            
+            for (let i = 0; i < 28; i++) {
+                setTimeout(() => {
+                    const card = document.createElement('div');
+                    card.className = 'cascade-card';
+                    const pc = document.createElement('playing-card');
+                    pc.setAttribute('cid', ranks[i % 13] + suits[Math.floor(i / 13) % 4]);
+                    pc.style.width = pc.style.height = '100%';
+                    card.appendChild(pc);
+                    card.style.left = (100 + Math.random() * (innerWidth - 200)) + 'px';
+                    card.style.top = '-120px';
+                    document.body.appendChild(card);
+                    
+                    let x = parseFloat(card.style.left), y = -120, vx = (Math.random() - 0.5) * 6, vy = 2, rot = 0, rotSpd = (Math.random() - 0.5) * 10;
+                    function anim() {
+                        vy += 0.5; x += vx; y += vy; rot += rotSpd;
+                        if (y > innerHeight - 87) { y = innerHeight - 87; vy *= -0.6; vx *= 0.9; }
+                        if (x < 0 || x > innerWidth - 62) vx = -vx;
+                        card.style.left = x + 'px'; card.style.top = y + 'px'; card.style.transform = 'rotate(' + rot + 'deg)';
+                        if (y < innerHeight + 200) requestAnimationFrame(anim); else card.remove();
+                    }
+                    requestAnimationFrame(anim);
+                    setTimeout(() => card.remove(), 8000);
+                }, delay);
+                delay += 60;
+            }
+        }
+
+        window.playWinAnimation = playWinAnimation;
+
+        // Persistence
+        function saveGame() {
+            localStorage.setItem('tripeaks_game', JSON.stringify({
+                peaks: game.peaks,
+                tableau: game.tableau,
+                stock: game.stock,
+                waste: game.waste,
+                moves: game.moves,
+                score: game.score,
+                streak: game.streak,
+                bestStreak: game.bestStreak,
+                time: game.time,
+                cardBack: game.cardBack,
+                background: game.background
+            }));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('tripeaks_game');
+            if (!saved) return false;
+            try {
+                const data = JSON.parse(saved);
+                Object.assign(game, data);
+                game.undoStack = [];
+                game.gameWon = false;
+                game.gameStarted = game.time > 0;
+                if (game.gameStarted) startTimer();
+                applyBackground(game.background);
+                updateStreakDisplay();
+                render();
+                updateDisplay();
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function saveStats() { localStorage.setItem('tripeaks_stats', JSON.stringify(stats)); }
+        function loadStats() { const saved = localStorage.getItem('tripeaks_stats'); if (saved) try { Object.assign(stats, JSON.parse(saved)); } catch (e) {} }
+
+        function updateStatsDisplay() {
+            document.getElementById('statGamesPlayed').textContent = stats.gamesPlayed;
+            document.getElementById('statGamesWon').textContent = stats.gamesWon;
+            document.getElementById('statWinRate').textContent = stats.gamesPlayed > 0 ? Math.round(stats.gamesWon / stats.gamesPlayed * 100) + '%' : '0%';
+            document.getElementById('statBestScore').textContent = stats.bestScore || 0;
+            document.getElementById('statBestStreak').textContent = stats.bestStreak || 0;
+            document.getElementById('statPeaksCleared').textContent = stats.peaksCleared || 0;
+        }
+
+        function showToast(msg) { els.toast.textContent = msg; els.toast.classList.add('show'); setTimeout(() => els.toast.classList.remove('show'), 2500); }
+
+        function applyBackground(bg) {
+            game.background = bg;
+            const grads = {
+                tripeaks: 'linear-gradient(145deg, #0d9488, #14b8a6, #065f5a)',
+                classic: 'linear-gradient(145deg, #065f46, #047857, #022c22)',
+                blue: 'linear-gradient(145deg, #1a3d5c, #122a40, #0d2133)',
+                midnight: 'linear-gradient(145deg, #1a1a2e, #12121f, #0d0d17)',
+                felt: 'radial-gradient(ellipse at center, #2d5a27 0%, #1a3d18 70%)',
+                wood: 'repeating-linear-gradient(90deg, #3d2914 0px, #5c4033 3px, #3d2914 6px)',
+                ocean: 'linear-gradient(180deg, #0c4a6e, #164e63, #155e75)',
+                sunset: 'linear-gradient(145deg, #7c2d12, #9a3412, #431407)',
+                purple: 'linear-gradient(145deg, #4c1d95, #5b21b6, #2e1065)',
+                pyramid: 'linear-gradient(145deg, #b45309, #d97706, #78350f)'
+            };
+            document.body.style.background = grads[bg] || grads.tripeaks;
+        }
+
+        function copyToClipboard(text) { navigator.clipboard.writeText(text).then(() => showToast('Copied!')).catch(() => showToast('Copy failed')); }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            
+            if (!loadGame()) {
+                newGame();
+            }
+
+            document.getElementById('newGameBtn').addEventListener('click', () => {
+                if (game.gameStarted && !game.gameWon) {
+                    stats.gamesPlayed++;
+                    saveStats();
+                }
+                newGame();
+            });
+
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('hintBtn').addEventListener('click', showHint);
+            
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                document.querySelectorAll('#cardBackOptions .settings-option').forEach(o => {
+                    o.classList.toggle('active', o.dataset.back === game.cardBack);
+                });
+                document.querySelectorAll('#bgOptions .settings-option').forEach(o => {
+                    o.classList.toggle('active', o.dataset.bg === game.background);
+                });
+                document.getElementById('settingsModal').classList.add('active');
+            });
+            document.getElementById('closeSettingsBtn').addEventListener('click', () => document.getElementById('settingsModal').classList.remove('active'));
+            
+            document.getElementById('statsBtn').addEventListener('click', () => { updateStatsDisplay(); document.getElementById('statsModal').classList.add('active'); });
+            document.getElementById('closeStatsBtn').addEventListener('click', () => document.getElementById('statsModal').classList.remove('active'));
+            document.getElementById('resetStatsBtn').addEventListener('click', () => {
+                if (confirm('Reset all statistics?')) {
+                    Object.assign(stats, { gamesPlayed: 0, gamesWon: 0, bestScore: 0, bestStreak: 0, peaksCleared: 0 });
+                    saveStats();
+                    updateStatsDisplay();
+                    showToast('Statistics reset');
+                }
+            });
+
+            document.getElementById('victoryNewGame').addEventListener('click', () => {
+                document.getElementById('victoryOverlay').classList.remove('active');
+                newGame();
+            });
+            document.getElementById('victoryLeaderboard').addEventListener('click', () => {
+                document.getElementById('victoryOverlay').classList.remove('active');
+                if (window.Leaderboard) Leaderboard.show('tripeaks');
+            });
+            document.getElementById('victoryShare').addEventListener('click', () => {
+                copyToClipboard('⛰️ TriPeaks Solitaire\n✅ Cleared!\n⏱️ ' + els.timer.textContent + '\n📊 Score: ' + game.score + '\n🔥 Best Streak: ' + game.bestStreak + '\n\npulsegames.eu/solitaire/');
+            });
+
+            // Leaderboard button
+            document.getElementById('leaderboardBtn').addEventListener('click', () => {
+                if (window.Leaderboard) Leaderboard.show('tripeaks');
+            });
+
+            document.getElementById('cardBackOptions').addEventListener('click', (e) => {
+                const o = e.target.closest('.settings-option');
+                if (!o) return;
+                document.querySelectorAll('#cardBackOptions .settings-option').forEach(x => x.classList.remove('active'));
+                o.classList.add('active');
+                game.cardBack = o.dataset.back;
+                render();
+                saveGame();
+            });
+
+            document.getElementById('bgOptions').addEventListener('click', (e) => {
+                const o = e.target.closest('.settings-option');
+                if (!o) return;
+                document.querySelectorAll('#bgOptions .settings-option').forEach(x => x.classList.remove('active'));
+                o.classList.add('active');
+                applyBackground(o.dataset.bg);
+                saveGame();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                if (e.key === 'z' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undo(); }
+                if (e.key === 'h' || e.key === 'H') showHint();
+                if (e.key === 'n' || e.key === 'N') {
+                    if (game.gameStarted && !game.gameWon) { stats.gamesPlayed++; saveStats(); }
+                    newGame();
+                }
+                if (e.key === ' ') { e.preventDefault(); drawFromStock(); }
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+                }
+            });
+
+            document.querySelectorAll('.modal-overlay').forEach(o => {
+                o.addEventListener('click', (e) => {
+                    if (e.target === o) o.classList.remove('active');
+                });
+            });
+
+            applyBackground(game.background);
+            
+            // Auto-save
+            setInterval(() => {
+                if (game.gameStarted && !game.gameWon) saveGame();
+            }, 5000);
+        });
+
+        // Test function - run in console: testWin()
+        window.testWin = function() {
+            game.score = 200 + Math.floor(Math.random() * 150);
+            game.time = 80 + Math.floor(Math.random() * 120);
+            game.moves = 28 + Math.floor(Math.random() * 20);
+            game.bestStreak = 5 + Math.floor(Math.random() * 10);
+            game.gameWon = true;
+            const timeBonus = Math.max(0, 300 - game.time);
+            game.score += timeBonus;
+            showVictory(timeBonus);
+        };
+    })();
+    </script>
+    <script src="leaderboard.js"></script>
+
+  <nav aria-label="Breadcrumb" style="max-width:800px;margin:2rem auto 0;padding:0 2rem;font-family:sans-serif;font-size:0.85rem;">
+    <a href="/" style="color:#a0a4c0;text-decoration:none;">Home</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <a href="/solitaire/" style="color:#a0a4c0;text-decoration:none;">Solitaire</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <span style="color:#f0f0ff;">TriPeaks</span>
+  </nav>
+
+  <section class="game-info" style="max-width:700px;margin:3rem auto 0;padding:2rem;color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.7;">
+    <h1 style="color:rgba(255,255,255,0.85);font-size:1.6rem;margin-bottom:0.5rem;font-family:'Playfair Display',serif;">Play TriPeaks Solitaire Online – Free Card Game</h1>
+    <p>
+      TriPeaks (also called Three Peaks or Tri Towers) is a fast-paced solitaire game where
+      you clear three overlapping peaks of cards. Select cards that are one rank higher or lower
+      than the current card to build chains and rack up bonus points.
+    </p>
+
+    <h2 style="color:rgba(255,255,255,0.8);font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Playfair Display',serif;">How to Play TriPeaks</h2>
+    <p>
+      Click any face-up card that is one rank above or below the active card at the bottom.
+      Build long chains without drawing from the stock to earn streak bonuses. The goal is
+      to clear all three peaks. Draw from the stock pile when you have no valid moves.
+    </p>
+
+    <h2 style="color:rgba(255,255,255,0.8);font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Playfair Display',serif;">Scoring &amp; Streaks</h2>
+    <p>
+      Longer chains of consecutive moves earn increasing bonus points. A well-timed
+      streak can dramatically boost your score. Try to keep chains going as long as possible
+      before drawing a new card from the stock.
+    </p>
+
+    <h2 style="color:rgba(255,255,255,0.8);font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Playfair Display',serif;">Free, No Download Required</h2>
+    <p>
+      Play TriPeaks Solitaire instantly in your browser – no app, no signup, no ads.
+      PulseGames runs on desktop, tablet, and mobile with full touch support.
+    </p>
+  </section>
+
+  <section style="max-width:800px;margin:3rem auto 0;padding:0 2rem;">
+    <h2 style="color:#e0e0e0;font-size:1.3rem;margin-bottom:1.2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">You Might Also Like</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      <a href="/connect4/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/connect4-thumbnail.webp" alt="Connect 4" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Connect 4</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Board</div>
+        </div>
+      </a>
+      <a href="/pulseblocks/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/pulseblocks.webp" alt="PulseBlocks" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">PulseBlocks</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Puzzle</div>
+        </div>
+      </a>
+      <a href="/snake/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/snake.webp" alt="Snake Neo" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Snake Neo</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Arcade</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer style="background:#0a0e1a;border-top:1px solid rgba(255,255,255,0.06);padding:48px 24px 24px;margin-top:3rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:32px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="max-width:300px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;"><svg width="20" height="14" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span style="font-size:1.5rem;font-weight:700;color:#fff;">PulseGames</span>
+          </div>
+          <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+        </div>
+        <div style="display:flex;gap:48px;flex-wrap:wrap;">
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Games</h4>
+            <a href="/snake/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Snake Neo</a>
+            <a href="/breakout/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Breakout</a>
+            <a href="/taprush/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Tap Rush</a>
+            <a href="/solitaire/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Solitaire</a>
+            <a href="/pulseblocks/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">PulseBlocks</a>
+            <a href="/connect4/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Connect 4</a>
+            <a href="/axeluga/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Axeluga</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Categories</h4>
+            <a href="/arcade-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Arcade</a>
+            <a href="/action-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Action</a>
+            <a href="/puzzle-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Puzzle</a>
+            <a href="/board-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Board Games</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Info</h4>
+            <a href="/about/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">About</a>
+            <a href="/contact/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Contact</a>
+            <a href="/privacy/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top:24px;text-align:center;color:#888;font-size:0.85rem;">
+        <p style="margin:0;">&copy; 2026 PulseGames. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

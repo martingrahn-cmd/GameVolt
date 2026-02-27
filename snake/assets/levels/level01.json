@@ -1,0 +1,12 @@
+{
+  "name": "Open Field",
+  "gridWidth": 48,
+  "gridHeight": 48,
+  "start": [
+    24,
+    24
+  ],
+  "startDir": "right",
+  "walls": [],
+  "foodNeeded": 10
+}

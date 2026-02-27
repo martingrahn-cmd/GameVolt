@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Axeluga">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- SEO Meta Tags -->
+    <title>Axeluga – Free Space Shooter Game Online | PulseGames</title>
+    <meta name="description" content="Play Axeluga free in your browser! Vertical space shooter with 5 worlds, epic boss battles, power-ups and gamepad support. No download required.">
+    <meta name="keywords" content="space shooter, shoot em up, free shooter game, vertical shooter, browser space game, arcade shooter, boss battles, shmup">
+    <meta name="author" content="PulseGames">
+    <meta name="robots" content="index, follow">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://pulsegames.eu/axeluga/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="game">
+    <meta property="og:url" content="https://pulsegames.eu/axeluga/">
+    <meta property="og:title" content="Axeluga – Free Space Shooter Game Online">
+    <meta property="og:description" content="Battle through 5 worlds, defeat epic bosses and save the galaxy. Free browser shoot-em-up with gamepad support.">
+    <meta property="og:image" content="https://pulsegames.eu/assets/thumbnails/axeluga.webp">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="PulseGames">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Axeluga – Free Space Shooter Game Online">
+    <meta name="twitter:description" content="Battle through 5 worlds, defeat epic bosses and save the galaxy. Free browser shoot-em-up with gamepad support.">
+    <meta name="twitter:image" content="https://pulsegames.eu/assets/thumbnails/axeluga.webp">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "Axeluga",
+        "description": "Vertical space shooter with 5 worlds, epic boss battles, power-ups and gamepad support. Play free in your browser.",
+        "url": "https://pulsegames.eu/axeluga/",
+        "image": "https://pulsegames.eu/assets/thumbnails/axeluga.webp",
+        "genre": ["Shooter", "Arcade", "Action"],
+        "gamePlatform": "Web Browser",
+        "applicationCategory": "Game",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Organization", "name": "PulseGames", "url": "https://pulsegames.eu" },
+        "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+        "playMode": "SinglePlayer"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://pulsegames.eu/"},
+        {"@type": "ListItem", "position": 2, "name": "Action Games", "item": "https://pulsegames.eu/action-games/"},
+        {"@type": "ListItem", "position": 3, "name": "Axeluga", "item": "https://pulsegames.eu/axeluga/"}
+      ]
+    }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #05060d;
+            font-family: 'Courier New', monospace;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        #game-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%; height: 100%;
+            gap: 0;
+        }
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            touch-action: none;
+            z-index: 1;
+        }
+        .side-panel {
+            display: none;
+            flex-direction: column;
+            width: 220px;
+            height: 100vh;
+            padding: 20px 16px;
+            color: #8af;
+            font-size: 11px;
+            line-height: 1.6;
+            overflow: hidden;
+            position: relative;
+        }
+        .side-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, rgba(0,255,255,0.15) 20%, rgba(0,255,255,0.15) 80%, transparent);
+        }
+        #panel-left::before { right: 0; }
+        #panel-right::before { left: 0; }
+
+        .panel-section { margin-bottom: 18px; opacity: 0.85; }
+        .panel-label {
+            color: #0ff; font-size: 9px; letter-spacing: 3px;
+            text-transform: uppercase; margin-bottom: 5px; opacity: 0.6;
+        }
+        .panel-value { color: #dde; font-size: 14px; font-weight: bold; }
+        .panel-value.score { color: #ff8; font-size: 18px; }
+        .panel-value.hp { color: #f44; }
+        .panel-value.weapon { color: #4af; }
+        .panel-value.combo { color: #f80; }
+        .panel-value.world { color: #0ff; }
+
+        .panel-title {
+            font-size: 20px; font-weight: bold; color: #0ff;
+            text-align: center; margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(0,255,255,0.3);
+        }
+        .panel-subtitle {
+            font-size: 8px; letter-spacing: 5px; color: #448;
+            text-align: center; margin-bottom: 20px;
+        }
+        .controls-list { font-size: 10px; color: #556; line-height: 2; }
+        .controls-list span { color: #0ff; }
+
+        .wpn-bars { display: flex; gap: 3px; margin-top: 3px; }
+        .wpn-bar {
+            width: 20px; height: 6px; background: #222;
+            border: 1px solid #334;
+        }
+        .wpn-bar.active { background: #4af; border-color: #4af; box-shadow: 0 0 4px #4af; }
+
+        .hp-hearts { display: flex; gap: 4px; margin-top: 3px; }
+        .hp-heart { font-size: 16px; opacity: 0.3; }
+        .hp-heart.active { opacity: 1; }
+
+        .scanline-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(0deg,
+                transparent, transparent 3px,
+                rgba(0,255,255,0.015) 3px, rgba(0,255,255,0.015) 4px);
+            pointer-events: none;
+        }
+
+        .panel-wave-indicator { display: flex; gap: 2px; flex-wrap: wrap; margin-top: 4px; }
+        .wave-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #222; border: 1px solid #334;
+        }
+        .wave-dot.done { background: #0a6; border-color: #0a6; }
+        .wave-dot.current { background: #ff0; border-color: #ff0; box-shadow: 0 0 4px #ff0; }
+        .wave-dot.boss { border-radius: 2px; }
+
+        #loading {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            background: #0a0a1a; color: #0ff; font-size: 18px; z-index: 100;
+        }
+        #loading .bar { width: 200px; height: 4px; background: #112; margin-top: 16px; border-radius: 2px; }
+        #loading .bar-fill { height: 100%; background: #0ff; width: 0%; transition: width 0.2s; border-radius: 2px; }
+
+        .panel-credits {
+            position: absolute; bottom: 16px; left: 16px; right: 16px;
+            font-size: 8px; color: #334; text-align: center; line-height: 1.8;
+        }
+
+        /* Landscape warning overlay */
+        #landscape-warning {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: #05060d;
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #0ff;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            gap: 20px;
+        }
+        #landscape-warning .rotate-icon {
+            font-size: 60px;
+            animation: rotateHint 2s ease-in-out infinite;
+        }
+        #landscape-warning .rotate-text {
+            font-size: 16px; color: #8af; letter-spacing: 2px;
+        }
+        @keyframes rotateHint {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-20deg); }
+            75% { transform: rotate(20deg); }
+        }
+        @media (orientation: landscape) and (max-height: 500px) {
+            #landscape-warning { display: flex !important; }
+            #game-wrapper { display: none !important; }
+        }
+
+        /* Fullscreen button */
+        #fullscreen-btn {
+            display: none;
+            position: fixed;
+            top: 8px; right: 8px;
+            width: 36px; height: 36px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(0,255,255,0.3);
+            border-radius: 6px;
+            color: #0ff;
+            font-size: 18px;
+            z-index: 50;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #fullscreen-btn:active { background: rgba(0,255,255,0.2); }
+        @media (max-width: 768px) {
+            #fullscreen-btn { display: flex; }
+        }
+
+        /* iOS install hint */
+        #ios-install-hint {
+            display: none;
+            position: fixed;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,20,40,0.95);
+            border: 1px solid rgba(0,255,255,0.3);
+            border-radius: 10px;
+            padding: 12px 18px;
+            color: #8af;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-align: center;
+            z-index: 200;
+            max-width: 280px;
+            line-height: 1.6;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            animation: hintSlideUp 0.4s ease-out;
+        }
+        #ios-install-hint .hint-icon { font-size: 22px; }
+        #ios-install-hint .hint-close {
+            position: absolute; top: 4px; right: 8px;
+            color: #556; font-size: 16px; cursor: pointer;
+            background: none; border: none; padding: 4px;
+        }
+        @keyframes hintSlideUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div>LOADING AXELUGA...</div>
+        <div class="bar"><div class="bar-fill" id="loadBar"></div></div>
+    </div>
+    <div id="game-wrapper">
+        <div id="panel-left" class="side-panel">
+            <div class="scanline-overlay"></div>
+            <div class="panel-title">AXELUGA</div>
+            <div class="panel-subtitle">VERTICAL SHOOTER</div>
+            <div class="panel-section">
+                <div class="panel-label">SECTOR</div>
+                <div class="panel-value world" id="pl-world">—</div>
+            </div>
+            <div class="panel-section">
+                <div class="panel-label">WAVE PROGRESS</div>
+                <div class="panel-wave-indicator" id="pl-waves"></div>
+            </div>
+            <div class="panel-section" style="margin-top:auto">
+                <div class="panel-label">CONTROLS</div>
+                <div class="controls-list">
+                    <span>↑↓←→</span> MOVE<br>
+                    <span>SPACE</span> FIRE<br>
+                    <span>B</span> BOMB<br>
+                    <span>ESC</span> PAUSE<br>
+                    <span>🎮</span> GAMEPAD
+                </div>
+            </div>
+            <div class="panel-credits">
+                ART: TIMBERLATE007 · DYLESTORM<br>
+                MUSIC: ABSTRACTION<br>
+                © PULSEGAMES.EU
+            </div>
+        </div>
+
+        <canvas id="game"></canvas>
+
+        <div id="panel-right" class="side-panel">
+            <div class="scanline-overlay"></div>
+            <div class="panel-section">
+                <div class="panel-label">SCORE</div>
+                <div class="panel-value score" id="pr-score">0</div>
+            </div>
+            <div class="panel-section">
+                <div class="panel-label">HIGH SCORE</div>
+                <div class="panel-value" id="pr-hiscore" style="color:#a8a;">0</div>
+            </div>
+            <div class="panel-section">
+                <div class="panel-label">HULL INTEGRITY</div>
+                <div class="hp-hearts" id="pr-hp">
+                    <span class="hp-heart">❤</span>
+                    <span class="hp-heart">❤</span>
+                    <span class="hp-heart">❤</span>
+                </div>
+            </div>
+            <div class="panel-section">
+                <div class="panel-label">WEAPON LEVEL</div>
+                <div class="panel-value weapon" id="pr-wpn">LVL 1</div>
+                <div class="wpn-bars" id="pr-wpnbars">
+                    <div class="wpn-bar"></div>
+                    <div class="wpn-bar"></div>
+                    <div class="wpn-bar"></div>
+                    <div class="wpn-bar"></div>
+                    <div class="wpn-bar"></div>
+                </div>
+            </div>
+            <div class="panel-section">
+                <div class="panel-label">COMBO</div>
+                <div class="panel-value combo" id="pr-combo">—</div>
+            </div>
+            <div class="panel-section">
+                <div class="panel-label">BOMB</div>
+                <div class="panel-value" id="pr-bomb" style="color:#f80;">—</div>
+            </div>
+            <div class="panel-section" style="margin-top:auto">
+                <div class="panel-label">STATUS</div>
+                <div class="panel-value" id="pr-status" style="color:#0f0; font-size:11px;">READY</div>
+            </div>
+        </div>
+    </div>
+    <div id="landscape-warning">
+        <div class="rotate-icon">📱</div>
+        <div class="rotate-text">ROTATE TO PORTRAIT</div>
+        <div style="color:#556; font-size:11px;">Axeluga is designed for vertical play</div>
+    </div>
+
+    <button id="fullscreen-btn" aria-label="Fullscreen">⛶</button>
+
+    <div id="ios-install-hint">
+        <button class="hint-close" id="hint-close">✕</button>
+        <div class="hint-icon">📲</div>
+        <div>Tryck <strong style="color:#0ff">⎋ Dela</strong> → <strong style="color:#0ff">Lägg till på hemskärmen</strong> för fullskärm!</div>
+    </div>
+
+    <script type="module" src="js/main.js?v=20260215b"></script>
+    <script>
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+        const fsBtn = document.getElementById('fullscreen-btn');
+        const iosHint = document.getElementById('ios-install-hint');
+
+        if (isIOS && !isStandalone) {
+            // iOS in browser: hide fullscreen btn, show install hint after a few seconds
+            fsBtn.style.display = 'none';
+            if (!localStorage.getItem('axeluga_ios_hint_dismissed')) {
+                setTimeout(() => { iosHint.style.display = 'block'; }, 3000);
+            }
+            document.getElementById('hint-close').addEventListener('click', () => {
+                iosHint.style.display = 'none';
+                localStorage.setItem('axeluga_ios_hint_dismissed', '1');
+            });
+        } else if (isIOS && isStandalone) {
+            // iOS PWA: already fullscreen, hide both
+            fsBtn.style.display = 'none';
+        } else {
+            // Android / desktop: fullscreen API works
+            fsBtn.addEventListener('click', () => {
+                const el = document.documentElement;
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+                } else {
+                    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+                }
+            });
+        }
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
+        }
+    </script>
+
+    <nav aria-label="Breadcrumb" style="max-width:800px;margin:2rem auto 0;padding:0 2rem;font-family:sans-serif;font-size:0.85rem;">
+      <a href="/" style="color:#a0a4c0;text-decoration:none;">Home</a>
+      <span style="color:#626580;margin:0 0.4rem;">›</span>
+      <a href="/action-games/" style="color:#a0a4c0;text-decoration:none;">Action Games</a>
+      <span style="color:#626580;margin:0 0.4rem;">›</span>
+      <span style="color:#f0f0ff;">Axeluga</span>
+    </nav>
+
+    <section class="game-info" style="max-width:800px;margin:3rem auto 0;padding:2rem;color:#b0b0b0;font-size:0.95rem;line-height:1.7;position:relative;z-index:1;">
+      <h1 style="color:#e0e0e0;font-size:1.6rem;margin-bottom:0.5rem;font-family:sans-serif;">Axeluga – Free Online Space Shooter Game</h1>
+      <p>
+        Axeluga is a vertical space shooter you can play free in your browser. Battle
+        through five unique worlds, face epic boss fights, collect power-ups and save
+        the galaxy. With gamepad support and smooth touch controls, it plays great on
+        any device.
+      </p>
+
+      <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">Five Worlds, Epic Bosses</h2>
+      <p>
+        Each world features distinct enemies, environments and a challenging boss battle
+        at the end. From asteroid fields to alien strongholds, every stage brings new
+        threats and new strategies. Upgrade your weapons and earn bombs to survive the
+        toughest waves.
+      </p>
+
+      <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">How to Play</h2>
+      <p>
+        Use arrow keys to move and spacebar to fire. Press B to launch a bomb that
+        clears the screen. Gamepad is fully supported – just connect a controller and
+        play. On mobile, touch controls are automatic. The game is designed for
+        vertical/portrait play.
+      </p>
+
+      <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">Shoot-Em-Up Arcade Action</h2>
+      <p>
+        If you enjoy classic shoot-em-up games like Galaga, 1942 or Space Invaders,
+        Axeluga delivers that same arcade thrill in a modern browser package. No
+        download, no signup – just pure shmup action from PulseGames.
+      </p>
+    </section>
+
+  <section style="max-width:800px;margin:3rem auto 0;padding:0 2rem;">
+    <h2 style="color:#e0e0e0;font-size:1.3rem;margin-bottom:1.2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">You Might Also Like</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      <a href="/taprush/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/taprush.webp" alt="Tap Rush" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Tap Rush</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Action</div>
+        </div>
+      </a>
+      <a href="/snake/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/snake.webp" alt="Snake Neo" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Snake Neo</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Arcade</div>
+        </div>
+      </a>
+      <a href="/breakout/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/breakout.webp" alt="Breakout" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Breakout</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Arcade</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer style="background:#0a0e1a;border-top:1px solid rgba(255,255,255,0.06);padding:48px 24px 24px;margin-top:3rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:32px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="max-width:300px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;"><svg width="20" height="14" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span style="font-size:1.5rem;font-weight:700;color:#fff;">PulseGames</span>
+          </div>
+          <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+        </div>
+        <div style="display:flex;gap:48px;flex-wrap:wrap;">
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Games</h4>
+            <a href="/snake/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Snake Neo</a>
+            <a href="/breakout/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Breakout</a>
+            <a href="/taprush/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Tap Rush</a>
+            <a href="/solitaire/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Solitaire</a>
+            <a href="/pulseblocks/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">PulseBlocks</a>
+            <a href="/connect4/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Connect 4</a>
+            <a href="/axeluga/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Axeluga</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Categories</h4>
+            <a href="/arcade-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Arcade</a>
+            <a href="/action-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Action</a>
+            <a href="/puzzle-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Puzzle</a>
+            <a href="/board-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Board Games</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Info</h4>
+            <a href="/about/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">About</a>
+            <a href="/contact/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Contact</a>
+            <a href="/privacy/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top:24px;text-align:center;color:#888;font-size:0.85rem;">
+        <p style="margin:0;">&copy; 2026 PulseGames. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

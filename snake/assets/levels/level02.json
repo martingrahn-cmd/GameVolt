@@ -1,0 +1,14 @@
+{
+  "name": "The Corridor",
+  "gridWidth": 48,
+  "gridHeight": 48,
+  "start": [24, 24],
+  "startDir": "right",
+  "walls": [
+    {"x": 0, "y": 20, "w": 18, "h": 2},
+    {"x": 0, "y": 26, "w": 18, "h": 2},
+    {"x": 30, "y": 20, "w": 18, "h": 2},
+    {"x": 30, "y": 26, "w": 18, "h": 2}
+  ],
+  "foodNeeded": 10
+}

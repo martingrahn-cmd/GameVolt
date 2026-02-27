@@ -1,0 +1,14 @@
+{
+  "name": "The Cross",
+  "gridWidth": 48,
+  "gridHeight": 48,
+  "start": [10, 10],
+  "startDir": "right",
+  "walls": [
+    {"x": 22, "y": 4, "w": 4, "h": 16},
+    {"x": 22, "y": 28, "w": 4, "h": 16},
+    {"x": 4, "y": 22, "w": 16, "h": 4},
+    {"x": 28, "y": 22, "w": 16, "h": 4}
+  ],
+  "foodNeeded": 10
+}

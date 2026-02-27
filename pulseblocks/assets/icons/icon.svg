@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a3a3a"/>
+      <stop offset="100%" style="stop-color:#0d2626"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6ee4d6"/>
+      <stop offset="100%" style="stop-color:#45d9c8"/>
+    </linearGradient>
+    <linearGradient id="purple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#bda6e8"/>
+      <stop offset="100%" style="stop-color:#a78bda"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f7b84d"/>
+      <stop offset="100%" style="stop-color:#f5a623"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ed7f8d"/>
+      <stop offset="100%" style="stop-color:#e85b6c"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="url(#bg)"/>
+  
+  <!-- 4 blocks in 2x2 grid -->
+  <rect x="96" y="96" width="140" height="140" rx="20" fill="url(#teal)"/>
+  <rect x="276" y="96" width="140" height="140" rx="20" fill="url(#purple)"/>
+  <rect x="96" y="276" width="140" height="140" rx="20" fill="url(#orange)"/>
+  <rect x="276" y="276" width="140" height="140" rx="20" fill="url(#red)"/>
+  
+  <!-- Highlights -->
+  <rect x="106" y="106" width="120" height="40" rx="10" fill="rgba(255,255,255,0.3)"/>
+  <rect x="286" y="106" width="120" height="40" rx="10" fill="rgba(255,255,255,0.3)"/>
+  <rect x="106" y="286" width="120" height="40" rx="10" fill="rgba(255,255,255,0.3)"/>
+  <rect x="286" y="286" width="120" height="40" rx="10" fill="rgba(255,255,255,0.3)"/>
+</svg>

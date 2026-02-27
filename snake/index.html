@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-PY073ZX38N');
+  </script>
+  
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <!-- SEO Meta Tags -->
+  <title>Play Snake Online Free – Classic Snake Game | PulseGames</title>
+  <meta name="description" content="Play Snake free in your browser! Three modes: retro Nokia 3310, synthwave Neo, and 16-bit Fruit Chain. No download, no signup – just classic snake gameplay.">
+  <meta name="keywords" content="snake game, play snake online, free snake game, browser snake, nokia snake, classic snake, retro snake game">
+  <meta name="author" content="PulseGames">
+  <meta name="robots" content="index, follow">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://pulsegames.eu/snake/">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://pulsegames.eu/snake/">
+  <meta property="og:title" content="Play Snake Online Free – Classic Snake Game">
+  <meta property="og:description" content="Three unique modes: retro Nokia 3310, synthwave Neo, and 16-bit Fruit Chain. No download required.">
+  <meta property="og:image" content="https://pulsegames.eu/assets/thumbnails/snake.webp">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="PulseGames">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Snake Neo - Free Classic Snake Game Online">
+  <meta name="twitter:description" content="Classic snake with Nokia nostalgia, synthwave Neo, and Fruit Chain modes. Free, no download!">
+  <meta name="twitter:image" content="https://pulsegames.eu/assets/thumbnails/snake.webp">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Snake Neo",
+    "description": "Classic snake game with three unique modes – Nokia 3310 retro, synthwave Neo, and 16-bit Fruit Chain. Play free in your browser.",
+    "url": "https://pulsegames.eu/snake/",
+    "image": "https://pulsegames.eu/assets/thumbnails/snake.webp",
+    "genre": ["Arcade", "Retro", "Puzzle"],
+    "gamePlatform": "Web Browser",
+    "applicationCategory": "Game",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "PulseGames",
+      "url": "https://pulsegames.eu"
+    },
+    "numberOfPlayers": {
+      "@type": "QuantitativeValue",
+      "value": 1
+    },
+    "playMode": "SinglePlayer"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://pulsegames.eu/"},
+      {"@type": "ListItem", "position": 2, "name": "Arcade Games", "item": "https://pulsegames.eu/arcade-games/"},
+      {"@type": "ListItem", "position": 3, "name": "Snake Neo", "item": "https://pulsegames.eu/snake/"}
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="./style.css">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="bg"></div>
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="menuScreen" class="menu hidden">
+    <h2>SNAKE</h2>
+
+    <button data-mode="neo">Neo Mode</button>
+    <button data-mode="nokia">Nokia Mode</button>
+  </div>
+
+  <script type="module" src="./js/main.js?v=1.3"></script>
+
+  <nav aria-label="Breadcrumb" style="max-width:800px;margin:2rem auto 0;padding:0 2rem;font-family:sans-serif;font-size:0.85rem;">
+    <a href="/" style="color:#a0a4c0;text-decoration:none;">Home</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <a href="/arcade-games/" style="color:#a0a4c0;text-decoration:none;">Arcade Games</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <span style="color:#f0f0ff;">Snake Neo</span>
+  </nav>
+
+  <section class="game-info" style="max-width:800px;margin:3rem auto 0;padding:2rem;color:#b0b0b0;font-size:0.95rem;line-height:1.7;">
+    <h1 style="color:#e0e0e0;font-size:1.6rem;margin-bottom:0.5rem;font-family:sans-serif;">Play Snake Online – Free Classic Snake Game</h1>
+    <p>
+      Relive the golden age of mobile gaming with Snake Neo – a free browser snake game
+      inspired by the iconic Nokia phone classic. Guide your snake, eat food, grow longer
+      and try not to crash. Simple rules, endless fun, and zero downloads needed.
+    </p>
+
+    <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">Three Unique Game Modes</h2>
+    <p>
+      <strong>Nokia 3310 Mode</strong> – Pixel-perfect retro gameplay that looks and feels
+      just like the original Nokia snake from the late 90s. Monochrome graphics, chunky pixels,
+      and that satisfying classic speed. Pure nostalgia.
+    </p>
+    <p>
+      <strong>Neo Mode</strong> – A modern take on classic snake with synthwave aesthetics,
+      neon glow effects and a pulsing electronic soundtrack. Progress through levels as the
+      speed and challenge increase.
+    </p>
+    <p>
+      <strong>16-bit Endless Mode</strong> – Colorful retro-styled endless snake gameplay
+      with wraparound mechanics. The snake exits one side of the screen and enters from the
+      other – a fun twist that changes your strategy completely.
+    </p>
+
+    <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">How to Play</h2>
+    <p>
+      Use arrow keys or swipe on mobile to change direction. Eat the food to grow your snake
+      and increase your score. Avoid hitting the walls (in classic modes) or your own tail.
+      The longer your snake gets, the harder it becomes. Works on desktop, tablet and phone.
+    </p>
+
+    <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">Why Play Snake on PulseGames?</h2>
+    <p>
+      PulseGames is 100% free with no ads, no account required and no downloads. Just open
+      your browser and start playing. Our Snake game runs smoothly on any device and saves
+      your high score locally so you can keep trying to beat your best.
+    </p>
+  </section>
+
+  <section style="max-width:800px;margin:3rem auto 0;padding:0 2rem;">
+    <h2 style="color:#e0e0e0;font-size:1.3rem;margin-bottom:1.2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">You Might Also Like</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      <a href="/breakout/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/breakout.webp" alt="Breakout" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Breakout</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Arcade</div>
+        </div>
+      </a>
+      <a href="/pulseblocks/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/pulseblocks.webp" alt="PulseBlocks" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">PulseBlocks</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Puzzle</div>
+        </div>
+      </a>
+      <a href="/taprush/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/taprush.webp" alt="Tap Rush" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Tap Rush</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Action</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer style="background:#0a0e1a;border-top:1px solid rgba(255,255,255,0.06);padding:48px 24px 24px;margin-top:3rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:32px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="max-width:300px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;"><svg width="20" height="14" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span style="font-size:1.5rem;font-weight:700;color:#fff;">PulseGames</span>
+          </div>
+          <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+        </div>
+        <div style="display:flex;gap:48px;flex-wrap:wrap;">
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Games</h4>
+            <a href="/snake/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Snake Neo</a>
+            <a href="/breakout/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Breakout</a>
+            <a href="/taprush/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Tap Rush</a>
+            <a href="/solitaire/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Solitaire</a>
+            <a href="/pulseblocks/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">PulseBlocks</a>
+            <a href="/connect4/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Connect 4</a>
+            <a href="/axeluga/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Axeluga</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Categories</h4>
+            <a href="/arcade-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Arcade</a>
+            <a href="/action-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Action</a>
+            <a href="/puzzle-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Puzzle</a>
+            <a href="/board-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Board Games</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Info</h4>
+            <a href="/about/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">About</a>
+            <a href="/contact/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Contact</a>
+            <a href="/privacy/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top:24px;text-align:center;color:#888;font-size:0.85rem;">
+        <p style="margin:0;">&copy; 2026 PulseGames. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

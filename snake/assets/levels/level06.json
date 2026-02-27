@@ -1,0 +1,14 @@
+{
+  "name": "Four Chambers",
+  "gridWidth": 48,
+  "gridHeight": 48,
+  "start": [12, 12],
+  "startDir": "right",
+  "walls": [
+    {"x": 22, "y": 4, "w": 4, "h": 18},
+    {"x": 22, "y": 26, "w": 4, "h": 18},
+    {"x": 4, "y": 22, "w": 14, "h": 4},
+    {"x": 30, "y": 22, "w": 14, "h": 4}
+  ],
+  "foodNeeded": 10
+}

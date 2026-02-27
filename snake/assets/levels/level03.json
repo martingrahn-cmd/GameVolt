@@ -1,0 +1,14 @@
+{
+  "name": "Four Corners",
+  "gridWidth": 48,
+  "gridHeight": 48,
+  "start": [24, 24],
+  "startDir": "right",
+  "walls": [
+    {"x": 4, "y": 4, "w": 8, "h": 8},
+    {"x": 36, "y": 4, "w": 8, "h": 8},
+    {"x": 4, "y": 36, "w": 8, "h": 8},
+    {"x": 36, "y": 36, "w": 8, "h": 8}
+  ],
+  "foodNeeded": 10
+}

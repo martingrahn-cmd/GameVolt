@@ -1,0 +1,958 @@
+<!-- ============================================================
+ Tap Rush Reflex v1.16 – Mobile Polish Build
+===============================================================
+ 🔹 Status: VERIFIED STABLE (Desktop + Mobile)
+ 🔹 Date: 2025-11-13
+ 🔹 Author: SmartProc Games / Martin Grahn
+ 🔹 Engine: Pure JavaScript (no SDK, no external assets)
+
+ 🔹 New in v1.16:
+    • Mute icons positioned correctly (mobile + desktop)
+    • Improved start-screen spacing (brand logo vs start overlay)
+    • Target sizes tuned for mobile (45px)
+    • Safe-area handling verified (iPhone X–15, iPad Mini/Pro)
+
+ 🔸 Next potential build: v1.17 – Level Polish & Minor Juice
+===============================================================
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+ <!-- Tap Rush Reflex – V1.16 Mobile -->
+<head>
+<meta charset="UTF-8"/>
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PY073ZX38N');
+</script>
+
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Tap Rush – Free Reaction Speed Test Game Online | PulseGames</title>
+<meta name="description" content="Test your reflexes in Tap Rush! Tap fast, avoid bombs, and race the clock. Free browser reaction game – no download, no signup.">
+<meta name="keywords" content="reaction game, speed test, tap game, reflex test, reaction time, free browser game, tap rush">
+<meta name="author" content="PulseGames">
+<meta name="robots" content="index, follow">
+
+<!-- Canonical URL -->
+<link rel="canonical" href="https://pulsegames.eu/taprush/">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pulsegames.eu/taprush/">
+<meta property="og:title" content="Tap Rush – Free Reaction Speed Test Game">
+<meta property="og:description" content="Test your reflexes! Tap fast, avoid bombs, and race the clock. Free in your browser.">
+<meta property="og:image" content="https://pulsegames.eu/assets/thumbnails/taprush.webp">
+<meta property="og:site_name" content="PulseGames">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Tap Rush – Free Reaction Speed Test Game">
+<meta name="twitter:description" content="Test your reflexes! Tap fast, avoid bombs, and race the clock. Free in your browser.">
+<meta name="twitter:image" content="https://pulsegames.eu/assets/thumbnails/taprush.webp">
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Tap Rush",
+  "description": "Fast-paced reaction game. Tap quickly, avoid bombs, and test your reflexes against the clock. Free browser game.",
+  "url": "https://pulsegames.eu/taprush/",
+  "image": "https://pulsegames.eu/assets/thumbnails/taprush.webp",
+  "genre": ["Arcade", "Reaction", "Casual"],
+  "gamePlatform": "Web Browser",
+  "applicationCategory": "Game",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Organization", "name": "PulseGames", "url": "https://pulsegames.eu" },
+  "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+  "playMode": "SinglePlayer"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://pulsegames.eu/"},
+    {"@type": "ListItem", "position": 2, "name": "Arcade Games", "item": "https://pulsegames.eu/arcade-games/"},
+    {"@type": "ListItem", "position": 3, "name": "Tap Rush", "item": "https://pulsegames.eu/taprush/"}
+  ]
+}
+</script>
+
+<style>
+:root{
+  --bg1:#062129; --bg2:#0a2f3a; --grid:#0f2b33; --neon:#00ffe0;
+  --hudHeight:140px;
+  --targetSize:80px;              /* desktop default */
+  --safeTop:0px;                  /* fylls på på devices med notch */
+}
+
+/* iOS / notch / safe-area: uppdatera --safeTop */
+@supports (top: env(safe-area-inset-top)) {
+  :root{
+    --safeTop: env(safe-area-inset-top);
+  }
+}
+
+@media (max-width: 768px){
+  :root{
+    --hudHeight:110px;
+    --targetSize:45px;            /* mindre rutor på mobil */
+  }
+}
+
+
+html,body{
+  margin:0;padding:0;overflow:hidden;height:100%;
+  background:radial-gradient(1200px 800px at 50% 45%,var(--bg2),var(--bg1));
+  color:#eaf7ff;font-family:ui-monospace,Consolas,monospace;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#game{position:relative;width:100vw;height:100vh}
+
+/* Bakgrundsgrid */
+#bgGrid{position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 31px,var(--grid) 31px 32px),
+             repeating-linear-gradient(90deg,transparent 0 31px,var(--grid) 31px 32px);
+  opacity:.26;animation:gridMove 22s linear infinite,gridPulse .5s ease-in-out infinite alternate}
+@keyframes gridMove{0%{background-position:0 0,0 0}50%{background-position:0 40px,40px 0}100%{background-position:0 0,0 0}}
+@keyframes gridPulse{from{opacity:.22}to{opacity:.30}}
+
+/* HUD */
+#hudShield{
+  position:absolute;
+  top:var(--safeTop);
+  left:0;
+  right:0;
+  height:var(--hudHeight);
+  z-index:3;
+  pointer-events:none;
+}
+#hudWrap{
+  position:absolute;
+  top:calc(var(--safeTop) + 14px);
+  left:50%;
+  transform:translateX(-50%);
+  z-index:5;
+  pointer-events:none;
+}
+#hudPanel{
+  min-width:420px;
+  max-width:92vw;
+  padding:10px 16px 10px 16px;
+  display:grid;
+  grid-template-rows:auto auto auto;
+  gap:6px;
+  justify-items:center;
+  background:rgba(255,255,255,.06);
+  border-radius:14px;
+  border:1px solid color-mix(in srgb,var(--neon) 65%,transparent);
+  box-shadow:0 0 18px color-mix(in srgb,var(--neon) 30%,transparent);
+}
+.hud-row{
+  display:flex;
+  gap:18px;
+  justify-content:center;
+  align-items:center;
+}
+.hud-row.top{font-size:18px}
+.hud-row.mid{font-size:15px;opacity:.95}
+.hud-row.bottom{font-size:18px}
+@media (max-width:768px){
+  #hudPanel{min-width:300px}
+  .hud-row.top{font-size:15px}
+  .hud-row.mid{font-size:13px}
+  .hud-row.bottom{font-size:16px}
+}
+.hud-label{opacity:.9}
+.hud-value{color:var(--neon)}
+#progressWrap{
+  width:100%;
+  height:8px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.1);
+}
+#progressBar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,var(--neon),#00b4d8);
+}
+
+
+/* Version & mute */
+#version{
+  position:absolute;
+  right:10px;
+  bottom:8px;
+  font-size:12px;
+  color:#8fe;
+  opacity:.55;
+}
+
+/* … all din existerande CSS … */
+
+
+/* ============================================
+   Mute buttons – LEFT SIDE above HUD
+   ============================================ */
+#muteWrap {
+  position: absolute;
+  top: calc(var(--safeTop) + 16px);
+  left: 16px;        /* ← flytta till vänster */
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.muteBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #69fff2aa;
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(10px);
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .1s ease;
+}
+.muteBtn:active { transform: scale(0.9); }
+.muteBtn.off { opacity: .55; }
+
+/* Mobil */
+@media (max-width: 768px) {
+  #muteWrap {
+    top: calc(var(--safeTop) + 12px);
+    left: 12px;     /* ← mobilvänster */
+    gap: 8px;
+  }
+  .muteBtn {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+}
+
+
+/* Slutet av CSS */
+
+/* Targets */
+#targets{position:absolute;inset:0;z-index:2;pointer-events:none}
+.target{
+  position:absolute;width:var(--targetSize);height:var(--targetSize);display:block;cursor:pointer;pointer-events:auto;
+  border-radius:12px;opacity:0;transform:scale(.8);
+  box-shadow:0 0 20px rgba(0,0,0,.35),inset 0 0 12px rgba(255,255,255,.15);
+  transition:opacity .25s ease,transform .25s ease,box-shadow .15s
+}
+.target.spawned{opacity:1;transform:scale(1)}
+.target img{width:100%;height:100%;display:block}
+.t-bomb{border-radius:50%;box-shadow:0 0 24px rgba(255,40,65,.55)}
+.pulse{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+
+/* Text & overlays */
+#centerText,#comboText,#gameover,#startOverlay,#levelSummary,#levelIntro{
+  display:none;position:absolute;left:50%;top:50%;transform:translate(-50%, -50%);
+  text-align:center;z-index:8
+}
+#centerText{font-size:44px;color:#e6f3ff;text-shadow:0 0 10px rgba(0,150,255,.35)}
+#comboText{font-size:30px;color:#00ffcc;text-shadow:0 0 8px #00ffcc}
+#gameover{color:#e6f3ff;text-shadow:0 0 10px rgba(255,100,160,.35);font-size:30px}
+#gameover h1{margin:0 0 10px 0;font-size:38px;color:#ff6b9a}
+
+/* Start overlay — nu med fade + pointer-events fix */
+#startOverlay{
+  font-size:28px;padding:18px 26px;border-radius:16px;color:#dff9ff;
+  background:rgba(255,255,255,.06);
+  border:1px solid color-mix(in srgb,var(--neon) 45%,transparent);
+  cursor:pointer;z-index:10;display:block;
+  transition:opacity .25s ease;
+  margin-top:46px;
+}
+#startOverlay.hidden{opacity:0;pointer-events:none}
+
+#brandIntro{position:absolute;left:50%;top:32%;transform:translateX(-50%);text-align:center;z-index:10;opacity:.9}
+#brandIntro.hidden{opacity:0;pointer-events:none;transition:opacity .25s ease}
+#brandIntro img{width:240px;filter:drop-shadow(0 0 12px rgba(0,255,255,.35))}
+
+.popup{position:absolute;pointer-events:none;font-size:18px;font-weight:700;z-index:6;opacity:0;transform:translate(-50%,0)}
+.popup.good{color:#a6fff4}.popup.p3{color:#e7d0ff}.popup.life{color:#ffd7df}.popup.bad{color:#ff9aa9}.popup.dual{color:var(--neon);text-shadow:0 0 10px var(--neon)}
+.rise{animation:rise 600ms ease-out forwards}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,6px)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-28px)}}
+
+#whiteflash{display:none;position:absolute;inset:0;z-index:5;background:rgba(255,255,255,.85);animation:wf .12s ease-out forwards}
+@keyframes wf{from{opacity:.85}to{opacity:0}}
+
+#savedHS{position:absolute;bottom:46px;left:50%;transform:translateX(-50%);
+  color:#00ffe0;text-shadow:0 0 10px #00ffe0;font-size:18px;opacity:0;transition:opacity .3s}
+#savedHS.show{opacity:1}
+
+#brandFooter{position:fixed;left:10px;bottom:8px;font-size:13px;color:#00ffe0;opacity:.6;text-shadow:0 0 6px #00ffe066}
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div id="bgGrid"></div>
+  <div id="hudShield"></div>
+
+  <div id="hudWrap"><div id="hudPanel">
+    <div class="hud-row top">
+      <span class="hud-label">LIVES:</span><span id="lives" class="hud-value">5</span>
+      <span class="hud-label">LEVEL:</span><span id="level" class="hud-value">1</span>
+    </div>
+    <div class="hud-row mid">
+      <span class="hud-label">AVG:</span><span id="avg" class="hud-value">–</span>
+      <span class="hud-label">BEST:</span><span id="best" class="hud-value">–</span>
+    </div>
+    <div class="hud-row bottom">
+      <span class="hud-label">SCORE:</span><span id="score" class="hud-value">000</span>
+      <span class="hud-label">HIGH:</span><span id="hiscore" class="hud-value">000</span>
+    </div>
+    <div id="progressWrap"><div id="progressBar"></div></div>
+  </div></div>
+
+  <div id="muteWrap">
+  <button id="muteMusic" class="muteBtn" title="Toggle Music">🔊</button>
+  <button id="muteFX" class="muteBtn" title="Toggle FX">💥</button>
+</div>
+
+
+  <div id="targets"></div>
+  <div id="whiteflash"></div>
+
+  <div id="centerText"></div>
+  <div id="comboText"></div>
+
+  <div id="gameover"><h2>Game Over</h2><div id="summary"></div><small>Tap to restart</small></div>
+  <div id="brandIntro"><img id="brandLogo" alt="SmartProc Games"/></div>
+  <div id="startOverlay">Tap to Start</div>
+
+    <!-- Ny Level Intro skylt -->
+  <div id="levelIntro" style="display:none;
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    background:rgba(0,0,0,0.85);color:#e0faff;padding:24px 36px;
+    border-radius:18px;font-size:22px;text-align:center;
+    box-shadow:0 0 30px rgba(0,0,0,0.5);z-index:20;">
+    <h2 id="introTitle" style="margin:0 0 10px 0;color:var(--neon);">LEVEL 1</h2>
+    <div id="introDesc"></div>
+  </div>
+
+  <div id="savedHS">SAVED!</div>
+  <div id="brandFooter">© SmartProc Games — Tap Rush Reflex <span id="versionTag"></span></div>
+</div>
+
+<script>
+/* ===== DOM ===== */
+const targetsLayer=document.getElementById('targets'),
+ whiteflash=document.getElementById('whiteflash'),
+ scoreEl=document.getElementById('score'),
+ livesEl=document.getElementById('lives'),
+ levelEl=document.getElementById('level'),
+ hiscoreEl=document.getElementById('hiscore'),
+ avgEl=document.getElementById('avg'),
+ bestEl=document.getElementById('best'),
+ centerText=document.getElementById('centerText'),
+ comboText=document.getElementById('comboText'),
+ gameoverEl=document.getElementById('gameover'),
+ summaryEl=document.getElementById('summary'),
+ startOverlay=document.getElementById('startOverlay'),
+ progressBar=document.getElementById('progressBar'),
+ bgGrid=document.getElementById('bgGrid'),
+ muteMusicBtn=document.getElementById('muteMusic'),
+ muteFXBtn=document.getElementById('muteFX'),
+ savedHS=document.getElementById('savedHS'),
+ brandLogo=document.getElementById('brandLogo'),
+ brandIntro=document.getElementById('brandIntro');
+
+/* ===== State ===== */
+let score=0,lives=5,level=1,roundClicks=0,active=false;
+const targetsPerLevel=20;
+let reactionTimes=[],bestReaction=Infinity,combo=0,lastClickTime=0;
+let hiscore=Number(localStorage.getItem('taprushreflex_hs')||'0');
+hiscoreEl.textContent=hiscore.toString().padStart(3,'0');
+const activeTargets=[];let allowSpawning=false,levelStats=[],targetIdCounter=0;
+let dualLastTime=0,dualLastId=null;
+
+/* ===== Helpers ===== */
+function getCSSNumber(varName, fallback){
+  const v=getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  const n=parseFloat(v);
+  return isNaN(n)?fallback:n;
+}
+function targetSize(){
+  return getCSSNumber('--targetSize',80); // px
+}
+
+/* ===== Brand logo (inline canvas) ===== */
+(function genLogo(){
+  const c=document.createElement('canvas');c.width=900;c.height=240;const x=c.getContext('2d');
+  x.fillStyle='#0a5bd9';
+  x.beginPath();x.moveTo(130,60);x.arcTo(230,60,230,120,40);x.lineTo(230,120);x.arcTo(230,180,170,180,40);
+  x.lineTo(170,180);x.lineTo(170,160);x.lineTo(210,160);x.arcTo(190,160,190,120,20);x.lineTo(150,120);
+  x.arcTo(110,120,110,80,20);x.lineTo(110,80);x.arcTo(110,60,130,60,20);x.closePath();x.fill();
+  x.font='bold 72px system-ui,Segoe UI';x.fillStyle='#0a5bd9';x.textBaseline='middle';x.fillText('SmartProc',280,95);
+  x.font='600 46px system-ui,Segoe UI';x.fillStyle='#7ea0c9';x.fillText('GAMES',280,165);
+  brandLogo.src=c.toDataURL('image/png');
+})();
+
+/* ===== Audio Engine ===== */
+let AC=null, master=null, musicTimer=null;
+let musicMuted=false, fxMuted=false;
+function ensureAudio(){if(AC)return;AC=new (window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=0.6;master.connect(AC.destination);}
+function envGain(time,a=0.002,d=0.08,s=0.0,r=0.12,peak=1.0){const g=AC.createGain();g.gain.setValueAtTime(0,time);g.gain.linearRampToValueAtTime(peak,time+a);g.gain.linearRampToValueAtTime(s*peak,time+a+d);g.gain.setTargetAtTime(0,time+a+d,r);return g;}
+function osc(type,freq){const o=AC.createOscillator();o.type=type;o.frequency.value=freq;return o;}
+function playNoise({time=AC.currentTime,dur=0.2,lp=800,hp=0}={}){if(fxMuted)return;const src=AC.createBufferSource();const len=AC.sampleRate*1.5,buf=AC.createBuffer(1,len,AC.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;src.buffer=buf;let node=src;if(hp>0){const h=AC.createBiquadFilter();h.type='highpass';h.frequency.value=hp;node.connect(h);node=h;}if(lp>0){const l=AC.createBiquadFilter();l.type='lowpass';l.frequency.value=lp;node.connect(l);node=l;}const e=envGain(time,0.002,dur*0.5,0, dur*0.6,1.0);node.connect(e).connect(master);src.start(time);src.stop(time+dur+0.4);}
+function clickTone({f=320,dur=0.07,type='triangle',gain=0.8}={}){if(fxMuted)return;const t=AC.currentTime,o=osc(type,f),eg=envGain(t,0.002,0.06,0.0,0.08,gain);o.connect(eg).connect(master);o.start(t);o.stop(t+dur+0.3);}
+function glideTone({f1=300,f2=740,dur=0.2,type='triangle',gain=0.7}={}){if(fxMuted)return;const t=AC.currentTime,o=osc(type,f1),eg=envGain(t,0.003,0.08,0.0,0.12,gain);o.frequency.linearRampToValueAtTime(f2,t+dur);o.connect(eg).connect(master);o.start(t);o.stop(t+dur+0.4);}
+function fx_click(){clickTone({});}
+function fx_power(){if(!AC||fxMuted)return;const t=AC.currentTime,o1=osc('square',440),eg1=envGain(t,0.01,0.08,0.0,0.12,0.09);const o2=osc('square',660);o2.frequency.linearRampToValueAtTime(1320,t+0.12);const eg2=envGain(t,0.01,0.08,0.0,0.12,0.09);o1.connect(eg1).connect(master);o2.connect(eg2).connect(master);o1.start(t);o1.stop(t+0.3);o2.start(t);o2.stop(t+0.3);}
+function fx_life(){if(!AC||fxMuted)return;glideTone({});}
+function fx_bomb(){if(!AC||fxMuted)return;playNoise({dur:0.24,lp:600,hp:80});const t=AC.currentTime,o=osc('sine',90),eg=envGain(t,0.01,0.12,0.0,0.2,0.5);o.connect(eg).connect(master);o.start(t);o.stop(t+0.4);}
+function fx_miss(){if(!AC||fxMuted)return;const t=AC.currentTime,o=osc('triangle',480);o.frequency.linearRampToValueAtTime(210,t+0.2);const eg=envGain(t,0.002,0.12,0.0,0.12,0.5);o.connect(eg).connect(master);o.start(t);o.stop(t+0.5);}
+
+/* Musik (enkel loop) */
+function chordPad({freqs=[220,277],dur=1.0,type='triangle',gain=0.08,lp=900}={}){if(musicMuted)return;const t=AC.currentTime,out=AC.createGain();out.gain.value=gain;const l=AC.createBiquadFilter();l.type='lowpass';l.frequency.value=lp;out.connect(l).connect(master);freqs.forEach((f,i)=>{const o=osc(type,f);o.detune.value=(i-0.5)*6;const eg=envGain(t,0.2,0.5,0.6,0.6,1.0);o.connect(eg).connect(out);o.start(t);o.stop(t+dur+1.0);});}
+function music_stop(){if(musicTimer){clearInterval(musicTimer);musicTimer=null;}}
+function music_play(){if(musicMuted)return;ensureAudio();if(AC.state==='suspended')AC.resume();music_stop();const bpm=105,beat=60/bpm;function tick(){if(musicMuted)return;const t=AC.currentTime,o=osc('sine',55),eg=envGain(t,0.005,0.08,0.0,0.12,0.35);o.connect(eg).connect(master);o.start(t);o.stop(t+0.25);chordPad({freqs:[220,277],dur:beat*2});}tick();musicTimer=setInterval(tick,beat*2000);}
+function updateMuteIcons(){muteMusicBtn.textContent=musicMuted?'🔇':'🔊';muteFXBtn.textContent=fxMuted?'🔈':'💥';muteMusicBtn.classList.toggle('off',musicMuted);muteFXBtn.classList.toggle('off',fxMuted);}
+muteMusicBtn.onclick=()=>{musicMuted=!musicMuted;if(musicMuted)music_stop();else{ensureAudio();music_play();}updateMuteIcons();};
+muteFXBtn.onclick=()=>{fxMuted=!fxMuted;updateMuteIcons();};
+function saveHiScore(v){localStorage.setItem('taprushreflex_hs',v);hiscoreEl.textContent=v.toString().padStart(3,'0');savedHS.classList.add('show');setTimeout(()=>savedHS.classList.remove('show'),800);}
+function avg(a){return a.length?a.reduce((x,y)=>x+y)/a.length:0;}
+function fmt(ms){return (ms/1e3).toFixed(2)+'s';}
+function pad3(n){return n.toString().padStart(3,'0');}
+function updateProgress(){const pct=Math.min(1,roundClicks/targetsPerLevel);progressBar.style.width=(pct*100).toFixed(1)+'%';}
+function randPos(){
+  const w = targetSize();          // bredd/höjd på mål
+  const p = 20;                    // baspadding
+  const hudH = parseInt(getComputedStyle(document.documentElement)
+               .getPropertyValue('--hudHeight')) || 140;
+
+  // Safe zones för mobiler
+  const topSafe    = hudH + 25;    // undvik HUD + notch/dynamic island
+  const bottomSafe = 90;           // undvik iPhone home-indikator + nav-bar
+
+  // Horisontellt utrymme
+  const minX = p;
+  const maxX = innerWidth - w - p;
+
+  // Vertikalt utrymme
+  const minY = topSafe;
+  const maxY = innerHeight - w - bottomSafe;
+
+  return {
+    x: minX + Math.random() * (maxX - minX),
+    y: minY + Math.random() * (maxY - minY)
+  };
+}
+
+/* ===== Difficulty & Theme ===== */
+function getBombChance(l){ if(l<4)return 0.05; if(l<8)return 0.06; if(l<11)return 0.07; if(l<15)return 0.08; return 0.10; }
+function setLevelTheme(l){ const d=Math.min(1,(l-1)/10);
+  const neon=`hsl(${180-20*d} 100% ${72-12*d}%)`,
+        inner=`hsl(${190-15*d} 45% ${22-6*d}%)`,
+        outer=`hsl(${196-10*d} 45% ${14-5*d}%)`,
+        grid =`hsl(${190-10*d} 40% ${12-2*d}%)`;
+  const r=document.documentElement.style;
+  r.setProperty('--neon',neon); r.setProperty('--bg2',inner); r.setProperty('--bg1',outer); r.setProperty('--grid',grid);
+  document.body.style.background=`radial-gradient(1200px 800px at 50% 45%, var(--bg2), var(--bg1))`;
+}
+function getLevelSpeed(l){const m={1:1500,2:1000,3:900,4:1500,5:1300,6:1100,7:950,8:850,9:750,10:1100,11:950,12:850,13:750,14:700,15:650,16:600,17:550,18:500};return m[l]||Math.max(400,500-(l-18)*20);}
+function determineActiveBlocks(l){ if(l<4) return 1; if(l<10) return 2; return 3; }
+const levelColors={1:'#00ff66',2:'#00ffff',3:'#ff9900',4:'#3399ff',5:'#7d6bff'};
+function getLevelColor(l){ if(levelColors[l])return levelColors[l];
+  const p=['#68ff5b','#47fff1','#ffb347','#ff5b9a','#7d6bff','#ffe066','#66a3ff','#64ffda']; return p[(l-6)%p.length]; }
+
+/* ===== Inline PNGs (bomb/power/heart) ===== */
+function mk(w=256,h=256){const c=document.createElement('canvas');c.width=w;c.height=h;return[c,c.getContext('2d')];}
+function rr(x,y,w,h,r,ctx){const R=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+R,y);ctx.arcTo(x+w,y,x+w,y+h,R);ctx.arcTo(x+w,y+h,x,y+h,R);ctx.arcTo(x,y+h,x,y,R);ctx.arcTo(x,y,x+w,y,R);ctx.closePath();}
+function genBombPNG(){let [c,x]=mk(),W=c.width,H=c.height,Cx=W/2,Cy=H/2;x.shadowColor='rgba(255,40,65,.35)';x.shadowBlur=25;let g=x.createRadialGradient(Cx-20,Cy-20,10,Cx,Cy,120);g.addColorStop(0,'#aa1020');g.addColorStop(1,'#4a0a12');x.beginPath();x.arc(Cx,Cy,80,0,7);x.fill();x.strokeStyle='rgba(0,0,0,.6)';x.lineWidth=6;x.stroke();x.shadowColor='transparent';x.beginPath();x.moveTo(Cx+50,Cy-60);x.bezierCurveTo(Cx+65,Cy-90,Cx+85,Cy-98,Cx+102,Cy-85);x.strokeStyle='#1c1c1c';x.lineWidth=10;x.stroke();x.fillStyle='#333';x.beginPath();x.arc(Cx+108,Cy-88,10,0,7);x.fill();x.save();x.translate(Cx+110,Cy-90);x.shadowColor='rgba(255,200,50,.9)';x.shadowBlur=25;let g2=x.createRadialGradient(0,0,2,0,0,22);g2.addColorStop(0,'#fff59e');g2.addColorStop(1,'#ff7f00');x.fillStyle=g2;x.beginPath();x.arc(0,0,16,0,7);x.fill();x.restore();return c.toDataURL('image/png');}
+function genHeartPNG(){let [c,x]=mk(),W=c.width,H=c.height,X=W/2,Y=H/2+20;x.shadowColor='rgba(255,80,120,.45)';x.shadowBlur=35;x.beginPath();x.moveTo(X,Y+50);x.bezierCurveTo(X+70,Y+10,X+80,Y-60,X,Y-40);x.bezierCurveTo(X-80,Y-60,X-70,Y+10,X,Y+50);let g=x.createLinearGradient(0,Y-80,0,Y+60);g.addColorStop(0,'#ff4d6d');g.addColorStop(1,'#c1121f');x.fillStyle=g;x.fill();x.lineWidth=6;x.strokeStyle='rgba(0,0,0,.5)';x.stroke();return c.toDataURL('image/png');}
+function genPowerPNG(){let [c,x]=mk(),W=c.width,H=c.height;const g=x.createLinearGradient(0,0,W,H);g.addColorStop(0,'#c28aff');g.addColorStop(1,'#7432ff');x.fillStyle=g;x.shadowColor='#b879ff';x.shadowBlur=30;rr(36,36,W-72,H-72,22,x);x.fill();x.shadowColor='transparent';x.lineWidth=8;x.strokeStyle='rgba(255,255,255,0.18)';x.stroke();x.font='bold 150px system-ui';x.textAlign='center';x.textBaseline='middle';x.fillStyle='#fff';x.shadowColor='#ffffffbb';x.shadowBlur=25;x.fillText('+3',W/2,H/2+20);return c.toDataURL('image/png');}
+const ASSET={bomb:genBombPNG(),power:genPowerPNG(),heart:genHeartPNG()};
+
+/* ===== Block spawning ===== */
+function chooseBlockType(){
+  const alreadyBomb=activeTargets.some(t=>t.type==='bomb');
+  const chance=getBombChance(level);
+  while(true){
+    const r=Math.random();
+    let type=(r<.05)?'life':(r<.05+chance)?'bomb':(r<.05+chance+.05)?'power':'normal';
+    if(type==='bomb' && alreadyBomb) continue; // max 1 bomb at a time
+    return type;
+  }
+}
+function createTarget(){
+  const el=document.createElement('div'); el.className='target'; el.style.pointerEvents='auto';
+  const {x,y}=randPos(); el.style.left=x+'px'; el.style.top=y+'px';
+  el.style.width=el.style.height=targetSize()+'px';
+  targetsLayer.appendChild(el); requestAnimationFrame(()=>el.classList.add('spawned')); return el;
+}
+function renderTarget(el,type){
+  el.classList.remove('t-bomb','pulse'); el.innerHTML='';
+  if(type==='normal'){
+    const c=getLevelColor(level);
+    el.style.background=c; el.style.boxShadow=`0 0 20px ${c}66, inset 0 0 12px rgba(255,255,255,.18)`;
+  }else{
+    el.style.background='transparent'; if(type==='bomb') el.classList.add('t-bomb','pulse');
+    const img=document.createElement('img'); img.src=(type==='bomb')?ASSET.bomb:(type==='power')?ASSET.power:ASSET.heart; el.appendChild(img);
+  }
+}
+function removeTarget(t){ clearTimeout(t.timeoutId); if(t.el&&t.el.parentNode) t.el.parentNode.removeChild(t.el); const i=activeTargets.indexOf(t); if(i>=0) activeTargets.splice(i,1); }
+
+/* ===== UI popups & combo ===== */
+function popupAt(el,text,cls){ const p=document.createElement('div'); p.className=`popup ${cls} rise`; p.textContent=text;
+  const r=el.getBoundingClientRect(); p.style.left=(r.left+r.width/2)+'px'; p.style.top=(r.top+r.height/2)+'px';
+  document.body.appendChild(p); setTimeout(()=>p.remove(),650); }
+function showCombo(text){ comboText.textContent=text; comboText.style.display='block'; setTimeout(()=>comboText.style.display='none',500); }
+
+/* ===== Spawn control ===== */
+function ensureTargets(){ if(!active||!allowSpawning) return; const need=determineActiveBlocks(level)-activeTargets.length; for(let i=0;i<need;i++) spawnOne(); }
+function scheduleSpawnFill(){ if(!active) return; setTimeout(()=>ensureTargets(),100); }
+function spawnOne(){
+  const el=createTarget(); const type=chooseBlockType(); renderTarget(el,type);
+  const shownAt=performance.now();
+  const timeout=setTimeout(()=>{
+    removeTarget(tObj);
+    if(type!=='bomb'){
+      lives=Math.max(0,lives-1); livesEl.textContent=String(lives);
+      if(AC) fx_miss();
+      if(lives<=0){ endGame(); return; }
+    }
+    scheduleSpawnFill();
+  }, getLevelSpeed(level));
+  const tObj={id:++targetIdCounter,el,type,shownAt,timeoutId:timeout}; activeTargets.push(tObj);
+
+  el.onclick=()=>{
+    if(!active) return;
+    const now=performance.now(), rt=now-tObj.shownAt;
+
+    if(type!=='bomb'){ reactionTimes.push(rt); levelStats.push({type,time:rt});
+      avgEl.textContent=fmt(avg(reactionTimes)); bestReaction=Math.min(bestReaction,rt); bestEl.textContent=fmt(bestReaction); }
+
+    if(now-lastClickTime<600){ combo++; showCombo(`COMBO x${combo}`);} else combo=1; lastClickTime=now;
+
+    if(type==='normal'){ score+=1; roundClicks++; popupAt(el,'+1','good'); if(AC) fx_click(); }
+    else if(type==='power'){ score+=3; roundClicks++; popupAt(el,'+3','p3'); if(AC) fx_power(); }
+    else if(type==='life'){ lives=Math.min(9,lives+1); roundClicks++; livesEl.textContent=String(lives); popupAt(el,'❤️ +1','life'); if(AC) fx_life(); }
+    else if(type==='bomb'){ whiteflash.style.display='block'; setTimeout(()=>whiteflash.style.display='none',130);
+      lives=Math.max(0,lives-1); livesEl.textContent=String(lives); popupAt(el,'💣 -1','bad'); if(AC) fx_bomb();
+      if(lives<=0){ removeTarget(tObj); endGame(); return; } }
+
+    // Dual-hit bonus (if two non-bomb clicks within 400ms)
+    if(type!=='bomb'){
+      if(dualLastTime && (now-dualLastTime<=400) && dualLastId!==tObj.id){
+        score+=2; popupAt(el,'DUAL HIT! +2','dual'); dualLastTime=0; dualLastId=null;
+      } else { dualLastTime=now; dualLastId=tObj.id; }
+    }
+
+    scoreEl.textContent=pad3(score); updateProgress(); removeTarget(tObj);
+
+    if(roundClicks>=targetsPerLevel){
+      allowSpawning=false;
+      if(activeTargets.length===0) showLevelSummary();
+      else{ const wait=setInterval(()=>{ if(activeTargets.length===0){ clearInterval(wait); showLevelSummary(); } },50); }
+    } else scheduleSpawnFill();
+  };
+}
+
+/* ===== Level summary + intro (skapade men dolda) ===== */
+const levelSummary=document.createElement('div'); levelSummary.id='levelSummary';
+levelSummary.style.cssText='display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.82);color:#e0faff;padding:24px 36px;border-radius:18px;font-size:22px;text-align:center;box-shadow:0 0 30px rgba(0,0,0,.5);z-index:9';
+levelSummary.innerHTML=`<h2 id="sumTitle">LEVEL COMPLETE!</h2><div id="sumCore"></div><button id="toggleStats">Show More Stats ▼</button><div id="moreStats" style="display:none;text-align:left;margin-top:10px;font-size:15px"></div><button id="continueBtn">Continue →</button>`;
+document.getElementById('game').appendChild(levelSummary);
+const sumTitle=document.getElementById('sumTitle'), sumCore=document.getElementById('sumCore'),
+      moreStats=document.getElementById('moreStats'), toggleStats=document.getElementById('toggleStats'),
+      continueBtn=document.getElementById('continueBtn');
+
+const levelIntro=document.createElement('div'); levelIntro.id='levelIntro';
+levelIntro.style.cssText='display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.82);color:#e0faff;padding:24px 36px;border-radius:18px;font-size:22px;text-align:center;box-shadow:0 0 30px rgba(0,0,0,.5);z-index:9';
+levelIntro.innerHTML=`<h2 id="introTitle">LEVEL 1</h2><div id="introDesc"></div>`;
+document.getElementById('game').appendChild(levelIntro);
+const introTitle=document.getElementById('introTitle'), introDesc=document.getElementById('introDesc');
+
+function showLevelSummary(){ active=false;
+  const times=levelStats.map(x=>x.time), avgL=times.length?fmt(avg(times)):'–', bestL=times.length?fmt(Math.min(...times)):'–';
+  sumTitle.textContent=`LEVEL ${level} COMPLETE!`;
+  sumCore.innerHTML=`Avg Reaction: <b>${avgL}</b><br>Fastest: <b>${bestL}</b>`;
+  moreStats.innerHTML=levelStats.map((x,i)=>`${i+1}. ${x.type.toUpperCase()} — ${fmt(x.time)}`).join('<br>');
+  toggleStats.textContent='Show More Stats ▼'; moreStats.style.display='none'; levelSummary.style.display='block';
+}
+toggleStats.onclick=()=>{ const s=moreStats.style; if(s.display==='none'){ s.display='block'; toggleStats.textContent='Hide Stats ▲'; } else { s.display='none'; toggleStats.textContent='Show More Stats ▼'; } };
+
+/* ===== Continue — SDK borttagen, vi går direkt vidare ===== */
+// ============================================================
+// Kontrollera Game Over-läge
+// ============================================================
+function checkGameOver() {
+  if (lives <= 0) {
+    active = false;
+    allowSpawning = false;
+
+    // Visa Game Over-overlay
+    const gameoverEl = document.getElementById("gameover");
+    const summaryEl = document.getElementById("summary");
+    if (gameoverEl && summaryEl) {
+      summaryEl.innerHTML = `<b>Final Score:</b> ${score}<br><b>Best:</b> ${localStorage.getItem("highscore") || score}`;
+      gameoverEl.style.display = "block";
+    }
+
+    if (typeof music_stop === "function") music_stop();
+    if (typeof fx_fail === "function") fx_fail();
+
+    return true; // markerar att spelet är slut
+  }
+  return false;
+}
+
+continueBtn.onclick=()=>{ proceedToNextLevel(); };
+
+function proceedToNextLevel() {
+  levelSummary.style.display = "none";
+  levelIntro.style.display   = "none";
+
+  roundClicks = 0;
+  levelStats  = [];
+  active      = true;
+  allowSpawning = true;
+
+  // ✅ Öka nivån och uppdatera HUD innan skylten visas
+  level++;
+  levelEl.textContent = String(level);
+  updateProgress();
+  setLevelTheme(level);
+
+  // ✅ Visa skylten för rätt level
+  showLevelIntro(level, () => {
+    countdown(() => { ensureTargets(); }, 700);
+  });
+}
+
+// ============================================================
+// Level Intro – Informationsskylt före varje bana
+// ============================================================
+// ============================================================
+// Level Intro – Informationsskylt före varje bana
+// ============================================================
+// ============================================================
+// Level Intro – Informationsskylt före varje bana (med fade)
+// ============================================================
+function showLevelIntro(level, done) {
+  const introEl  = document.getElementById("levelIntro");
+  const titleEl  = document.getElementById("introTitle");
+  const descEl   = document.getElementById("introDesc");
+
+  // Hämta data för aktuell level
+  const color      = getLevelColor(level);
+  const reactMs    = getLevelSpeed(level);
+  const reactSec   = (reactMs / 1000).toFixed(2);
+  const blocks     = determineActiveBlocks(level);
+  const bombChance = Math.round(getBombChance(level) * 100);
+
+  // Sätt innehållet
+  titleEl.textContent = "LEVEL " + level;
+  descEl.innerHTML =
+    `<b>Color of blocks:</b> ` +
+    `<span style="
+      display:inline-block;
+      width:22px;
+      height:22px;
+      margin:0 8px;
+      border-radius:4px;
+      background:${color};
+      border:1px solid rgba(255,255,255,0.15);
+      box-shadow:0 0 10px ${color};
+      vertical-align:middle;
+    "></span><br>` +
+    `<b>Reaction time:</b> ${reactSec} s<br>` +
+    `<b>Blocks per round:</b> ${blocks}<br>` +
+    `<b>Bomb chance:</b> ${bombChance}%`;
+
+  // Förbered fade
+  introEl.style.opacity = 0;
+  introEl.style.display = "block";
+  introEl.style.transition = "opacity 0.5s ease";
+
+  // Fade in
+  requestAnimationFrame(() => {
+    introEl.style.opacity = 1;
+  });
+
+  // Visa i 3 sekunder, sedan fade ut
+  setTimeout(() => {
+    introEl.style.opacity = 0;
+    setTimeout(() => {
+      introEl.style.display = "none";
+      if (done) done();
+    }, 500); // fade ut-tid
+  }, 3000); // visas 3 sekunder innan fade ut
+}
+
+/* ===== Start / End / Countdown ===== */
+function startGame() {
+  // Säkerställ rent läge
+  levelSummary.style.display = 'none';
+  levelIntro.style.display   = "none";
+  gameoverEl.style.display = 'none';
+
+  score = 0; lives = 5; level = 1;
+  roundClicks = 0; reactionTimes = [];
+  bestReaction = Infinity; combo = 0;
+  lastClickTime = 0; levelStats = [];
+  dualLastTime = 0; dualLastId = null;
+  scoreEl.textContent = '000';
+  livesEl.textContent = '5';
+  levelEl.textContent = '1';
+  avgEl.textContent = '–';
+  bestEl.textContent = '–';
+  updateProgress();
+  setLevelTheme(level);
+
+  // Rensa gamla mål
+  [...activeTargets].forEach(t => removeTarget(t));
+
+  // Starta ljud
+  ensureAudio();
+  if (!musicMuted) {
+    if (AC.state === 'suspended') AC.resume();
+    music_play();
+  }
+
+// Starta spelet direkt
+active = true;
+allowSpawning = true;
+
+// NYTT – visa Level Intro innan nedräkning
+showLevelIntro(level, () => {
+  countdown(() => { ensureTargets(); }, 700);
+});
+} // ← Denna saknades
+
+
+// ============================================================
+// Countdown — 3 2 1 GO
+// ============================================================
+function countdown(done, stepMs = 700) {
+  const steps = ["3", "2", "1", "GO"];
+  let i = 0;
+
+  (function step() {
+    centerText.textContent = steps[i];
+    centerText.style.display = "block";
+
+    setTimeout(() => {
+      centerText.style.display = "none";
+      if (++i < steps.length) {
+        setTimeout(step, stepMs);
+      } else if (done) {
+        done();
+      }
+    }, Math.min(500, stepMs));
+  })();
+}
+
+
+
+function endGame(){
+  active=false; allowSpawning=false; [...activeTargets].forEach(t=>removeTarget(t)); music_stop();
+
+  if(score>hiscore){ hiscore=score; saveHiScore(score); }
+  const avgMs=avg(reactionTimes);
+  summaryEl.innerHTML=`Score:<b>${score}</b><br>Level:<b>${level}</b><br>Avg:${reactionTimes.length?fmt(avgMs):'–'}<br>Best:${isFinite(bestReaction)?fmt(bestReaction):'–'}<br>High:${hiscore}`;
+  gameoverEl.style.display='block';
+}
+gameoverEl.addEventListener('click', startGame);
+
+// ============================================================
+// Countdown — 3 2 1 GO
+// ============================================================
+function countdown(done, stepMs = 700) {
+  const steps = ["3", "2", "1", "GO"];
+  let i = 0;
+
+  (function step() {
+    centerText.textContent = steps[i];
+    centerText.style.display = "block";
+
+    setTimeout(() => {
+      centerText.style.display = "none";
+      if (++i < steps.length) setTimeout(step, stepMs);
+      else if (done) done();
+    }, Math.min(500, stepMs));
+  })();
+}
+
+/* ===== Boot & Input ===== */
+startOverlay.addEventListener('click', () => {
+  // Fixa problemet: spelet startar i bakgrunden men overlay ligger kvar.
+  startOverlay.classList.add('hidden');
+  brandIntro.classList.add('hidden');
+
+  ensureAudio();
+  AC?.resume?.().catch(() => {});
+  startGame();
+}, { passive: true });
+
+window.addEventListener('mousemove', e => {
+  const dx = (e.clientX / innerWidth - 0.5) * 16;
+  const dy = (e.clientY / innerHeight - 0.5) * 16;
+  bgGrid.style.transform = `translate(${dx}px, ${dy}px)`;
+}, { passive: true });
+
+window.addEventListener('deviceorientation', e => {
+  const dx = (e.gamma || 0) / 3;
+  const dy = -(e.beta || 0) / 6;
+  bgGrid.style.transform = `translate(${dx}px, ${dy}px)`;
+}, { passive: true });
+
+updateProgress();
+setLevelTheme(level);
+updateMuteIcons();
+
+// ============================================================
+// Auto-version display in footer (reads from header comment)
+// ============================================================
+// ============================================================
+// Auto-version display (reads from header comment only)
+// ============================================================
+(function() {
+  const html = document.documentElement.innerHTML;
+  // Leta efter kommentaren i början av filen
+  const versionMatch = html.match(/Tap Rush Reflex v[0-9.]+\s*[A-Za-z]*/i);
+  const versionText = versionMatch ? versionMatch[0].replace("Tap Rush Reflex", "").trim() : "v?";
+  const footer = document.getElementById("versionTag");
+  if (footer) {
+    footer.textContent = versionText;
+    footer.style.marginLeft = "6px";
+    footer.style.color = "#00ffe0";
+    footer.style.textShadow = "0 0 6px #00ffe066";
+  }
+})();
+
+
+</script>
+
+<nav aria-label="Breadcrumb" style="max-width:800px;margin:2rem auto 0;padding:0 2rem;font-family:sans-serif;font-size:0.85rem;">
+    <a href="/" style="color:#a0a4c0;text-decoration:none;">Home</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <a href="/arcade-games/" style="color:#a0a4c0;text-decoration:none;">Arcade Games</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <span style="color:#f0f0ff;">Tap Rush</span>
+  </nav>
+
+<section class="game-info" style="max-width:800px;margin:3rem auto 0;padding:2rem;color:#b0b0b0;font-size:0.95rem;line-height:1.7;position:relative;z-index:1;">
+  <h1 style="color:#e0e0e0;font-size:1.6rem;margin-bottom:0.5rem;font-family:sans-serif;">Tap Rush – Free Online Reaction Speed Game</h1>
+  <p>
+    How fast are your reflexes? Tap Rush is a free reaction time game that challenges
+    you to tap as quickly as possible while avoiding bombs. It's fast, intense and
+    surprisingly addictive – perfect for a quick break or a serious high-score chase.
+  </p>
+
+  <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">Test Your Reflexes</h2>
+  <p>
+    Targets appear on screen and you need to tap or click them before time runs out.
+    But watch out – bombs are mixed in, and hitting one costs you dearly. The faster
+    you react, the higher your score. Can you beat your own best time?
+  </p>
+
+  <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">How to Play</h2>
+  <p>
+    Click or tap the targets as fast as you can. Avoid the bombs. Your score depends
+    on speed and accuracy. Works on any device – desktop mouse or mobile touchscreen.
+  </p>
+
+  <h2 style="color:#d0d0d0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:sans-serif;">Quick, Free, Browser-Based</h2>
+  <p>
+    Tap Rush runs instantly in your browser. No download, no account, no ads.
+    Just pure reflex-testing fun from PulseGames.
+  </p>
+</section>
+
+  <section style="max-width:800px;margin:3rem auto 0;padding:0 2rem;">
+    <h2 style="color:#e0e0e0;font-size:1.3rem;margin-bottom:1.2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">You Might Also Like</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      <a href="/axeluga/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/axeluga.webp" alt="Axeluga" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Axeluga</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Action</div>
+        </div>
+      </a>
+      <a href="/snake/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/snake.webp" alt="Snake Neo" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Snake Neo</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Arcade</div>
+        </div>
+      </a>
+      <a href="/breakout/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/breakout.webp" alt="Breakout" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Breakout</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Arcade</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer style="background:#0a0e1a;border-top:1px solid rgba(255,255,255,0.06);padding:48px 24px 24px;margin-top:3rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:32px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="max-width:300px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;"><svg width="20" height="14" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span style="font-size:1.5rem;font-weight:700;color:#fff;">PulseGames</span>
+          </div>
+          <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+        </div>
+        <div style="display:flex;gap:48px;flex-wrap:wrap;">
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Games</h4>
+            <a href="/snake/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Snake Neo</a>
+            <a href="/breakout/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Breakout</a>
+            <a href="/taprush/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Tap Rush</a>
+            <a href="/solitaire/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Solitaire</a>
+            <a href="/pulseblocks/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">PulseBlocks</a>
+            <a href="/connect4/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Connect 4</a>
+            <a href="/axeluga/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Axeluga</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Categories</h4>
+            <a href="/arcade-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Arcade</a>
+            <a href="/action-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Action</a>
+            <a href="/puzzle-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Puzzle</a>
+            <a href="/board-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Board Games</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Info</h4>
+            <a href="/about/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">About</a>
+            <a href="/contact/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Contact</a>
+            <a href="/privacy/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top:24px;text-align:center;color:#888;font-size:0.85rem;">
+        <p style="margin:0;">&copy; 2026 PulseGames. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

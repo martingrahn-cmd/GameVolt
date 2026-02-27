@@ -1,0 +1,1 @@
+export const Themes={set(m){document.body.classList.remove("theme-synth","theme-3310","theme-crt");document.body.classList.add(`theme-${m}`);}};

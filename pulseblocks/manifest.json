@@ -1,0 +1,22 @@
+{
+  "name": "PulseBlocks",
+  "short_name": "PulseBlocks",
+  "description": "A modern synthwave block puzzle game with Marathon, Sprint, and Ultra modes",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#162f2f",
+  "theme_color": "#45d9c8",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

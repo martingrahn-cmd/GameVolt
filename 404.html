@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>404 – Page Not Found | PulseGames</title>
+    <meta name="description" content="Oops! This page doesn't exist. But hey, play some Flappy Pulse while you're here!">
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #7c5cfc;
+            --primary-light: #a78bfa;
+            --primary-dark: #6341e0;
+            --secondary: #f472b6;
+            --accent: #06d6a0;
+            --accent-blue: #38bdf8;
+            --bg-body: #0f1221;
+            --bg-surface: #181c30;
+            --bg-card: rgba(25, 30, 55, 0.7);
+            --text-bright: #f0f0ff;
+            --text-medium: #a0a4c0;
+            --text-muted: #626580;
+            --border-subtle: rgba(124, 92, 252, 0.15);
+            --glow-primary: 0 0 20px rgba(124, 92, 252, 0.3);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-bright);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 92, 252, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 50%, rgba(56, 189, 248, 0.07), transparent),
+                radial-gradient(ellipse 60% 40% at 20% 80%, rgba(6, 214, 160, 0.05), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 18, 33, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--primary), var(--accent-blue));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--glow-primary);
+        }
+
+        .logo-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-light), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-link {
+            color: var(--text-medium);
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--text-bright);
+            background: rgba(124, 92, 252, 0.1);
+        }
+
+        /* Main content */
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .error-code {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--accent-blue), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 8px;
+            text-shadow: none;
+        }
+
+        .error-message {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            color: var(--text-medium);
+            margin-bottom: 12px;
+        }
+
+        .error-sub {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 32px;
+        }
+
+        /* Game container */
+        .game-wrapper {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .game-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 4px;
+            box-shadow: var(--glow-primary);
+        }
+
+        canvas {
+            display: block;
+            border-radius: var(--radius-md);
+            max-width: 100%;
+            height: auto;
+        }
+
+        .game-hint {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .score-display {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            background: linear-gradient(135deg, var(--primary), var(--accent-blue));
+            color: white;
+            text-decoration: none;
+            border-radius: var(--radius-xl);
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.2s;
+            box-shadow: 0 4px 20px rgba(124, 92, 252, 0.3);
+        }
+
+        .home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(124, 92, 252, 0.4);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-subtle);
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 24px 24px;
+        }
+
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .footer-brand { max-width: 300px; }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .footer-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--accent-blue));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footer-logo-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-bright);
+        }
+
+        .footer-tagline {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 48px;
+        }
+
+        .footer-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .footer-column h4 {
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .footer-column a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 4px 0;
+            transition: color 0.2s;
+        }
+
+        .footer-column a:hover { color: var(--primary-light); }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        .footer-bottom p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .header-content { padding: 12px 16px; }
+            .nav-links { display: none; }
+            .logo-text { font-size: 1.5rem; }
+            .error-code { font-size: 5rem; }
+            .error-message { font-size: 1.2rem; }
+            .content { padding: 24px 16px; }
+            .footer-top { flex-direction: column; }
+            .footer-links { gap: 32px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="/" class="logo">
+                <div class="logo-icon"><svg width="26" height="18" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <span class="logo-text">PulseGames</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/" class="nav-link">Games</a>
+                <a href="/about/" class="nav-link">About</a>
+                <a href="/contact/" class="nav-link">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="content">
+        <div class="error-code">404</div>
+        <p class="error-message">Page Not Found</p>
+        <p class="error-sub">But since you're here... try Flappy Pulse!</p>
+
+        <div class="game-wrapper">
+            <div class="game-container">
+                <canvas id="game" width="360" height="512"></canvas>
+            </div>
+            <div class="score-display" id="score-display"></div>
+            <p class="game-hint" id="game-hint">Click or press Space to start</p>
+        </div>
+
+        <a href="/" class="home-btn">Back to Games</a>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <div class="footer-logo-icon"><svg width="20" height="14" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                        <span class="footer-logo-text">PulseGames</span>
+                    </div>
+                    <p class="footer-tagline">Free browser games for everyone. Made with &#10084;&#65039; in Sweden.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Games</h4>
+                        <a href="/snake/">Snake Neo</a>
+                        <a href="/breakout/">Breakout</a>
+                        <a href="/taprush/">Tap Rush</a>
+                        <a href="/solitaire/">Solitaire</a>
+                        <a href="/pulseblocks/">PulseBlocks</a>
+                        <a href="/connect4/">Connect 4</a>
+                        <a href="/axeluga/">Axeluga</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Categories</h4>
+                        <a href="/arcade-games/">Arcade</a>
+                        <a href="/action-games/">Action</a>
+                        <a href="/puzzle-games/">Puzzle</a>
+                        <a href="/board-games/">Board Games</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Info</h4>
+                        <a href="/about/">About</a>
+                        <a href="/contact/">Contact</a>
+                        <a href="/privacy/">Privacy Policy</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 PulseGames. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    (function() {
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width;
+        const H = canvas.height;
+        const scoreEl = document.getElementById('score-display');
+        const hintEl = document.getElementById('game-hint');
+
+        // Colors
+        const PURPLE = '#7c5cfc';
+        const PURPLE_LIGHT = '#a78bfa';
+        const TEAL = '#06d6a0';
+        const TEAL_DARK = '#04b886';
+        const PINK = '#f472b6';
+        const BLUE = '#38bdf8';
+        const TEXT_BRIGHT = '#f0f0ff';
+        const BG_DARK = '#0f1221';
+        const BG_MID = '#181c30';
+
+        // Game state
+        let state = 'idle'; // idle, playing, dead
+        let score = 0;
+        let bestScore = 0;
+        let frameCount = 0;
+
+        // Bird
+        const bird = {
+            x: 80,
+            y: H / 2,
+            w: 30,
+            h: 22,
+            vy: 0,
+            rotation: 0,
+            flapFrame: 0
+        };
+
+        const GRAVITY = 0.45;
+        const FLAP_POWER = -7.5;
+        const MAX_FALL = 10;
+
+        // Pipes
+        let pipes = [];
+        const PIPE_W = 52;
+        const PIPE_GAP = 140;
+        const PIPE_SPEED = 2.5;
+        const PIPE_INTERVAL = 90; // frames between pipes
+
+        // Particles
+        let particles = [];
+
+        // Stars (background decoration)
+        const stars = [];
+        for (let i = 0; i < 40; i++) {
+            stars.push({
+                x: Math.random() * W,
+                y: Math.random() * H,
+                r: Math.random() * 1.5 + 0.5,
+                twinkle: Math.random() * Math.PI * 2
+            });
+        }
+
+        // Ground
+        const GROUND_H = 60;
+        let groundX = 0;
+
+        function reset() {
+            bird.y = H / 2;
+            bird.vy = 0;
+            bird.rotation = 0;
+            bird.flapFrame = 0;
+            pipes = [];
+            particles = [];
+            score = 0;
+            frameCount = 0;
+            scoreEl.textContent = '';
+        }
+
+        function flap() {
+            if (state === 'idle') {
+                state = 'playing';
+                reset();
+                hintEl.textContent = '';
+            }
+            if (state === 'dead') {
+                state = 'idle';
+                reset();
+                hintEl.textContent = 'Click or press Space to start';
+                return;
+            }
+            bird.vy = FLAP_POWER;
+            bird.flapFrame = 8;
+
+            // Flap particles
+            for (let i = 0; i < 4; i++) {
+                particles.push({
+                    x: bird.x - 5,
+                    y: bird.y + 5,
+                    vx: -Math.random() * 2 - 1,
+                    vy: Math.random() * 2 + 1,
+                    life: 15 + Math.random() * 10,
+                    maxLife: 25,
+                    color: PURPLE_LIGHT,
+                    r: Math.random() * 3 + 1
+                });
+            }
+        }
+
+        // Input
+        canvas.addEventListener('click', flap);
+        canvas.addEventListener('touchstart', function(e) { e.preventDefault(); flap(); }, { passive: false });
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space' || e.key === ' ') {
+                e.preventDefault();
+                flap();
+            }
+        });
+
+        function spawnPipe() {
+            const minY = 80;
+            const maxY = H - GROUND_H - PIPE_GAP - 80;
+            const topH = minY + Math.random() * (maxY - minY);
+            pipes.push({
+                x: W + 10,
+                topH: topH,
+                scored: false
+            });
+        }
+
+        function drawBg() {
+            // Dark gradient background
+            const grad = ctx.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0, BG_DARK);
+            grad.addColorStop(0.7, BG_MID);
+            grad.addColorStop(1, '#1a1e35');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Stars
+            frameCount++;
+            stars.forEach(s => {
+                const alpha = 0.3 + 0.4 * Math.sin(s.twinkle + frameCount * 0.02);
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(160, 164, 192, ${alpha})`;
+                ctx.fill();
+            });
+
+            // Subtle grid lines
+            ctx.strokeStyle = 'rgba(124, 92, 252, 0.04)';
+            ctx.lineWidth = 1;
+            for (let y = 0; y < H; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(W, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawGround() {
+            // Ground
+            const gy = H - GROUND_H;
+
+            // Ground top edge glow
+            ctx.strokeStyle = TEAL;
+            ctx.lineWidth = 2;
+            ctx.shadowColor = TEAL;
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.moveTo(0, gy);
+            ctx.lineTo(W, gy);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Ground fill
+            const gGrad = ctx.createLinearGradient(0, gy, 0, H);
+            gGrad.addColorStop(0, 'rgba(6, 214, 160, 0.15)');
+            gGrad.addColorStop(1, 'rgba(6, 214, 160, 0.02)');
+            ctx.fillStyle = gGrad;
+            ctx.fillRect(0, gy, W, GROUND_H);
+
+            // Moving ground lines
+            if (state === 'playing') groundX = (groundX + PIPE_SPEED) % 20;
+            ctx.strokeStyle = 'rgba(6, 214, 160, 0.12)';
+            ctx.lineWidth = 1;
+            for (let x = -groundX; x < W; x += 20) {
+                ctx.beginPath();
+                ctx.moveTo(x, gy + 10);
+                ctx.lineTo(x + 10, gy + GROUND_H);
+                ctx.stroke();
+            }
+        }
+
+        function rrect(x, y, w, h, radii) {
+            // radii: [topLeft, topRight, bottomRight, bottomLeft]
+            const tl = radii[0], tr = radii[1], br = radii[2], bl = radii[3];
+            ctx.beginPath();
+            ctx.moveTo(x + tl, y);
+            ctx.lineTo(x + w - tr, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
+            ctx.lineTo(x + w, y + h - br);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+            ctx.lineTo(x + bl, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
+            ctx.lineTo(x, y + tl);
+            ctx.quadraticCurveTo(x, y, x + tl, y);
+            ctx.closePath();
+        }
+
+        function drawPipe(p) {
+            const topH = p.topH;
+            const botY = topH + PIPE_GAP;
+            const botH = H - GROUND_H - botY;
+
+            // Pipe glow
+            ctx.shadowColor = TEAL;
+            ctx.shadowBlur = 15;
+
+            // Top pipe
+            const tGrad = ctx.createLinearGradient(p.x, 0, p.x + PIPE_W, 0);
+            tGrad.addColorStop(0, TEAL_DARK);
+            tGrad.addColorStop(0.5, TEAL);
+            tGrad.addColorStop(1, TEAL_DARK);
+            ctx.fillStyle = tGrad;
+
+            // Top pipe body
+            rrect(p.x, 0, PIPE_W, topH, [0, 0, 8, 8]);
+            ctx.fill();
+
+            // Top pipe cap
+            ctx.fillStyle = TEAL;
+            rrect(p.x - 4, topH - 20, PIPE_W + 8, 20, [0, 0, 6, 6]);
+            ctx.fill();
+
+            // Bottom pipe body
+            ctx.fillStyle = tGrad;
+            rrect(p.x, botY, PIPE_W, botH, [8, 8, 0, 0]);
+            ctx.fill();
+
+            // Bottom pipe cap
+            ctx.fillStyle = TEAL;
+            rrect(p.x - 4, botY, PIPE_W + 8, 20, [6, 6, 0, 0]);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+
+            // Pipe highlight line
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(p.x + 8, 0);
+            ctx.lineTo(p.x + 8, topH - 20);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(p.x + 8, botY + 20);
+            ctx.lineTo(p.x + 8, botY + botH);
+            ctx.stroke();
+        }
+
+        function drawBird() {
+            ctx.save();
+            ctx.translate(bird.x, bird.y);
+
+            // Rotation based on velocity
+            const targetRot = Math.min(bird.vy * 4, 70);
+            bird.rotation += (targetRot - bird.rotation) * 0.15;
+            ctx.rotate(bird.rotation * Math.PI / 180);
+
+            // Glow
+            ctx.shadowColor = PURPLE;
+            ctx.shadowBlur = 20;
+
+            // Wing
+            const wingY = bird.flapFrame > 0 ? -8 : 2;
+            if (bird.flapFrame > 0) bird.flapFrame--;
+            ctx.fillStyle = PURPLE_LIGHT;
+            ctx.beginPath();
+            ctx.ellipse(-2, wingY, 10, 6, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body
+            const bodyGrad = ctx.createRadialGradient(0, 0, 2, 0, 0, 15);
+            bodyGrad.addColorStop(0, '#b794ff');
+            bodyGrad.addColorStop(0.6, PURPLE);
+            bodyGrad.addColorStop(1, PURPLE_LIGHT);
+            ctx.fillStyle = bodyGrad;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 15, 11, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+
+            // Eye (white)
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.ellipse(8, -4, 5, 5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pupil
+            ctx.fillStyle = '#1a1e35';
+            ctx.beginPath();
+            ctx.ellipse(10, -4, 2.5, 2.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Beak
+            ctx.fillStyle = '#ffb347';
+            ctx.beginPath();
+            ctx.moveTo(13, -1);
+            ctx.lineTo(22, 2);
+            ctx.lineTo(13, 5);
+            ctx.closePath();
+            ctx.fill();
+
+            // Tail feathers
+            ctx.fillStyle = PINK;
+            ctx.beginPath();
+            ctx.moveTo(-13, -3);
+            ctx.lineTo(-22, -7);
+            ctx.lineTo(-18, 0);
+            ctx.lineTo(-22, 7);
+            ctx.lineTo(-13, 3);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawParticles() {
+            particles.forEach(p => {
+                const alpha = p.life / p.maxLife;
+                const r = parseInt(p.color.slice(1,3), 16);
+                const g = parseInt(p.color.slice(3,5), 16);
+                const b = parseInt(p.color.slice(5,7), 16);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r * alpha, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+                ctx.fill();
+            });
+        }
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function drawStartScreen() {
+            // Floating bird animation
+            bird.y = H / 2 + Math.sin(frameCount * 0.05) * 15;
+            drawBird();
+
+            // Title
+            ctx.font = '700 28px Fredoka, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = TEAL;
+            ctx.shadowColor = TEAL;
+            ctx.shadowBlur = 15;
+            ctx.fillText('Flappy Pulse', W / 2, H / 2 - 80);
+            ctx.shadowBlur = 0;
+
+            // Subtitle
+            ctx.font = '600 16px Nunito, sans-serif';
+            ctx.fillStyle = 'rgba(160, 164, 192, 0.8)';
+            ctx.fillText('Click or press Space', W / 2, H / 2 + 65);
+        }
+
+        function drawDeadScreen() {
+            // Overlay
+            ctx.fillStyle = 'rgba(15, 18, 33, 0.6)';
+            ctx.fillRect(0, 0, W, H);
+
+            // Game Over
+            ctx.font = '700 36px Fredoka, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = PINK;
+            ctx.shadowColor = PINK;
+            ctx.shadowBlur = 15;
+            ctx.fillText('Game Over', W / 2, H / 2 - 50);
+            ctx.shadowBlur = 0;
+
+            // Score
+            ctx.font = '700 22px Fredoka, sans-serif';
+            ctx.fillStyle = TEXT_BRIGHT;
+            ctx.fillText('Score: ' + score, W / 2, H / 2);
+
+            // Best
+            ctx.font = '600 16px Nunito, sans-serif';
+            ctx.fillStyle = TEAL;
+            ctx.fillText('Best: ' + bestScore, W / 2, H / 2 + 30);
+
+            // Restart hint
+            ctx.font = '600 14px Nunito, sans-serif';
+            ctx.fillStyle = 'rgba(160, 164, 192, 0.7)';
+            ctx.fillText('Click to try again', W / 2, H / 2 + 70);
+        }
+
+        function checkCollision() {
+            // Ground
+            if (bird.y + 11 >= H - GROUND_H) return true;
+            // Ceiling
+            if (bird.y - 11 <= 0) return true;
+
+            // Pipes
+            for (const p of pipes) {
+                const birdLeft = bird.x - 13;
+                const birdRight = bird.x + 13;
+                const birdTop = bird.y - 10;
+                const birdBottom = bird.y + 10;
+
+                // Check if bird is in pipe x range (with a bit of forgiveness)
+                if (birdRight > p.x + 4 && birdLeft < p.x + PIPE_W - 4) {
+                    // Top pipe
+                    if (birdTop < p.topH) return true;
+                    // Bottom pipe
+                    if (birdBottom > p.topH + PIPE_GAP) return true;
+                }
+            }
+            return false;
+        }
+
+        function die() {
+            state = 'dead';
+            if (score > bestScore) bestScore = score;
+            hintEl.textContent = 'Click to try again';
+
+            // Death particles
+            for (let i = 0; i < 15; i++) {
+                const angle = (Math.PI * 2 / 15) * i;
+                particles.push({
+                    x: bird.x,
+                    y: bird.y,
+                    vx: Math.cos(angle) * (2 + Math.random() * 3),
+                    vy: Math.sin(angle) * (2 + Math.random() * 3),
+                    life: 20 + Math.random() * 15,
+                    maxLife: 35,
+                    color: i % 2 === 0 ? PURPLE_LIGHT : PINK,
+                    r: Math.random() * 3 + 2
+                });
+            }
+        }
+
+        function update() {
+            if (state !== 'playing') return;
+
+            // Bird physics
+            bird.vy = Math.min(bird.vy + GRAVITY, MAX_FALL);
+            bird.y += bird.vy;
+
+            // Spawn pipes
+            if (frameCount % PIPE_INTERVAL === 0) {
+                spawnPipe();
+            }
+
+            // Move pipes
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                pipes[i].x -= PIPE_SPEED;
+
+                // Score
+                if (!pipes[i].scored && pipes[i].x + PIPE_W < bird.x) {
+                    pipes[i].scored = true;
+                    score++;
+                    scoreEl.textContent = score;
+
+                    // Score particles
+                    for (let j = 0; j < 6; j++) {
+                        particles.push({
+                            x: bird.x + 20,
+                            y: bird.y - 15,
+                            vx: Math.random() * 3 - 1,
+                            vy: -Math.random() * 3 - 1,
+                            life: 20,
+                            maxLife: 20,
+                            color: TEAL,
+                            r: Math.random() * 2 + 1
+                        });
+                    }
+                }
+
+                // Remove off-screen pipes
+                if (pipes[i].x + PIPE_W < -10) {
+                    pipes.splice(i, 1);
+                }
+            }
+
+            // Collision
+            if (checkCollision()) die();
+        }
+
+        function draw() {
+            drawBg();
+            drawGround();
+
+            pipes.forEach(drawPipe);
+            drawParticles();
+
+            if (state === 'idle') {
+                drawStartScreen();
+            } else {
+                drawBird();
+            }
+
+            if (state === 'dead') {
+                drawDeadScreen();
+            }
+        }
+
+        function loop() {
+            update();
+            updateParticles();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        // Start
+        reset();
+        loop();
+    })();
+    </script>
+</body>
+</html>

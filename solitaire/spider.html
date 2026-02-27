@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag("js", new Date());
+      gtag("config", "G-PY073ZX38N");
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Play Spider Solitaire Free Online | PulseGames</title>
+    <meta name="description" content="Play free Spider Solitaire online! Choose 1, 2 or 4 suits. Beautiful graphics, touch support, no download required.">
+    <meta name="keywords" content="spider solitaire, card game, free online game, solitaire, cards">
+    <meta name="author" content="PulseGames">
+    <meta name="robots" content="index, follow">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Play Spider Solitaire Free Online | PulseGames">
+    <meta property="og:description" content="Play free Spider Solitaire online! Choose your difficulty.">
+    <meta property="og:image" content="https://pulsegames.eu/solitaire/og-image.png">
+    <meta property="og:url" content="https://pulsegames.eu/solitaire/spider.html">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Play Spider Solitaire Free Online | PulseGames">
+    <meta name="twitter:description" content="Play free Spider Solitaire online! Choose 1, 2 or 4 suits.">
+    <meta name="twitter:image" content="https://pulsegames.eu/solitaire/og-image.png">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://pulsegames.eu/solitaire/spider.html">
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%231e1b4b'/%3E%3Ctext x='32' y='45' font-size='36' text-anchor='middle' fill='white'%3E♠%3C/text%3E%3C/svg%3E">
+    
+    <meta name="theme-color" content="#1e1b4b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cardmeister.github.io/elements.cardmeister.full.js"></script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://pulsegames.eu/"},
+        {"@type": "ListItem", "position": 2, "name": "Solitaire", "item": "https://pulsegames.eu/solitaire/"},
+        {"@type": "ListItem", "position": 3, "name": "Spider", "item": "https://pulsegames.eu/solitaire/spider.html"}
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Spider Solitaire",
+      "description": "Play Spider Solitaire free online with 1, 2 or 4 suits. Beautiful graphics, touch support, no download required.",
+      "url": "https://pulsegames.eu/solitaire/spider.html",
+      "image": "https://pulsegames.eu/solitaire/og-image.png",
+      "genre": ["Card Game", "Classic", "Puzzle"],
+      "gamePlatform": "Web Browser",
+      "applicationCategory": "Game",
+      "operatingSystem": "Any",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Organization", "name": "PulseGames", "url": "https://pulsegames.eu" },
+      "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+      "playMode": "SinglePlayer"
+    }
+    </script>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(145deg, #1e1b4b 0%, #312e81 50%, #0f0e2a 100%);
+            --gold: #d4af37;
+            --gold-light: #f4d03f;
+            --text-primary: #f5f5f0;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --card-width: 75px;
+            --card-height: 105px;
+            --card-radius: 5px;
+            --stack-offset: 22px;
+            --stack-offset-hidden: 8px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            overscroll-behavior: none;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo-section { display: flex; align-items: center; gap: 12px; }
+
+        .back-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary); text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .back-btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateX(-3px); }
+
+        .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--gold); }
+        .logo span { color: var(--text-primary); font-weight: 400; font-size: 1.2rem; }
+
+        .game-stats { display: flex; gap: 20px; align-items: center; }
+        .stat { text-align: center; }
+        .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 2px; }
+        .stat-value { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 600; color: var(--gold-light); }
+
+        .header-actions { display: flex; gap: 8px; }
+
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 6px;
+            font-family: 'Source Sans 3', sans-serif; font-size: 0.85rem; font-weight: 500;
+            cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold) 0%, #b8962e 100%);
+            color: #1a1a1a; box-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4); }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1); color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+
+        .btn-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1); border: none;
+            color: var(--text-primary); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;
+        }
+        .btn-icon:hover { background: rgba(255, 255, 255, 0.2); }
+        .btn-icon svg { width: 18px; height: 18px; }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 10px;
+            min-height: calc(100vh - 60px);
+        }
+
+        .game-board {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .top-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 0 5px;
+        }
+
+        .stock-area {
+            display: flex;
+            gap: 4px;
+        }
+
+        .stock-pile {
+            width: var(--card-width);
+            height: var(--card-height);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .stock-pile .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: var(--card-radius);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .stock-pile.empty {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: var(--card-radius);
+            cursor: default;
+        }
+
+        .stock-count {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .completed-area {
+            display: flex;
+            gap: 4px;
+        }
+
+        .completed-pile {
+            width: var(--card-width);
+            height: var(--card-height);
+            border: 2px dashed rgba(212, 175, 55, 0.3);
+            border-radius: var(--card-radius);
+            background: rgba(212, 175, 55, 0.05);
+            position: relative;
+        }
+
+        .completed-pile .card {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .tableau-area {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .tableau-pile {
+            width: var(--card-width);
+            min-height: 350px;
+            position: relative;
+        }
+
+        .pile-placeholder {
+            width: 100%;
+            height: var(--card-height);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: var(--card-radius);
+            position: absolute;
+            top: 0;
+        }
+
+        .card {
+            width: var(--card-width);
+            height: var(--card-height);
+            position: absolute;
+            border-radius: var(--card-radius);
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+        }
+
+        .card.face-down {
+            cursor: default;
+        }
+
+        .card:hover:not(.dragging):not(.face-down) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .card.dragging {
+            z-index: 5000 !important;
+            cursor: grabbing;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            transition: none;
+            transform: scale(1.02);
+        }
+
+        .card.selected {
+            box-shadow: 0 0 0 3px var(--gold), 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-face {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            border-radius: var(--card-radius);
+            overflow: hidden;
+            backface-visibility: hidden;
+        }
+
+        .card-front {
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-front playing-card {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-back {
+            background: repeating-linear-gradient(45deg, #1e1b4b, #1e1b4b 5px, #312e81 5px, #312e81 10px);
+            border: 3px solid #4c1d95;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-back-classic { background: repeating-linear-gradient(45deg, #1a365d, #1a365d 5px, #2c5282 5px, #2c5282 10px) !important; border: 3px solid #234876 !important; }
+        .card-back-royal { background: repeating-linear-gradient(45deg, #722f37, #722f37 8px, #8b0000 8px, #8b0000 16px) !important; border: 3px solid #d4af37 !important; }
+        .card-back-emerald { background: radial-gradient(circle, #065f46, #022c22) !important; border: 3px solid #34d399 !important; }
+        .card-back-midnight { background: linear-gradient(180deg, #0f172a, #1e293b, #0f172a) !important; border: 3px solid #60a5fa !important; }
+        .card-back-ocean { background: linear-gradient(135deg, #0077b6, #023e8a, #03045e) !important; border: 3px solid #48cae4 !important; }
+        .card-back-spider { background: repeating-linear-gradient(45deg, #1e1b4b, #1e1b4b 5px, #312e81 5px, #312e81 10px) !important; border: 3px solid #4c1d95 !important; }
+
+        .pile.drop-target .pile-placeholder,
+        .tableau-pile.drop-target .pile-placeholder {
+            border-color: var(--gold);
+            background: rgba(212, 175, 55, 0.15);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .tableau-pile.drop-target .card:last-child {
+            box-shadow: 0 0 0 3px var(--gold), 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal {
+            background: linear-gradient(145deg, #1e1b4b, #0f0e2a);
+            border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 16px;
+            padding: 30px; max-width: 500px; width: 90%; max-height: 85vh; overflow-y: auto;
+        }
+        .modal-header { margin-bottom: 20px; }
+        .modal-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--gold); }
+        .modal-body { margin-bottom: 25px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+        .difficulty-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .difficulty-btn {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .difficulty-btn:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: var(--gold);
+        }
+
+        .difficulty-btn.selected {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--gold);
+        }
+
+        .difficulty-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            color: var(--gold);
+            margin-bottom: 5px;
+        }
+
+        .difficulty-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .difficulty-suits {
+            margin-top: 8px;
+            font-size: 1.5rem;
+        }
+
+        .settings-group { margin-bottom: 20px; }
+        .settings-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: 10px; display: block; }
+        .settings-options { display: flex; flex-wrap: wrap; gap: 10px; }
+        .settings-option {
+            padding: 10px 18px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;
+            cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
+        }
+        .settings-option:hover { background: rgba(255, 255, 255, 0.1); }
+        .settings-option.active { background: rgba(212, 175, 55, 0.2); border-color: var(--gold); color: var(--gold); }
+        .card-back-preview { width: 40px; height: 56px; border-radius: 4px; }
+        .bg-preview { width: 50px; height: 35px; border-radius: 4px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .stats-item { background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; text-align: center; }
+        .stats-value { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--gold); }
+        .stats-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-top: 5px; }
+
+        .victory-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 2500; opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+        }
+        .victory-overlay.active { opacity: 1; pointer-events: auto; }
+        .victory-title {
+            font-family: 'Playfair Display', serif; font-size: 3.5rem; color: var(--gold);
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.5); margin-bottom: 20px;
+            animation: victoryPulse 2s ease-in-out infinite;
+        }
+        @keyframes victoryPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        .victory-stats { display: flex; gap: 40px; margin-bottom: 30px; }
+        .victory-stat { text-align: center; }
+        .victory-stat-value { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--text-primary); }
+        .victory-stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary); }
+
+        .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2400; overflow: hidden; }
+        .confetti { position: absolute; width: 10px; height: 10px; opacity: 0; }
+        .confetti.animate { animation: confettiFall 3s ease-out forwards; }
+        @keyframes confettiFall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+        .firework { position: absolute; width: 6px; height: 6px; border-radius: 50%; opacity: 0; }
+
+        .cascade-card {
+            position: fixed;
+            width: var(--card-width);
+            height: var(--card-height);
+            border-radius: var(--card-radius);
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 2399;
+            pointer-events: none;
+        }
+
+        .toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(0, 0, 0, 0.9); color: var(--text-primary);
+            padding: 12px 24px; border-radius: 8px; font-size: 0.9rem;
+            opacity: 0; transition: all 0.3s ease; z-index: 3000;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .card.hint { animation: hintGlow 0.6s ease-in-out 3; }
+        @keyframes hintGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); } 50% { box-shadow: 0 0 0 8px rgba(212, 175, 55, 0.6); } }
+
+        .card.completing {
+            animation: completeCard 0.5s ease-out forwards;
+        }
+        @keyframes completeCard {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(212, 175, 55, 0.8); }
+            100% { transform: scale(0.8); opacity: 0; }
+        }
+
+        .deal-animation {
+            transition: left 0.15s ease-out, top 0.15s ease-out;
+        }
+
+        @media (max-width: 850px) {
+            :root {
+                --card-width: 65px;
+                --card-height: 91px;
+                --stack-offset: 20px;
+                --stack-offset-hidden: 7px;
+            }
+        }
+
+        @media (max-width: 720px) {
+            :root {
+                --card-width: 38px;
+                --card-height: 53px;
+                --card-radius: 3px;
+                --stack-offset: 16px;
+                --stack-offset-hidden: 5px;
+            }
+            .game-header { padding: 8px 10px; }
+            .logo { font-size: 1.1rem; }
+            .logo span { display: none; }
+            .stat-value { font-size: 0.9rem; }
+            .game-stats { gap: 10px; }
+            .btn { padding: 6px 10px; font-size: 0.7rem; }
+            .btn svg { display: none; }
+            .btn-icon { width: 30px; height: 30px; }
+            .tableau-area { gap: 3px; }
+            .stock-area, .completed-area { gap: 2px; }
+            .tableau-pile { min-height: 250px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="game-header">
+        <div class="logo-section">
+            <a href="index.html" class="back-btn" title="Back to game selection">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <div class="logo">Spider<span> | PulseGames</span></div>
+        </div>
+        
+        <div class="game-stats">
+            <div class="stat">
+                <div class="stat-label">Moves</div>
+                <div class="stat-value" id="moves">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">500</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Time</div>
+                <div class="stat-value" id="timer">0:00</div>
+            </div>
+        </div>
+        
+        <div class="header-actions">
+            <button class="btn btn-secondary" id="undoBtn" title="Undo (Ctrl+Z)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 10h10a5 5 0 0 1 5 5v2M3 10l4-4M3 10l4 4"/>
+                </svg>
+                Undo
+            </button>
+            <button class="btn btn-secondary" id="hintBtn" title="Show hint (H)">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/>
+                </svg>
+                Hint
+            </button>
+            <button class="btn btn-primary" id="newGameBtn">New Game</button>
+            <button class="btn-icon" id="leaderboardBtn" title="Leaderboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 15l-2 5l-5-2l2-5m10 2l2 5l-5 2l-2-5"/>
+                    <circle cx="12" cy="8" r="5"/>
+                </svg>
+            </button>
+            <button class="btn-icon" id="settingsBtn" title="Settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+            </button>
+            <button class="btn-icon" id="statsBtn" title="Statistics">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 20V10M12 20V4M6 20v-6"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="game-container">
+        <div class="game-board">
+            <div class="top-area">
+                <div class="stock-area" id="stockArea"></div>
+                <div class="completed-area" id="completedArea"></div>
+            </div>
+            <div class="tableau-area" id="tableauArea"></div>
+        </div>
+    </main>
+
+    <!-- New Game Modal -->
+    <div class="modal-overlay" id="newGameModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title">New Game</h2></div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 15px;">Choose difficulty:</p>
+                <div class="difficulty-options">
+                    <div class="difficulty-btn" data-suits="1">
+                        <div class="difficulty-title">1 Suit - Easy</div>
+                        <div class="difficulty-desc">Perfect for beginners. All cards are spades.</div>
+                        <div class="difficulty-suits">♠</div>
+                    </div>
+                    <div class="difficulty-btn" data-suits="2">
+                        <div class="difficulty-title">2 Suits - Medium</div>
+                        <div class="difficulty-desc">A balanced challenge with spades and hearts.</div>
+                        <div class="difficulty-suits">♠ ♥</div>
+                    </div>
+                    <div class="difficulty-btn" data-suits="4">
+                        <div class="difficulty-title">4 Suits - Hard</div>
+                        <div class="difficulty-desc">The ultimate challenge with all four suits.</div>
+                        <div class="difficulty-suits">♠ ♥ ♦ ♣</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelNewGame">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title">Settings</h2></div>
+            <div class="modal-body">
+                <div class="settings-group">
+                    <label class="settings-label">Card Back</label>
+                    <div class="settings-options" id="cardBackOptions">
+                        <div class="settings-option" data-back="spider"><div class="card-back-preview card-back-spider"></div></div>
+                        <div class="settings-option" data-back="classic"><div class="card-back-preview card-back-classic"></div></div>
+                        <div class="settings-option" data-back="royal"><div class="card-back-preview card-back-royal"></div></div>
+                        <div class="settings-option" data-back="emerald"><div class="card-back-preview card-back-emerald"></div></div>
+                        <div class="settings-option" data-back="midnight"><div class="card-back-preview card-back-midnight"></div></div>
+                        <div class="settings-option" data-back="ocean"><div class="card-back-preview card-back-ocean"></div></div>
+                    </div>
+                </div>
+                <div class="settings-group">
+                    <label class="settings-label">Background</label>
+                    <div class="settings-options" id="bgOptions">
+                        <div class="settings-option" data-bg="spider"><div class="bg-preview" style="background: linear-gradient(145deg, #1e1b4b, #0f0e2a)"></div></div>
+                        <div class="settings-option" data-bg="classic"><div class="bg-preview" style="background: linear-gradient(145deg, #065f46, #022c22)"></div></div>
+                        <div class="settings-option" data-bg="green"><div class="bg-preview" style="background: linear-gradient(145deg, #1e6b30, #0d3d18)"></div></div>
+                        <div class="settings-option" data-bg="blue"><div class="bg-preview" style="background: linear-gradient(145deg, #1a3d5c, #0d2133)"></div></div>
+                        <div class="settings-option" data-bg="burgundy"><div class="bg-preview" style="background: linear-gradient(145deg, #4a1a2c, #2a0d18)"></div></div>
+                        <div class="settings-option" data-bg="midnight"><div class="bg-preview" style="background: linear-gradient(145deg, #1a1a2e, #0d0d17)"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions"><button class="btn btn-primary" id="closeSettingsBtn">Close</button></div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div class="modal-overlay" id="statsModal">
+        <div class="modal">
+            <div class="modal-header"><h2 class="modal-title">Statistics</h2></div>
+            <div class="modal-body">
+                <div class="stats-grid">
+                    <div class="stats-item"><div class="stats-value" id="statGamesPlayed">0</div><div class="stats-label">Games Played</div></div>
+                    <div class="stats-item"><div class="stats-value" id="statGamesWon">0</div><div class="stats-label">Games Won</div></div>
+                    <div class="stats-item"><div class="stats-value" id="statWinRate">0%</div><div class="stats-label">Win Rate</div></div>
+                    <div class="stats-item"><div class="stats-value" id="statBestScore">0</div><div class="stats-label">Best Score</div></div>
+                    <div class="stats-item"><div class="stats-value" id="statBestTime">--:--</div><div class="stats-label">Best Time</div></div>
+                    <div class="stats-item"><div class="stats-value" id="statCurrentDiff">-</div><div class="stats-label">Last Played</div></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="resetStatsBtn">Reset Stats</button>
+                <button class="btn btn-primary" id="closeStatsBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory overlay -->
+    <div class="victory-overlay" id="victoryOverlay">
+        <h2 class="victory-title">🕷️ You Win!</h2>
+        <div class="victory-stats">
+            <div class="victory-stat"><div class="victory-stat-value" id="victoryTime">0:00</div><div class="victory-stat-label">Time</div></div>
+            <div class="victory-stat"><div class="victory-stat-value" id="victoryMoves">0</div><div class="victory-stat-label">Moves</div></div>
+            <div class="victory-stat"><div class="victory-stat-value" id="victoryScore">0</div><div class="victory-stat-label">Score</div></div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-primary" id="victoryNewGame">New Game</button>
+            <button class="btn btn-secondary" id="victoryLeaderboard">🏆 Leaderboard</button>
+            <button class="btn btn-secondary" id="victoryShare">Share Result</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+    (function() {
+        const SUITS_MAP = { 1: ['♠'], 2: ['♠', '♥'], 4: ['♠', '♥', '♦', '♣'] };
+        const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+        function createDeck(numSuits) {
+            const suits = SUITS_MAP[numSuits];
+            const deck = [];
+            // 2 full decks = 104 cards
+            for (let d = 0; d < 2; d++) {
+                for (let i = 0; i < 52; i++) {
+                    const suit = suits[i % suits.length];
+                    const rank = RANKS[i % 13];
+                    deck.push({ suit, rank, faceUp: false });
+                }
+            }
+            return deck;
+        }
+
+        function shuffleDeck(deck) {
+            const a = [...deck];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function getRankValue(rank) {
+            if (rank === 'A') return 1;
+            if (rank === 'J') return 11;
+            if (rank === 'Q') return 12;
+            if (rank === 'K') return 13;
+            return parseInt(rank);
+        }
+
+        let game = {
+            tableau: [],
+            stock: [],
+            completed: 0,
+            numSuits: 2,
+            moves: 0,
+            score: 500,
+            time: 0,
+            timerInterval: null,
+            gameWon: false,
+            gameStarted: false,
+            selectedCards: null,
+            selectedPile: null,
+            selectedIndex: null,
+            undoStack: [],
+            cardBack: 'spider',
+            background: 'spider'
+        };
+
+        let stats = { gamesPlayed: 0, gamesWon: 0, bestScore: 0, bestTime: null };
+
+        const els = {
+            stockArea: document.getElementById('stockArea'),
+            completedArea: document.getElementById('completedArea'),
+            tableauArea: document.getElementById('tableauArea'),
+            moves: document.getElementById('moves'),
+            score: document.getElementById('score'),
+            timer: document.getElementById('timer'),
+            toast: document.getElementById('toast')
+        };
+
+        function newGame(numSuits) {
+            clearInterval(game.timerInterval);
+            
+            game.numSuits = numSuits || game.numSuits || 2;
+            game.moves = 0;
+            game.score = 500;
+            game.time = 0;
+            game.gameWon = false;
+            game.gameStarted = false;
+            game.completed = 0;
+            game.undoStack = [];
+            game.tableau = Array.from({ length: 10 }, () => []);
+            
+            const deck = shuffleDeck(createDeck(game.numSuits));
+            
+            // Deal 54 cards: first 4 piles get 6, rest get 5
+            let cardIndex = 0;
+            for (let col = 0; col < 10; col++) {
+                const numCards = col < 4 ? 6 : 5;
+                for (let i = 0; i < numCards; i++) {
+                    const card = deck[cardIndex++];
+                    card.faceUp = (i === numCards - 1); // Only top card face up
+                    game.tableau[col].push(card);
+                }
+            }
+            
+            // Remaining 50 cards go to stock (5 deals of 10)
+            game.stock = deck.slice(54);
+            
+            clearSelection();
+            render();
+            updateDisplay();
+            
+            document.getElementById('newGameModal').classList.remove('active');
+        }
+
+        function startTimer() {
+            if (game.gameStarted) return;
+            game.gameStarted = true;
+            game.timerInterval = setInterval(() => {
+                game.time++;
+                els.timer.textContent = Math.floor(game.time / 60) + ':' + (game.time % 60).toString().padStart(2, '0');
+            }, 1000);
+        }
+
+        function updateDisplay() {
+            els.moves.textContent = game.moves;
+            els.score.textContent = game.score;
+        }
+
+        function render() {
+            renderStock();
+            renderCompleted();
+            renderTableau();
+        }
+
+        function renderStock() {
+            els.stockArea.innerHTML = '';
+            const numDeals = Math.ceil(game.stock.length / 10);
+            
+            for (let i = 0; i < 5; i++) {
+                const pile = document.createElement('div');
+                pile.className = 'stock-pile' + (i >= numDeals ? ' empty' : '');
+                
+                if (i < numDeals) {
+                    const back = document.createElement('div');
+                    back.className = 'card-back card-back-' + game.cardBack;
+                    pile.appendChild(back);
+                    pile.onclick = dealFromStock;
+                }
+                
+                els.stockArea.appendChild(pile);
+            }
+        }
+
+        function renderCompleted() {
+            els.completedArea.innerHTML = '';
+            
+            for (let i = 0; i < 8; i++) {
+                const pile = document.createElement('div');
+                pile.className = 'completed-pile';
+                
+                if (i < game.completed) {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = '<div class="card-face card-front"><playing-card cid="KS"></playing-card></div>';
+                    pile.appendChild(card);
+                }
+                
+                els.completedArea.appendChild(pile);
+            }
+        }
+
+        function renderTableau() {
+            els.tableauArea.innerHTML = '';
+            
+            for (let col = 0; col < 10; col++) {
+                const pile = document.createElement('div');
+                pile.className = 'tableau-pile';
+                pile.dataset.col = col;
+                
+                const placeholder = document.createElement('div');
+                placeholder.className = 'pile-placeholder';
+                pile.appendChild(placeholder);
+                
+                const cards = game.tableau[col];
+                let yOffset = 0;
+                
+                cards.forEach((card, idx) => {
+                    const cardEl = createCardElement(card, col, idx);
+                    cardEl.style.top = yOffset + 'px';
+                    cardEl.style.zIndex = idx + 10;
+                    pile.appendChild(cardEl);
+                    
+                    yOffset += card.faceUp ? 
+                        parseInt(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset')) :
+                        parseInt(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset-hidden'));
+                });
+                
+                els.tableauArea.appendChild(pile);
+            }
+        }
+
+        function createCardElement(card, col, idx) {
+            const el = document.createElement('div');
+            el.className = 'card' + (card.faceUp ? '' : ' face-down');
+            el.dataset.col = col;
+            el.dataset.idx = idx;
+            
+            if (card.faceUp) {
+                const suitMap = { '♠': 'S', '♥': 'H', '♦': 'D', '♣': 'C' };
+                const rankMap = { 'A': 'A', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7', '8': '8', '9': '9', '10': 'T', 'J': 'J', 'Q': 'Q', 'K': 'K' };
+                el.innerHTML = '<div class="card-face card-front"><playing-card cid="' + rankMap[card.rank] + suitMap[card.suit] + '"></playing-card></div>';
+            } else {
+                el.innerHTML = '<div class="card-face card-back card-back-' + game.cardBack + '"></div>';
+            }
+            
+            return el;
+        }
+
+        function clearSelection() {
+            game.selectedCards = null;
+            game.selectedPile = null;
+            game.selectedIndex = null;
+            document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
+        }
+
+        function saveState() {
+            game.undoStack.push({
+                tableau: game.tableau.map(col => col.map(c => ({...c}))),
+                stock: game.stock.map(c => ({...c})),
+                completed: game.completed,
+                moves: game.moves,
+                score: game.score
+            });
+            if (game.undoStack.length > 30) game.undoStack.shift();
+        }
+
+        function undo() {
+            if (game.undoStack.length === 0 || game.gameWon) return;
+            const state = game.undoStack.pop();
+            game.tableau = state.tableau;
+            game.stock = state.stock;
+            game.completed = state.completed;
+            game.moves = state.moves;
+            game.score = state.score;
+            clearSelection();
+            render();
+            updateDisplay();
+        }
+
+        // Can stack card on target (only needs to be one rank lower, any suit)
+        function canStack(card, target) {
+            if (!target) return true; // Empty pile accepts any card
+            return getRankValue(card.rank) === getRankValue(target.rank) - 1;
+        }
+
+        // Check if sequence is valid for moving (same suit, descending)
+        function isValidSequence(cards) {
+            for (let i = 0; i < cards.length - 1; i++) {
+                if (cards[i].suit !== cards[i + 1].suit) return false;
+                if (getRankValue(cards[i].rank) !== getRankValue(cards[i + 1].rank) + 1) return false;
+            }
+            return true;
+        }
+
+        // Check for complete sequence K-A same suit
+        function checkForCompleteSequence(col) {
+            const pile = game.tableau[col];
+            if (pile.length < 13) return false;
+            
+            // Check last 13 cards
+            const sequence = pile.slice(-13);
+            if (!sequence.every(c => c.faceUp)) return false;
+            if (!sequence.every(c => c.suit === sequence[0].suit)) return false;
+            
+            // Must be K, Q, J, 10, 9, 8, 7, 6, 5, 4, 3, 2, A
+            for (let i = 0; i < 13; i++) {
+                if (getRankValue(sequence[i].rank) !== 13 - i) return false;
+            }
+            
+            return true;
+        }
+
+        function removeCompleteSequence(col) {
+            const pile = game.tableau[col];
+            
+            // Animate cards flying to completed area
+            const cardEls = els.tableauArea.children[col].querySelectorAll('.card');
+            const lastCards = Array.from(cardEls).slice(-13);
+            
+            lastCards.forEach((cardEl, i) => {
+                setTimeout(() => {
+                    cardEl.classList.add('completing');
+                }, i * 30);
+            });
+            
+            setTimeout(() => {
+                pile.splice(-13);
+                game.completed++;
+                game.score += 100;
+                
+                // Flip new top card if needed
+                if (pile.length > 0 && !pile[pile.length - 1].faceUp) {
+                    pile[pile.length - 1].faceUp = true;
+                }
+                
+                render();
+                updateDisplay();
+                checkWin();
+            }, 500);
+        }
+
+        function moveCards(fromCol, fromIdx, toCol) {
+            startTimer();
+            saveState();
+            
+            const cards = game.tableau[fromCol].splice(fromIdx);
+            game.tableau[toCol].push(...cards);
+            
+            // Flip new top card if needed
+            const fromPile = game.tableau[fromCol];
+            if (fromPile.length > 0 && !fromPile[fromPile.length - 1].faceUp) {
+                fromPile[fromPile.length - 1].faceUp = true;
+            }
+            
+            game.moves++;
+            game.score = Math.max(0, game.score - 1);
+            
+            render();
+            updateDisplay();
+            
+            // Check for complete sequence
+            if (checkForCompleteSequence(toCol)) {
+                setTimeout(() => removeCompleteSequence(toCol), 100);
+            }
+            
+            saveGame();
+        }
+
+        function dealFromStock() {
+            if (game.stock.length === 0) return;
+            
+            // Check all columns have at least one card
+            const emptyCol = game.tableau.findIndex(col => col.length === 0);
+            if (emptyCol !== -1) {
+                showToast('Fill all empty columns before dealing');
+                return;
+            }
+            
+            startTimer();
+            saveState();
+            
+            // Deal one card to each column
+            for (let col = 0; col < 10; col++) {
+                if (game.stock.length > 0) {
+                    const card = game.stock.pop();
+                    card.faceUp = true;
+                    game.tableau[col].push(card);
+                }
+            }
+            
+            game.moves++;
+            render();
+            updateDisplay();
+            
+            // Check for any complete sequences
+            for (let col = 0; col < 10; col++) {
+                if (checkForCompleteSequence(col)) {
+                    setTimeout(() => removeCompleteSequence(col), 100);
+                    break;
+                }
+            }
+            
+            saveGame();
+        }
+
+        function checkWin() {
+            if (game.completed === 8) {
+                game.gameWon = true;
+                clearInterval(game.timerInterval);
+                
+                // Calculate time bonus: 300 - time, minimum 0
+                const timeBonus = Math.max(0, 300 - game.time);
+                game.score += timeBonus;
+                
+                stats.gamesWon++;
+                if (game.score > stats.bestScore) stats.bestScore = game.score;
+                if (!stats.bestTime || game.time < stats.bestTime) stats.bestTime = game.time;
+                saveStats();
+                
+                showVictory(timeBonus);
+            }
+        }
+
+        function showVictory(timeBonus) {
+            document.getElementById('victoryTime').textContent = Math.floor(game.time / 60) + ':' + (game.time % 60).toString().padStart(2, '0');
+            document.getElementById('victoryMoves').textContent = game.moves;
+            let scoreText = game.score;
+            if (timeBonus > 0) scoreText += ' (+' + timeBonus + ')';
+            document.getElementById('victoryScore').textContent = scoreText;
+            
+            // Submit to leaderboard (separate list per suit count)
+            if (window.Leaderboard) {
+                const gameType = 'spider_' + game.numSuits + 'suit';
+                Leaderboard.submit(gameType, game.score, game.time, game.moves, { suits: game.numSuits });
+            }
+            
+            playWinAnimation();
+            document.getElementById('victoryOverlay').classList.add('active');
+        }
+
+        function playWinAnimation(type) {
+            if (type === undefined) type = Math.floor(Math.random() * 3);
+            if (type === 0) confettiAnimation();
+            else if (type === 1) fireworksAnimation();
+            else cardCascadeAnimation();
+        }
+
+        function confettiAnimation() {
+            const container = document.createElement('div');
+            container.className = 'confetti-container';
+            document.body.appendChild(container);
+            const colors = ['#d4af37', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fd79a8', '#a29bfe', '#4c1d95', '#7c3aed'];
+            function create() {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + '%';
+                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                c.style.width = c.style.height = (Math.random() * 10 + 5) + 'px';
+                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                container.appendChild(c);
+                requestAnimationFrame(() => c.classList.add('animate'));
+                setTimeout(() => c.remove(), 4000);
+            }
+            for (let i = 0; i < 200; i++) setTimeout(create, i * 15);
+            setTimeout(() => container.remove(), 6000);
+        }
+
+        function fireworksAnimation() {
+            const container = document.createElement('div');
+            container.className = 'confetti-container';
+            document.body.appendChild(container);
+            const colors = ['#d4af37', '#ff6b6b', '#4ecdc4', '#7c3aed', '#ffeaa7', '#fd79a8'];
+            const style = document.createElement('style');
+            style.textContent = '@keyframes fwp{0%{transform:translate(0,0)scale(1);opacity:1}100%{transform:translate(var(--tx),var(--ty))scale(0);opacity:0}}';
+            document.head.appendChild(style);
+            function burst(x, y) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                for (let i = 0; i < 40; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'firework';
+                    p.style.cssText = 'left:' + x + 'px;top:' + y + 'px;background:' + color + ';box-shadow:0 0 6px ' + color;
+                    const angle = (i / 40) * Math.PI * 2;
+                    const dist = 80 + Math.random() * 80;
+                    p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+                    p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+                    p.style.animation = 'fwp 1.2s ease-out forwards';
+                    container.appendChild(p);
+                    setTimeout(() => p.remove(), 1200);
+                }
+            }
+            for (let i = 0; i < 12; i++) setTimeout(() => burst(Math.random() * innerWidth * 0.8 + innerWidth * 0.1, Math.random() * innerHeight * 0.5 + innerHeight * 0.1), i * 350);
+            setTimeout(() => { container.remove(); style.remove(); }, 6000);
+        }
+
+        function cardCascadeAnimation() {
+            const suits = ['S', 'H', 'D', 'C'];
+            const ranks = ['A','2','3','4','5','6','7','8','9','T','J','Q','K'];
+            let delay = 0;
+            
+            for (let seq = 0; seq < 8; seq++) {
+                const startX = 50 + (seq % 4) * 200;
+                for (let r = 12; r >= 0; r--) {
+                    setTimeout(() => {
+                        const card = document.createElement('div');
+                        card.className = 'cascade-card';
+                        const pc = document.createElement('playing-card');
+                        pc.setAttribute('cid', ranks[r] + suits[seq % suits.length]);
+                        pc.style.width = pc.style.height = '100%';
+                        card.appendChild(pc);
+                        card.style.left = startX + 'px';
+                        card.style.top = '-120px';
+                        document.body.appendChild(card);
+                        
+                        let x = startX, y = -120, vx = (Math.random() - 0.5) * 6, vy = 2, rot = 0, rotSpd = (Math.random() - 0.5) * 8;
+                        function anim() {
+                            vy += 0.4; x += vx; y += vy; rot += rotSpd;
+                            if (y > innerHeight - 105) { y = innerHeight - 105; vy *= -0.6; vx *= 0.9; }
+                            if (x < 0 || x > innerWidth - 75) vx = -vx;
+                            card.style.left = x + 'px'; card.style.top = y + 'px'; card.style.transform = 'rotate(' + rot + 'deg)';
+                            if (y < innerHeight + 200) requestAnimationFrame(anim); else card.remove();
+                        }
+                        requestAnimationFrame(anim);
+                        setTimeout(() => card.remove(), 8000);
+                    }, delay);
+                    delay += 50;
+                }
+                delay += 200;
+            }
+        }
+
+        window.playWinAnimation = playWinAnimation;
+
+        function findHint() {
+            // Find moveable sequences
+            for (let fromCol = 0; fromCol < 10; fromCol++) {
+                const pile = game.tableau[fromCol];
+                if (pile.length === 0) continue;
+                
+                // Find start of moveable sequence
+                let startIdx = pile.length - 1;
+                while (startIdx > 0 && pile[startIdx - 1].faceUp && 
+                       pile[startIdx - 1].suit === pile[startIdx].suit &&
+                       getRankValue(pile[startIdx - 1].rank) === getRankValue(pile[startIdx].rank) + 1) {
+                    startIdx--;
+                }
+                
+                const movingCard = pile[startIdx];
+                
+                // Try to find a target
+                for (let toCol = 0; toCol < 10; toCol++) {
+                    if (toCol === fromCol) continue;
+                    const targetPile = game.tableau[toCol];
+                    
+                    if (targetPile.length === 0) {
+                        // Only suggest empty if we have a King
+                        if (movingCard.rank === 'K' && startIdx > 0) {
+                            return { fromCol, startIdx };
+                        }
+                    } else {
+                        const targetCard = targetPile[targetPile.length - 1];
+                        if (canStack(movingCard, targetCard)) {
+                            return { fromCol, startIdx };
+                        }
+                    }
+                }
+            }
+            
+            // Suggest dealing if no moves
+            if (game.stock.length > 0 && !game.tableau.some(col => col.length === 0)) {
+                return { deal: true };
+            }
+            
+            return null;
+        }
+
+        function showHint() {
+            const hint = findHint();
+            if (!hint) { showToast('No moves available'); return; }
+            
+            if (hint.deal) {
+                showToast('Try dealing more cards');
+                return;
+            }
+            
+            const pile = els.tableauArea.children[hint.fromCol];
+            const cards = pile.querySelectorAll('.card');
+            for (let i = hint.startIdx; i < cards.length; i++) {
+                cards[i].classList.add('hint');
+                setTimeout(() => cards[i].classList.remove('hint'), 1800);
+            }
+        }
+
+        // Click handling
+        function handleCardClick(e) {
+            if (game.gameWon || justDragged) return;
+            const cardEl = e.target.closest('.card');
+            if (!cardEl || cardEl.classList.contains('face-down')) return;
+            
+            const col = parseInt(cardEl.dataset.col);
+            const idx = parseInt(cardEl.dataset.idx);
+            const pile = game.tableau[col];
+            
+            // Check if this starts a valid sequence
+            const cards = pile.slice(idx);
+            if (!isValidSequence(cards)) return;
+            
+            if (game.selectedCards) {
+                // Try to move to this pile
+                if (tryMove(col)) {
+                    clearSelection();
+                    return;
+                }
+                clearSelection();
+            }
+            
+            // Select this sequence
+            game.selectedCards = cards;
+            game.selectedPile = col;
+            game.selectedIndex = idx;
+            
+            const pileEl = els.tableauArea.children[col];
+            const cardEls = pileEl.querySelectorAll('.card');
+            for (let i = idx; i < cardEls.length; i++) {
+                cardEls[i].classList.add('selected');
+            }
+        }
+
+        function handlePileClick(e) {
+            if (game.gameWon || !game.selectedCards) return;
+            const pile = e.target.closest('.tableau-pile');
+            if (!pile || e.target.closest('.card')) return;
+            
+            const col = parseInt(pile.dataset.col);
+            if (tryMove(col)) clearSelection();
+        }
+
+        function tryMove(toCol) {
+            if (game.selectedPile === toCol) return false;
+            
+            const targetPile = game.tableau[toCol];
+            const targetCard = targetPile.length > 0 ? targetPile[targetPile.length - 1] : null;
+            const movingCard = game.selectedCards[0];
+            
+            if (!canStack(movingCard, targetCard)) return false;
+            
+            moveCards(game.selectedPile, game.selectedIndex, toCol);
+            return true;
+        }
+
+        // Drag & Drop
+        let drag = { active: false, col: null, idx: null, elements: [], startX: 0, startY: 0, offsetX: 0, offsetY: 0, isDragging: false };
+        let justDragged = false;
+
+        function handleDragStart(e) {
+            if (game.gameWon) return;
+            const cardEl = e.target.closest('.card');
+            if (!cardEl || cardEl.classList.contains('face-down')) return;
+            
+            const col = parseInt(cardEl.dataset.col);
+            const idx = parseInt(cardEl.dataset.idx);
+            const pile = game.tableau[col];
+            
+            // Check if valid sequence
+            const cards = pile.slice(idx);
+            if (!isValidSequence(cards)) return;
+            
+            const pileEl = els.tableauArea.children[col];
+            const cardEls = Array.from(pileEl.querySelectorAll('.card')).slice(idx);
+            
+            const rect = cardEl.getBoundingClientRect();
+            drag = {
+                active: true,
+                col,
+                idx,
+                elements: cardEls,
+                startX: e.clientX,
+                startY: e.clientY,
+                offsetX: e.clientX - rect.left,
+                offsetY: e.clientY - rect.top,
+                isDragging: false
+            };
+            
+            if (e.preventDefault) e.preventDefault();
+        }
+
+        function handleDragMove(e) {
+            if (!drag.active) return;
+            
+            if (!drag.isDragging && (Math.abs(e.clientX - drag.startX) > 3 || Math.abs(e.clientY - drag.startY) > 3)) {
+                drag.isDragging = true;
+                drag.elements.forEach(el => {
+                    el.classList.add('dragging');
+                    document.body.appendChild(el);
+                });
+            }
+            
+            if (drag.isDragging) {
+                const x = e.clientX - drag.offsetX;
+                const y = e.clientY - drag.offsetY;
+                const stackOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset'));
+                
+                drag.elements.forEach((el, i) => {
+                    el.style.position = 'fixed';
+                    el.style.left = x + 'px';
+                    el.style.top = (y + i * stackOffset) + 'px';
+                    el.style.zIndex = String(5000 + i);
+                });
+                
+                document.querySelectorAll('.tableau-pile').forEach(p => p.classList.remove('drop-target'));
+                const target = getDropTarget(e.clientX, e.clientY);
+                if (target !== null && isValidDrop(target)) {
+                    els.tableauArea.children[target].classList.add('drop-target');
+                }
+            }
+        }
+
+        function handleDragEnd(e) {
+            if (!drag.active) return;
+            
+            const wasDragging = drag.isDragging;
+            const target = wasDragging ? getDropTarget(e.clientX, e.clientY) : null;
+            const validDrop = target !== null && isValidDrop(target);
+            
+            if (wasDragging) {
+                drag.elements.forEach(el => {
+                    el.classList.remove('dragging');
+                    el.style.position = '';
+                    el.style.left = '';
+                    el.style.top = '';
+                    el.style.zIndex = '';
+                    if (el.parentElement === document.body) el.remove();
+                });
+                justDragged = true;
+                setTimeout(() => { justDragged = false; }, 50);
+            }
+            
+            document.querySelectorAll('.tableau-pile').forEach(p => p.classList.remove('drop-target'));
+            
+            if (validDrop) {
+                moveCards(drag.col, drag.idx, target);
+            } else if (wasDragging) {
+                render();
+            }
+            
+            drag = { active: false, col: null, idx: null, elements: [], startX: 0, startY: 0, offsetX: 0, offsetY: 0, isDragging: false };
+        }
+
+        function getDropTarget(x, y) {
+            for (let i = 0; i < 10; i++) {
+                const rect = els.tableauArea.children[i].getBoundingClientRect();
+                if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                    return i;
+                }
+            }
+            return null;
+        }
+
+        function isValidDrop(toCol) {
+            if (drag.col === toCol) return false;
+            const targetPile = game.tableau[toCol];
+            const targetCard = targetPile.length > 0 ? targetPile[targetPile.length - 1] : null;
+            const movingCard = game.tableau[drag.col][drag.idx];
+            return canStack(movingCard, targetCard);
+        }
+
+        // Touch handling
+        let lastTapTime = 0;
+        
+        function handleTouchStart(e) {
+            if (e.touches.length !== 1) return;
+            const t = e.touches[0];
+            handleDragStart({ clientX: t.clientX, clientY: t.clientY, target: e.target });
+            
+            if (drag.active) {
+                drag.isDragging = true;
+                const stackOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset'));
+                drag.elements.forEach((el, i) => {
+                    el.classList.add('dragging');
+                    document.body.appendChild(el);
+                    el.style.position = 'fixed';
+                    el.style.left = (t.clientX - drag.offsetX) + 'px';
+                    el.style.top = (t.clientY - drag.offsetY + i * stackOffset) + 'px';
+                    el.style.zIndex = String(5000 + i);
+                });
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (!drag.active || e.touches.length !== 1) return;
+            e.preventDefault();
+            const t = e.touches[0];
+            
+            if (drag.isDragging) {
+                const x = t.clientX - drag.offsetX;
+                const y = t.clientY - drag.offsetY;
+                const stackOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--stack-offset'));
+                
+                drag.elements.forEach((el, i) => {
+                    el.style.left = x + 'px';
+                    el.style.top = (y + i * stackOffset) + 'px';
+                });
+                
+                document.querySelectorAll('.tableau-pile').forEach(p => p.classList.remove('drop-target'));
+                const target = getDropTarget(t.clientX, t.clientY);
+                if (target !== null && isValidDrop(target)) {
+                    els.tableauArea.children[target].classList.add('drop-target');
+                }
+            }
+        }
+
+        function handleTouchEnd(e) {
+            const t = e.changedTouches[0];
+            const now = Date.now();
+            const wasDragging = drag.isDragging;
+            const hadMovement = wasDragging && (Math.abs(t.clientX - drag.startX) > 10 || Math.abs(t.clientY - drag.startY) > 10);
+            
+            if (drag.active) handleDragEnd({ clientX: t.clientX, clientY: t.clientY });
+            
+            if (!hadMovement) {
+                const el = document.elementFromPoint(t.clientX, t.clientY);
+                el?.dispatchEvent(new MouseEvent('click', { clientX: t.clientX, clientY: t.clientY, bubbles: true }));
+            }
+        }
+
+        // Persistence
+        function saveGame() {
+            localStorage.setItem('spider_game', JSON.stringify({
+                tableau: game.tableau,
+                stock: game.stock,
+                completed: game.completed,
+                numSuits: game.numSuits,
+                moves: game.moves,
+                score: game.score,
+                time: game.time,
+                cardBack: game.cardBack,
+                background: game.background
+            }));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('spider_game');
+            if (!saved) return false;
+            try {
+                const data = JSON.parse(saved);
+                Object.assign(game, data);
+                game.undoStack = [];
+                game.gameWon = false;
+                game.gameStarted = game.time > 0;
+                if (game.gameStarted) startTimer();
+                applyBackground(game.background);
+                render();
+                updateDisplay();
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function saveStats() { localStorage.setItem('spider_stats', JSON.stringify(stats)); }
+        function loadStats() { const saved = localStorage.getItem('spider_stats'); if (saved) try { Object.assign(stats, JSON.parse(saved)); } catch (e) {} }
+
+        function updateStatsDisplay() {
+            document.getElementById('statGamesPlayed').textContent = stats.gamesPlayed;
+            document.getElementById('statGamesWon').textContent = stats.gamesWon;
+            document.getElementById('statWinRate').textContent = stats.gamesPlayed > 0 ? Math.round(stats.gamesWon / stats.gamesPlayed * 100) + '%' : '0%';
+            document.getElementById('statBestScore').textContent = stats.bestScore || 0;
+            if (stats.bestTime) document.getElementById('statBestTime').textContent = Math.floor(stats.bestTime / 60) + ':' + (stats.bestTime % 60).toString().padStart(2, '0');
+            document.getElementById('statCurrentDiff').textContent = game.numSuits + ' suit' + (game.numSuits > 1 ? 's' : '');
+        }
+
+        function showToast(msg) { els.toast.textContent = msg; els.toast.classList.add('show'); setTimeout(() => els.toast.classList.remove('show'), 2500); }
+
+        function applyBackground(bg) {
+            game.background = bg;
+            const grads = {
+                spider: 'linear-gradient(145deg, #1e1b4b, #312e81, #0f0e2a)',
+                classic: 'linear-gradient(145deg, #065f46, #047857, #022c22)',
+                green: 'linear-gradient(145deg, #1e6b30, #145222, #0d3d18)',
+                blue: 'linear-gradient(145deg, #1a3d5c, #122a40, #0d2133)',
+                burgundy: 'linear-gradient(145deg, #4a1a2c, #35121f, #2a0d18)',
+                midnight: 'linear-gradient(145deg, #1a1a2e, #12121f, #0d0d17)'
+            };
+            document.body.style.background = grads[bg] || grads.spider;
+        }
+
+        function copyToClipboard(text) { navigator.clipboard.writeText(text).then(() => showToast('Copied!')).catch(() => showToast('Copy failed')); }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            
+            if (!loadGame()) {
+                // Show difficulty selection on first load
+                document.getElementById('newGameModal').classList.add('active');
+            }
+
+            const tableauArea = els.tableauArea;
+            tableauArea.addEventListener('click', handleCardClick);
+            tableauArea.addEventListener('click', handlePileClick);
+            tableauArea.addEventListener('mousedown', handleDragStart);
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('mouseup', handleDragEnd);
+            tableauArea.addEventListener('touchstart', handleTouchStart, { passive: false });
+            document.addEventListener('touchmove', handleTouchMove, { passive: false });
+            document.addEventListener('touchend', handleTouchEnd);
+
+            document.getElementById('newGameBtn').addEventListener('click', () => {
+                if (game.gameStarted && !game.gameWon) {
+                    stats.gamesPlayed++;
+                    saveStats();
+                }
+                document.getElementById('newGameModal').classList.add('active');
+            });
+
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const suits = parseInt(btn.dataset.suits);
+                    newGame(suits);
+                });
+            });
+
+            document.getElementById('cancelNewGame').addEventListener('click', () => {
+                document.getElementById('newGameModal').classList.remove('active');
+                if (game.tableau.length === 0 || game.tableau[0].length === 0) {
+                    newGame(2); // Default to 2 suits
+                }
+            });
+
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('hintBtn').addEventListener('click', showHint);
+            
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                // Update active states
+                document.querySelectorAll('#cardBackOptions .settings-option').forEach(o => {
+                    o.classList.toggle('active', o.dataset.back === game.cardBack);
+                });
+                document.querySelectorAll('#bgOptions .settings-option').forEach(o => {
+                    o.classList.toggle('active', o.dataset.bg === game.background);
+                });
+                document.getElementById('settingsModal').classList.add('active');
+            });
+            document.getElementById('closeSettingsBtn').addEventListener('click', () => document.getElementById('settingsModal').classList.remove('active'));
+            
+            document.getElementById('statsBtn').addEventListener('click', () => { updateStatsDisplay(); document.getElementById('statsModal').classList.add('active'); });
+            document.getElementById('closeStatsBtn').addEventListener('click', () => document.getElementById('statsModal').classList.remove('active'));
+            document.getElementById('resetStatsBtn').addEventListener('click', () => {
+                if (confirm('Reset all statistics?')) {
+                    Object.assign(stats, { gamesPlayed: 0, gamesWon: 0, bestScore: 0, bestTime: null });
+                    saveStats();
+                    updateStatsDisplay();
+                    showToast('Statistics reset');
+                }
+            });
+
+            document.getElementById('victoryNewGame').addEventListener('click', () => {
+                document.getElementById('victoryOverlay').classList.remove('active');
+                document.getElementById('newGameModal').classList.add('active');
+            });
+            document.getElementById('victoryLeaderboard').addEventListener('click', () => {
+                document.getElementById('victoryOverlay').classList.remove('active');
+                if (window.Leaderboard) Leaderboard.show('spider_' + game.numSuits + 'suit');
+            });
+            document.getElementById('victoryShare').addEventListener('click', () => {
+                const suits = game.numSuits === 1 ? '1 Suit' : game.numSuits === 2 ? '2 Suits' : '4 Suits';
+                copyToClipboard('🕷️ Spider Solitaire (' + suits + ')\n✅ Won!\n⏱️ ' + els.timer.textContent + '\n📊 Score: ' + game.score + '\n\npulsegames.eu/solitaire/');
+            });
+
+            // Leaderboard button
+            document.getElementById('leaderboardBtn').addEventListener('click', () => {
+                if (window.Leaderboard) Leaderboard.show('spider_' + game.numSuits + 'suit');
+            });
+
+            document.getElementById('cardBackOptions').addEventListener('click', (e) => {
+                const o = e.target.closest('.settings-option');
+                if (!o) return;
+                document.querySelectorAll('#cardBackOptions .settings-option').forEach(x => x.classList.remove('active'));
+                o.classList.add('active');
+                game.cardBack = o.dataset.back;
+                render();
+                saveGame();
+            });
+
+            document.getElementById('bgOptions').addEventListener('click', (e) => {
+                const o = e.target.closest('.settings-option');
+                if (!o) return;
+                document.querySelectorAll('#bgOptions .settings-option').forEach(x => x.classList.remove('active'));
+                o.classList.add('active');
+                applyBackground(o.dataset.bg);
+                saveGame();
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                if (e.key === 'z' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undo(); }
+                if (e.key === 'h' || e.key === 'H') showHint();
+                if (e.key === 'n' || e.key === 'N') {
+                    if (game.gameStarted && !game.gameWon) { stats.gamesPlayed++; saveStats(); }
+                    document.getElementById('newGameModal').classList.add('active');
+                }
+                if (e.key === 'Escape') {
+                    clearSelection();
+                    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+                }
+            });
+
+            document.querySelectorAll('.modal-overlay').forEach(o => {
+                o.addEventListener('click', (e) => {
+                    if (e.target === o && o.id !== 'newGameModal') o.classList.remove('active');
+                });
+            });
+
+            applyBackground(game.background);
+        });
+
+        // Test function - run in console: testWin()
+        window.testWin = function() {
+            game.score = 400 + Math.floor(Math.random() * 200);
+            game.time = 200 + Math.floor(Math.random() * 300);
+            game.moves = 150 + Math.floor(Math.random() * 100);
+            game.gameWon = true;
+            const timeBonus = Math.max(0, 300 - game.time);
+            game.score += timeBonus;
+            showVictory(timeBonus);
+        };
+    })();
+    </script>
+    <script src="leaderboard.js"></script>
+
+  <nav aria-label="Breadcrumb" style="max-width:800px;margin:2rem auto 0;padding:0 2rem;font-family:sans-serif;font-size:0.85rem;">
+    <a href="/" style="color:#a0a4c0;text-decoration:none;">Home</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <a href="/solitaire/" style="color:#a0a4c0;text-decoration:none;">Solitaire</a>
+    <span style="color:#626580;margin:0 0.4rem;">›</span>
+    <span style="color:#f0f0ff;">Spider</span>
+  </nav>
+
+  <section class="game-info" style="max-width:700px;margin:3rem auto 0;padding:2rem;color:rgba(255,255,255,0.6);font-size:0.95rem;line-height:1.7;">
+    <h1 style="color:rgba(255,255,255,0.85);font-size:1.6rem;margin-bottom:0.5rem;font-family:'Playfair Display',serif;">Play Spider Solitaire Online – Free Card Game</h1>
+    <p>
+      Spider Solitaire challenges you to build complete sequences of cards from King to Ace
+      in the same suit. Once a full sequence is completed, it's removed from the tableau.
+      Clear all cards to win. Choose from one, two, or four suits to match your skill level.
+    </p>
+
+    <h2 style="color:rgba(255,255,255,0.8);font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Playfair Display',serif;">How to Play Spider Solitaire</h2>
+    <p>
+      Arrange cards on the tableau in descending order. You can move any descending sequence
+      of the same suit as a group. When you run out of moves, deal a new row of cards from
+      the stock. Complete all eight same-suit sequences from King down to Ace to win.
+    </p>
+
+    <h2 style="color:rgba(255,255,255,0.8);font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Playfair Display',serif;">Difficulty Levels</h2>
+    <p>
+      <strong>One Suit</strong> – Great for beginners. All cards are the same suit, making it
+      easier to build sequences. <strong>Two Suits</strong> – A balanced challenge that
+      requires more careful planning. <strong>Four Suits</strong> – The ultimate test of Spider
+      Solitaire skill, using all four suits.
+    </p>
+
+    <h2 style="color:rgba(255,255,255,0.8);font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Playfair Display',serif;">Free, No Download Required</h2>
+    <p>
+      Play Spider Solitaire instantly in your browser – no app, no signup, no ads.
+      PulseGames runs on desktop, tablet, and mobile with full touch support.
+    </p>
+  </section>
+
+  <section style="max-width:800px;margin:3rem auto 0;padding:0 2rem;">
+    <h2 style="color:#e0e0e0;font-size:1.3rem;margin-bottom:1.2rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">You Might Also Like</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      <a href="/connect4/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/connect4-thumbnail.webp" alt="Connect 4" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Connect 4</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Board</div>
+        </div>
+      </a>
+      <a href="/pulseblocks/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/pulseblocks.webp" alt="PulseBlocks" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">PulseBlocks</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Puzzle</div>
+        </div>
+      </a>
+      <a href="/snake/" style="text-decoration:none;background:rgba(255,255,255,0.04);border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);">
+        <img src="/assets/thumbnails/snake.webp" alt="Snake Neo" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;">
+        <div style="padding:12px;">
+          <div style="color:#f0f0ff;font-size:0.95rem;font-weight:600;font-family:sans-serif;">Snake Neo</div>
+          <div style="color:#888;font-size:0.8rem;margin-top:4px;font-family:sans-serif;">Arcade</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer style="background:#0a0e1a;border-top:1px solid rgba(255,255,255,0.06);padding:48px 24px 24px;margin-top:3rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:1200px;margin:0 auto;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:32px;padding-bottom:32px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="max-width:300px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;"><svg width="20" height="14" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <span style="font-size:1.5rem;font-weight:700;color:#fff;">PulseGames</span>
+          </div>
+          <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+        </div>
+        <div style="display:flex;gap:48px;flex-wrap:wrap;">
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Games</h4>
+            <a href="/snake/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Snake Neo</a>
+            <a href="/breakout/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Breakout</a>
+            <a href="/taprush/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Tap Rush</a>
+            <a href="/solitaire/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Solitaire</a>
+            <a href="/pulseblocks/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">PulseBlocks</a>
+            <a href="/connect4/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Connect 4</a>
+            <a href="/axeluga/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Axeluga</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Categories</h4>
+            <a href="/arcade-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Arcade</a>
+            <a href="/action-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Action</a>
+            <a href="/puzzle-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Puzzle</a>
+            <a href="/board-games/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Board Games</a>
+          </div>
+          <div>
+            <h4 style="font-size:1rem;font-weight:700;margin:0 0 16px;color:#f0f0ff;">Info</h4>
+            <a href="/about/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">About</a>
+            <a href="/contact/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Contact</a>
+            <a href="/privacy/" style="display:block;color:#888;text-decoration:none;padding:4px 0;font-size:0.9rem;">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top:24px;text-align:center;color:#888;font-size:0.85rem;">
+        <p style="margin:0;">&copy; 2026 PulseGames. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Meta Tags -->
+    <title>Privacy Policy - PulseGames</title>
+    <meta name="description" content="Privacy Policy for PulseGames. Learn how we collect, use, and protect your information when you play our free online games.">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pulsegames.eu/privacy/">
+    <meta property="og:title" content="Privacy Policy - PulseGames">
+    <meta property="og:description" content="Learn how we collect, use, and protect your information.">
+    <meta property="og:image" content="https://pulsegames.eu/assets/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Privacy Policy - PulseGames">
+    <meta name="twitter:description" content="Learn how we collect, use, and protect your information.">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://pulsegames.eu/privacy/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #7c5cfc;
+            --primary-light: #a78bfa;
+            --primary-dark: #6341e0;
+            --secondary: #f472b6;
+            --accent: #06d6a0;
+            --accent-blue: #38bdf8;
+
+            --bg-body: #0f1221;
+            --bg-surface: #181c30;
+            --bg-card: rgba(25, 30, 55, 0.7);
+            --bg-card-hover: rgba(35, 42, 75, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.04);
+            --bg-gradient: linear-gradient(135deg, #7c5cfc 0%, #38bdf8 50%, #06d6a0 100%);
+
+            --text-bright: #f0f0ff;
+            --text-medium: #a0a4c0;
+            --text-muted: #626580;
+
+            --border-subtle: rgba(124, 92, 252, 0.15);
+            --border-glow: rgba(124, 92, 252, 0.3);
+
+            --glow-primary: 0 0 20px rgba(124, 92, 252, 0.3);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-bright);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 92, 252, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 50%, rgba(56, 189, 248, 0.07), transparent),
+                radial-gradient(ellipse 60% 40% at 20% 80%, rgba(6, 214, 160, 0.05), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            background: rgba(15, 18, 33, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--glow-primary);
+        }
+
+        .logo-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: var(--bg-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-link {
+            padding: 8px 16px;
+            color: var(--text-medium);
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-glass);
+            color: var(--primary-light);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 55px 24px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            background: transparent;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg at 50% 50%,
+                transparent 0deg,
+                rgba(124, 92, 252, 0.05) 60deg,
+                transparent 120deg,
+                rgba(56, 189, 248, 0.04) 180deg,
+                transparent 240deg,
+                rgba(6, 214, 160, 0.03) 300deg,
+                transparent 360deg);
+            animation: heroRotate 30s linear infinite;
+        }
+
+        @keyframes heroRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse 50% 80% at 50% 20%, rgba(124, 92, 252, 0.2), transparent);
+        }
+
+        .hero-content {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, #c4b5fd 50%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1rem;
+            color: var(--text-medium);
+        }
+
+        .hero-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        .content-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .content-section h2 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            margin-bottom: 12px;
+        }
+
+        .content-section p {
+            color: var(--text-medium);
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .content-section p:last-child {
+            margin-bottom: 0;
+        }
+
+        .content-section ul {
+            color: var(--text-medium);
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .content-section li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .content-section li strong {
+            color: var(--text-bright);
+        }
+
+        .content-section a {
+            color: var(--primary-light);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .content-section a:hover {
+            text-decoration: underline;
+        }
+
+        .highlight-box {
+            background: rgba(124, 92, 252, 0.08);
+            border-left: 4px solid var(--primary);
+            padding: 16px 20px;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-top: 16px;
+        }
+
+        .highlight-box p {
+            margin: 0;
+            color: var(--text-medium);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-subtle);
+            color: white;
+            padding: 48px 24px 24px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 32px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .footer-brand {
+            max-width: 300px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .footer-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--bg-gradient);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--glow-primary);
+        }
+
+        .footer-logo-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .footer-tagline {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 48px;
+        }
+
+        .footer-column h4 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-bright);
+        }
+
+        .footer-column a {
+            display: block;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 4px 0;
+            transition: color 0.2s;
+        }
+
+        .footer-column a:hover {
+            color: var(--primary-light);
+        }
+
+        .footer-bottom {
+            padding-top: 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 12px 16px;
+            }
+
+            .logo-text {
+                font-size: 1.4rem;
+            }
+
+            .nav-link {
+                padding: 6px 12px;
+                font-size: 0.9rem;
+            }
+
+            .hero {
+                padding: 40px 20px;
+            }
+
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+
+            main {
+                padding: 24px 16px;
+            }
+
+            .content-section {
+                padding: 20px;
+            }
+
+            .footer-top {
+                flex-direction: column;
+            }
+
+            .footer-links {
+                gap: 32px;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-section {
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .content-section:nth-child(1) { animation-delay: 0.05s; }
+        .content-section:nth-child(2) { animation-delay: 0.1s; }
+        .content-section:nth-child(3) { animation-delay: 0.15s; }
+        .content-section:nth-child(4) { animation-delay: 0.2s; }
+        .content-section:nth-child(5) { animation-delay: 0.25s; }
+        .content-section:nth-child(6) { animation-delay: 0.3s; }
+        .content-section:nth-child(7) { animation-delay: 0.35s; }
+        .content-section:nth-child(8) { animation-delay: 0.4s; }
+        .content-section:nth-child(9) { animation-delay: 0.45s; }
+        .content-section:nth-child(10) { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="/" class="logo">
+                <div class="logo-icon"><svg width="26" height="18" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <span class="logo-text">PulseGames</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/#games" class="nav-link">Games</a>
+                <a href="/about/" class="nav-link">About</a>
+                <a href="/contact/" class="nav-link">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Privacy Policy</h1>
+            <p>Last updated: January 2026</p>
+        </div>
+    </section>
+
+    <main>
+        <div class="content-section">
+            <h2>Introduction</h2>
+            <p>Welcome to PulseGames ("we," "our," or "us"). We respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, and safeguard your information when you visit our website at pulsegames.eu and play our free online games.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Information We Collect</h2>
+            <p>We collect minimal information to provide and improve our services:</p>
+            <ul>
+                <li><strong>Usage Data:</strong> We automatically collect certain information when you visit our website, including your IP address, browser type, operating system, pages visited, time spent on pages, and referring website.</li>
+                <li><strong>Game Data:</strong> High scores and game progress may be stored locally on your device using browser storage (localStorage). This data never leaves your device unless you choose to share it via leaderboards.</li>
+                <li><strong>Leaderboard Data:</strong> If you submit scores to our global leaderboards, we store your randomly generated player name and score on Firebase.</li>
+                <li><strong>Cookies:</strong> We use cookies and similar tracking technologies to enhance your experience. See the "Cookies" section below for more details.</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>How We Use Your Information</h2>
+            <p>We use the collected information for the following purposes:</p>
+            <ul>
+                <li>To provide and maintain our website and games</li>
+                <li>To analyze usage patterns and improve user experience</li>
+                <li>To detect and prevent technical issues</li>
+                <li>To display relevant advertisements through Google AdSense</li>
+                <li>To operate global leaderboards</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Cookies and Tracking</h2>
+            <p>We use cookies and similar technologies for the following purposes:</p>
+            <ul>
+                <li><strong>Essential Cookies:</strong> Required for the website to function properly</li>
+                <li><strong>Analytics Cookies:</strong> Help us understand how visitors interact with our website (Google Analytics)</li>
+                <li><strong>Advertising Cookies:</strong> Used by Google AdSense to display personalized ads</li>
+            </ul>
+            <div class="highlight-box">
+                <p>You can control cookies through your browser settings. However, disabling certain cookies may affect website functionality.</p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Third-Party Services</h2>
+            <p>We use the following third-party services:</p>
+            <ul>
+                <li><strong>Google AdSense:</strong> Displays advertisements on our website. Google may use cookies to serve ads based on your prior visits. You can opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener">Google Ads Settings</a>.</li>
+                <li><strong>Google Analytics:</strong> Helps us understand website traffic and usage patterns.</li>
+                <li><strong>Firebase:</strong> Powers our global leaderboards for some games.</li>
+            </ul>
+            <p>These services have their own privacy policies governing the use of your information.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Data Security</h2>
+            <p>We implement appropriate technical and organizational measures to protect your personal data against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Children's Privacy</h2>
+            <p>Our website and games are suitable for all ages. We do not knowingly collect personal information from children under 13 (or applicable age in your jurisdiction) without parental consent. If you believe we have collected such information, please contact us immediately.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Your Rights</h2>
+            <p>Depending on your location, you may have the following rights regarding your personal data:</p>
+            <ul>
+                <li>Access and receive a copy of your data</li>
+                <li>Rectify inaccurate information</li>
+                <li>Request deletion of your data</li>
+                <li>Object to or restrict processing</li>
+                <li>Data portability</li>
+            </ul>
+            <p>To exercise these rights, please contact us using the information below.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Changes to This Policy</h2>
+            <p>We may update this privacy policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date. We encourage you to review this policy periodically.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Contact Us</h2>
+            <p>If you have any questions about this Privacy Policy or our data practices, please contact us:</p>
+            <div class="highlight-box">
+                <p>Email: <a href="mailto:contact@pulsegames.eu">contact@pulsegames.eu</a></p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <div class="footer-logo-icon"><svg width="20" height="14" viewBox="0 0 32 24" fill="none"><polyline points="0,12 8,12 11,17 15,3 19,21 22,12 32,12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                        <span class="footer-logo-text">PulseGames</span>
+                    </div>
+                    <p class="footer-tagline">Free browser games for everyone. Made with love in Sweden.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Games</h4>
+                        <a href="/snake/">Snake Neo</a>
+                        <a href="/breakout/">Breakout</a>
+                        <a href="/taprush/">Tap Rush</a>
+                        <a href="/solitaire/">Solitaire</a>
+                        <a href="/pulseblocks/">PulseBlocks</a>
+                        <a href="/connect4/">Connect 4</a>
+                        <a href="/axeluga/">Axeluga</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Info</h4>
+                        <a href="/about/">About</a>
+                        <a href="/contact/">Contact</a>
+                        <a href="/privacy/">Privacy Policy</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 PulseGames. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

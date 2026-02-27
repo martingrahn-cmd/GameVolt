@@ -1,0 +1,1 @@
+export class Grid{constructor(w,h){this.w=w;this.h=h;} inBounds(x,y){return x>=0&&y>=0&&x<this.w&&y<this.h;}}
