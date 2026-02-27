@@ -446,6 +446,18 @@
             .tableau-area { gap: 5px; }
             .cards-remaining { top: 70px; right: 10px; padding: 8px 12px; }
             .cards-remaining .count { font-size: 1.5rem; }
+            .game-container { padding: 10px 5px; }
+        }
+
+        @media (max-width: 380px) {
+            :root {
+                --card-width: 40px;
+                --card-height: 56px;
+                --card-radius: 2px;
+                --card-overlap: 14px;
+            }
+            .tableau-area { gap: 3px; }
+            .game-container { padding: 6px 3px; }
         }
     </style>
 </head>

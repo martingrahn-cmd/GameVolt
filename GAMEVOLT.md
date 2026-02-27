@@ -500,6 +500,7 @@ HoverDash (and future games) target multiple platforms from one codebase:
 - [ ] Drop GameVolt.one domain?
 - [ ] Confirm exact game list currently live on PulseGames.eu
 - [ ] Define achievements per game (do this when integrating each game)
+- [ ] Hover-preview on game cards: show short gameplay video/GIF when hovering over a game thumbnail on the portal
 
 ---
 

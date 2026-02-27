@@ -502,6 +502,23 @@
             transform: scale(1.08);
         }
 
+        .preview-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .game-card:hover .preview-video.playing {
+            opacity: 1;
+        }
+
         .game-badge {
             position: absolute;
             top: 12px;
@@ -922,9 +939,10 @@
         
         <div class="games-grid">
             <!-- HoverDash -->
-            <a href="/hoverdash/" class="game-card">
+            <a href="/hoverdash/" class="game-card" data-preview="/hoverdash/preview.mp4">
                 <div class="game-thumbnail">
                     <img src="/hoverdash/og-image.png" alt="HoverDash Lane Runner" fetchpriority="high">
+                    <video class="preview-video" muted loop playsinline preload="none"></video>
                     <span class="game-badge new">NEW</span>
                 </div>
                 <div class="game-info">
@@ -1129,5 +1147,25 @@
             </div>
         </div>
     </footer>
+
+    <script>
+    // Hover video preview on game cards
+    document.querySelectorAll('.game-card[data-preview]').forEach(card => {
+        const video = card.querySelector('.preview-video');
+        const src = card.dataset.preview;
+        if (!video || !src) return;
+
+        card.addEventListener('mouseenter', () => {
+            if (!video.src) video.src = src;
+            video.play().then(() => video.classList.add('playing')).catch(() => {});
+        });
+
+        card.addEventListener('mouseleave', () => {
+            video.classList.remove('playing');
+            video.pause();
+            video.currentTime = 0;
+        });
+    });
+    </script>
 </body>
 </html>

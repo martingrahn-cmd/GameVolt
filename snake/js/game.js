@@ -135,6 +135,9 @@ export class Game {
 
         // Keyboard shortcuts for background/music
         window.addEventListener("keydown", e => {
+            // Ignore shortcuts when typing in an input field (e.g. highscore name entry)
+            if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
             // B = Toggle background mode (lite/full)
             if (e.key === "b" || e.key === "B") {
                 if (this.renderer && this.renderer.background) {
@@ -149,23 +152,15 @@ export class Game {
                     console.log(`🎨 Effect: ${this.renderer.background.getEffectName()}`);
                 }
             }
-            
+
             // O = Options menu (only when playing or paused)
             if ((e.key === "o" || e.key === "O") && (this.state === "playing" || this.state === "paused")) {
                 this._showOptions();
             }
-            
+
             // H = Highscores (when playing, paused, or game over)
             if ((e.key === "h" || e.key === "H") && this.state !== "options") {
                 this._showHighscores();
-            }
-            
-            // DEV: Number keys 1-9, 0 = jump to level 1-10
-            if (e.key >= "1" && e.key <= "9") {
-                this._jumpToLevel(parseInt(e.key));
-            }
-            if (e.key === "0") {
-                this._jumpToLevel(10);
             }
         });
 
@@ -460,54 +455,6 @@ export class Game {
     }
 
     // ------------------------------------------------------------
-    // DEV: JUMP TO LEVEL
-    // ------------------------------------------------------------
-    async _jumpToLevel(levelNum) {
-        console.log(`🎮 DEV: Jumping to level ${levelNum}`);
-        
-        this.currentLevelIndex = levelNum;
-        this.foodEatenThisLevel = 0;
-        this.scoring.setLevel(levelNum);
-        
-        // Load the level
-        const levelName = `level${levelNum.toString().padStart(2, '0')}`;
-        const level = await loadLevel(levelName);
-        
-        if (level && level.name !== "Fallback") {
-            this.level = level;
-            this.grid = new Grid(this.level.gridWidth, this.level.gridHeight);
-            this.renderer.grid = this.grid;
-            this.renderer.size = this.grid.w;
-            if (this.renderer.resize) this.renderer.resize();
-            
-            // Setup food
-            this.food = new Food(this.grid);
-            this.food.setWalls(this.level.walls || []);
-            if (this.hud && this.hud.setupForbiddenZone) {
-                this.hud.setupForbiddenZone(this.food);
-            }
-        }
-        
-        // Base speed for this level
-        const baseSpeed = Math.max(0.06, 0.13 - levelNum * 0.007);
-        
-        // Reset snake
-        const [sx, sy] = this.level.start;
-        this.snake = this.createSnake(sx, sy, this.level.startDir);
-        this.snake.stepTime = baseSpeed;
-        this._hookSnakeSound();
-        
-        // Respawn food
-        this.food.respawn(this.snake);
-        
-        // Resume if paused/game over
-        this.state = "playing";
-        this.last = performance.now();
-        
-        console.log(`🎮 Level ${levelNum}: "${this.level.name}" - Speed: ${baseSpeed.toFixed(3)}s`);
-    }
-
-    // ------------------------------------------------------------
     // OPTIONS
     // ------------------------------------------------------------
     _showOptions() {
@@ -616,8 +563,8 @@ export class Game {
             this.hud.setPauseButtonVisible(false);
         }
         
-        // Check for highscore
-        if (this.highscoreManager.isHighscore(stats.score)) {
+        // Check for highscore (skip if score is 0)
+        if (stats.score > 0 && this.highscoreManager.isHighscore(stats.score)) {
             // Play new highscore sound
             if (window.audioNeoSFX) window.audioNeoSFX.newHighscore();
             

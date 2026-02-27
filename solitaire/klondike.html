@@ -96,7 +96,8 @@
             background: var(--bg-gradient);
             min-height: 100vh;
             color: var(--text-primary);
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             overscroll-behavior: none;
         }
 
@@ -771,6 +772,52 @@
             border-radius: var(--card-radius);
         }
 
+        /* ===== MOBILE RESPONSIVE ===== */
+
+        @media (max-width: 850px) {
+            :root {
+                --card-width: 70px;
+                --card-height: 98px;
+            }
+            .game-container { padding: 15px; }
+            .top-row { margin-bottom: 25px; }
+            .stock-waste, .foundations, .tableau { gap: 8px; }
+            .game-stats { gap: 15px; }
+        }
+
+        @media (max-width: 620px) {
+            :root {
+                --card-width: 46px;
+                --card-height: 64px;
+                --card-radius: 4px;
+            }
+            .game-header { padding: 8px 12px; }
+            .logo { font-size: 1.1rem; }
+            .logo span { display: none; }
+            .stat-value { font-size: 0.95rem; }
+            .stat-label { font-size: 0.6rem; letter-spacing: 0.5px; }
+            .game-stats { gap: 10px; }
+            .btn { padding: 6px 10px; font-size: 0.75rem; }
+            .btn svg { display: none; }
+            .btn-icon { padding: 6px; }
+            .btn-icon svg { width: 16px; height: 16px; }
+            .game-container { padding: 8px; }
+            .top-row { margin-bottom: 15px; }
+            .stock-waste, .foundations, .tableau { gap: 4px; }
+            .card-front { font-size: 0.7rem; }
+        }
+
+        @media (max-width: 380px) {
+            :root {
+                --card-width: 40px;
+                --card-height: 56px;
+                --card-radius: 3px;
+            }
+            .game-container { padding: 4px; }
+            .stock-waste, .foundations, .tableau { gap: 3px; }
+            .top-row { margin-bottom: 10px; }
+        }
+
         /* AD CONTAINER - Uncomment when ready */
         /*
         .ad-container {
@@ -1040,6 +1087,21 @@
 
         function isRed(suit) { return suit === '♥' || suit === '♦'; }
 
+        function getStackOffset(faceUp) {
+            const w = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-width'));
+            if (w <= 42) return faceUp ? 16 : 6;
+            if (w <= 55) return faceUp ? 20 : 9;
+            if (w <= 75) return faceUp ? 24 : 12;
+            return faceUp ? 28 : 14;
+        }
+        function getDragOffset() {
+            const w = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-width'));
+            if (w <= 42) return 16;
+            if (w <= 55) return 20;
+            if (w <= 75) return 24;
+            return 28;
+        }
+
         function canStackOnTableau(card, target) {
             if (!card) return false;
             if (!target) return card.rank === 'K';
@@ -1157,7 +1219,7 @@
                     el.style.left = '0';
                     el.style.zIndex = String(10 + i);
                     els.tableau[pi].appendChild(el);
-                    yOffset += card.faceUp ? 28 : 14;
+                    yOffset += getStackOffset(card.faceUp);
                 });
             });
 
@@ -2114,13 +2176,14 @@
                 const x = e.clientX - drag.offsetX;
                 const y = e.clientY - drag.offsetY;
                 
+                const dOff = getDragOffset();
                 drag.elements.forEach((el, i) => {
                     el.style.position = 'fixed';
                     el.style.left = x + 'px';
-                    el.style.top = (y + i * 28) + 'px';
+                    el.style.top = (y + i * dOff) + 'px';
                     el.style.zIndex = String(5000 + i);
                 });
-                
+
                 // Highlight valid drop targets
                 document.querySelectorAll('.pile').forEach(p => p.classList.remove('drop-target'));
                 const target = getDropTarget(e.clientX, e.clientY);
@@ -2230,10 +2293,11 @@
                 // Position cards at touch point
                 const x = touch.clientX - drag.offsetX;
                 const y = touch.clientY - drag.offsetY;
+                const tOff = getDragOffset();
                 drag.elements.forEach((el, i) => {
                     el.style.position = 'fixed';
                     el.style.left = x + 'px';
-                    el.style.top = (y + i * 28) + 'px';
+                    el.style.top = (y + i * tOff) + 'px';
                     el.style.zIndex = String(5000 + i);
                 });
             }
@@ -2251,12 +2315,12 @@
             if (drag.isDragging) {
                 const x = touch.clientX - drag.offsetX;
                 const y = touch.clientY - drag.offsetY;
-                
+                const mOff = getDragOffset();
                 drag.elements.forEach((el, i) => {
                     el.style.left = x + 'px';
-                    el.style.top = (y + i * 28) + 'px';
+                    el.style.top = (y + i * mOff) + 'px';
                 });
-                
+
                 // Highlight valid drop targets
                 document.querySelectorAll('.pile').forEach(p => p.classList.remove('drop-target'));
                 const target = getDropTarget(touch.clientX, touch.clientY);

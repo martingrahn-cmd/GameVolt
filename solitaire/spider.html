@@ -497,6 +497,18 @@
             .stock-area, .completed-area { gap: 2px; }
             .tableau-pile { min-height: 250px; }
         }
+
+        @media (max-width: 420px) {
+            :root {
+                --card-width: 32px;
+                --card-height: 45px;
+                --card-radius: 2px;
+                --stack-offset: 14px;
+                --stack-offset-hidden: 4px;
+            }
+            .tableau-area { gap: 2px; }
+            .game-container { padding: 6px 2px; }
+        }
     </style>
 </head>
 <body>

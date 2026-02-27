@@ -89,7 +89,8 @@
             background: var(--bg-gradient);
             min-height: 100vh;
             color: var(--text-primary);
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             overscroll-behavior: none;
         }
 
@@ -287,6 +288,14 @@
             .tableau-row { gap: 4px; }
             .top-row { gap: 10px; }
             .game-container { padding: 10px 5px; }
+        }
+
+        @media (max-width: 380px) {
+            :root { --card-width: 36px; --card-height: 50px; --card-radius: 3px; }
+            .cells-area, .foundations-area { gap: 2px; }
+            .tableau-row { gap: 2px; }
+            .top-row { gap: 6px; }
+            .game-container { padding: 6px 3px; }
         }
     </style>
 </head>
@@ -549,6 +558,13 @@
             document.getElementById('score').textContent = game.score;
         }
 
+        function getCardStackOffset() {
+            const w = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--card-width'));
+            if (w <= 38) return 15;
+            if (w <= 45) return 18;
+            return 25;
+        }
+
         function render() {
             for (let i = 0; i < 4; i++) {
                 els.cells[i].innerHTML = '<div class="pile-placeholder"></div>';
@@ -572,7 +588,7 @@
                 els.tableau[i].innerHTML = '<div class="pile-placeholder"></div>';
                 game.tableau[i].forEach((card, j) => {
                     const cardEl = createCardElement(card, 'tableau', i, j);
-                    cardEl.style.top = (j * 25) + 'px'; cardEl.style.zIndex = j + 10;
+                    cardEl.style.top = (j * getCardStackOffset()) + 'px'; cardEl.style.zIndex = j + 10;
                     els.tableau[i].appendChild(cardEl);
                 });
             }
@@ -986,7 +1002,7 @@
             }
             if (drag.isDragging) {
                 const x = e.clientX - drag.offsetX, y = e.clientY - drag.offsetY;
-                drag.elements.forEach((el, i) => { el.style.position = 'fixed'; el.style.left = x + 'px'; el.style.top = (y + i * 25) + 'px'; el.style.zIndex = String(5000 + i); });
+                drag.elements.forEach((el, i) => { el.style.position = 'fixed'; el.style.left = x + 'px'; el.style.top = (y + i * getCardStackOffset()) + 'px'; el.style.zIndex = String(5000 + i); });
                 document.querySelectorAll('.pile').forEach(p => p.classList.remove('drop-target'));
                 const target = getDropTarget(e.clientX, e.clientY);
                 if (target && isValidDropForDrag(target)) target.element.classList.add('drop-target');
@@ -1051,7 +1067,7 @@
                 drag.isDragging = true;
                 drag.elements.forEach(el => { el.classList.add('dragging'); document.body.appendChild(el); });
                 const x = t.clientX - drag.offsetX, y = t.clientY - drag.offsetY;
-                drag.elements.forEach((el, i) => { el.style.position = 'fixed'; el.style.left = x + 'px'; el.style.top = (y + i * 25) + 'px'; el.style.zIndex = String(5000 + i); });
+                drag.elements.forEach((el, i) => { el.style.position = 'fixed'; el.style.left = x + 'px'; el.style.top = (y + i * getCardStackOffset()) + 'px'; el.style.zIndex = String(5000 + i); });
             }
         }
         function handleTouchMove(e) {
@@ -1060,7 +1076,7 @@
             const t = e.touches[0];
             if (drag.isDragging) {
                 const x = t.clientX - drag.offsetX, y = t.clientY - drag.offsetY;
-                drag.elements.forEach((el, i) => { el.style.left = x + 'px'; el.style.top = (y + i * 25) + 'px'; });
+                drag.elements.forEach((el, i) => { el.style.left = x + 'px'; el.style.top = (y + i * getCardStackOffset()) + 'px'; });
                 document.querySelectorAll('.pile').forEach(p => p.classList.remove('drop-target'));
                 const target = getDropTarget(t.clientX, t.clientY);
                 if (target && isValidDropForDrag(target)) target.element.classList.add('drop-target');

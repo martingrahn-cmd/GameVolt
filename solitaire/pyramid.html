@@ -449,6 +449,20 @@
             .stock-waste-area { gap: 8px; }
             .match-value { font-size: 1.1rem; padding: 10px 20px; }
             .match-value .sum { font-size: 1.5rem; }
+            .pyramid-row { margin-top: -14px; }
+            .pyramid-row:first-child { margin-top: 0; }
+            .game-container { padding: 10px 5px; }
+        }
+
+        @media (max-width: 380px) {
+            :root {
+                --card-width: 38px;
+                --card-height: 53px;
+                --card-radius: 2px;
+            }
+            .pyramid-row { gap: 2px; margin-top: -10px; }
+            .pyramid-row:first-child { margin-top: 0; }
+            .game-container { padding: 6px 3px; }
         }
     </style>
 </head>
