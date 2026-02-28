@@ -185,51 +185,62 @@ When a guest creates an account, `save.migrate()` copies localStorage data to th
 
 Each game defines its own achievements. There are also global GameVolt achievements.
 
+### Standard tier structure (per game)
+
+Every game follows the same tier system with **31 achievements**:
+
+| Tier | Count | Color | Difficulty | Examples |
+|------|-------|-------|------------|----------|
+| Bronze | 15 | 🥉 | Natural gameplay, beginner goals | "Play your first game", "Score 1,000 points" |
+| Silver | 10 | 🥈 | Requires skill/dedication | "Clear 50 levels", "Win 10 games in a row" |
+| Gold | 5 | 🥇 | Hard, hardcore players only | "Perfect score on a level", "Beat the game on hard" |
+| Platinum | 1 | 💎 | Unlock all 30 other achievements | Always: "{Game} Master" |
+
+**Design guidelines:**
+- Bronze should unlock through normal play — players get a few per session
+- Silver requires intentional effort — most players earn some over time
+- Gold is aspirational — only dedicated players get these
+- Platinum is the completionist reward — automatically unlocks when all others are done
+- Achievement IDs follow: `{game-slug}-{achievement-id}` (e.g. `breakout-first-clear`)
+
 ### Defining achievements for a game
 
-When adding achievements to a game, define them in the game's section of the database. Example for HoverDash:
+When adding achievements to a game, define them in the game's section of the database:
 
 ```javascript
 // These are registered in Supabase, not in game code
 // Game code only calls: GameVolt.achievements.unlock('achievement-id')
 
-// HoverDash achievements:
-// hoverdash-first-run       "First Run"        Survive 1,000m
-// hoverdash-dodge-master    "Dodge Master"     Avoid 50 obstacles in one run
-// hoverdash-wave-5          "Getting Warmed Up" Reach wave 5
-// hoverdash-wave-10         "Wave Surfer"      Reach wave 10
-// hoverdash-score-10k       "Speed Demon"      Score 10,000 points
-// hoverdash-score-50k       "Neon Legend"       Score 50,000 points
-// hoverdash-no-hit          "Untouchable"      Complete a wave without getting hit
+// Achievement definition format:
+// {game}-{id}    "Name"    Description    tier: bronze|silver|gold|platinum
 ```
 
 ### In-game achievement toast
 
-Each game keeps its own visual toast notification. The existing toast system (like in Connect 4 and HoverDash) stays — the SDK just handles persistence.
+Each game keeps its own visual toast notification. The existing toast system (like in Connect 4 and HoverDash) stays — the SDK just handles persistence. The toast should show the tier color/icon to make bronze/silver/gold feel different.
 
 ### Profile display structure
 
 ```
-🏆 Player Profile — 12/47 achievements (26%)
+🏆 Player Profile — 42/248 achievements (17%)
 │
-├── 🏎️ HoverDash — 4/7
-│   ├── ✅ First Run
-│   ├── ✅ Dodge Master
-│   ├── ✅ Wave Surfer
-│   ├── ✅ Speed Demon
-│   ├── 🔒 Neon Legend
-│   ├── 🔒 Untouchable
-│   └── 🔒 ...
+├── 🏎️ HoverDash — 18/31
+│   ├── 💎 Platinum: 0/1
+│   ├── 🥇 Gold: 2/5
+│   ├── 🥈 Silver: 6/10
+│   └── 🥉 Bronze: 10/15
 │
-├── 🐍 Snake — 3/8
+├── 🧱 Breakout — 12/31
+│   ├── 💎 Platinum: 0/1
+│   ├── 🥇 Gold: 0/5
+│   ├── 🥈 Silver: 3/10
+│   └── 🥉 Bronze: 9/15
+│
+├── 🌐 GameVolt Global — 5/31
 │   └── ...
 │
-├── 🌐 GameVolt Global — 3/7
-│   ├── ✅ Welcome (Create an account)
-│   ├── ✅ Explorer (Play 5 different games)
-│   └── ...
-│
-└── 📊 Total: 12/47 (26%)
+└── 📊 Total: 42/248 (17%)
+    🥉 34 Bronze  🥈 6 Silver  🥇 2 Gold  💎 0 Platinum
 ```
 
 ---
