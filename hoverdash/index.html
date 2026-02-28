@@ -439,6 +439,11 @@ function loadHDData(){
 function saveHDData(){try{localStorage.setItem(HD_KEY,JSON.stringify(hdData));}catch(e){}}
 let hdData=loadHDData();
 
+// PostMessage bridge – only active inside an iframe (GameVolt portal)
+function gvPost(action,payload){
+  if(window.parent!==window){try{window.parent.postMessage({type:'gamevolt',action:action,gameId:'hoverdash',payload:payload||{}},'*');}catch(e){}}
+}
+
 // ═══════════════════════════════════════════════════
 // DAILY CHALLENGE
 // ═══════════════════════════════════════════════════
@@ -2157,7 +2162,9 @@ function playAchSFX(){
 function tryUnlock(ach){
   if(hdData.unlocked[ach.id]) return false;
   hdData.unlocked[ach.id]=Date.now();saveHDData();
-  showAchToast(ach);playAchSFX();return true;
+  showAchToast(ach);playAchSFX();
+  gvPost('achievement',{id:ach.id,name:ach.name});
+  return true;
 }
 
 function checkInstantAch(){
@@ -2195,6 +2202,8 @@ function die(){
   checkEndgameAch();
   bestScore=hdData.bestScore;
   const isNewBest=finalScore>=bestScore;
+  gvPost('game_over',{score:finalScore,mode:'default',stats:{meters:m,coins:coinScore}});
+  if(isNewBest) gvPost('high_score',{score:finalScore,mode:'default'});
   setTimeout(()=>{playGameOverSFX();if(isNewBest)setTimeout(playHighScoreSFX,500);},400);
   document.getElementById('overlay').classList.remove('hidden');
   switchTab('play');
@@ -2232,6 +2241,7 @@ function start(){
   gs='countdown';gameT0=elapsed;countdownT=0;curZone=0;zoneTimer=0;zoneLerp.active=false;forceZone(0);
   // Wave 0 practice only on first play; restart skips straight to 3-2-1
   if(firstPlay){countdownN=4;firstPlay=false;} else {countdownN=3;}
+  gvPost('game_start',{mode:'default'});
   // Auto-start embedded music on first play (triggered by user gesture = START click)
   if(musicEnabled&&!musicPlaying){musicPlaying=true;startEmbeddedMusic();}
   // Reset HUD immediately so old score doesn't show during countdown
@@ -3619,9 +3629,12 @@ if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js');
 </footer>
 </div>
 <script>
-// Show SEO content when game is not in fullscreen/active play
-document.getElementById('seo-content').style.display = 'block';
-document.body.style.overflow = 'auto';
+// Show SEO content only when loaded standalone (not in iframe)
+if (window.parent === window) {
+  document.getElementById('seo-content').style.display = 'block';
+  document.body.style.overflowY = 'auto';
+  document.body.style.overflowX = 'hidden';
+}
 </script>
 
 </body>

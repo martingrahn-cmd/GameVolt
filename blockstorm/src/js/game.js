@@ -109,7 +109,7 @@ export class Game {
     this.level = 0;
     this.startLevel = 0;  // Vald startlevel
     this.highScore = Number(
-      localStorage.getItem("pulse_tetris_highscore") || 0
+      localStorage.getItem("blockstorm_highscore") || 0
     );
     
     // För att visa T-spin meddelande
@@ -587,7 +587,7 @@ export class Game {
     this.score += points;
     if (this.score > this.highScore) {
       this.highScore = this.score;
-      localStorage.setItem("pulse_tetris_highscore", this.highScore);
+      localStorage.setItem("blockstorm_highscore", this.highScore);
     }
   }
 

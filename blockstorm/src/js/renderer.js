@@ -1040,19 +1040,19 @@ export class Renderer {
     
     y += blockSize + cellSize * 0.7;
 
-    // Titel - "Pulse"
+    // Titel - "Block"
     const fontTitle = Math.floor(cellSize * 0.7);
     ctx.font = `700 ${fontTitle}px ${CONFIG.FONT.hudFamily}`;
     ctx.fillStyle = CONFIG.COLORS.textPrimary;
     ctx.textAlign = "center";
-    ctx.fillText("Pulse", centerX, y);
+    ctx.fillText("Block", centerX, y);
     y += cellSize * 0.5;
 
     // Undertitel
     const fontSubtitle = Math.floor(cellSize * 0.32);
     ctx.font = `600 ${fontSubtitle}px ${CONFIG.FONT.hudFamily}`;
     ctx.fillStyle = CONFIG.COLORS.textAccent;
-    ctx.fillText("BLOCK GAME", centerX, y);
+    ctx.fillText("STORM", centerX, y);
     y += cellSize * 0.7;
 
     // ===== DIVIDER =====

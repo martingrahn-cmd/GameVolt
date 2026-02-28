@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Play on GameVolt</title>
+  <meta name="robots" content="index, follow">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="/js/gv-tracker.js"></script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-PY073ZX38N');
+  </script>
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --header-h: 48px;
+      --bar-h: 40px;
+      --sidebar-w: 260px;
+      --bg-body: #0f1221;
+      --bg-surface: #181c30;
+      --bg-card: rgba(25, 30, 55, 0.7);
+      --bg-card-hover: rgba(35, 42, 75, 0.85);
+      --bg-gradient: linear-gradient(135deg, #7c5cfc 0%, #38bdf8 50%, #06d6a0 100%);
+      --text-bright: #f0f0ff;
+      --text-medium: #a0a4c0;
+      --text-muted: #626580;
+      --border-subtle: rgba(124, 92, 252, 0.15);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg-body);
+      color: var(--text-bright);
+      font-family: 'Nunito', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .gv-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-h);
+      background: rgba(15, 18, 33, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+    }
+
+    .gv-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .gv-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .gv-logo-icon {
+      width: 32px; height: 32px;
+      background: var(--bg-gradient);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gv-logo-text {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: var(--bg-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .gv-nav { display: flex; gap: 8px; align-items: center; }
+
+    .gv-nav a {
+      color: var(--text-medium);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .gv-nav a:hover {
+      color: var(--text-bright);
+      background: rgba(124, 92, 252, 0.1);
+    }
+
+    /* ── Main layout ── */
+    .gv-main {
+      position: fixed;
+      top: var(--header-h);
+      left: 0; right: 0; bottom: 0;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── Game area ── */
+    .gv-game-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .gv-iframe-wrap {
+      flex: 1;
+      position: relative;
+      background: #000;
+    }
+
+    .gv-iframe-wrap iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+
+    /* ── Game bar ── */
+    .gv-game-bar {
+      height: var(--bar-h);
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      flex-shrink: 0;
+    }
+
+    .gv-game-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .gv-category-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: rgba(124, 92, 252, 0.12);
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .gv-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .gv-session-time {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .gv-fullscreen-btn {
+      background: rgba(124, 92, 252, 0.2);
+      border: 1px solid rgba(124, 92, 252, 0.35);
+      color: var(--text-bright);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .gv-fullscreen-btn:hover {
+      background: rgba(124, 92, 252, 0.25);
+      color: var(--text-bright);
+    }
+
+    /* ── Sidebar ── */
+    .gv-sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle);
+      overflow-y: auto;
+      flex-shrink: 0;
+      padding: 16px 12px;
+    }
+
+    .gv-sidebar::-webkit-scrollbar { width: 4px; }
+    .gv-sidebar::-webkit-scrollbar-track { background: transparent; }
+    .gv-sidebar::-webkit-scrollbar-thumb { background: rgba(124,92,252,0.2); border-radius: 2px; }
+
+    .gv-sidebar-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+
+    .gv-sidebar-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .gv-sidebar-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--text-bright);
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+    .gv-sidebar-card:hover {
+      background: var(--bg-card-hover);
+    }
+    .gv-sidebar-card.active {
+      background: rgba(124, 92, 252, 0.15);
+      border: 1px solid rgba(124, 92, 252, 0.25);
+    }
+
+    .gv-sidebar-thumb {
+      width: 64px; height: 40px;
+      border-radius: 6px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .gv-sidebar-info { min-width: 0; }
+
+    .gv-sidebar-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gv-sidebar-cat {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      :root {
+        --header-h: 44px;
+        --bar-h: 36px;
+      }
+
+      .gv-nav a.gv-nav-desktop { display: none; }
+
+      .gv-logo-text { font-size: 1.1rem; }
+
+      .gv-main {
+        flex-direction: column;
+        overflow-y: auto;
+      }
+
+      .gv-game-area {
+        flex: none;
+        height: calc(100vw * 0.65 + var(--bar-h));
+        min-height: 300px;
+        max-height: calc(100vh - var(--header-h));
+      }
+
+      .gv-sidebar {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid var(--border-subtle);
+        padding: 16px;
+      }
+
+      .gv-sidebar-grid {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .gv-sidebar-card {
+        flex-direction: column;
+        width: calc(50% - 4px);
+        padding: 0;
+        overflow: hidden;
+        border-radius: var(--radius-md);
+        background: var(--bg-card);
+        border: 1px solid var(--border-subtle);
+      }
+      .gv-sidebar-card:hover {
+        border-color: rgba(124, 92, 252, 0.3);
+      }
+
+      .gv-sidebar-thumb {
+        width: 100%; height: auto;
+        aspect-ratio: 16/9;
+        border-radius: 0;
+      }
+
+      .gv-sidebar-info {
+        padding: 8px 10px;
+        width: 100%;
+      }
+
+      .gv-fullscreen-btn {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+      }
+    }
+
+    /* ── Fullscreen state ── */
+    .gv-game-area:fullscreen,
+    .gv-game-area:-webkit-full-screen {
+      background: #000;
+    }
+    .gv-game-area:fullscreen .gv-iframe-wrap,
+    .gv-game-area:-webkit-full-screen .gv-iframe-wrap {
+      flex: 1;
+    }
+    .gv-game-area:fullscreen .gv-game-bar,
+    .gv-game-area:-webkit-full-screen .gv-game-bar {
+      background: rgba(15, 18, 33, 0.95);
+    }
+
+    /* ── Error state ── */
+    .gv-error {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 16px;
+      color: var(--text-medium);
+    }
+    .gv-error h2 { font-size: 1.3rem; color: var(--text-bright); }
+    .gv-error a {
+      color: #7c5cfc;
+      text-decoration: none;
+      font-weight: 700;
+      padding: 10px 24px;
+      background: rgba(124, 92, 252, 0.15);
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .gv-error a:hover { background: rgba(124, 92, 252, 0.25); }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="gv-header">
+    <div class="gv-header-left">
+      <a href="/" class="gv-logo">
+        <div class="gv-logo-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg>
+        </div>
+        <span class="gv-logo-text">GameVolt</span>
+      </a>
+    </div>
+    <nav class="gv-nav">
+      <a href="/" class="gv-nav-desktop">Games</a>
+      <a href="/about/" class="gv-nav-desktop">About</a>
+    </nav>
+  </header>
+
+  <!-- Main -->
+  <div class="gv-main">
+    <!-- Game area -->
+    <div class="gv-game-area" id="gameArea">
+      <div class="gv-iframe-wrap" id="iframeWrap">
+        <iframe id="gameFrame" allowfullscreen allow="autoplay; fullscreen; gamepad"></iframe>
+      </div>
+      <div class="gv-game-bar">
+        <div class="gv-game-name">
+          <span id="gameName">Loading...</span>
+          <span class="gv-category-tag" id="gameCategory"></span>
+        </div>
+        <div class="gv-bar-right">
+          <span class="gv-session-time" id="sessionTime"></span>
+          <button class="gv-fullscreen-btn" id="fullscreenBtn" title="Fullscreen">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+            <span>Fullscreen</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="gv-sidebar" id="sidebar">
+      <div class="gv-sidebar-title">More Games</div>
+      <div class="gv-sidebar-grid" id="sidebarGrid"></div>
+    </aside>
+  </div>
+
+  <script>
+    const GAMES = {
+      snake:     { name: "Snake Neo",   category: "Arcade", path: "/snake/",      thumb: "/assets/thumbnails/snake.webp" },
+      breakout:  { name: "Breakout",    category: "Arcade", path: "/breakout/",   thumb: "/assets/thumbnails/breakout.webp" },
+      taprush:   { name: "Tap Rush",    category: "Arcade", path: "/taprush/",    thumb: "/assets/thumbnails/taprush.webp" },
+      solitaire: { name: "Solitaire",   category: "Board",  path: "/solitaire/",  thumb: "/assets/thumbnails/solitaire.webp" },
+      connect4:  { name: "Connect 4",   category: "Board",  path: "/connect4/",   thumb: "/assets/thumbnails/connect4-thumbnail.webp" },
+      blockstorm:{ name: "BlockStorm",  category: "Puzzle", path: "/blockstorm/", thumb: "/assets/thumbnails/blockstorm.webp" },
+      hoverdash: { name: "HoverDash",   category: "Action", path: "/hoverdash/",  thumb: "/hoverdash/og-image.png" },
+      axeluga:   { name: "Axeluga",     category: "Action", path: "/axeluga/",    thumb: "/assets/thumbnails/axeluga.webp" }
+    };
+
+    const frame = document.getElementById('gameFrame');
+    const nameEl = document.getElementById('gameName');
+    const catEl = document.getElementById('gameCategory');
+    const grid = document.getElementById('sidebarGrid');
+    const fsBtn = document.getElementById('fullscreenBtn');
+    const gameArea = document.getElementById('gameArea');
+    const sessionTimeEl = document.getElementById('sessionTime');
+
+    let currentGame = null;
+    let sessionStart = null;
+    let sessionTimerInterval = null;
+
+    function getGameParam() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('game');
+    }
+
+    // Session timer display
+    function startSessionTimer() {
+      clearInterval(sessionTimerInterval);
+      sessionTimerInterval = setInterval(function() {
+        if (!sessionStart) return;
+        var elapsed = Date.now() - sessionStart;
+        var mins = Math.floor(elapsed / 60000);
+        var secs = Math.floor((elapsed % 60000) / 1000);
+        sessionTimeEl.textContent = mins + ':' + String(secs).padStart(2, '0');
+      }, 1000);
+    }
+
+    function loadGame(key) {
+      const game = GAMES[key];
+      if (!game) {
+        document.querySelector('.gv-game-area').innerHTML =
+          '<div class="gv-error"><h2>Game not found</h2><p>This game doesn\'t exist.</p><a href="/">Browse Games</a></div>';
+        return;
+      }
+
+      // End previous session
+      if (currentGame && sessionStart && window.GVTracker) {
+        GVTracker.endSession(currentGame, sessionStart);
+      }
+
+      currentGame = key;
+      frame.src = game.path;
+      nameEl.textContent = game.name;
+      catEl.textContent = game.category;
+      document.title = game.name + ' – Play Free on GameVolt';
+
+      // Start session tracking
+      if (window.GVTracker) {
+        sessionStart = GVTracker.startSession(key);
+        sessionTimeEl.textContent = '0:00';
+        startSessionTimer();
+      }
+
+      // Give iframe focus after load
+      frame.onload = function() { frame.focus(); };
+
+      renderSidebar(key);
+
+      const url = '/play/?game=' + key;
+      if (window.location.search !== '?game=' + key) {
+        history.pushState({ game: key }, '', url);
+      }
+    }
+
+    function renderSidebar(activeKey) {
+      grid.innerHTML = '';
+      for (const [key, game] of Object.entries(GAMES)) {
+        if (key === activeKey) continue;
+        const card = document.createElement('a');
+        card.className = 'gv-sidebar-card';
+        card.href = '/play/?game=' + key;
+        card.onclick = (e) => {
+          e.preventDefault();
+          loadGame(key);
+        };
+        card.innerHTML =
+          '<img class="gv-sidebar-thumb" src="' + game.thumb + '" alt="' + game.name + '" loading="lazy">' +
+          '<div class="gv-sidebar-info">' +
+            '<div class="gv-sidebar-name">' + game.name + '</div>' +
+            '<div class="gv-sidebar-cat">' + game.category + '</div>' +
+          '</div>';
+        grid.appendChild(card);
+      }
+    }
+
+    // Fullscreen toggle
+    fsBtn.addEventListener('click', () => {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      } else if (gameArea.requestFullscreen) {
+        gameArea.requestFullscreen();
+      } else if (gameArea.webkitRequestFullscreen) {
+        gameArea.webkitRequestFullscreen();
+      }
+    });
+
+    // Update button text on fullscreen change
+    document.addEventListener('fullscreenchange', updateFsBtn);
+    document.addEventListener('webkitfullscreenchange', updateFsBtn);
+    function updateFsBtn() {
+      var isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+      fsBtn.querySelector('span').textContent = isFs ? 'Exit' : 'Fullscreen';
+      fsBtn.title = isFs ? 'Exit Fullscreen' : 'Fullscreen';
+    }
+
+    // End session on page unload
+    window.addEventListener('beforeunload', function() {
+      if (currentGame && sessionStart && window.GVTracker) {
+        GVTracker.endSession(currentGame, sessionStart);
+      }
+    });
+
+    // Pause/resume tracking on visibility change (mobile tab switch)
+    document.addEventListener('visibilitychange', function() {
+      if (!window.GVTracker || !currentGame) return;
+      if (document.hidden) {
+        if (sessionStart) {
+          GVTracker.endSession(currentGame, sessionStart);
+          sessionStart = null;
+          clearInterval(sessionTimerInterval);
+        }
+      } else {
+        sessionStart = Date.now();
+        startSessionTimer();
+      }
+    });
+
+    // PostMessage listener for game events
+    window.addEventListener('message', function(event) {
+      if (!event.data || event.data.type !== 'gamevolt') return;
+      if (!currentGame || !window.GVTracker) return;
+
+      var gameId = event.data.gameId || currentGame;
+      if (gameId !== currentGame) return;
+
+      var action = event.data.action;
+      var payload = event.data.payload || {};
+
+      switch (action) {
+        case 'game_start':
+          GVTracker.recordEvent(gameId, 'game_start');
+          break;
+        case 'game_over':
+          GVTracker.recordEvent(gameId, 'game_over');
+          if (payload.score) GVTracker.recordHighScore(gameId, payload.score, payload.mode);
+          break;
+        case 'high_score':
+          if (payload.score) GVTracker.recordHighScore(gameId, payload.score, payload.mode);
+          break;
+        case 'level_complete':
+          GVTracker.recordEvent(gameId, 'level_complete');
+          break;
+        case 'achievement':
+          GVTracker.recordEvent(gameId, 'achievement');
+          break;
+      }
+    });
+
+    // Back/forward navigation
+    window.addEventListener('popstate', (e) => {
+      const key = e.state?.game || getGameParam();
+      if (key && GAMES[key]) loadGame(key);
+    });
+
+    // Init
+    const gameKey = getGameParam();
+    if (gameKey) {
+      loadGame(gameKey);
+    } else {
+      window.location.href = '/';
+    }
+  </script>
+</body>
+</html>
