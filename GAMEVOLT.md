@@ -492,6 +492,145 @@ HoverDash (and future games) target multiple platforms from one codebase:
 
 ---
 
+## Game Upload Checklist
+
+Use this checklist every time a new game is added to GameVolt, or when an existing game is updated for iframe/portal play.
+
+### 1. HTML & Viewport
+
+- [ ] Single-file HTML (or proper file structure with shared `game.js`)
+- [ ] Viewport meta tag:
+  ```html
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  ```
+- [ ] Mobile web app meta tags (if applicable):
+  ```html
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  ```
+
+### 2. Touch & Input
+
+- [ ] `touch-action: none` on the game wrapper/container element
+  ```css
+  #game-wrapper { touch-action: none; }
+  ```
+- [ ] Touch event listeners use `{ passive: false }` to allow `preventDefault()`
+- [ ] Touch and mouse input both work (unified input handler)
+- [ ] Game receives focus in iframe — input works immediately after load
+  > Note: The game player already calls `iframe.focus()` on load, but the game
+  > should not require a click to activate if possible.
+
+### 3. Orientation
+
+- [ ] Decide: does this game require **landscape** or work in **portrait**?
+- [ ] If landscape-required: add `landscape: true` to the GAMES config in `/play/index.html`
+  > The player page shows a "Rotate your device" overlay for landscape games in portrait.
+  > The game does NOT need its own rotate screen — the player handles it.
+- [ ] If portrait: no flag needed, game plays as-is in portrait
+- [ ] Game canvas resizes responsively to fill available space
+
+### 4. Canvas & Responsive Sizing
+
+- [ ] Canvas scales to fit container (use `getBoundingClientRect()` or `resize` listener)
+- [ ] Don't assume fixed dimensions — the iframe can be any size
+- [ ] Cap `devicePixelRatio` at ~1.5 for mobile performance if using canvas
+- [ ] Test on both narrow phones and wide screens
+
+### 5. SEO Content (iframe detection)
+
+Every game should have SEO content (description, breadcrumbs, related games) that is:
+- **Visible** when loaded standalone (for Google indexing)
+- **Hidden** when loaded inside the game player iframe
+
+- [ ] Wrap all SEO content in `<div id="seo-content">`:
+  ```html
+  <div id="seo-content">
+    <!-- breadcrumbs, game info, "You Might Also Like", footer -->
+  </div>
+  ```
+- [ ] Add iframe-hide script before `</body>`:
+  ```html
+  <script>
+  if (window.parent !== window) {
+    document.getElementById('seo-content').style.display = 'none';
+  }
+  </script>
+  ```
+- [ ] If the game reveals SEO content via JS (like HoverDash), guard it:
+  ```javascript
+  if (window.parent === window) {
+    document.getElementById('seo-content').style.display = 'block';
+    document.body.style.overflowY = 'auto';
+    document.body.style.overflowX = 'hidden';
+  }
+  ```
+
+### 6. postMessage Integration
+
+Games communicate with the player page via `postMessage`. This enables session tracking, high scores, and achievements in the portal.
+
+- [ ] Add the `gvPost` helper function:
+  ```javascript
+  function gvPost(action, payload) {
+    if (window.parent !== window) {
+      try {
+        window.parent.postMessage({
+          type: 'gamevolt',
+          action: action,
+          gameId: 'YOUR-GAME-SLUG',
+          payload: payload || {}
+        }, '*');
+      } catch (e) {}
+    }
+  }
+  ```
+- [ ] Send `game_start` when a new round/game begins
+- [ ] Send `game_over` with `{ score, mode, stats }` on game end
+- [ ] Send `high_score` with `{ score, mode }` when a new record is set
+- [ ] Send `achievement` with `{ id, name }` when an achievement unlocks
+- [ ] (Optional) Send `level_complete` on level completion
+
+### 7. SDK / GameVolt Check
+
+- [ ] All SDK calls wrapped in `if (window.GameVolt)` — never assume it exists
+- [ ] localStorage used as fallback for everything (saves, high scores, achievements)
+- [ ] Game is fully playable without SDK, without login, without network
+
+### 8. Portal Registration
+
+When adding a new game to the portal:
+
+- [ ] Add thumbnail: `/assets/thumbnails/{game-slug}.webp` (16:9, ~400x225px)
+- [ ] Add entry to GAMES config in `/play/index.html`:
+  ```javascript
+  yourGame: {
+    name: "Your Game",
+    category: "Arcade",       // Arcade | Action | Puzzle | Board
+    path: "/your-game/",
+    thumb: "/assets/thumbnails/your-game.webp",
+    landscape: false           // true if landscape-only
+  }
+  ```
+- [ ] Add game card to portal homepage (`/index.html`)
+- [ ] Add game to relevant category page (`/arcade-games/`, `/action-games/`, etc.)
+- [ ] Update GAME_META in portal homepage JS (for "Continue Playing" section)
+- [ ] Update game catalog table in this file (GAMEVOLT.md)
+
+### 9. Final Testing
+
+- [ ] Desktop: game loads and plays in iframe at `/play/?game=slug`
+- [ ] Desktop: fullscreen toggle works (includes game bar with exit button)
+- [ ] Mobile portrait: game fills viewport, compact bottom bar visible
+- [ ] Mobile landscape: game fills viewport, thin side bar on left
+- [ ] Mobile: touch controls work inside iframe
+- [ ] Standalone: game loads directly at `/game-slug/` with SEO content visible
+- [ ] Sidebar: thumbnail loads correctly
+- [ ] Session tracking: time counter works in game bar
+- [ ] postMessage: events appear in GVTracker localStorage (`gv_portal` key)
+
+---
+
 ## Open Questions
 
 - [ ] Keep PulseGames.eu as redirect, or drop the domain?
