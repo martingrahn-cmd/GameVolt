@@ -2,8 +2,11 @@ export default class AudioManager {
   constructor(game) {
     this.game = game;
     this.sounds = {};
-    this.muted = false;
-    this.musicVolume = 0.7; 
+    this.musicVolume = 0.7;
+
+    // Separate mute states (persisted)
+    this.sfxMuted = localStorage.getItem('bo_sfx') === '0';
+    this.musicMuted = localStorage.getItem('bo_music') === '0';
 
     // DJ System
     this.musicPlayers = [new Audio(), new Audio()];
@@ -55,8 +58,9 @@ export default class AudioManager {
   }
 
   startMusicFlow() {
+    if (this.musicMuted) return;
     if (this.musicPlayers[0].paused && this.musicPlayers[1].paused) {
-        this.playTrackOnPlayer(0, true); 
+        this.playTrackOnPlayer(0, true);
     }
   }
 
@@ -118,14 +122,32 @@ export default class AudioManager {
   }
 
   play(name) {
-    if (this.muted) return;
-    if (name === 'music') return; 
+    if (this.sfxMuted) return;
+    if (name === 'music') return;
 
     const sound = this.sounds[name];
     if (sound) {
         sound.currentTime = 0;
         sound.play().catch(e => {});
     }
+  }
+
+  toggleMusic() {
+    this.musicMuted = !this.musicMuted;
+    localStorage.setItem('bo_music', this.musicMuted ? '0' : '1');
+    if (this.musicMuted) {
+        this.musicPlayers.forEach(p => { p.pause(); p.currentTime = 0; });
+        this.isCrossfading = false;
+    } else {
+        this.startMusicFlow();
+    }
+    return !this.musicMuted;
+  }
+
+  toggleSFX() {
+    this.sfxMuted = !this.sfxMuted;
+    localStorage.setItem('bo_sfx', this.sfxMuted ? '0' : '1');
+    return !this.sfxMuted;
   }
 
   unlockIOS() {

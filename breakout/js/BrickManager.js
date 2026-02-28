@@ -80,7 +80,8 @@ checkCollision(ball) {
       ) {
         brick.hit();
         this.game.combo++;
-        
+        if (this.game.ui) this.game.ui.onComboUpdate(this.game.combo);
+
         // --- NY POÄNGFORMEL ---
         const baseScore = 10;
         const comboBonus = this.game.combo * 10; // Mer värt att hålla combo
@@ -98,7 +99,8 @@ checkCollision(ball) {
              this.game.spawnPowerUp(brick.x + brick.width/2, brick.y);
              this.game.audio.play('brick_explode');
              this.game.particles.explode(ball.x, ball.y, brick.color);
-             this.game.shake(0.2, 8); 
+             this.game.shake(0.2, 8);
+             if (this.game.ui) this.game.ui.onBrickDestroyed();
         } else {
             brick.color = this.getColorForHP(brick.hp);
             this.game.audio.play('brick_hit');

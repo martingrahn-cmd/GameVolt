@@ -17,18 +17,21 @@ export default class Game {
     this.height = canvas.height;
 
     this.state = 'menu';
+    this.paused = false;
     this.level = 1;
     this.score = 0;
     this.lives = 3;
     this.combo = 0;
     this.timeScale = 1.0;
-    this.highScore = parseInt(localStorage.getItem('neonDriftHighscore')) || 0;
+    this.highScore = 0; // Set by UIManager from bo_data
+
+    this.ui = null; // Set by main.js after construction
 
     // Powerup status
     this.laserActive = false;
     this.laserTimer = 0;
     this.lastShotTime = 0;
-    
+
     this.safetyFloorActive = false;
     this.safetyFloorTimer = 0;
     this.safetyFloorHits = 0;
@@ -40,21 +43,23 @@ export default class Game {
     this.shakeMagnitude = 0;
 
     this.bgImage = new Image();
-    this.bgImage.src = "assets/images/grid_bg.png"; 
+    this.bgImage.src = "assets/images/grid_bg.png";
     this.scanlineY = 0;
-    this.scanlineSpeed = 150; 
+    this.scanlineSpeed = 150;
+
+    this._levelStartTime = 0;
 
     this.audio = new AudioManager(this);
     this.hud = new HUD(this);
     this.paddle = new Paddle(this);
-    
-    this.balls = []; 
+
+    this.balls = [];
     this.balls.push(new Ball(this));
 
     this.bricks = new BrickManager(this);
     this.particles = new ParticleManager(this);
     this.input = new InputHandler(this, canvas);
-    
+
     this.powerUps = [];
     this.lasers = [];
     this.floatingTexts = [];
@@ -67,15 +72,17 @@ export default class Game {
 
   start() {
     this.state = 'running';
+    this.paused = false;
     this.score = 0;
     this.level = 1;
     this.lives = 3;
     this.combo = 0;
     this.timeScale = 1.0;
-    
-    this.resetPowerUps(); 
+    this._levelStartTime = performance.now();
+
+    this.resetPowerUps();
     this.bricks.loadLevel(this.level);
-    
+
     this.balls = [new Ball(this)];
     this.ball.reset();
   }
@@ -84,7 +91,7 @@ export default class Game {
     this.powerUps = [];
     this.lasers = [];
     this.floatingTexts = [];
-    
+
     this.laserActive = false;
     this.safetyFloorActive = false;
     this.widePaddleActive = false;
@@ -92,25 +99,30 @@ export default class Game {
   }
 
   nextLevel() {
+    // Notify UI before incrementing level (for achievements)
+    var elapsed = (performance.now() - this._levelStartTime) / 1000;
+    if (this.ui) this.ui.onLevelCleared(this.level, elapsed);
+
     this.level++;
-    this.audio.play('level_clear'); 
+    this.audio.play('level_clear');
+    this._levelStartTime = performance.now();
 
     const levelBonus = 2000;
     this.addScore(levelBonus, this.width / 2, this.height / 2, true);
 
     const newScale = Math.max(0.5, 1.0 - (this.level - 1) * 0.05);
-    this.paddle.baseScale = newScale; 
+    this.paddle.baseScale = newScale;
     this.paddle.setScale(newScale);
-    
+
     this.powerUps = [];
     this.lasers = [];
-    
+
     this.bricks.loadLevel(this.level);
 
     this.balls.forEach(b => {
         if (b.y < this.height * 0.5) {
             b.y = this.height * 0.6;
-            b.vy = Math.abs(b.vy); 
+            b.vy = Math.abs(b.vy);
         }
         b.speed *= 1.05;
         const currentSpeed = Math.sqrt(b.vx*b.vx + b.vy*b.vy);
@@ -118,17 +130,14 @@ export default class Game {
         b.vy = (b.vy / currentSpeed) * b.speed;
     });
 
-    this.timeScale = 0.1; 
+    this.timeScale = 0.1;
   }
 
   spawnPowerUp(x, y) {
-    // --- NY DROP RATE: 12% ---
-    if (Math.random() < 0.12) { 
+    if (Math.random() < 0.12) {
         const rand = Math.random();
         let type = 'wide';
 
-        // --- NY FÖRDELNING ---
-        // 40% Wide, 20% Multi, 20% Laser, 15% Floor, 5% Life
         if (rand < 0.40) type = 'wide';
         else if (rand < 0.60) type = 'multi';
         else if (rand < 0.80) type = 'laser';
@@ -140,58 +149,63 @@ export default class Game {
   }
 
   activatePowerUp(type) {
+    // Notify UI for achievement tracking
+    if (this.ui) this.ui.onPowerUpCollected(type);
+
     if (type === 'life') this.audio.play('extra_life');
     else if (type === 'multi') this.audio.play('multiball');
     else if (type === 'wide') this.audio.play('paddle_wide');
-    else if (type === 'laser') this.audio.play('powerup_laser'); 
-    else if (type === 'floor') this.audio.play('powerup_floor'); 
-    else this.audio.play('ball_launch'); 
+    else if (type === 'laser') this.audio.play('powerup_laser');
+    else if (type === 'floor') this.audio.play('powerup_floor');
+    else this.audio.play('ball_launch');
 
     const textX = this.paddle.x + this.paddle.width/2;
     const textY = this.paddle.y - 20;
 
     if (type === 'wide') {
         this.widePaddleActive = true;
-        this.widePaddleTimer = 10.0; 
-        this.paddle.setScale(1.5);   
+        this.widePaddleTimer = 10.0;
+        this.paddle.setScale(1.5);
         this.showFloatingText("+WIDE", textX, textY, "#33ff33");
     }
     else if (type === 'multi') {
-        if (this.balls.length >= 3) { 
-            this.addScore(500, textX, textY); 
-            return; 
+        if (this.balls.length >= 3) {
+            this.addScore(500, textX, textY);
+            return;
         }
         this.showFloatingText("+MULTIBALL", textX, textY, "#00eaff");
-        
+
         const sourceBall = this.balls[0];
-        if (!sourceBall) return; 
+        if (!sourceBall) return;
         for (let i = 0; i < 2; i++) {
             const newBall = new Ball(this);
             newBall.x = sourceBall.x; newBall.y = sourceBall.y;
             newBall.isLaunched = true; newBall.speed = sourceBall.speed;
             const angleOffset = (i === 0) ? -0.5 : 0.5;
-            newBall.vx = sourceBall.vx + angleOffset * 150; 
+            newBall.vx = sourceBall.vx + angleOffset * 150;
             newBall.vy = sourceBall.vy;
             const speed = Math.sqrt(newBall.vx*newBall.vx + newBall.vy*newBall.vy);
             newBall.vx = (newBall.vx / speed) * newBall.speed;
             newBall.vy = (newBall.vy / speed) * newBall.speed;
             this.balls.push(newBall);
         }
+        // Notify ball count change
+        if (this.ui) this.ui.onBallCountChange(this.balls.length);
     }
     else if (type === 'life') {
         this.lives++;
-        if (this.lives > 5) this.lives = 5; 
+        if (this.lives > 5) this.lives = 5;
         this.showFloatingText("+1 UP", textX, textY, "#ff00ff");
-        this.addScore(1000, textX, textY); 
+        this.addScore(1000, textX, textY);
     }
     else if (type === 'laser') {
         this.laserActive = true;
-        this.laserTimer = 10.0; 
+        this.laserTimer = 10.0;
         this.showFloatingText("LASER!", textX, textY, "#ff0000");
     }
     else if (type === 'floor') {
         this.safetyFloorActive = true;
-        this.safetyFloorTimer = 10.0; 
+        this.safetyFloorTimer = 10.0;
         this.safetyFloorHits = 0;
         this.showFloatingText("SHIELD", textX, textY, "#ffd700");
     }
@@ -200,7 +214,6 @@ export default class Game {
   shootLaser() {
     if (this.laserActive) {
         const now = performance.now();
-        // COOLDOWN: 300 ms (ca 3 skott per sekund)
         if (now - this.lastShotTime > 300) {
             this.lastShotTime = now;
             this.audio.play('laser_shoot');
@@ -220,6 +233,9 @@ export default class Game {
     if (this.score > this.highScore) {
         this.highScore = this.score;
     }
+    // Check score-based achievements
+    if (this.ui) this.ui.checkInstantAchievements();
+
     if (x !== 0 && y !== 0) {
         let text = `+${points}`;
         let color = "#ffffff";
@@ -237,10 +253,12 @@ export default class Game {
     this.shake(0.4, 10);
     this.resetPowerUps();
 
+    if (this.ui) this.ui.onLifeLost();
+
     if (this.lives <= 0) {
         this.audio.play('game_over');
         this.state = 'gameover';
-        localStorage.setItem('neonDriftHighscore', this.highScore);
+        if (this.ui) this.ui.showGameOver();
     } else {
         this.balls = [new Ball(this)];
         this.ball.reset();
@@ -250,15 +268,17 @@ export default class Game {
 
   continueGame() {
     this.state = 'running';
-    this.score = 0; 
-    this.lives = 3; 
+    this.paused = false;
+    this.score = 0;
+    this.lives = 3;
     this.combo = 0;
     this.timeScale = 1.0;
+    this._levelStartTime = performance.now();
 
     this.paddle.setScale(1.0);
     this.resetPowerUps();
     this.bricks.loadLevel(this.level);
-    
+
     this.balls = [new Ball(this)];
     this.ball.reset();
   }
@@ -270,16 +290,16 @@ export default class Game {
     if (this.state === 'running') {
        this.balls = [new Ball(this)];
        this.ball.reset();
-       this.bricks.loadLevel(this.level); 
+       this.bricks.loadLevel(this.level);
     }
   }
 
   update(dt) {
     this.hud.update(dt);
-    if (this.state !== 'running') return;
+    if (this.state !== 'running' || this.paused) return;
 
     if (this.timeScale < 1.0) {
-        this.timeScale += dt * 0.5; 
+        this.timeScale += dt * 0.5;
         if (this.timeScale > 1.0) this.timeScale = 1.0;
     }
     const gameDt = dt * this.timeScale;
@@ -293,7 +313,7 @@ export default class Game {
         this.laserTimer -= gameDt;
         if (this.laserTimer <= 0) this.laserActive = false;
     }
-    
+
     if (this.safetyFloorActive) {
         this.safetyFloorTimer -= gameDt;
         if (this.safetyFloorTimer <= 0) this.safetyFloorActive = false;
@@ -303,32 +323,36 @@ export default class Game {
         this.widePaddleTimer -= gameDt;
         if (this.widePaddleTimer <= 0) {
             this.widePaddleActive = false;
-            // Återställ till den skala som gäller för aktuell level
-            this.paddle.setScale(this.paddle.baseScale || 1.0); 
+            this.paddle.setScale(this.paddle.baseScale || 1.0);
         }
     }
 
     this.scanlineY += this.scanlineSpeed * gameDt;
-    if (this.scanlineY > this.height) this.scanlineY = -50; 
+    if (this.scanlineY > this.height) this.scanlineY = -50;
 
     this.input.updateKeyboard(gameDt);
     this.paddle.update(gameDt);
-    
+
     this.balls.forEach(b => {
         b.update(gameDt);
         if (this.safetyFloorActive) {
-            const safetyY = this.height - 15; 
+            const safetyY = this.height - 15;
             if (b.y + b.radius > safetyY && b.vy > 0) {
                 b.y = safetyY - b.radius;
-                b.vy = -Math.abs(b.vy); 
+                b.vy = -Math.abs(b.vy);
                 this.audio.play('wall_hit');
                 this.safetyFloorHits++;
                 if (this.safetyFloorHits >= 1) this.safetyFloorActive = false;
             }
         }
     });
-    
+
+    var prevBallCount = this.balls.length;
     this.balls = this.balls.filter(b => b.y < this.height + 50);
+    // Notify ball count change (balls lost)
+    if (this.balls.length !== prevBallCount && this.ui) {
+        this.ui.onBallCountChange(this.balls.length);
+    }
 
     if (this.balls.length === 0) {
         this.loseLife();
@@ -336,22 +360,27 @@ export default class Game {
 
     this.lasers.forEach(l => l.update(gameDt));
     this.lasers = this.lasers.filter(l => !l.delete);
-    
+
     for (const l of this.lasers) {
         for (const brick of this.bricks.bricks) {
-            if (!brick.delete && 
+            if (!brick.delete &&
                 l.x > brick.x && l.x < brick.x + brick.width &&
                 l.y > brick.y && l.y < brick.y + brick.height) {
-                
-                l.delete = true; 
+
+                l.delete = true;
                 brick.hit();
-                this.addScore(5, brick.x, brick.y); 
+                this.addScore(5, brick.x, brick.y);
                 if (brick.hp <= 0) {
                     this.spawnPowerUp(brick.x + brick.width/2, brick.y);
                     this.particles.explode(brick.x, brick.y, brick.color);
-                    this.audio.play('brick_hit'); 
+                    this.audio.play('brick_hit');
+                    // Achievement: brick destroyed by laser
+                    if (this.ui) {
+                        this.ui.onBrickDestroyed();
+                        this.ui.onLaserBrickDestroyed();
+                    }
                 }
-                break; 
+                break;
             }
         }
     }
@@ -373,14 +402,14 @@ export default class Game {
         ) {
             this.activatePowerUp(p.type);
             p.delete = true;
-            this.addScore(500, p.x, p.y); 
+            this.addScore(500, p.x, p.y);
         }
     }
   }
 
   draw(ctx) {
     ctx.clearRect(0, 0, this.width, this.height);
-    ctx.save(); 
+    ctx.save();
     if (this.shakeTime > 0 && this.state === 'running') {
         const dx = (Math.random() - 0.5) * this.shakeMagnitude;
         const dy = (Math.random() - 0.5) * this.shakeMagnitude;
@@ -388,7 +417,7 @@ export default class Game {
     }
 
     if (this.bgImage.complete && this.bgImage.naturalWidth > 0) {
-        try { ctx.drawImage(this.bgImage, 0, 0, this.width, this.height); } 
+        try { ctx.drawImage(this.bgImage, 0, 0, this.width, this.height); }
         catch (e) { ctx.fillStyle = "#1a0b2e"; ctx.fillRect(0,0,this.width,this.height); }
     } else {
         ctx.fillStyle = "#050010"; ctx.fillRect(0,0,this.width,this.height);
@@ -397,7 +426,7 @@ export default class Game {
     ctx.save();
     const gradient = ctx.createLinearGradient(0, this.scanlineY, 0, this.scanlineY + 40);
     gradient.addColorStop(0, "rgba(0, 234, 255, 0)");
-    gradient.addColorStop(0.5, "rgba(0, 234, 255, 0.15)"); 
+    gradient.addColorStop(0.5, "rgba(0, 234, 255, 0.15)");
     gradient.addColorStop(1, "rgba(0, 234, 255, 0)");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, this.scanlineY, this.width, 40);
@@ -407,7 +436,7 @@ export default class Game {
         if (this.safetyFloorActive) {
             ctx.save();
             ctx.shadowBlur = 10;
-            ctx.shadowColor = "#ffd700"; 
+            ctx.shadowColor = "#ffd700";
             ctx.strokeStyle = "#ffd700";
             ctx.lineWidth = 4;
             ctx.setLineDash([10, 5]);
@@ -421,12 +450,12 @@ export default class Game {
         this.bricks.draw(ctx);
         this.particles.draw(ctx);
         this.balls.forEach(b => b.draw(ctx));
-        this.lasers.forEach(l => l.draw(ctx)); 
+        this.lasers.forEach(l => l.draw(ctx));
         this.paddle.draw(ctx);
         this.powerUps.forEach(p => p.draw(ctx));
         this.floatingTexts.forEach(t => t.draw(ctx));
     }
-    
+
     ctx.strokeStyle = "#00eaff";
     ctx.lineWidth = 3;
     ctx.strokeRect(1.5, 1.5, this.width - 3, this.height - 3);
@@ -434,7 +463,7 @@ export default class Game {
     ctx.lineWidth = 1;
     ctx.strokeRect(4, 4, this.width - 8, this.height - 8);
 
-    ctx.restore(); 
+    ctx.restore();
     this.hud.draw(ctx);
   }
 

@@ -1,13 +1,6 @@
 export default class HUD {
   constructor(game) {
     this.game = game;
-    this.blinkTimer = 0;
-
-    // Knappar för Game Over
-    this.buttons = {
-        restart: { x: 0, y: 0, w: 280, h: 50 },
-        continue: { x: 0, y: 0, w: 280, h: 50 }
-    };
 
     // Cached heart (offscreen canvas — avoids bezier + shadowBlur every frame)
     this._heartCache = null;
@@ -15,172 +8,35 @@ export default class HUD {
   }
 
   update(dt) {
-    this.blinkTimer += dt;
-  }
-
-  checkClick(mouseX, mouseY) {
-    if (this.game.state !== 'gameover') return null;
-
-    const b1 = this.buttons.restart;
-    const b2 = this.buttons.continue;
-
-    if (mouseX >= b1.x && mouseX <= b1.x + b1.w && mouseY >= b1.y && mouseY <= b1.y + b1.h) {
-        return 'restart';
-    }
-    if (mouseX >= b2.x && mouseX <= b2.x + b2.w && mouseY >= b2.y && mouseY <= b2.y + b2.h) {
-        return 'continue';
-    }
-    return null;
+    // Reserved for future HUD animations
   }
 
   draw(ctx) {
+    // Only draw in-game HUD during gameplay (shakes with canvas)
+    if (this.game.state !== 'running') return;
+
     ctx.save();
     ctx.font = '20px "Press Start 2P", monospace';
-
-    if (this.game.state === 'menu') {
-        this.drawMenu(ctx);
-    } else if (this.game.state === 'gameover') {
-        this.drawGameOver(ctx);
-    } else {
-        this.drawGameUI(ctx);
-    }
-
-    ctx.restore();
-  }
-
-  drawMenu(ctx) {
-    const w = this.game.width;
-    const h = this.game.height;
-    const centerX = w / 2;
-    const centerY = h / 2;
-
-    ctx.fillStyle = "rgba(0,0,0,0.7)";
-    ctx.fillRect(0, 0, w, h);
-
-    // HI-SCORE
-    ctx.textAlign = 'center';
-    ctx.fillStyle = "#ffff00"; 
-    ctx.font = '15px "Press Start 2P", monospace'; 
-    ctx.fillText(`HI-SCORE: ${this.game.highScore}`, centerX, 40);
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // BREAKOUT
-    ctx.font = '50px "Press Start 2P", monospace'; 
-    const gradient = ctx.createLinearGradient(0, centerY - 120, 0, centerY - 60);
-    gradient.addColorStop(0, "#ff00ff");
-    gradient.addColorStop(1, "#00ffff");
-    ctx.fillStyle = gradient;
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = "white";
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = "#ff00ff";
-    ctx.fillText("BREAKOUT", centerX, centerY - 90);
-    ctx.strokeText("BREAKOUT", centerX, centerY - 90);
-
-    // NEON DRIFT
-    ctx.font = '40px "Press Start 2P", monospace'; 
-    ctx.fillStyle = "#00eaff";
-    ctx.shadowBlur = 40;
-    ctx.shadowColor = "#00eaff";
-    ctx.fillText("NEON DRIFT", centerX, centerY + 10);
-
-    // START
-    if (Math.sin(this.blinkTimer * 4) > 0) {
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = "white";
-        ctx.fillStyle = "white";
-        ctx.font = '20px "Press Start 2P", monospace';
-        ctx.fillText("TOUCH TO START", centerX, centerY + 120);
-    }
-
-    // --- STUDIO NAMN (SmarProc Games) ---
-    // En snygg, lite mindre text längst ner
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "#aaaaaa"; // Ljusgrå
-    ctx.font = '12px "Press Start 2P", monospace';
-    ctx.fillText("© 2025 SmarProc Games", centerX, h - 30);
-  }
-
-  drawGameOver(ctx) {
-    const w = this.game.width;
-    const h = this.game.height;
-    const centerX = w / 2;
-
-    ctx.fillStyle = "rgba(0,0,0,0.85)";
-    ctx.fillRect(0, 0, w, h);
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = "#ff4444";
-    ctx.fillStyle = "#ff4444";
-    ctx.font = '40px "Press Start 2P", monospace';
-    ctx.fillText("SYSTEM FAILURE", centerX, h * 0.3);
-
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "white";
-    ctx.font = '20px "Press Start 2P", monospace';
-    ctx.fillText(`SCORE: ${this.game.score}`, centerX, h * 0.45);
-
-    // Knappar
-    const btnW = this.buttons.continue.w; 
-    const btnH = 50;
-    const gap = 20;
-    
-    this.buttons.continue.x = centerX - btnW/2;
-    this.buttons.continue.y = h * 0.6;
-    this.buttons.continue.h = btnH;
-
-    this.buttons.restart.x = centerX - btnW/2;
-    this.buttons.restart.y = h * 0.6 + btnH + gap;
-    this.buttons.restart.w = btnW;
-    this.buttons.restart.h = btnH;
-
-    this.drawButton(ctx, this.buttons.continue, "RETRY LEVEL (0 PTS)", "#00eaff");
-    this.drawButton(ctx, this.buttons.restart, "RESTART FROM LVL 1", "#ff4444");
-  }
-
-  drawButton(ctx, btn, text, color) {
-    ctx.save();
-    
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.2;
-    ctx.fillRect(btn.x, btn.y, btn.w, btn.h);
-    
-    ctx.globalAlpha = 1.0;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = color;
-    ctx.strokeRect(btn.x, btn.y, btn.w, btn.h);
-
-    ctx.fillStyle = "white";
-    ctx.shadowBlur = 0;
-    ctx.font = '13px "Press Start 2P", monospace'; 
-    ctx.fillText(text, btn.x + btn.w/2, btn.y + btn.h/2);
-
+    this.drawGameUI(ctx);
     ctx.restore();
   }
 
   drawGameUI(ctx) {
-    ctx.fillStyle = '#00eaff'; 
+    ctx.fillStyle = '#00eaff';
     ctx.textAlign = 'left';
-    ctx.textBaseline = 'bottom'; 
+    ctx.textBaseline = 'bottom';
     ctx.shadowBlur = 0;
 
-    const padding = 20; 
+    const padding = 20;
     const yPos = this.game.height - padding;
 
     ctx.font = '20px "Press Start 2P", monospace';
     ctx.fillText(`SCORE: ${this.game.score}`, padding, yPos);
-    
+
     ctx.save();
     ctx.textAlign = 'center';
-    ctx.fillStyle = "#ffff00"; 
-    ctx.fillText(`HI: ${this.game.highScore}`, this.game.width/2, yPos);
+    ctx.fillStyle = "#ffff00";
+    ctx.fillText(`HI: ${this.game.highScore}`, this.game.width / 2, yPos);
     ctx.restore();
 
     ctx.save();
@@ -194,13 +50,12 @@ export default class HUD {
     const heartSize = 20;
     const startX = this.game.width - padding - (heartSize * 1.5 * 3);
     for (let i = 0; i < this.game.lives; i++) {
-        this.drawHeart(ctx, startX + (i * heartSize * 1.5), yPos - 25, heartSize);
+      this.drawHeart(ctx, startX + (i * heartSize * 1.5), yPos - 25, heartSize);
     }
   }
 
   _buildHeartCache(size) {
-    // Render heart once to offscreen canvas (with glow baked in)
-    var pad = 10; // extra space for shadow glow
+    var pad = 10;
     var c = document.createElement('canvas');
     c.width = size + pad * 2;
     c.height = size + pad * 2;
@@ -210,8 +65,8 @@ export default class HUD {
     cx.shadowBlur = 12;
     cx.shadowColor = "#ff00ff";
 
-    var ox = size / 2 + pad; // center x
-    var oy = pad;            // top
+    var ox = size / 2 + pad;
+    var oy = pad;
     var topCurveHeight = size * 0.3;
 
     cx.beginPath();
@@ -231,7 +86,6 @@ export default class HUD {
     if (!this._heartCache || this._heartSize !== size) {
       this._buildHeartCache(size);
     }
-    // Draw cached heart image (no shadowBlur, no bezier per frame)
     ctx.drawImage(this._heartCache, x - size / 2 - this._heartPad, y - this._heartPad);
   }
 }

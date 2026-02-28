@@ -168,12 +168,520 @@
       50% { transform: rotate(-90deg); }
       100% { transform: rotate(0deg); }
     }
+
+    /* ===== OVERLAY SYSTEM ===== */
+    #overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      background: radial-gradient(ellipse at center, rgba(5,0,16,0.88) 0%, rgba(5,0,16,0.96) 70%);
+      font-family: 'Press Start 2P', monospace;
+    }
+    #overlay.hidden { display: none; }
+
+    /* TAB BAR */
+    #tab-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 18px;
+      border-bottom: 2px solid rgba(0,234,255,0.2);
+      flex-shrink: 0;
+    }
+    .tab-btn {
+      padding: 8px 14px;
+      font-size: clamp(8px, 1.8vw, 11px);
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #556;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      transition: all .2s;
+      margin-bottom: -2px;
+      font-family: 'Press Start 2P', monospace;
+    }
+    .tab-btn:hover { color: rgba(0,234,255,0.5); }
+    .tab-btn.active {
+      color: #00eaff;
+      border-bottom-color: #00eaff;
+      text-shadow: 0 0 10px rgba(0,234,255,0.25);
+    }
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-height: calc(100% - 60px);
+      overflow-y: auto;
+    }
+    .tab-content.active { display: flex; }
+
+    /* GAME TITLE */
+    #game-title {
+      font-size: clamp(28px, 7vw, 50px);
+      font-weight: 900;
+      background: linear-gradient(180deg, #ff00ff, #00ffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 12px rgba(255,0,255,0.5));
+      letter-spacing: 4px;
+      line-height: 1.1;
+      text-align: center;
+      margin-bottom: 2px;
+    }
+    #game-subtitle {
+      font-size: clamp(12px, 3.5vw, 22px);
+      color: #00eaff;
+      letter-spacing: 4px;
+      text-shadow: 0 0 30px #00eaff;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    #menu-hiscore {
+      font-size: clamp(9px, 2vw, 13px);
+      color: #ffff00;
+      margin-bottom: 16px;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    /* ACTION BUTTONS */
+    .gv-btn {
+      padding: 12px 36px;
+      font-size: clamp(11px, 2.2vw, 14px);
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .2s;
+      clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+      font-family: 'Press Start 2P', monospace;
+      color: #00eaff;
+      background: transparent;
+      border: 2px solid #00eaff;
+      margin: 4px 0;
+    }
+    .gv-btn:hover {
+      background: #fff;
+      color: #050010;
+      border-color: #fff;
+      transform: scale(1.05);
+    }
+    .gv-btn.secondary {
+      font-size: clamp(9px, 1.8vw, 11px);
+      padding: 10px 28px;
+      color: rgba(0,234,255,0.6);
+      border-color: rgba(0,234,255,0.3);
+    }
+    .gv-btn.secondary:hover {
+      color: #050010;
+      background: rgba(0,234,255,0.8);
+      border-color: rgba(0,234,255,0.8);
+    }
+
+    /* SCORE DISPLAY (game over) */
+    #final-level, #final-score, #best-score {
+      display: none;
+      text-align: center;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+      font-family: 'Press Start 2P', monospace;
+    }
+    #final-level { font-size: clamp(9px, 1.8vw, 12px); color: rgba(0,234,255,0.6); }
+    #final-score { font-size: clamp(14px, 3vw, 20px); color: #fff; }
+    #best-score { font-size: clamp(9px, 1.8vw, 12px); color: rgba(0,234,255,0.5); margin-bottom: 16px; }
+
+    /* INSTRUCTIONS */
+    #instructions {
+      margin-top: 14px;
+      font-size: clamp(7px, 1.5vw, 10px);
+      color: #556;
+      letter-spacing: 1px;
+      text-align: center;
+      line-height: 2.4;
+    }
+    .kh {
+      display: inline-block;
+      background: #0a0a14;
+      color: #00eaff;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: inherit;
+      border: 1px solid rgba(0,234,255,0.25);
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    /* STUDIO CREDIT */
+    #studio-credit {
+      position: absolute;
+      bottom: 16px;
+      font-size: clamp(7px, 1.2vw, 10px);
+      color: #444;
+      letter-spacing: 1px;
+    }
+
+    /* ===== PAUSE ===== */
+    #pause-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #00eaff;
+      background: rgba(10,10,24,0.6);
+      border: 1px solid rgba(0,234,255,0.25);
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 12;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 12px;
+    }
+    #pause-btn.show { opacity: .7; pointer-events: auto; }
+    #pause-btn:hover { opacity: 1; background: rgba(10,10,40,0.8); }
+
+    #pause-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 15;
+      background: radial-gradient(ellipse at center, rgba(5,0,16,0.88) 0%, rgba(5,0,16,0.96) 70%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s;
+      font-family: 'Press Start 2P', monospace;
+    }
+    #pause-overlay.show { opacity: 1; pointer-events: auto; }
+    #pause-title {
+      font-size: clamp(32px, 8vw, 54px);
+      color: #00eaff;
+      text-shadow: 0 0 30px rgba(0,234,255,0.5), 0 0 60px rgba(0,234,255,0.3);
+      letter-spacing: 6px;
+      margin-bottom: 20px;
+    }
+    #pause-hint {
+      margin-top: 14px;
+      font-size: clamp(8px, 1.5vw, 11px);
+      color: #556;
+      letter-spacing: 2px;
+    }
+
+    /* ===== ACHIEVEMENT TOAST ===== */
+    #achievement-toast {
+      position: absolute;
+      bottom: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(10,10,24,0.93);
+      border: 1px solid rgba(255,215,0,0.4);
+      border-radius: 8px;
+      padding: 10px 18px;
+      z-index: 20;
+      transition: bottom .5s cubic-bezier(.34, 1.56, .64, 1);
+      box-shadow: 0 0 30px rgba(255,215,0,0.2);
+      pointer-events: none;
+      font-family: 'Press Start 2P', monospace;
+      white-space: nowrap;
+    }
+    #achievement-toast.show { bottom: 20px; }
+    #ach-toast-icon { font-size: 22px; }
+    #ach-toast-label { font-size: 7px; color: #ffd700; letter-spacing: 2px; margin-bottom: 2px; }
+    #ach-toast-name { font-size: 10px; color: #fff; letter-spacing: 1px; }
+    .ach-tier-label { font-size: 7px; font-weight: 700; letter-spacing: 2px; margin-bottom: 1px; }
+    .ach-tier-label.bronze { color: #cd7f32; }
+    .ach-tier-label.silver { color: #c0c0c0; }
+    .ach-tier-label.gold { color: #ffd700; }
+    .ach-tier-label.platinum { color: #b4ffff; }
+
+    /* ===== TROPHIES ===== */
+    #trophy-header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    #trophy-title {
+      font-size: clamp(18px, 5vw, 28px);
+      color: #00eaff;
+      text-shadow: 0 0 20px rgba(0,234,255,0.4);
+      letter-spacing: 4px;
+      margin-bottom: 6px;
+    }
+    #trophy-count {
+      font-size: clamp(9px, 2vw, 12px);
+      color: rgba(0,234,255,0.5);
+      letter-spacing: 2px;
+    }
+    #trophy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+      width: min(90vw, 560px);
+      max-height: 55vh;
+      overflow-y: auto;
+      padding: 4px;
+    }
+    .trophy-tier-header {
+      grid-column: 1 / -1;
+      font-size: clamp(8px, 1.5vw, 10px);
+      letter-spacing: 3px;
+      padding: 8px 0 4px;
+      border-bottom: 1px solid rgba(0,234,255,0.15);
+      font-family: 'Press Start 2P', monospace;
+    }
+    .trophy-tier-header.bronze { color: #cd7f32; }
+    .trophy-tier-header.silver { color: #c0c0c0; }
+    .trophy-tier-header.gold { color: #ffd700; }
+    .trophy-tier-header.platinum { color: #b4ffff; }
+
+    .trophy-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 10px 8px;
+      text-align: center;
+      font-family: 'Press Start 2P', monospace;
+      transition: border-color .2s;
+    }
+    .trophy-card.locked { opacity: 0.4; filter: grayscale(0.7); }
+    .trophy-card.unlocked.bronze { border-color: rgba(205,127,50,0.4); background: rgba(205,127,50,0.06); }
+    .trophy-card.unlocked.silver { border-color: rgba(192,192,192,0.4); background: rgba(192,192,192,0.06); }
+    .trophy-card.unlocked.gold { border-color: rgba(255,215,0,0.4); background: rgba(255,215,0,0.06); }
+    .trophy-card.unlocked.platinum { border-color: rgba(180,255,255,0.4); background: rgba(180,255,255,0.06); }
+    .trophy-icon { font-size: 20px; margin-bottom: 4px; }
+    .trophy-name { font-size: 7px; color: #ddd; letter-spacing: 1px; margin-bottom: 3px; }
+    .trophy-desc { font-size: 6px; color: #777; letter-spacing: 0.5px; line-height: 1.5; }
+    .trophy-check { color: #44ff88; font-size: 10px; margin-top: 4px; }
+    .trophy-pbar-bg {
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    .trophy-pbar {
+      height: 100%;
+      border-radius: 2px;
+      transition: width .3s;
+    }
+    .trophy-pbar.bronze { background: linear-gradient(90deg, #cd7f32, #e8a84c); }
+    .trophy-pbar.silver { background: linear-gradient(90deg, #a0a0a0, #d0d0d0); }
+    .trophy-pbar.gold { background: linear-gradient(90deg, #daa520, #ffd700); }
+    .trophy-pbar.platinum { background: linear-gradient(90deg, #00eaff, #ff00ff); }
+
+    /* ===== GUIDE ===== */
+    .guide-title {
+      font-size: clamp(18px, 5vw, 28px);
+      color: #00eaff;
+      text-shadow: 0 0 20px rgba(0,234,255,0.4);
+      letter-spacing: 4px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    #guide-wrap {
+      width: min(88vw, 480px);
+      max-height: 55vh;
+      overflow-y: auto;
+      font-family: 'Press Start 2P', monospace;
+    }
+    .guide-section {
+      font-size: clamp(8px, 1.5vw, 10px);
+      color: #00eaff;
+      letter-spacing: 3px;
+      border-bottom: 1px solid rgba(0,234,255,0.2);
+      padding: 10px 0 4px;
+      margin-top: 8px;
+    }
+    .guide-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: clamp(7px, 1.3vw, 9px);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .guide-row .gl { color: #aab; }
+    .guide-row .gv { color: #fff; text-align: right; }
+    .guide-note {
+      font-size: clamp(6px, 1.1vw, 8px);
+      color: #556;
+      padding: 4px 0;
+      font-style: italic;
+    }
+
+    /* ===== SETTINGS ===== */
+    #settings-title {
+      font-size: clamp(18px, 5vw, 28px);
+      color: #00eaff;
+      text-shadow: 0 0 20px rgba(0,234,255,0.4);
+      letter-spacing: 4px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    #settings-list { width: min(80vw, 320px); }
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .setting-label {
+      font-size: clamp(9px, 1.8vw, 12px);
+      letter-spacing: 2px;
+      color: #aab;
+      font-family: 'Press Start 2P', monospace;
+    }
+    .setting-toggle {
+      padding: 6px 18px;
+      font-size: clamp(9px, 1.5vw, 11px);
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      border-radius: 3px;
+      font-family: 'Press Start 2P', monospace;
+      transition: all .2s;
+      border: 1px solid rgba(255,68,85,0.4);
+      color: #ff4455;
+      background: transparent;
+    }
+    .setting-toggle.on {
+      border-color: rgba(68,255,136,0.4);
+      color: #44ff88;
+    }
+
+    /* ===== PORTRAIT: hide overlays too ===== */
+    @media screen and (orientation: portrait) {
+      #overlay, #pause-overlay, #pause-btn, #achievement-toast { display: none !important; }
+    }
   </style>
 </head>
 
 <body>
   <div id="game-wrapper">
     <canvas id="gameCanvas"></canvas>
+
+    <!-- Pause button (visible during gameplay) -->
+    <button id="pause-btn">II</button>
+
+    <!-- Pause overlay -->
+    <div id="pause-overlay">
+      <div id="pause-title">PAUSED</div>
+      <button id="pause-resume" class="gv-btn">RESUME</button>
+      <div id="pause-hint"><span class="kh">P</span> / <span class="kh">ESC</span> to resume</div>
+    </div>
+
+    <!-- Achievement toast -->
+    <div id="achievement-toast">
+      <div id="ach-toast-icon"></div>
+      <div id="ach-toast-body">
+        <div id="ach-toast-label">ACHIEVEMENT UNLOCKED</div>
+        <div id="ach-toast-tier" class="ach-tier-label bronze"></div>
+        <div id="ach-toast-name"></div>
+      </div>
+    </div>
+
+    <!-- Main overlay (menu / game over) -->
+    <div id="overlay">
+      <div id="tab-bar">
+        <button class="tab-btn active" data-tab="play">PLAY</button>
+        <button class="tab-btn" data-tab="trophies">TROPHIES</button>
+        <button class="tab-btn" data-tab="guide">GUIDE</button>
+        <button class="tab-btn" data-tab="settings">SETTINGS</button>
+      </div>
+
+      <!-- PLAY TAB -->
+      <div id="tab-play" class="tab-content active">
+        <div id="game-title">BREAKOUT</div>
+        <div id="game-subtitle">NEON DRIFT</div>
+        <div id="menu-hiscore"></div>
+        <div id="final-level"></div>
+        <div id="final-score"></div>
+        <div id="best-score"></div>
+        <button id="start-btn" class="gv-btn">START</button>
+        <button id="continue-btn" class="gv-btn secondary" style="display:none">CONTINUE LEVEL</button>
+        <button id="menu-btn" class="gv-btn secondary" style="display:none">MENU</button>
+        <div id="instructions">
+          <span class="kh">&larr;</span> <span class="kh">&rarr;</span> / Mouse / Touch to move<br>
+          <span class="kh">SPACE</span> / Tap to launch &amp; shoot<br>
+          <span class="kh">P</span> <span class="kh">ESC</span> Pause
+        </div>
+        <div id="studio-credit">&copy; 2026 GameVolt</div>
+      </div>
+
+      <!-- TROPHIES TAB -->
+      <div id="tab-trophies" class="tab-content">
+        <div id="trophy-header">
+          <div id="trophy-title">TROPHIES</div>
+          <div id="trophy-count">0 / 31</div>
+        </div>
+        <div id="trophy-grid"></div>
+      </div>
+
+      <!-- GUIDE TAB -->
+      <div id="tab-guide" class="tab-content">
+        <div class="guide-title">HOW TO PLAY</div>
+        <div id="guide-wrap">
+          <div class="guide-section">CONTROLS</div>
+          <div class="guide-row"><span class="gl">Move paddle</span><span class="gv">&larr; &rarr; / Mouse / Touch</span></div>
+          <div class="guide-row"><span class="gl">Launch ball</span><span class="gv">SPACE / Tap</span></div>
+          <div class="guide-row"><span class="gl">Shoot laser</span><span class="gv">SPACE / Tap</span></div>
+          <div class="guide-row"><span class="gl">Pause</span><span class="gv">P / ESC</span></div>
+
+          <div class="guide-section">POWER-UPS</div>
+          <div class="guide-row"><span class="gl">W (Green)</span><span class="gv">Wide paddle</span></div>
+          <div class="guide-row"><span class="gl">M (Cyan)</span><span class="gv">Multiball x3</span></div>
+          <div class="guide-row"><span class="gl">L (Red)</span><span class="gv">Laser cannons</span></div>
+          <div class="guide-row"><span class="gl">S (Gold)</span><span class="gv">Floor shield</span></div>
+          <div class="guide-row"><span class="gl">&hearts; (Pink)</span><span class="gv">Extra life</span></div>
+
+          <div class="guide-section">SCORING</div>
+          <div class="guide-row"><span class="gl">Brick base</span><span class="gv">10 pts</span></div>
+          <div class="guide-row"><span class="gl">Combo bonus</span><span class="gv">+10 per hit</span></div>
+          <div class="guide-row"><span class="gl">Multiball</span><span class="gv">x balls active</span></div>
+          <div class="guide-row"><span class="gl">Level clear</span><span class="gv">+2000 pts</span></div>
+          <div class="guide-row"><span class="gl">Power-up</span><span class="gv">+500 pts</span></div>
+          <div class="guide-note">Combo resets when ball hits paddle</div>
+
+          <div class="guide-section">LEVELS</div>
+          <div class="guide-row"><span class="gl">10 unique designs</span><span class="gv">cycle with +HP</span></div>
+          <div class="guide-note">Paddle shrinks 5% each level. Ball speeds up.</div>
+        </div>
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div id="tab-settings" class="tab-content">
+        <div id="settings-title">SETTINGS</div>
+        <div id="settings-list">
+          <div class="setting-row">
+            <span class="setting-label">MUSIC</span>
+            <button id="music-btn" class="setting-toggle on">ON</button>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">SFX</span>
+            <button id="sfx-btn" class="setting-toggle on">ON</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="crt-overlay"></div>
     <div id="rotate-screen">
       <div class="rotate-icon">📱</div>
