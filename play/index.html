@@ -372,7 +372,7 @@
       100% { transform: rotate(0deg); }
     }
     @media screen and (max-width: 768px) and (orientation: portrait) {
-      .gv-rotate-overlay { display: flex; }
+      .gv-rotate-overlay.active { display: flex; }
     }
 
     /* ── Fullscreen state ── */
@@ -468,7 +468,7 @@
   <script>
     const GAMES = {
       snake:     { name: "Snake Neo",   category: "Arcade", path: "/snake/",      thumb: "/assets/thumbnails/snake.webp" },
-      breakout:  { name: "Breakout",    category: "Arcade", path: "/breakout/",   thumb: "/assets/thumbnails/breakout.webp" },
+      breakout:  { name: "Breakout",    category: "Arcade", path: "/breakout/",   thumb: "/assets/thumbnails/breakout.webp", landscape: true },
       taprush:   { name: "Tap Rush",    category: "Arcade", path: "/taprush/",    thumb: "/assets/thumbnails/taprush.webp" },
       solitaire: { name: "Solitaire",   category: "Board",  path: "/solitaire/",  thumb: "/assets/thumbnails/solitaire.webp" },
       connect4:  { name: "Connect 4",   category: "Board",  path: "/connect4/",   thumb: "/assets/thumbnails/connect4-thumbnail.webp" },
@@ -484,6 +484,7 @@
     const fsBtn = document.getElementById('fullscreenBtn');
     const gameArea = document.getElementById('gameArea');
     const sessionTimeEl = document.getElementById('sessionTime');
+    const rotateOverlay = document.getElementById('rotateOverlay');
 
     let currentGame = null;
     let sessionStart = null;
@@ -524,6 +525,9 @@
       nameEl.textContent = game.name;
       catEl.textContent = game.category;
       document.title = game.name + ' – Play Free on GameVolt';
+
+      // Show rotate overlay only for landscape-required games
+      rotateOverlay.classList.toggle('active', !!game.landscape);
 
       // Start session tracking
       if (window.GVTracker) {
