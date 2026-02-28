@@ -30,7 +30,7 @@ export default class AudioManager {
       
       // Powerups
       'extra_life': 'extra_life.mp3',
-      'multiball': 'muliball.mp3',
+      'multiball': 'multiball.mp3',
       'paddle_wide': 'paddle_extended.mp3',
       
       // NYA:

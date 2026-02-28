@@ -105,7 +105,7 @@ export class Ball {
     ctx.fillStyle = "#00eaff";
     
     // Liten glöd
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 5;
     ctx.shadowColor = "#00eaff";
     ctx.fill();
     ctx.shadowBlur = 0;

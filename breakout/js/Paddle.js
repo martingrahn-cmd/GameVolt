@@ -47,7 +47,7 @@ export default class Paddle {
     // --- LASER KANONER (Rita dessa underst om lasern är aktiv) ---
     if (this.game.laserActive) {
         ctx.fillStyle = "#ff0000";
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 5;
         ctx.shadowColor = "#ff0000";
         
         // Vänster kanon
@@ -57,10 +57,19 @@ export default class Paddle {
     }
 
     // --- PADDEL ---
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+    // Drop shadow (simple offset rect instead of expensive shadowBlur)
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(this.x + 2, this.y + 3, this.width, this.height, radius);
+    } else {
+      ctx.rect(this.x + 2, this.y + 3, this.width, this.height);
+    }
+    ctx.fill();
+
+    // Paddle body
     ctx.fillStyle = "#cccccc";
-    
     ctx.beginPath();
     if (ctx.roundRect) {
       ctx.roundRect(this.x, this.y, this.width, this.height, radius);
@@ -68,8 +77,6 @@ export default class Paddle {
       ctx.rect(this.x, this.y, this.width, this.height);
     }
     ctx.fill();
-    
-    ctx.shadowBlur = 0;
     ctx.clip(); 
 
     ctx.fillStyle = "#444444";

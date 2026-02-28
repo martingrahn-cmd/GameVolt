@@ -36,6 +36,9 @@ export default class Game {
     this.widePaddleActive = false;
     this.widePaddleTimer = 0;
 
+    this.shakeTime = 0;
+    this.shakeMagnitude = 0;
+
     this.bgImage = new Image();
     this.bgImage.src = "assets/images/grid_bg.png"; 
     this.scanlineY = 0;
@@ -308,6 +311,7 @@ export default class Game {
     this.scanlineY += this.scanlineSpeed * gameDt;
     if (this.scanlineY > this.height) this.scanlineY = -50; 
 
+    this.input.updateKeyboard(gameDt);
     this.paddle.update(gameDt);
     
     this.balls.forEach(b => {
@@ -402,7 +406,7 @@ export default class Game {
     if (this.state === 'running') {
         if (this.safetyFloorActive) {
             ctx.save();
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 10;
             ctx.shadowColor = "#ffd700"; 
             ctx.strokeStyle = "#ffd700";
             ctx.lineWidth = 4;

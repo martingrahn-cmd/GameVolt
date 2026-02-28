@@ -14,6 +14,34 @@ export default class InputHandler {
     // Mus
     window.addEventListener('mousedown', (e) => this.handleUnlock(e));
     window.addEventListener('mousemove', (e) => this.onMove(e));
+
+    // Keyboard
+    this.keys = {};
+    this.keyboardActive = false;
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        this.keys[e.key] = true;
+        this.keyboardActive = true;
+        if (e.key === ' ') this.onPress(e);
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === ' ') {
+        this.keys[e.key] = false;
+      }
+    });
+  }
+
+  updateKeyboard(dt) {
+    if (!this.keyboardActive || this.game.state !== 'running') return;
+    const speed = this.game.width * 0.8;
+    if (this.keys['ArrowLeft']) {
+      this.game.paddle.moveTo(this.game.paddle.x + this.game.paddle.width / 2 - speed * dt);
+    }
+    if (this.keys['ArrowRight']) {
+      this.game.paddle.moveTo(this.game.paddle.x + this.game.paddle.width / 2 + speed * dt);
+    }
   }
 
   handleUnlock(e) {

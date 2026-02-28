@@ -19,7 +19,7 @@ export default class Laser {
   draw(ctx) {
     ctx.save();
     ctx.fillStyle = "#ff0000"; // Röd laser
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = 8;
     ctx.shadowColor = "#ff0000";
     ctx.fillRect(this.x, this.y, this.width, this.height);
     

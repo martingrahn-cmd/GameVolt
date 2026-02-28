@@ -2,12 +2,16 @@ export default class HUD {
   constructor(game) {
     this.game = game;
     this.blinkTimer = 0;
-    
+
     // Knappar för Game Over
     this.buttons = {
         restart: { x: 0, y: 0, w: 280, h: 50 },
         continue: { x: 0, y: 0, w: 280, h: 50 }
     };
+
+    // Cached heart (offscreen canvas — avoids bezier + shadowBlur every frame)
+    this._heartCache = null;
+    this._heartSize = 0;
   }
 
   update(dt) {
@@ -135,8 +139,8 @@ export default class HUD {
     this.buttons.restart.w = btnW;
     this.buttons.restart.h = btnH;
 
-    this.drawButton(ctx, this.buttons.continue, "CONTINUE (3 LIVES)", "#00eaff");
-    this.drawButton(ctx, this.buttons.restart, "RESTART GAME", "#ff4444");
+    this.drawButton(ctx, this.buttons.continue, "RETRY LEVEL (0 PTS)", "#00eaff");
+    this.drawButton(ctx, this.buttons.restart, "RESTART FROM LVL 1", "#ff4444");
   }
 
   drawButton(ctx, btn, text, color) {
@@ -194,19 +198,40 @@ export default class HUD {
     }
   }
 
+  _buildHeartCache(size) {
+    // Render heart once to offscreen canvas (with glow baked in)
+    var pad = 10; // extra space for shadow glow
+    var c = document.createElement('canvas');
+    c.width = size + pad * 2;
+    c.height = size + pad * 2;
+    var cx = c.getContext('2d');
+
+    cx.fillStyle = "#ff00ff";
+    cx.shadowBlur = 12;
+    cx.shadowColor = "#ff00ff";
+
+    var ox = size / 2 + pad; // center x
+    var oy = pad;            // top
+    var topCurveHeight = size * 0.3;
+
+    cx.beginPath();
+    cx.moveTo(ox, oy + topCurveHeight);
+    cx.bezierCurveTo(ox, oy, ox - size / 2, oy, ox - size / 2, oy + topCurveHeight);
+    cx.bezierCurveTo(ox - size / 2, oy + (size + topCurveHeight) / 2, ox, oy + (size + topCurveHeight) / 2, ox, oy + size);
+    cx.bezierCurveTo(ox, oy + (size + topCurveHeight) / 2, ox + size / 2, oy + (size + topCurveHeight) / 2, ox + size / 2, oy + topCurveHeight);
+    cx.bezierCurveTo(ox + size / 2, oy, ox, oy, ox, oy + topCurveHeight);
+    cx.fill();
+
+    this._heartCache = c;
+    this._heartSize = size;
+    this._heartPad = pad;
+  }
+
   drawHeart(ctx, x, y, size) {
-    ctx.save();
-    ctx.fillStyle = "#ff00ff";
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = "#ff00ff";
-    ctx.beginPath();
-    const topCurveHeight = size * 0.3;
-    ctx.moveTo(x, y + topCurveHeight);
-    ctx.bezierCurveTo(x, y, x - size / 2, y, x - size / 2, y + topCurveHeight);
-    ctx.bezierCurveTo(x - size / 2, y + (size + topCurveHeight) / 2, x, y + (size + topCurveHeight) / 2, x, y + size);
-    ctx.bezierCurveTo(x, y + (size + topCurveHeight) / 2, x + size / 2, y + (size + topCurveHeight) / 2, x + size / 2, y + topCurveHeight);
-    ctx.bezierCurveTo(x + size / 2, y, x, y, x, y + topCurveHeight);
-    ctx.fill();
-    ctx.restore();
+    if (!this._heartCache || this._heartSize !== size) {
+      this._buildHeartCache(size);
+    }
+    // Draw cached heart image (no shadowBlur, no bezier per frame)
+    ctx.drawImage(this._heartCache, x - size / 2 - this._heartPad, y - this._heartPad);
   }
 }
