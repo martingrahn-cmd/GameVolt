@@ -295,9 +295,8 @@
 
       .gv-game-area {
         flex: none;
-        height: calc(100vw * 0.65 + var(--bar-h));
-        min-height: 300px;
-        max-height: calc(100vh - var(--header-h));
+        height: calc(100vh - var(--header-h));
+        height: calc(100dvh - var(--header-h));
       }
 
       .gv-sidebar {
@@ -343,6 +342,39 @@
       }
     }
 
+    /* ── Portrait orientation overlay ── */
+    .gv-rotate-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #050010;
+      z-index: 9999;
+      color: #00eaff;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      font-family: 'Nunito', sans-serif;
+    }
+    .gv-rotate-icon {
+      font-size: 60px;
+      animation: gvRotateAnim 2s infinite ease-in-out;
+    }
+    .gv-rotate-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.6;
+    }
+    @keyframes gvRotateAnim {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(-90deg); }
+      100% { transform: rotate(0deg); }
+    }
+    @media screen and (max-width: 768px) and (orientation: portrait) {
+      .gv-rotate-overlay { display: flex; }
+    }
+
     /* ── Fullscreen state ── */
     .gv-game-area:fullscreen,
     .gv-game-area:-webkit-full-screen {
@@ -381,6 +413,12 @@
   </style>
 </head>
 <body>
+
+  <!-- Rotate overlay (mobile portrait) -->
+  <div class="gv-rotate-overlay" id="rotateOverlay">
+    <div class="gv-rotate-icon">📱</div>
+    <div class="gv-rotate-text">ROTATE YOUR DEVICE<br>FOR THE BEST EXPERIENCE</div>
+  </div>
 
   <!-- Header -->
   <header class="gv-header">
