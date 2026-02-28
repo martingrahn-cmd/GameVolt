@@ -140,7 +140,6 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       border: none;
-      touch-action: none;
     }
 
     /* ── Game bar ── */
@@ -709,6 +708,12 @@
           break;
       }
     });
+
+    // Prevent parent scroll when touching iframe area (mobile)
+    var iframeWrap = document.getElementById('iframeWrap');
+    iframeWrap.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+    }, { passive: false });
 
     // Back/forward navigation
     window.addEventListener('popstate', (e) => {
