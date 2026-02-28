@@ -342,6 +342,16 @@
       }
     }
 
+    /* ── Mobile landscape: hide header + sidebar for max game area ── */
+    @media (max-height: 500px) {
+      .gv-header { display: none; }
+      .gv-main { top: 0; }
+      .gv-sidebar { display: none; }
+      .gv-game-area { flex: 1; height: 100vh; height: 100dvh; }
+      .gv-game-bar { height: 32px; }
+      .gv-game-bar .gv-game-name { font-size: 0.8rem; }
+    }
+
     /* ── Portrait orientation overlay ── */
     .gv-rotate-overlay {
       display: none;
