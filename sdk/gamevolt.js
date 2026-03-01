@@ -9,7 +9,7 @@
 
   // TODO: Replace with your Supabase project credentials
   var SUPABASE_URL = 'https://nwkjayseuhvvpkdgpivm.supabase.co';
-  var SUPABASE_KEY = 'sb_publishable_o6lV-mGl4cFi5GR4virDjw_j8dJ8rUv';
+  var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a2pheXNldWh2dnBrZGdwaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzQxMzYsImV4cCI6MjA4Nzk1MDEzNn0.lGCRdYlgxWJlzM6_XpML3f8AKUJG3tLmzNRLTPR0TnU';
   var SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
 
   var sb = null; // Supabase client
