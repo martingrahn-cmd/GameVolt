@@ -35,6 +35,8 @@ export default class UIManager {
     this.menuHiscore = document.getElementById('menu-hiscore');
     this.trophyGrid = document.getElementById('trophy-grid');
     this.trophyCount = document.getElementById('trophy-count');
+    this.scoresList = document.getElementById('scores-list');
+    this.scoresEmpty = document.getElementById('scores-empty');
     this.musicBtn = document.getElementById('music-btn');
     this.sfxBtn = document.getElementById('sfx-btn');
     this.pauseResume = document.getElementById('pause-resume');
@@ -74,6 +76,7 @@ export default class UIManager {
     document.querySelectorAll('.tab-content').forEach(c =>
       c.classList.toggle('active', c.id === 'tab-' + name)
     );
+    if (name === 'scores') this.renderScores();
     if (name === 'trophies') this.renderTrophyGrid();
   }
 
@@ -106,6 +109,7 @@ export default class UIManager {
     this.boData.totalBricks += (this.pg.bricksThisGame || 0);
     if (g.score > this.boData.bestScore) this.boData.bestScore = g.score;
     if (g.level > this.boData.bestLevel) this.boData.bestLevel = g.level;
+    this.saveScore(g.score, g.level);
     saveBOData(this.boData);
 
     // Check endgame achievements
@@ -233,6 +237,43 @@ export default class UIManager {
 
     this.trophyGrid.innerHTML = html;
     this.trophyCount.textContent = unlockCount + ' / ' + ACHIEVEMENTS.length;
+  }
+
+  // --- SCORES ---
+
+  saveScore(score, level) {
+    var entry = { score: score, level: level, date: Date.now() };
+    this.boData.scores.push(entry);
+    this.boData.scores.sort(function(a, b) { return b.score - a.score; });
+    if (this.boData.scores.length > 10) this.boData.scores.length = 10;
+    this._lastSavedScore = entry;
+    saveBOData(this.boData);
+  }
+
+  renderScores() {
+    var scores = this.boData.scores;
+    if (!scores || scores.length === 0) {
+      this.scoresList.innerHTML = '';
+      this.scoresEmpty.style.display = '';
+      return;
+    }
+    this.scoresEmpty.style.display = 'none';
+    var html = '';
+    for (var i = 0; i < scores.length; i++) {
+      var s = scores[i];
+      var isNew = this._lastSavedScore && s.date === this._lastSavedScore.date && s.score === this._lastSavedScore.score;
+      var d = new Date(s.date);
+      var dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      html += '<div class="score-row' + (isNew ? ' new' : '') + '">';
+      html += '<div class="score-rank">' + (i + 1) + '.</div>';
+      html += '<div class="score-info">';
+      html += '<div class="score-val">' + s.score.toLocaleString() + '</div>';
+      html += '<div class="score-meta">LVL ' + s.level + '</div>';
+      html += '</div>';
+      html += '<div class="score-date">' + dateStr + '</div>';
+      html += '</div>';
+    }
+    this.scoresList.innerHTML = html;
   }
 
   // --- ACHIEVEMENT TOAST ---

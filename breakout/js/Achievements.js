@@ -49,6 +49,7 @@ function defaultData() {
     totalBricks: 0,
     bestScore: 0,
     bestLevel: 0,
+    scores: [],
     unlocked: {}
   };
   for (var i = 0; i < ACHIEVEMENTS.length; i++) {
@@ -62,7 +63,8 @@ export function loadBOData() {
     var raw = localStorage.getItem(BO_KEY);
     if (raw) {
       var d = JSON.parse(raw);
-      // Migration: add any new achievement ids
+      // Migration: add any new fields
+      if (!d.scores) d.scores = [];
       for (var i = 0; i < ACHIEVEMENTS.length; i++) {
         if (!(ACHIEVEMENTS[i].id in d.unlocked)) d.unlocked[ACHIEVEMENTS[i].id] = 0;
       }

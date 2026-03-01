@@ -6,7 +6,10 @@ export default class InputHandler {
     // Touch (listen on window for full-screen touch support)
     window.addEventListener('touchstart', (e) => this.handleUnlock(e), {passive: false});
     window.addEventListener('touchmove', (e) => this.onMove(e), {passive: false});
-    window.addEventListener('touchend', (e) => e.preventDefault(), {passive: false});
+    window.addEventListener('touchend', (e) => {
+      if (e.target.closest('#overlay, #pause-overlay, #pause-btn')) return;
+      if (e.cancelable) e.preventDefault();
+    }, {passive: false});
 
     // Mouse
     window.addEventListener('mousedown', (e) => this.handleUnlock(e));
@@ -75,6 +78,8 @@ export default class InputHandler {
   }
 
   onMove(e) {
+    // Let overlay handle its own touch events (scroll etc.)
+    if (e.target.closest('#overlay, #pause-overlay')) return;
     if (e.cancelable) e.preventDefault();
     if (this.game.state !== 'running' || this.game.paused) return;
 
