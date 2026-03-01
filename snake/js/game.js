@@ -563,25 +563,21 @@ export class Game {
             this.hud.setPauseButtonVisible(false);
         }
         
-        // Check for highscore (skip if score is 0)
-        if (stats.score > 0 && this.highscoreManager.isHighscore(stats.score)) {
-            // Play new highscore sound
+        // Auto-save score (skip if 0)
+        let position = 0;
+        if (stats.score > 0) {
+            position = this.highscoreManager.addScore(stats.score, this.currentLevelIndex);
+        }
+
+        if (position > 0) {
+            // New highscore — play sound, show list
             if (window.audioNeoSFX) window.audioNeoSFX.newHighscore();
-            
-            this.highscoreEntryScreen.show(
-                stats.score,
-                this.currentLevelIndex,
-                (position) => {
-                    // After entering name, show highscore list with new entry highlighted
-                    this.highscoreListScreen.show(() => {
-                        this._showGameOverScreen(stats);
-                    }, position);
-                }
-            );
+            this.highscoreListScreen.show(() => {
+                this._showGameOverScreen(stats);
+            }, position);
         } else {
-            // Play game over sound
+            // No highscore — game over directly
             if (window.audioNeoSFX) window.audioNeoSFX.gameOver();
-            
             this._showGameOverScreen(stats);
         }
     }

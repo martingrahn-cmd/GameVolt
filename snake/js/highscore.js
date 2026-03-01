@@ -44,9 +44,8 @@ export class HighscoreManager {
     }
 
     // Add a new score (returns position 1-10, or 0 if not on list)
-    addScore(name, score, level, stats = {}) {
+    addScore(score, level, stats = {}) {
         const entry = {
-            name: name.substring(0, 10).toUpperCase(),
             score,
             level,
             date: Date.now(),
@@ -126,183 +125,13 @@ export class HighscoreManager {
 }
 
 // ============================================================
-// Highscore Entry Screen
+// Highscore Entry Screen (legacy stub — name entry removed)
 // ============================================================
 
 export class HighscoreEntryScreen {
-    constructor(highscoreManager) {
-        this.manager = highscoreManager;
-        this.overlay = null;
-        this.isShowing = false;
-        
-        this.score = 0;
-        this.level = 1;
-        this.name = "";
-        this.maxNameLength = 10;
-        
-        this.onComplete = null;
-        
-        this._createOverlay();
-        this._boundKeyHandler = this._handleKey.bind(this);
-    }
-
-    _createOverlay() {
-        this.overlay = document.createElement("div");
-        this.overlay.id = "highscore-entry-overlay";
-        this.overlay.style.cssText = `
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1001;
-            font-family: 'Courier New', monospace;
-        `;
-        
-        this.overlay.innerHTML = `
-            <div class="hs-container" style="text-align: center; color: #0ff;">
-                <div class="hs-title" style="
-                    font-size: 2.5em;
-                    font-weight: bold;
-                    text-shadow: 0 0 20px #ff0, 0 0 40px #ff0;
-                    margin-bottom: 20px;
-                    letter-spacing: 4px;
-                    color: #ff0;
-                ">NEW HIGHSCORE!</div>
-                
-                <div class="hs-score" style="
-                    font-size: 3em;
-                    color: #0f0;
-                    text-shadow: 0 0 20px #0f0;
-                    margin-bottom: 40px;
-                "></div>
-                
-                <div style="
-                    font-size: 1.4em;
-                    margin-bottom: 20px;
-                    color: #888;
-                ">ENTER YOUR NAME:</div>
-                
-                <!-- Real input for mobile keyboard -->
-                <input type="text" class="hs-input" maxlength="10" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="
-                    font-family: 'Courier New', monospace;
-                    font-size: 2.5em;
-                    letter-spacing: 8px;
-                    text-align: center;
-                    background: transparent;
-                    border: none;
-                    border-bottom: 3px solid #0ff;
-                    color: #0ff;
-                    padding: 10px 20px;
-                    min-width: 200px;
-                    outline: none;
-                    text-transform: uppercase;
-                    caret-color: #0ff;
-                " />
-                
-                <!-- OK Button for mobile -->
-                <button class="hs-ok-btn" style="
-                    display: block;
-                    margin: 30px auto 0;
-                    padding: 15px 60px;
-                    font-family: 'Courier New', monospace;
-                    font-size: 1.5em;
-                    font-weight: bold;
-                    background: #0ff;
-                    color: #000;
-                    border: none;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    text-transform: uppercase;
-                    letter-spacing: 4px;
-                ">OK</button>
-                
-                <div style="
-                    font-size: 0.9em;
-                    color: #555;
-                    margin-top: 15px;
-                ">TAP OK WHEN DONE</div>
-            </div>
-            
-            <style>
-                .hs-input::placeholder {
-                    color: #444;
-                }
-                .hs-ok-btn:active {
-                    background: #0aa;
-                    transform: scale(0.98);
-                }
-            </style>
-        `;
-        
-        document.body.appendChild(this.overlay);
-    }
-
-    _handleKey(e) {
-        if (!this.isShowing) return;
-        
-        // Enter = confirm
-        if (e.key === "Enter") {
-            const input = this.overlay.querySelector(".hs-input");
-            if (input.value.length > 0) {
-                e.preventDefault();
-                this._submit();
-            }
-            return;
-        }
-    }
-
-    _submit() {
-        const input = this.overlay.querySelector(".hs-input");
-        const name = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
-        
-        if (name.length === 0) return;
-        
-        const position = this.manager.addScore(name, this.score, this.level);
-        this.hide();
-        
-        if (this.onComplete) {
-            this.onComplete(position);
-        }
-    }
-
-    show(score, level, onComplete) {
-        this.score = score;
-        this.level = level;
-        this.onComplete = onComplete;
-        
-        // Update score display
-        this.overlay.querySelector(".hs-score").textContent = score.toLocaleString();
-        
-        // Reset and focus input
-        const input = this.overlay.querySelector(".hs-input");
-        input.value = "";
-        
-        // Setup OK button handler
-        const okBtn = this.overlay.querySelector(".hs-ok-btn");
-        okBtn.onclick = () => this._submit();
-        
-        this.overlay.style.display = "flex";
-        this.isShowing = true;
-        
-        // Focus input after a short delay (for mobile)
-        setTimeout(() => {
-            input.focus();
-        }, 100);
-        
-        window.addEventListener("keydown", this._boundKeyHandler);
-    }
-
-    hide() {
-        this.overlay.style.display = "none";
-        this.isShowing = false;
-        window.removeEventListener("keydown", this._boundKeyHandler);
-        
-        // Blur input to hide mobile keyboard
-        const input = this.overlay.querySelector(".hs-input");
-        if (input) input.blur();
-    }
+    constructor() { this.isShowing = false; }
+    show() {}
+    hide() {}
 }
 
 // ============================================================
@@ -487,59 +316,60 @@ export class HighscoreListScreen {
         const listEl = this.overlay.querySelector(".hsl-list");
         const emptyEl = this.overlay.querySelector(".hsl-empty");
         const scrollHint = this.overlay.querySelector(".hsl-scroll-hint");
-        
+
         if (scores.length === 0) {
             listEl.style.display = "none";
             emptyEl.style.display = "block";
             scrollHint.style.display = "none";
             return;
         }
-        
+
         listEl.style.display = "block";
         emptyEl.style.display = "none";
-        
-        // Show scroll hint if many entries
         scrollHint.style.display = scores.length > 6 ? "block" : "none";
-        
+
         let html = '';
-        
-        // Build the list
+
         scores.forEach((s, i) => {
             const pos = i + 1;
             const isHighlight = pos === newPosition;
             const isTop3 = pos <= 3;
-            
+
             const posStr = pos.toString().padStart(2, " ");
-            const name = s.name.padEnd(10, " ");
             const score = s.score.toLocaleString().padStart(10, " ");
             const lvl = s.level ? `L${s.level}` : '';
-            
+
+            // Date string
+            const d = new Date(s.date || 0);
+            const dateStr = s.date ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : '';
+
             // Color based on position
             let color;
-            if (pos === 1) color = "#ffd700"; // Gold
-            else if (pos === 2) color = "#c0c0c0"; // Silver
-            else if (pos === 3) color = "#cd7f32"; // Bronze
-            else if (isHighlight) color = "#0ff";
+            if (pos === 1) color = "#ffd700";
+            else if (pos === 2) color = "#c0c0c0";
+            else if (pos === 3) color = "#cd7f32";
             else color = "#0ff";
-            
+
             const classes = ['hsl-entry'];
             if (isHighlight) classes.push('highlight');
             if (isTop3) classes.push('top3');
-            
-            // Medal emoji for top 3
+
             let medal = '';
             if (pos === 1) medal = '🥇 ';
             else if (pos === 2) medal = '🥈 ';
             else if (pos === 3) medal = '🥉 ';
-            
-            html += `<div class="${classes.join(' ')}" style="color: ${color};">
-                <span style="color: #888;">${posStr}.</span> ${medal}${name} ${score} <span style="color: #666;">${lvl}</span>
+
+            html += `<div class="${classes.join(' ')}" style="color: ${color}; display: flex; align-items: center; gap: 8px;">
+                <span style="color: #888; min-width: 28px;">${posStr}.</span>
+                <span>${medal}</span>
+                <span style="flex: 1;">${score}</span>
+                <span style="color: #666; font-size: 0.8em;">${lvl}</span>
+                <span style="color: #555; font-size: 0.75em;">${dateStr}</span>
             </div>`;
         });
-        
+
         listEl.innerHTML = html;
-        
-        // Scroll to highlighted entry
+
         if (newPosition > 0) {
             setTimeout(() => {
                 const highlighted = listEl.querySelector('.highlight');

@@ -349,25 +349,22 @@ function patchGameForMode(mode) {
         // Game over for 16-bit
         Game.prototype._gameOver16bit = function() {
             this.state = "gameover";
-            
+
             if (window.audioNeoSFX) window.audioNeoSFX.gameOver();
-            
+
             const stats = this.scoring.getFinalStats();
-            
-            // Check highscore
-            if (this.highscoreManager.isHighscore(stats.score)) {
+
+            // Auto-save score
+            let position = 0;
+            if (stats.score > 0) {
+                position = this.highscoreManager.addScore(stats.score, stats.bestChain);
+            }
+
+            if (position > 0) {
                 if (window.audioNeoSFX) window.audioNeoSFX.newHighscore();
-                
-                this.highscoreEntryScreen.show(
-                    stats.score,
-                    stats.bestChain,
-                    (position) => {
-                        // Show highscore list with new entry highlighted
-                        this.highscoreListScreen.show(() => {
-                            gameOver16bit.show(stats, () => this._restart16bit(), () => this._returnToMenu());
-                        }, position);
-                    }
-                );
+                this.highscoreListScreen.show(() => {
+                    gameOver16bit.show(stats, () => this._restart16bit(), () => this._returnToMenu());
+                }, position);
             } else {
                 gameOver16bit.show(stats, () => this._restart16bit(), () => this._returnToMenu());
             }
