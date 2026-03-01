@@ -65,3 +65,37 @@ function init() {
 }
 
 init();
+
+// GameVolt SDK integration
+if (window.GameVolt) {
+  GameVolt.init('breakout');
+  GameVolt.save.registerMigration({
+    keys: ['bo_data'],
+    merge: function(local, cloud) {
+      var l = local['bo_data'] || {};
+      var c = cloud || {};
+      return {
+        totalGames: Math.max(l.totalGames || 0, c.totalGames || 0),
+        totalBricks: Math.max(l.totalBricks || 0, c.totalBricks || 0),
+        bestScore: Math.max(l.bestScore || 0, c.bestScore || 0),
+        bestLevel: Math.max(l.bestLevel || 0, c.bestLevel || 0),
+        scores: (l.scores && l.scores.length > 0) ? l.scores : (c.scores || []),
+        unlocked: Object.assign({}, c.unlocked || {}, l.unlocked || {})
+      };
+    },
+    getScores: function(local) {
+      var d = local['bo_data'];
+      if (!d || !d.scores || d.scores.length === 0) return [];
+      return [{ score: d.scores[0].score, mode: 'default' }];
+    },
+    getAchievements: function(local) {
+      var d = local['bo_data'];
+      if (!d || !d.unlocked) return [];
+      var out = [];
+      for (var id in d.unlocked) {
+        if (d.unlocked[id]) out.push({ id: id, unlocked_at: d.unlocked[id] });
+      }
+      return out;
+    }
+  });
+}

@@ -230,6 +230,7 @@
     #bonus-pop{font-size:22px}
   }
 </style>
+<script src="/sdk/gamevolt.js"></script>
 </head>
 <body>
 <div id="hud">
@@ -457,6 +458,44 @@ function loadHDData(){
 }
 function saveHDData(){try{localStorage.setItem(HD_KEY,JSON.stringify(hdData));}catch(e){}}
 let hdData=loadHDData();
+
+// GameVolt SDK integration
+if(window.GameVolt){
+  GameVolt.init('hoverdash');
+  GameVolt.save.registerMigration({
+    keys:['hd_data'],
+    merge:function(local,cloud){
+      var l=local['hd_data']||{};
+      var c=cloud||{};
+      return{
+        totalGames:Math.max(l.totalGames||0,c.totalGames||0),
+        totalCoins:Math.max(l.totalCoins||0,c.totalCoins||0),
+        totalShields:Math.max(l.totalShields||0,c.totalShields||0),
+        totalMagnets:Math.max(l.totalMagnets||0,c.totalMagnets||0),
+        totalBoosts:Math.max(l.totalBoosts||0,c.totalBoosts||0),
+        totalRamps:Math.max(l.totalRamps||0,c.totalRamps||0),
+        bestMeters:Math.max(l.bestMeters||0,c.bestMeters||0),
+        bestScore:Math.max(l.bestScore||0,c.bestScore||0),
+        dailyCount:Math.max(l.dailyCount||0,c.dailyCount||0),
+        lastDailyDate:l.lastDailyDate||c.lastDailyDate||'',
+        scores:(l.scores&&l.scores.length>0)?l.scores:(c.scores||[]),
+        unlocked:Object.assign({},c.unlocked||{},l.unlocked||{})
+      };
+    },
+    getScores:function(local){
+      var d=local['hd_data'];
+      if(!d||!d.scores||d.scores.length===0) return[];
+      return[{score:d.scores[0].score,mode:'default'}];
+    },
+    getAchievements:function(local){
+      var d=local['hd_data'];
+      if(!d||!d.unlocked) return[];
+      var out=[];
+      for(var id in d.unlocked){if(d.unlocked[id])out.push({id:id,unlocked_at:d.unlocked[id]});}
+      return out;
+    }
+  });
+}
 
 // Score list
 let _lastSavedScore=null;
@@ -2217,6 +2256,7 @@ function tryUnlock(ach){
   hdData.unlocked[ach.id]=Date.now();saveHDData();
   showAchToast(ach);playAchSFX();
   gvPost('achievement',{id:ach.id,name:ach.name});
+  if(window.GameVolt) GameVolt.achievements.unlock(ach.id);
   return true;
 }
 
@@ -2258,6 +2298,7 @@ function die(){
   const isNewBest=finalScore>=bestScore;
   gvPost('game_over',{score:finalScore,mode:'default',stats:{meters:m,coins:coinScore}});
   if(isNewBest) gvPost('high_score',{score:finalScore,mode:'default'});
+  if(window.GameVolt) GameVolt.leaderboard.submit(finalScore,{mode:'default'});
   setTimeout(()=>{playGameOverSFX();if(isNewBest)setTimeout(playHighScoreSFX,500);},400);
   document.getElementById('overlay').classList.remove('hidden');
   switchTab('play');

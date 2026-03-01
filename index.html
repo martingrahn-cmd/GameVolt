@@ -271,6 +271,12 @@
             background-clip: text;
         }
 
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .nav-links {
             display: flex;
             gap: 8px;
@@ -289,6 +295,47 @@
             background: var(--bg-glass);
             color: var(--primary-light);
         }
+
+        #gv-user-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 8px;
+        }
+
+        .gv-login-btn {
+            padding: 8px 20px;
+            background: var(--bg-gradient);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: opacity 0.2s;
+        }
+
+        .gv-login-btn:hover { opacity: 0.85; }
+
+        .gv-username {
+            color: var(--primary-light);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .gv-logout-btn {
+            padding: 4px 12px;
+            background: none;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-medium);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gv-logout-btn:hover { border-color: var(--text-medium); color: #fff; }
 
         /* Hero Section */
         .hero {
@@ -905,11 +952,20 @@
                 <div class="logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
                 <span class="logo-text">GameVolt</span>
             </a>
-            <nav class="nav-links">
-                <a href="#games" class="nav-link">Games</a>
-                <a href="/about/" class="nav-link">About</a>
-                <a href="/contact/" class="nav-link">Contact</a>
-            </nav>
+            <div class="header-right">
+                <nav class="nav-links">
+                    <a href="#games" class="nav-link">Games</a>
+                    <a href="/about/" class="nav-link">About</a>
+                    <a href="/contact/" class="nav-link">Contact</a>
+                </nav>
+                <div id="gv-user-area">
+                    <button id="gv-login-btn" class="gv-login-btn" onclick="if(window.GameVolt)GameVolt.auth.login()">LOG IN</button>
+                    <div id="gv-user-info" style="display:none">
+                        <span id="gv-username" class="gv-username"></span>
+                        <button id="gv-logout-btn" class="gv-logout-btn" onclick="if(window.GameVolt)GameVolt.auth.logout()">Log out</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
     
@@ -1225,6 +1281,25 @@
     </footer>
 
     <script src="/js/gv-tracker.js"></script>
+    <script src="/sdk/gamevolt.js"></script>
+    <script>
+    if (window.GameVolt) {
+        GameVolt.init('portal');
+        GameVolt.auth.onStateChange(function(user) {
+            var loginBtn = document.getElementById('gv-login-btn');
+            var userInfo = document.getElementById('gv-user-info');
+            var usernameEl = document.getElementById('gv-username');
+            if (user) {
+                loginBtn.style.display = 'none';
+                userInfo.style.display = 'flex';
+                usernameEl.textContent = user.username || user.email || 'Player';
+            } else {
+                loginBtn.style.display = '';
+                userInfo.style.display = 'none';
+            }
+        });
+    }
+    </script>
     <script>
     // Hover video preview on game cards
     document.querySelectorAll('.game-card[data-preview]').forEach(card => {

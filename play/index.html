@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="/js/gv-tracker.js"></script>
+  <script src="/sdk/gamevolt.js"></script>
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
@@ -96,6 +97,7 @@
       background-clip: text;
     }
 
+    .gv-header-right { display: flex; align-items: center; gap: 8px; }
     .gv-nav { display: flex; gap: 8px; align-items: center; }
 
     .gv-nav a {
@@ -495,10 +497,16 @@
         <span class="gv-logo-text">GameVolt</span>
       </a>
     </div>
-    <nav class="gv-nav">
-      <a href="/" class="gv-nav-desktop">Games</a>
-      <a href="/about/" class="gv-nav-desktop">About</a>
-    </nav>
+    <div class="gv-header-right">
+      <nav class="gv-nav">
+        <a href="/" class="gv-nav-desktop">Games</a>
+        <a href="/about/" class="gv-nav-desktop">About</a>
+      </nav>
+      <div id="gv-user-area" style="display:flex;align-items:center;gap:6px;margin-left:8px">
+        <button id="gv-login-btn" style="padding:6px 14px;background:linear-gradient(135deg,#6C5CE7,#00B4D8);color:#fff;border:none;border-radius:6px;font-weight:700;font-size:0.8rem;cursor:pointer;letter-spacing:1px" onclick="if(window.GameVolt)GameVolt.auth.login()">LOG IN</button>
+        <span id="gv-username" style="display:none;color:#00e5ff;font-weight:600;font-size:0.85rem"></span>
+      </div>
+    </div>
   </header>
 
   <!-- Main -->
@@ -727,6 +735,23 @@
       loadGame(gameKey);
     } else {
       window.location.href = '/';
+    }
+
+    // GameVolt SDK: init + auth state
+    if (window.GameVolt) {
+      GameVolt.init('player');
+      GameVolt.auth.onStateChange(function(user) {
+        var loginBtn = document.getElementById('gv-login-btn');
+        var usernameEl = document.getElementById('gv-username');
+        if (user) {
+          loginBtn.style.display = 'none';
+          usernameEl.style.display = '';
+          usernameEl.textContent = user.username || user.email || 'Player';
+        } else {
+          loginBtn.style.display = '';
+          usernameEl.style.display = 'none';
+        }
+      });
     }
   </script>
 </body>

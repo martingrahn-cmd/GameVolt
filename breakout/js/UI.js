@@ -120,6 +120,7 @@ export default class UIManager {
     if (g.score >= this.boData.bestScore) {
       gvPost('high_score', { score: g.score, mode: 'default' });
     }
+    if (window.GameVolt) GameVolt.leaderboard.submit(g.score, { mode: 'default' });
 
     this.overlay.classList.remove('hidden');
     this.pauseBtn.classList.remove('show');
@@ -330,6 +331,7 @@ export default class UIManager {
     if (ach) {
       this.showAchToast(ach);
       gvPost('achievement', { id: ach.id, name: ach.name, tier: ach.tier });
+      if (window.GameVolt) GameVolt.achievements.unlock(ach.id);
     }
 
     // Check platinum

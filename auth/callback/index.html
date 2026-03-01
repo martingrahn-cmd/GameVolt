@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signing in... — GameVolt</title>
+  <style>
+    body { margin: 0; background: #0a0a1a; color: #fff; font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .wrap { text-align: center; }
+    .logo { font-size: 22px; font-weight: bold; letter-spacing: 3px; color: #00e5ff; margin-bottom: 16px; }
+    .msg { color: #999; font-size: 14px; }
+    .error { color: #f44336; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">GAMEVOLT</div>
+    <p class="msg" id="msg">Signing you in...</p>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    // TODO: Replace with your Supabase credentials
+    var SUPABASE_URL = 'https://nwkjayseuhvvpkdgpivm.supabase.co';
+    var SUPABASE_KEY = 'sb_publishable_o6lV-mGl4cFi5GR4virDjw_j8dJ8rUv';
+
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    var msgEl = document.getElementById('msg');
+
+    // Supabase handles the code exchange automatically when it detects
+    // the auth params in the URL hash/query. We just need to wait for
+    // the session to be established.
+    sb.auth.getSession().then(function(res) {
+      if (res.data && res.data.session) {
+        msgEl.textContent = 'Signed in! Redirecting...';
+        // Redirect back to where user came from, or homepage
+        var returnTo = sessionStorage.getItem('gv_return_to') || '/';
+        sessionStorage.removeItem('gv_return_to');
+        setTimeout(function() { window.location.href = returnTo; }, 500);
+      } else if (res.error) {
+        msgEl.textContent = 'Sign-in failed: ' + res.error.message;
+        msgEl.className = 'msg error';
+      } else {
+        // No session yet — wait a moment for auth state change
+        sb.auth.onAuthStateChange(function(event, session) {
+          if (event === 'SIGNED_IN' && session) {
+            msgEl.textContent = 'Signed in! Redirecting...';
+            var returnTo = sessionStorage.getItem('gv_return_to') || '/';
+            sessionStorage.removeItem('gv_return_to');
+            setTimeout(function() { window.location.href = returnTo; }, 500);
+          }
+        });
+
+        // Timeout fallback
+        setTimeout(function() {
+          if (!msgEl.textContent.includes('Redirecting')) {
+            msgEl.textContent = 'Could not verify sign-in. Redirecting home...';
+            setTimeout(function() { window.location.href = '/'; }, 1500);
+          }
+        }, 5000);
+      }
+    });
+  </script>
+</body>
+</html>
