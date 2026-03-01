@@ -142,6 +142,19 @@
   .tab-content.active{display:flex}
   /* TROPHIES */
   #trophy-header{text-align:center;margin-bottom:12px}
+  #scores-title{font-size:clamp(28px,6vw,42px);font-weight:900;color:#00e5ff;text-shadow:0 0 20px #00e5ff66;letter-spacing:4px;margin-bottom:14px;text-align:center}
+  #scores-list{width:min(90vw,420px)}
+  #scores-empty{font-size:12px;color:#556;letter-spacing:1px;text-align:center}
+  .score-row{display:flex;align-items:center;padding:8px 10px;border-bottom:1px solid #ffffff0d}
+  .score-row.new{background:#00e5ff0f}
+  .score-rank{width:28px;font-size:clamp(12px,2vw,14px);color:#556;flex-shrink:0}
+  .score-row:nth-child(1) .score-rank{color:#ffd700}
+  .score-row:nth-child(2) .score-rank{color:#c0c0c0}
+  .score-row:nth-child(3) .score-rank{color:#cd7f32}
+  .score-info{flex:1;min-width:0}
+  .score-val{font-size:clamp(12px,2.5vw,16px);color:#eee;letter-spacing:1px}
+  .score-meta{font-size:clamp(8px,1.5vw,10px);color:#556;margin-top:2px;letter-spacing:0.5px}
+  .score-date{font-size:clamp(9px,1.5vw,11px);color:#445;flex-shrink:0;margin-left:10px}
   #trophy-title{font-size:clamp(28px,6vw,42px);font-weight:900;color:#00e5ff;text-shadow:0 0 20px #00e5ff66;letter-spacing:4px}
   #trophy-count{font-size:14px;color:#00e5ff88;letter-spacing:2px;margin-top:4px}
   #trophy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;max-height:58vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:8px;width:min(92vw,540px);scrollbar-width:thin;scrollbar-color:#00e5ff33 transparent}
@@ -246,6 +259,7 @@
 <div id="overlay">
   <div id="tab-bar">
     <button class="tab-btn active" data-tab="play">PLAY</button>
+    <button class="tab-btn" data-tab="scores">SCORES</button>
     <button class="tab-btn" data-tab="trophies">TROPHIES</button>
     <button class="tab-btn" data-tab="guide">GUIDE</button>
     <button class="tab-btn" data-tab="settings">SETTINGS</button>
@@ -270,6 +284,11 @@
       Swipe on mobile<br>
       <span style="font-size:11px;color:#334;letter-spacing:1px">Spaceship model CC0 by Quaternius</span>
     </div>
+  </div>
+  <div id="tab-scores" class="tab-content">
+    <div id="scores-title">TOP SCORES</div>
+    <div id="scores-list"></div>
+    <div id="scores-empty">No scores yet. Play a game!</div>
   </div>
   <div id="tab-trophies" class="tab-content">
     <div id="trophy-header"><div id="trophy-title">TROPHIES</div><div id="trophy-count">0 / 30</div></div>
@@ -426,18 +445,52 @@ const ACHIEVEMENTS=[
 // Achievement data persistence
 const HD_KEY='hd_data';
 function defaultHDData(){
-  const d={totalGames:0,totalCoins:0,totalShields:0,totalMagnets:0,totalBoosts:0,totalRamps:0,bestMeters:0,bestScore:0,dailyCount:0,lastDailyDate:'',unlocked:{}};
+  const d={totalGames:0,totalCoins:0,totalShields:0,totalMagnets:0,totalBoosts:0,totalRamps:0,bestMeters:0,bestScore:0,scores:[],dailyCount:0,lastDailyDate:'',unlocked:{}};
   for(const a of ACHIEVEMENTS) d.unlocked[a.id]=0;
   return d;
 }
 function loadHDData(){
-  try{const raw=localStorage.getItem(HD_KEY);if(raw){const d=JSON.parse(raw);for(const a of ACHIEVEMENTS){if(!(a.id in d.unlocked)) d.unlocked[a.id]=0;}if(!('dailyCount' in d)) d.dailyCount=0;if(!('lastDailyDate' in d)) d.lastDailyDate='';return d;}}catch(e){}
+  try{const raw=localStorage.getItem(HD_KEY);if(raw){const d=JSON.parse(raw);if(!d.scores) d.scores=[];for(const a of ACHIEVEMENTS){if(!(a.id in d.unlocked)) d.unlocked[a.id]=0;}if(!('dailyCount' in d)) d.dailyCount=0;if(!('lastDailyDate' in d)) d.lastDailyDate='';return d;}}catch(e){}
   const d=defaultHDData();
   try{const old=parseInt(localStorage.getItem('hd_best'))||0;if(old>0) d.bestScore=old;}catch(e){}
   return d;
 }
 function saveHDData(){try{localStorage.setItem(HD_KEY,JSON.stringify(hdData));}catch(e){}}
 let hdData=loadHDData();
+
+// Score list
+let _lastSavedScore=null;
+function saveScore(score,meters){
+  const entry={score:score,meters:meters,date:Date.now()};
+  hdData.scores.push(entry);
+  hdData.scores.sort((a,b)=>b.score-a.score);
+  if(hdData.scores.length>10) hdData.scores.length=10;
+  _lastSavedScore=entry;
+  saveHDData();
+}
+function renderScores(){
+  const list=document.getElementById('scores-list');
+  const empty=document.getElementById('scores-empty');
+  const scores=hdData.scores;
+  if(!scores||scores.length===0){list.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+  let html='';
+  for(let i=0;i<scores.length;i++){
+    const s=scores[i];
+    const isNew=_lastSavedScore&&s.date===_lastSavedScore.date&&s.score===_lastSavedScore.score;
+    const d=new Date(s.date);
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    html+='<div class="score-row'+(isNew?' new':'')+'">';
+    html+='<div class="score-rank">'+(i+1)+'.</div>';
+    html+='<div class="score-info">';
+    html+='<div class="score-val">'+s.score.toLocaleString()+'</div>';
+    html+='<div class="score-meta">'+s.meters+'m</div>';
+    html+='</div>';
+    html+='<div class="score-date">'+ds+'</div>';
+    html+='</div>';
+  }
+  list.innerHTML=html;
+}
 
 // PostMessage bridge – only active inside an iframe (GameVolt portal)
 function gvPost(action,payload){
@@ -2200,6 +2253,7 @@ function die(){
   const m=Math.floor(meters);
   const finalScore=m+coinScore;
   checkEndgameAch();
+  saveScore(finalScore,m);
   bestScore=hdData.bestScore;
   const isNewBest=finalScore>=bestScore;
   gvPost('game_over',{score:finalScore,mode:'default',stats:{meters:m,coins:coinScore}});
@@ -2412,6 +2466,7 @@ document.getElementById('menu-btn').addEventListener('click',()=>{playSFXSample(
 function switchTab(name){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id==='tab-'+name));
+  if(name==='scores') renderScores();
   if(name==='trophies') renderTrophyGrid();
   menuFocus=-1;updateMenuFocus();
 }
