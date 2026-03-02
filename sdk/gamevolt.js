@@ -183,6 +183,38 @@
 
     onStateChange: function(fn) {
       if (typeof fn === 'function') stateChangeCallbacks.push(fn);
+    },
+
+    updateProfile: function(data) {
+      if (!currentUser || !sb) return Promise.reject('Not logged in');
+      return sb.from('profiles').update(data).eq('id', currentUser.id)
+        .then(function(res) {
+          if (res.error) throw res.error;
+          if (data.username && userProfile) userProfile.username = data.username;
+          if (data.avatar_url !== undefined && userProfile) userProfile.avatar_url = data.avatar_url;
+          notifyStateChange();
+        });
+    },
+
+    getFullProfile: function() {
+      if (!currentUser || !sb) return Promise.resolve(null);
+      return Promise.all([
+        sb.from('profiles').select('*').eq('id', currentUser.id).single(),
+        sb.from('scores').select('game_id, score, created_at')
+          .eq('user_id', currentUser.id)
+          .order('score', { ascending: false })
+      ]).then(function(results) {
+        var profile = results[0].data;
+        if (!profile) return null;
+        var scoresByGame = {};
+        (results[1].data || []).forEach(function(s) {
+          if (!scoresByGame[s.game_id] || s.score > scoresByGame[s.game_id].score) {
+            scoresByGame[s.game_id] = s;
+          }
+        });
+        profile.bestScores = scoresByGame;
+        return profile;
+      });
     }
   };
 

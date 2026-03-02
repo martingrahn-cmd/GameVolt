@@ -957,6 +957,7 @@
                     <a href="#games" class="nav-link">Games</a>
                     <a href="/about/" class="nav-link">About</a>
                     <a href="/contact/" class="nav-link">Contact</a>
+                    <a href="/profile/" class="nav-link" id="gv-profile-link" style="display:none">Profile</a>
                 </nav>
                 <div id="gv-user-area">
                     <button id="gv-login-btn" class="gv-login-btn" onclick="if(window.GameVolt)GameVolt.auth.login()">LOG IN</button>
@@ -1289,13 +1290,16 @@
             var loginBtn = document.getElementById('gv-login-btn');
             var userInfo = document.getElementById('gv-user-info');
             var usernameEl = document.getElementById('gv-username');
+            var profileLink = document.getElementById('gv-profile-link');
             if (user) {
                 loginBtn.style.display = 'none';
                 userInfo.style.display = 'flex';
                 usernameEl.textContent = user.username || user.email || 'Player';
+                if (profileLink) profileLink.style.display = '';
             } else {
                 loginBtn.style.display = '';
                 userInfo.style.display = 'none';
+                if (profileLink) profileLink.style.display = 'none';
             }
         });
     }

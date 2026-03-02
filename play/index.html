@@ -501,6 +501,7 @@
       <nav class="gv-nav">
         <a href="/" class="gv-nav-desktop">Games</a>
         <a href="/about/" class="gv-nav-desktop">About</a>
+        <a href="/profile/" class="gv-nav-desktop" id="gv-profile-link" style="display:none">Profile</a>
       </nav>
       <div id="gv-user-area" style="display:flex;align-items:center;gap:6px;margin-left:8px">
         <button id="gv-login-btn" style="padding:6px 14px;background:linear-gradient(135deg,#6C5CE7,#00B4D8);color:#fff;border:none;border-radius:6px;font-weight:700;font-size:0.8rem;cursor:pointer;letter-spacing:1px" onclick="if(window.GameVolt)GameVolt.auth.login()">LOG IN</button>
@@ -743,13 +744,16 @@
       GameVolt.auth.onStateChange(function(user) {
         var loginBtn = document.getElementById('gv-login-btn');
         var usernameEl = document.getElementById('gv-username');
+        var profileLink = document.getElementById('gv-profile-link');
         if (user) {
           loginBtn.style.display = 'none';
           usernameEl.style.display = '';
           usernameEl.textContent = user.username || user.email || 'Player';
+          if (profileLink) profileLink.style.display = '';
         } else {
           loginBtn.style.display = '';
           usernameEl.style.display = 'none';
+          if (profileLink) profileLink.style.display = 'none';
         }
       });
     }

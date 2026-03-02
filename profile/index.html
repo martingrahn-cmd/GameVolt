@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Profile — GameVolt</title>
+    <meta name="description" content="Your GameVolt profile — view stats, achievements, high scores, and manage your account.">
+    <meta name="robots" content="noindex">
+
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #7c5cfc;
+            --primary-light: #a78bfa;
+            --primary-dark: #6341e0;
+            --secondary: #f472b6;
+            --accent: #06d6a0;
+            --accent-blue: #38bdf8;
+            --hot: #ff6b6b;
+
+            --bg-body: #0f1221;
+            --bg-surface: #181c30;
+            --bg-card: rgba(25, 30, 55, 0.7);
+            --bg-card-hover: rgba(35, 42, 75, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.04);
+            --bg-gradient: linear-gradient(135deg, #7c5cfc 0%, #38bdf8 50%, #06d6a0 100%);
+
+            --text-bright: #f0f0ff;
+            --text-medium: #a0a4c0;
+            --text-muted: #626580;
+
+            --border-subtle: rgba(124, 92, 252, 0.15);
+            --border-glow: rgba(124, 92, 252, 0.3);
+
+            --glow-primary: 0 0 20px rgba(124, 92, 252, 0.3);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-bright);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 92, 252, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 50%, rgba(56, 189, 248, 0.07), transparent),
+                radial-gradient(ellipse 60% 40% at 20% 80%, rgba(6, 214, 160, 0.05), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body > * { position: relative; z-index: 1; }
+
+        /* Header */
+        header {
+            background: rgba(15, 18, 33, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 44px; height: 44px;
+            background: var(--bg-gradient);
+            border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            box-shadow: var(--glow-primary);
+        }
+
+        .logo-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: var(--bg-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-link {
+            padding: 8px 16px;
+            color: var(--text-medium);
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+        }
+        .nav-link:hover { background: var(--bg-glass); color: var(--primary-light); }
+        .nav-link.active { color: var(--primary-light); background: rgba(124, 92, 252, 0.1); }
+
+        #gv-user-area { display: flex; align-items: center; gap: 8px; margin-left: 8px; }
+        .gv-login-btn {
+            padding: 8px 20px; background: var(--bg-gradient); color: #fff; border: none;
+            border-radius: var(--radius-sm); font-weight: 700; font-size: 0.85rem;
+            cursor: pointer; letter-spacing: 1px; transition: opacity 0.2s;
+        }
+        .gv-login-btn:hover { opacity: 0.85; }
+        .gv-logout-btn {
+            padding: 4px 12px; background: none; border: 1px solid var(--border-subtle);
+            color: var(--text-medium); border-radius: var(--radius-sm); font-size: 0.8rem;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .gv-logout-btn:hover { border-color: var(--text-medium); color: #fff; }
+
+        /* Main */
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        /* Loading / Not logged in */
+        .profile-loading {
+            text-align: center;
+            padding: 80px 24px;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .profile-avatar {
+            width: 88px; height: 88px;
+            border-radius: 50%;
+            background: var(--bg-gradient);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: var(--glow-primary);
+        }
+
+        .profile-avatar img {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-info { flex: 1; min-width: 0; }
+
+        .profile-username {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-username-text {
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .profile-username-text:hover {
+            color: var(--primary-light);
+        }
+
+        .edit-icon {
+            width: 18px; height: 18px;
+            opacity: 0.4;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .profile-username:hover .edit-icon { opacity: 0.8; }
+
+        .username-edit {
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .username-edit input {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--bg-glass);
+            border: 2px solid var(--primary);
+            color: var(--text-bright);
+            border-radius: var(--radius-sm);
+            padding: 4px 12px;
+            outline: none;
+            width: 220px;
+        }
+
+        .username-edit button {
+            padding: 6px 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .username-save { background: var(--accent); color: #000; }
+        .username-cancel { background: var(--bg-glass); color: var(--text-medium); border: 1px solid var(--border-subtle) !important; }
+
+        .username-error {
+            color: var(--hot);
+            font-size: 0.8rem;
+            margin-top: 4px;
+            min-height: 20px;
+        }
+
+        .profile-meta {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .profile-meta span + span::before {
+            content: ' \00b7 ';
+            margin: 0 6px;
+        }
+
+        /* Section */
+        .section-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px; height: 22px;
+            background: var(--bg-gradient);
+            border-radius: 2px;
+            box-shadow: 0 0 12px rgba(124, 92, 252, 0.5);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 40px;
+            animation: fadeInUp 0.5s ease-out 0.1s both;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--bg-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Content Cards */
+        .content-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .content-card.anim-1 { animation: fadeInUp 0.5s ease-out 0.15s both; }
+        .content-card.anim-2 { animation: fadeInUp 0.5s ease-out 0.2s both; }
+        .content-card.anim-3 { animation: fadeInUp 0.5s ease-out 0.25s both; }
+        .content-card.anim-4 { animation: fadeInUp 0.5s ease-out 0.3s both; }
+
+        /* High Scores List */
+        .scores-list { list-style: none; }
+
+        .score-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(124, 92, 252, 0.08);
+        }
+
+        .score-row:last-child { border-bottom: none; }
+
+        .score-game-icon {
+            width: 40px; height: 40px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            background: var(--bg-glass);
+        }
+
+        .score-game-name {
+            flex: 1;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .score-value {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        /* Recently Played */
+        .recent-list { list-style: none; }
+
+        .recent-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(124, 92, 252, 0.08);
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.2s;
+            border-radius: var(--radius-sm);
+            margin: 0 -8px;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .recent-row:hover { background: var(--bg-glass); }
+        .recent-row:last-child { border-bottom: none; }
+
+        .recent-thumb {
+            width: 48px; height: 32px;
+            border-radius: 4px;
+            object-fit: cover;
+            background: var(--bg-glass);
+        }
+
+        .recent-info { flex: 1; min-width: 0; }
+        .recent-name { font-weight: 700; font-size: 0.95rem; }
+        .recent-meta { font-size: 0.8rem; color: var(--text-muted); }
+        .recent-time { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+
+        /* Achievements */
+        .ach-summary {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .ach-total {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--bg-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .ach-label { color: var(--text-muted); font-size: 0.9rem; }
+
+        .ach-game-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 0;
+        }
+
+        .ach-game-name {
+            width: 100px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .ach-bar-wrap {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-glass);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .ach-bar {
+            height: 100%;
+            background: var(--bg-gradient);
+            border-radius: 4px;
+            transition: width 0.6s ease-out;
+        }
+
+        .ach-count {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            width: 50px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-subtle);
+            color: white;
+            padding: 48px 24px 24px;
+            margin-top: 60px;
+        }
+        .footer-content { max-width: 1200px; margin: 0 auto; }
+        .footer-top {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            flex-wrap: wrap; gap: 32px; padding-bottom: 32px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .footer-brand { max-width: 300px; }
+        .footer-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .footer-logo-icon {
+            width: 40px; height: 40px; background: var(--bg-gradient);
+            border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--glow-primary);
+        }
+        .footer-logo-text { font-family: 'Fredoka', sans-serif; font-size: 1.5rem; font-weight: 700; }
+        .footer-tagline { color: var(--text-muted); font-size: 0.9rem; }
+        .footer-links { display: flex; gap: 48px; flex-wrap: wrap; }
+        .footer-column h4 { font-family: 'Fredoka', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: var(--text-bright); }
+        .footer-column a { display: block; color: var(--text-muted); text-decoration: none; padding: 4px 0; font-size: 0.9rem; transition: color 0.2s; }
+        .footer-column a:hover { color: var(--primary-light); }
+        .footer-bottom { padding-top: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content { padding: 12px 16px; }
+            .nav-links { display: none; }
+            .logo-text { font-size: 1.5rem; }
+            main { padding: 24px 16px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .stat-value { font-size: 1.4rem; }
+            .profile-header { gap: 16px; }
+            .profile-avatar { width: 64px; height: 64px; font-size: 1.6rem; }
+            .profile-username { font-size: 1.4rem; }
+            .footer-top { flex-direction: column; }
+            .footer-links { gap: 32px; }
+            .ach-game-name { width: 80px; font-size: 0.8rem; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="/" class="logo">
+                <div class="logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+                <span class="logo-text">GameVolt</span>
+            </a>
+            <div class="header-right">
+                <nav class="nav-links">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/profile/" class="nav-link active">Profile</a>
+                    <a href="/about/" class="nav-link">About</a>
+                </nav>
+                <div id="gv-user-area">
+                    <button id="gv-login-btn" class="gv-login-btn" onclick="if(window.GameVolt)GameVolt.auth.login()">LOG IN</button>
+                    <div id="gv-user-info" style="display:none">
+                        <button id="gv-logout-btn" class="gv-logout-btn" onclick="if(window.GameVolt)GameVolt.auth.logout()">Log out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div id="profile-loading" class="profile-loading">Loading profile...</div>
+
+        <div id="profile-content" style="display:none">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-avatar" id="profile-avatar">?</div>
+                <div class="profile-info">
+                    <div class="profile-username" id="username-display">
+                        <span class="profile-username-text" id="username-text" title="Click to edit"></span>
+                        <svg class="edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </div>
+                    <div class="username-edit" id="username-edit">
+                        <input type="text" id="username-input" maxlength="24" placeholder="New username">
+                        <button class="username-save" onclick="saveUsername()">Save</button>
+                        <button class="username-cancel" onclick="cancelEdit()">Cancel</button>
+                    </div>
+                    <div class="username-error" id="username-error"></div>
+                    <div class="profile-meta">
+                        <span id="profile-email"></span>
+                        <span id="profile-joined"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-games">0</span>
+                    <span class="stat-label">Games Played</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-time">0</span>
+                    <span class="stat-label">Play Time</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-achievements">0</span>
+                    <span class="stat-label">Achievements</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="stat-best">0</span>
+                    <span class="stat-label">Best Score</span>
+                </div>
+            </div>
+
+            <!-- High Scores -->
+            <div class="content-card anim-1">
+                <div class="section-title">High Scores</div>
+                <ul class="scores-list" id="scores-list">
+                    <li class="empty-state">No scores yet. Play some games!</li>
+                </ul>
+            </div>
+
+            <!-- Recently Played -->
+            <div class="content-card anim-2">
+                <div class="section-title">Recently Played</div>
+                <ul class="recent-list" id="recent-list">
+                    <li class="empty-state">No games played yet.</li>
+                </ul>
+            </div>
+
+            <!-- Achievements -->
+            <div class="content-card anim-3">
+                <div class="section-title">Achievements</div>
+                <div id="achievements-content">
+                    <div class="empty-state">No achievements yet.</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <div class="footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+                        <span class="footer-logo-text">GameVolt</span>
+                    </div>
+                    <p class="footer-tagline">Free browser games for everyone.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Games</h4>
+                        <a href="/play/?game=hoverdash">HoverDash</a>
+                        <a href="/play/?game=snake">Snake Neo</a>
+                        <a href="/play/?game=breakout">Breakout</a>
+                        <a href="/play/?game=solitaire">Solitaire</a>
+                        <a href="/play/?game=blockstorm">BlockStorm</a>
+                        <a href="/play/?game=connect4">Connect 4</a>
+                        <a href="/play/?game=axeluga">Axeluga</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Info</h4>
+                        <a href="/about/">About</a>
+                        <a href="/contact/">Contact</a>
+                        <a href="/privacy/">Privacy Policy</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 GameVolt. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/gv-tracker.js"></script>
+    <script src="/sdk/gamevolt.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        var GAME_NAMES = {
+            breakout: 'Breakout',
+            hoverdash: 'HoverDash',
+            snake: 'Snake Neo',
+            blockstorm: 'BlockStorm',
+            solitaire: 'Solitaire',
+            connect4: 'Connect 4',
+            clickrush: 'ClickRush',
+            axeluga: 'Axeluga',
+            taprush: 'Tap Rush'
+        };
+
+        var GAME_THUMBS = {
+            breakout: '/assets/thumbnails/breakout.webp',
+            hoverdash: '/hoverdash/og-image.png',
+            snake: '/assets/thumbnails/snake.webp',
+            blockstorm: '/assets/thumbnails/blockstorm.webp',
+            solitaire: '/assets/thumbnails/solitaire.webp',
+            connect4: '/assets/thumbnails/connect4.webp',
+            clickrush: '/assets/thumbnails/clickrush.webp',
+            axeluga: '/assets/thumbnails/axeluga.webp'
+        };
+
+        if (!window.GameVolt) {
+            document.getElementById('profile-loading').textContent = 'GameVolt SDK not available.';
+            return;
+        }
+
+        GameVolt.init('profile');
+
+        GameVolt.auth.onStateChange(function(user) {
+            // Header auth state
+            var loginBtn = document.getElementById('gv-login-btn');
+            var userInfo = document.getElementById('gv-user-info');
+            if (user) {
+                loginBtn.style.display = 'none';
+                userInfo.style.display = 'flex';
+            } else {
+                loginBtn.style.display = '';
+                userInfo.style.display = 'none';
+                // Not logged in — redirect
+                window.location.href = '/';
+                return;
+            }
+
+            loadProfile(user);
+        });
+
+        function loadProfile(user) {
+            var loadingEl = document.getElementById('profile-loading');
+            var contentEl = document.getElementById('profile-content');
+
+            // Avatar
+            var avatarEl = document.getElementById('profile-avatar');
+            if (user.avatar_url) {
+                avatarEl.innerHTML = '<img src="' + user.avatar_url + '" alt="Avatar">';
+            } else {
+                avatarEl.textContent = (user.username || user.email || '?').charAt(0).toUpperCase();
+            }
+
+            // Username
+            document.getElementById('username-text').textContent = user.username || 'Player';
+
+            // Email
+            document.getElementById('profile-email').textContent = user.email || '';
+
+            // Load extended data
+            var achPromise = GameVolt.achievements.getProfile();
+            var profilePromise = GameVolt.auth.getFullProfile();
+
+            Promise.all([achPromise, profilePromise]).then(function(results) {
+                var achData = results[0];
+                var profile = results[1];
+
+                // Joined date
+                if (profile && profile.created_at) {
+                    var d = new Date(profile.created_at);
+                    document.getElementById('profile-joined').textContent = 'Joined ' + d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                }
+
+                // Stats
+                renderStats(profile, achData);
+
+                // High Scores
+                renderScores(profile);
+
+                // Recently Played
+                renderRecentlyPlayed();
+
+                // Achievements
+                renderAchievements(achData);
+
+                // Show content
+                loadingEl.style.display = 'none';
+                contentEl.style.display = '';
+            });
+        }
+
+        function renderStats(profile, achData) {
+            // Games played (from local tracker)
+            var trackerData = window.GVTracker ? GVTracker.load() : { games: {} };
+            var gamesPlayed = Object.keys(trackerData.games).filter(function(id) {
+                return trackerData.games[id].sessions > 0;
+            }).length;
+            document.getElementById('stat-games').textContent = gamesPlayed;
+
+            // Total play time (local tracker)
+            var totalMs = 0;
+            for (var id in trackerData.games) {
+                totalMs += trackerData.games[id].totalPlayTimeMs || 0;
+            }
+            document.getElementById('stat-time').textContent = window.GVTracker ? GVTracker.formatPlayTime(totalMs) : '0';
+
+            // Achievements
+            document.getElementById('stat-achievements').textContent = achData ? achData.unlocked : 0;
+
+            // Best score (from Supabase)
+            var bestScore = 0;
+            if (profile && profile.bestScores) {
+                for (var gid in profile.bestScores) {
+                    if (profile.bestScores[gid].score > bestScore) {
+                        bestScore = profile.bestScores[gid].score;
+                    }
+                }
+            }
+            document.getElementById('stat-best').textContent = bestScore > 0 ? bestScore.toLocaleString() : '—';
+        }
+
+        function renderScores(profile) {
+            var list = document.getElementById('scores-list');
+            if (!profile || !profile.bestScores || Object.keys(profile.bestScores).length === 0) return;
+
+            var scores = [];
+            for (var gid in profile.bestScores) {
+                scores.push({ gameId: gid, score: profile.bestScores[gid].score });
+            }
+            scores.sort(function(a, b) { return b.score - a.score; });
+
+            list.innerHTML = '';
+            scores.forEach(function(s) {
+                var li = document.createElement('li');
+                li.className = 'score-row';
+                li.innerHTML =
+                    '<img class="score-game-icon" src="' + (GAME_THUMBS[s.gameId] || '') + '" alt="" loading="lazy">' +
+                    '<span class="score-game-name">' + (GAME_NAMES[s.gameId] || s.gameId) + '</span>' +
+                    '<span class="score-value">' + s.score.toLocaleString() + '</span>';
+                list.appendChild(li);
+            });
+        }
+
+        function renderRecentlyPlayed() {
+            var list = document.getElementById('recent-list');
+            if (!window.GVTracker) return;
+
+            var recent = GVTracker.getRecentlyPlayed(8);
+            if (recent.length === 0) return;
+
+            list.innerHTML = '';
+            recent.forEach(function(game) {
+                var a = document.createElement('a');
+                a.className = 'recent-row';
+                a.href = '/play/?game=' + game.id;
+                a.innerHTML =
+                    '<img class="recent-thumb" src="' + (GAME_THUMBS[game.id] || '') + '" alt="" loading="lazy">' +
+                    '<div class="recent-info">' +
+                        '<div class="recent-name">' + (GAME_NAMES[game.id] || game.id) + '</div>' +
+                        '<div class="recent-meta">' + game.sessions + ' sessions &middot; ' + GVTracker.formatPlayTime(game.totalPlayTimeMs) + '</div>' +
+                    '</div>' +
+                    '<span class="recent-time">' + GVTracker.formatTimeAgo(game.lastPlayed) + '</span>';
+                list.appendChild(a);
+            });
+        }
+
+        function renderAchievements(achData) {
+            var container = document.getElementById('achievements-content');
+            if (!achData || achData.total === 0) return;
+
+            var html = '';
+
+            // Summary
+            html += '<div class="ach-summary">';
+            html += '<span class="ach-total">' + achData.unlocked + '</span>';
+            html += '<span class="ach-label">of ' + achData.total + ' achievements unlocked</span>';
+            html += '</div>';
+
+            // Per-game breakdown
+            for (var gid in achData.games) {
+                var g = achData.games[gid];
+                var pct = g.total > 0 ? Math.round((g.unlocked / g.total) * 100) : 0;
+                html += '<div class="ach-game-row">';
+                html += '<span class="ach-game-name">' + (GAME_NAMES[gid] || gid) + '</span>';
+                html += '<div class="ach-bar-wrap"><div class="ach-bar" style="width:' + pct + '%"></div></div>';
+                html += '<span class="ach-count">' + g.unlocked + '/' + g.total + '</span>';
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Username editing
+        var usernameDisplay = document.getElementById('username-display');
+        var usernameEdit = document.getElementById('username-edit');
+        var usernameInput = document.getElementById('username-input');
+        var usernameError = document.getElementById('username-error');
+
+        usernameDisplay.addEventListener('click', function() {
+            var current = document.getElementById('username-text').textContent;
+            usernameInput.value = current;
+            usernameDisplay.style.display = 'none';
+            usernameEdit.style.display = 'flex';
+            usernameError.textContent = '';
+            usernameInput.focus();
+            usernameInput.select();
+        });
+
+        usernameInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') saveUsername();
+            if (e.key === 'Escape') cancelEdit();
+        });
+
+        window.saveUsername = function() {
+            var newName = usernameInput.value.trim();
+            if (!newName || newName.length < 2) {
+                usernameError.textContent = 'Username must be at least 2 characters.';
+                return;
+            }
+            if (newName.length > 24) {
+                usernameError.textContent = 'Username must be 24 characters or less.';
+                return;
+            }
+
+            usernameError.textContent = '';
+            var saveBtn = usernameEdit.querySelector('.username-save');
+            saveBtn.textContent = '...';
+            saveBtn.disabled = true;
+
+            GameVolt.auth.updateProfile({ username: newName }).then(function() {
+                document.getElementById('username-text').textContent = newName;
+                cancelEdit();
+            }).catch(function(err) {
+                var msg = (err && err.message) ? err.message : String(err);
+                if (msg.indexOf('unique') !== -1 || msg.indexOf('duplicate') !== -1) {
+                    usernameError.textContent = 'Username already taken. Try another.';
+                } else {
+                    usernameError.textContent = msg || 'Failed to update username.';
+                }
+                saveBtn.textContent = 'Save';
+                saveBtn.disabled = false;
+            });
+        };
+
+        window.cancelEdit = function() {
+            usernameDisplay.style.display = 'flex';
+            usernameEdit.style.display = 'none';
+            usernameError.textContent = '';
+            var saveBtn = usernameEdit.querySelector('.username-save');
+            saveBtn.textContent = 'Save';
+            saveBtn.disabled = false;
+        };
+    })();
+    </script>
+</body>
+</html>
