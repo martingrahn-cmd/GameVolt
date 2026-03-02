@@ -283,7 +283,7 @@
                   unlocked_at: a.unlocked_at ? new Date(a.unlocked_at).toISOString() : new Date().toISOString()
                 };
               });
-              return sb.from('user_achievements').upsert(rows, { onConflict: 'user_id,achievement_id' });
+              return sb.from('user_achievements').upsert(rows, { onConflict: 'user_id,achievement_id', ignoreDuplicates: true });
             }
           }
         })
@@ -363,7 +363,7 @@
         user_id: currentUser.id,
         achievement_id: fullId,
         unlocked_at: new Date().toISOString()
-      }, { onConflict: 'user_id,achievement_id' }).then(function() {});
+      }, { onConflict: 'user_id,achievement_id', ignoreDuplicates: true }).then(function() {});
     },
 
     getAll: function() {
@@ -449,10 +449,14 @@
         currentUser = session ? session.user : null;
 
         if (currentUser && !prevUser) {
-          // Just signed in — fetch profile and migrate
+          // Just signed in — fetch profile and migrate (once per session)
           fetchProfile(currentUser.id).then(function() {
             closeModal();
-            if (migrationConfig) save.migrate();
+            var migratedKey = 'gv_migrated_' + currentGameId;
+            if (migrationConfig && !sessionStorage.getItem(migratedKey)) {
+              sessionStorage.setItem(migratedKey, '1');
+              save.migrate();
+            }
             notifyStateChange();
           });
         } else if (!currentUser && prevUser) {

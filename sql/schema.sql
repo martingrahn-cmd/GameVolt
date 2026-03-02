@@ -1,10 +1,10 @@
 -- ============================================================
--- GameVolt Database Schema
+-- GameVolt Database Schema (idempotent — safe to re-run)
 -- Run this in Supabase SQL Editor after creating your project.
 -- ============================================================
 
 -- Users (extends Supabase auth.users)
-CREATE TABLE profiles (
+CREATE TABLE IF NOT EXISTS profiles (
     id UUID REFERENCES auth.users PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
     avatar_url TEXT,
@@ -16,7 +16,7 @@ CREATE TABLE profiles (
 );
 
 -- Games registry
-CREATE TABLE games (
+CREATE TABLE IF NOT EXISTS games (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT,
@@ -26,7 +26,7 @@ CREATE TABLE games (
 );
 
 -- Cloud saves (one JSONB blob per user per game)
-CREATE TABLE saves (
+CREATE TABLE IF NOT EXISTS saves (
     user_id UUID REFERENCES profiles(id),
     game_id TEXT REFERENCES games(id),
     save_data JSONB NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE saves (
 );
 
 -- Highscores / leaderboard entries
-CREATE TABLE scores (
+CREATE TABLE IF NOT EXISTS scores (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES profiles(id),
     game_id TEXT REFERENCES games(id),
@@ -45,7 +45,7 @@ CREATE TABLE scores (
 );
 
 -- Achievement definitions
-CREATE TABLE achievement_defs (
+CREATE TABLE IF NOT EXISTS achievement_defs (
     id TEXT PRIMARY KEY,
     game_id TEXT REFERENCES games(id),
     title TEXT NOT NULL,
@@ -56,15 +56,16 @@ CREATE TABLE achievement_defs (
 );
 
 -- User achievements (unlocked)
-CREATE TABLE user_achievements (
+-- No FK to achievement_defs: achievements are defined client-side per game
+CREATE TABLE IF NOT EXISTS user_achievements (
     user_id UUID REFERENCES profiles(id),
-    achievement_id TEXT REFERENCES achievement_defs(id),
+    achievement_id TEXT NOT NULL,
     unlocked_at TIMESTAMPTZ DEFAULT NOW(),
     PRIMARY KEY (user_id, achievement_id)
 );
 
 -- Daily challenges
-CREATE TABLE daily_challenges (
+CREATE TABLE IF NOT EXISTS daily_challenges (
     date DATE PRIMARY KEY,
     game_id TEXT REFERENCES games(id),
     challenge_type TEXT NOT NULL,
@@ -73,7 +74,7 @@ CREATE TABLE daily_challenges (
 );
 
 -- Daily challenge completions
-CREATE TABLE daily_completions (
+CREATE TABLE IF NOT EXISTS daily_completions (
     user_id UUID REFERENCES profiles(id),
     date DATE REFERENCES daily_challenges(date),
     completed_at TIMESTAMPTZ DEFAULT NOW(),
@@ -81,7 +82,7 @@ CREATE TABLE daily_completions (
 );
 
 -- Game ratings
-CREATE TABLE ratings (
+CREATE TABLE IF NOT EXISTS ratings (
     user_id UUID REFERENCES profiles(id),
     game_id TEXT REFERENCES games(id),
     rating INT CHECK (rating BETWEEN 1 AND 5),
@@ -89,7 +90,7 @@ CREATE TABLE ratings (
 );
 
 -- Favorites
-CREATE TABLE favorites (
+CREATE TABLE IF NOT EXISTS favorites (
     user_id UUID REFERENCES profiles(id),
     game_id TEXT REFERENCES games(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -97,32 +98,42 @@ CREATE TABLE favorites (
 );
 
 -- Indexes
-CREATE INDEX idx_scores_game_mode ON scores(game_id, mode, score DESC);
-CREATE INDEX idx_scores_user ON scores(user_id);
-CREATE INDEX idx_achievements_user ON user_achievements(user_id);
-CREATE INDEX idx_achievement_defs_game ON achievement_defs(game_id, sort_order);
+CREATE INDEX IF NOT EXISTS idx_scores_game_mode ON scores(game_id, mode, score DESC);
+CREATE INDEX IF NOT EXISTS idx_scores_user ON scores(user_id);
+CREATE INDEX IF NOT EXISTS idx_achievements_user ON user_achievements(user_id);
+CREATE INDEX IF NOT EXISTS idx_achievement_defs_game ON achievement_defs(game_id, sort_order);
 
 -- ============================================================
 -- Auto-create profile on signup
 -- ============================================================
-CREATE OR REPLACE FUNCTION handle_new_user()
-RETURNS TRIGGER AS $$
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS handle_new_user();
+
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+LANGUAGE plpgsql
+AS $$
 BEGIN
-  INSERT INTO profiles (id, username)
+  INSERT INTO public.profiles (id, username)
   VALUES (
     NEW.id,
     COALESCE(
       NEW.raw_user_meta_data->>'username',
       'player_' || LEFT(NEW.id::text, 8)
     )
-  );
+  )
+  ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
+
+ALTER FUNCTION public.handle_new_user() OWNER TO postgres;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================
 -- Leaderboard function: best score per player + ranking
@@ -165,27 +176,40 @@ ALTER TABLE user_achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE games ENABLE ROW LEVEL SECURITY;
 ALTER TABLE achievement_defs ENABLE ROW LEVEL SECURITY;
 
--- profiles: public read, own update
+-- profiles: public read, own update, open insert (for trigger)
+DROP POLICY IF EXISTS "profiles_select" ON profiles;
+DROP POLICY IF EXISTS "profiles_update" ON profiles;
+DROP POLICY IF EXISTS "profiles_insert" ON profiles;
 CREATE POLICY "profiles_select" ON profiles FOR SELECT USING (true);
 CREATE POLICY "profiles_update" ON profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "profiles_insert" ON profiles FOR INSERT WITH CHECK (true);
 
 -- saves: own data only
+DROP POLICY IF EXISTS "saves_select" ON saves;
+DROP POLICY IF EXISTS "saves_insert" ON saves;
+DROP POLICY IF EXISTS "saves_update" ON saves;
 CREATE POLICY "saves_select" ON saves FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "saves_insert" ON saves FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "saves_update" ON saves FOR UPDATE USING (auth.uid() = user_id);
 
 -- scores: public read, own insert
+DROP POLICY IF EXISTS "scores_select" ON scores;
+DROP POLICY IF EXISTS "scores_insert" ON scores;
 CREATE POLICY "scores_select" ON scores FOR SELECT USING (true);
 CREATE POLICY "scores_insert" ON scores FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- user_achievements: public read, own insert
+DROP POLICY IF EXISTS "user_achievements_select" ON user_achievements;
+DROP POLICY IF EXISTS "user_achievements_insert" ON user_achievements;
 CREATE POLICY "user_achievements_select" ON user_achievements FOR SELECT USING (true);
 CREATE POLICY "user_achievements_insert" ON user_achievements FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- games: public read (admin inserts via SQL editor)
+DROP POLICY IF EXISTS "games_select" ON games;
 CREATE POLICY "games_select" ON games FOR SELECT USING (true);
 
 -- achievement_defs: public read (admin inserts via SQL editor)
+DROP POLICY IF EXISTS "achievement_defs_select" ON achievement_defs;
 CREATE POLICY "achievement_defs_select" ON achievement_defs FOR SELECT USING (true);
 
 -- ============================================================
@@ -199,4 +223,5 @@ INSERT INTO games (id, title, thumbnail_url) VALUES
   ('solitaire',  'Solitaire',   '/assets/thumbnails/solitaire.webp'),
   ('connect4',   'Connect 4',   '/assets/thumbnails/connect4.webp'),
   ('clickrush',  'ClickRush',   '/assets/thumbnails/clickrush.webp'),
-  ('axeluga',    'Axeluga',     '/assets/thumbnails/axeluga.webp');
+  ('axeluga',    'Axeluga',     '/assets/thumbnails/axeluga.webp')
+ON CONFLICT (id) DO NOTHING;
