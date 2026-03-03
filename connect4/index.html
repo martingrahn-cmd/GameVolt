@@ -3901,7 +3901,7 @@
         // ===== GameVolt SDK integration =====
         if (window.GameVolt) {
             GameVolt.init('connect4');
-            GameVolt.save.setup({
+            GameVolt.save.registerMigration({
                 keys: ['connect4Stats', 'connect4Achievements'],
                 merge: function(local, cloud) {
                     // Merge stats: keep highest values
