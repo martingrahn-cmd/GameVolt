@@ -304,18 +304,17 @@
           }
         })
         .then(function() {
-          // Migrate achievements
+          // Migrate achievements (use RPC to avoid 409 on composite PK)
           if (migrationConfig.getAchievements) {
             var achs = migrationConfig.getAchievements(localData);
             if (achs && achs.length > 0) {
-              var rows = achs.map(function(a) {
-                return {
-                  user_id: currentUser.id,
-                  achievement_id: currentGameId + '-' + a.id,
-                  unlocked_at: a.unlocked_at ? new Date(a.unlocked_at).toISOString() : new Date().toISOString()
-                };
+              var promises = achs.map(function(a) {
+                return sb.rpc('unlock_achievement', {
+                  p_user_id: currentUser.id,
+                  p_achievement_id: currentGameId + '-' + a.id
+                });
               });
-              return sb.from('user_achievements').upsert(rows);
+              return Promise.all(promises);
             }
           }
         })
@@ -391,10 +390,9 @@
         return Promise.resolve();
       }
 
-      return sb.from('user_achievements').upsert({
-        user_id: currentUser.id,
-        achievement_id: fullId,
-        unlocked_at: new Date().toISOString()
+      return sb.rpc('unlock_achievement', {
+        p_user_id: currentUser.id,
+        p_achievement_id: fullId
       }).then(function() {});
     },
 

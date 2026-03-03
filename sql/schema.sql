@@ -136,6 +136,18 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================
+-- Achievement unlock (atomic, no 409 on duplicate)
+-- ============================================================
+CREATE OR REPLACE FUNCTION unlock_achievement(p_user_id UUID, p_achievement_id TEXT)
+RETURNS void AS $$
+BEGIN
+  INSERT INTO user_achievements (user_id, achievement_id, unlocked_at)
+  VALUES (p_user_id, p_achievement_id, NOW())
+  ON CONFLICT (user_id, achievement_id) DO NOTHING;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================================
 -- Leaderboard function: best score per player + ranking
 -- ============================================================
 CREATE OR REPLACE FUNCTION get_leaderboard(

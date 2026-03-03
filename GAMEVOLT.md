@@ -701,7 +701,7 @@ gvPost('achievement', { id: 'trophy_id', name: 'Name', tier: 'bronze' });
 - `GameVolt.init()` is required — without it, Supabase never connects
 - SDK script must load BEFORE game script (no `defer`, no placement after game)
 - Method is `registerMigration`, not `setup`
-- `user_achievements` table needs both INSERT and UPDATE RLS policies (UPDATE required for upsert)
+- Achievements use RPC function `unlock_achievement()` — must exist in database (see schema.sql)
 - Use `maybeSingle()` instead of `single()` when a row may not exist (avoids 406)
 - Trophy IDs should be simple slugs: `first_win`, not `connect4-first_win` (SDK adds prefix)
 - Standard tier system: 15 bronze, 10 silver, 5 gold, 1 platinum = 31 total
