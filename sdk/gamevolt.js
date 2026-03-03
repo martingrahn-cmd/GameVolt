@@ -304,17 +304,30 @@
           }
         })
         .then(function() {
-          // Migrate achievements (use RPC to avoid 409 on composite PK)
+          // Migrate achievements (raw fetch with ignore-duplicates)
           if (migrationConfig.getAchievements) {
             var achs = migrationConfig.getAchievements(localData);
             if (achs && achs.length > 0) {
-              var promises = achs.map(function(a) {
-                return sb.rpc('unlock_achievement', {
-                  p_user_id: currentUser.id,
-                  p_achievement_id: currentGameId + '-' + a.id
+              return sb.auth.getSession().then(function(s) {
+                var token = s.data && s.data.session ? s.data.session.access_token : SUPABASE_KEY;
+                var rows = achs.map(function(a) {
+                  return {
+                    user_id: currentUser.id,
+                    achievement_id: currentGameId + '-' + a.id,
+                    unlocked_at: a.unlocked_at ? new Date(a.unlocked_at).toISOString() : new Date().toISOString()
+                  };
+                });
+                return fetch(SUPABASE_URL + '/rest/v1/user_achievements?on_conflict=user_id,achievement_id', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': 'Bearer ' + token,
+                    'Prefer': 'return=minimal,resolution=ignore-duplicates'
+                  },
+                  body: JSON.stringify(rows)
                 });
               });
-              return Promise.all(promises);
             }
           }
         })
@@ -390,10 +403,23 @@
         return Promise.resolve();
       }
 
-      return sb.rpc('unlock_achievement', {
-        p_user_id: currentUser.id,
-        p_achievement_id: fullId
-      }).then(function() {});
+      return sb.auth.getSession().then(function(s) {
+        var token = s.data && s.data.session ? s.data.session.access_token : SUPABASE_KEY;
+        return fetch(SUPABASE_URL + '/rest/v1/user_achievements?on_conflict=user_id,achievement_id', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + token,
+            'Prefer': 'return=minimal,resolution=ignore-duplicates'
+          },
+          body: JSON.stringify({
+            user_id: currentUser.id,
+            achievement_id: fullId,
+            unlocked_at: new Date().toISOString()
+          })
+        });
+      });
     },
 
     getAll: function() {
