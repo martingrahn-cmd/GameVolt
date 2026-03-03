@@ -304,18 +304,32 @@
           }
         })
         .then(function() {
-          // Migrate achievements
+          // Migrate achievements (check existing first to avoid 409)
           if (migrationConfig.getAchievements) {
             var achs = migrationConfig.getAchievements(localData);
             if (achs && achs.length > 0) {
-              var rows = achs.map(function(a) {
-                return {
-                  user_id: currentUser.id,
-                  achievement_id: currentGameId + '-' + a.id,
-                  unlocked_at: a.unlocked_at ? new Date(a.unlocked_at).toISOString() : new Date().toISOString()
-                };
-              });
-              return sb.from('user_achievements').upsert(rows, { onConflict: 'user_id,achievement_id', ignoreDuplicates: true });
+              return sb.from('user_achievements')
+                .select('achievement_id')
+                .eq('user_id', currentUser.id)
+                .like('achievement_id', currentGameId + '-%')
+                .then(function(existing) {
+                  var existingIds = {};
+                  (existing.data || []).forEach(function(r) { existingIds[r.achievement_id] = true; });
+                  var newRows = achs
+                    .map(function(a) {
+                      var fullId = currentGameId + '-' + a.id;
+                      if (existingIds[fullId]) return null;
+                      return {
+                        user_id: currentUser.id,
+                        achievement_id: fullId,
+                        unlocked_at: a.unlocked_at ? new Date(a.unlocked_at).toISOString() : new Date().toISOString()
+                      };
+                    })
+                    .filter(function(r) { return r !== null; });
+                  if (newRows.length > 0) {
+                    return sb.from('user_achievements').insert(newRows);
+                  }
+                });
             }
           }
         })
@@ -391,11 +405,20 @@
         return Promise.resolve();
       }
 
-      return sb.from('user_achievements').upsert({
-        user_id: currentUser.id,
-        achievement_id: fullId,
-        unlocked_at: new Date().toISOString()
-      }, { onConflict: 'user_id,achievement_id', ignoreDuplicates: true }).then(function() {});
+      return sb.from('user_achievements')
+        .select('achievement_id')
+        .eq('user_id', currentUser.id)
+        .eq('achievement_id', fullId)
+        .maybeSingle()
+        .then(function(res) {
+          if (res.data) return; // Already exists
+          return sb.from('user_achievements').insert({
+            user_id: currentUser.id,
+            achievement_id: fullId,
+            unlocked_at: new Date().toISOString()
+          });
+        })
+        .catch(function() {});
     },
 
     getAll: function() {
