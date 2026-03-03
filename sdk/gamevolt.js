@@ -267,8 +267,8 @@
 
       if (Object.keys(localData).length === 0) return Promise.resolve();
 
-      // Fetch existing cloud save
-      return sb.from('saves').select('save_data').eq('user_id', currentUser.id).eq('game_id', currentGameId).single()
+      // Fetch existing cloud save (maybeSingle avoids 406 when no save exists)
+      return sb.from('saves').select('save_data').eq('user_id', currentUser.id).eq('game_id', currentGameId).maybeSingle()
         .then(function(res) {
           var cloudData = (res.data && res.data.save_data) ? res.data.save_data : null;
           var merged;
@@ -294,12 +294,12 @@
             var scores = migrationConfig.getScores(localData);
             if (scores && scores.length > 0) {
               var best = scores[0]; // Already sorted desc
-              return sb.from('scores').insert({
+              return sb.from('scores').upsert({
                 user_id: currentUser.id,
                 game_id: currentGameId,
                 mode: best.mode || 'default',
                 score: best.score
-              });
+              }, { ignoreDuplicates: true });
             }
           }
         })
