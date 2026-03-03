@@ -1174,6 +1174,17 @@
             opacity: 1;
             border-color: var(--accent-yellow);
         }
+
+        .achievement-tier {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #111;
+            flex-shrink: 0;
+        }
         
         .achievement-card.new {
             animation: achievement-glow 1s ease-in-out 3;
@@ -2128,7 +2139,7 @@
     <div class="achievements-overlay" id="achievements-overlay"></div>
     <div class="achievements-panel" id="achievements-panel">
         <div class="achievements-header">
-            <h2 class="achievements-title">🏆 Achievements</h2>
+            <h2 class="achievements-title">🏆 Trophies</h2>
             <button class="achievements-close" id="achievements-close">×</button>
         </div>
         <div id="achievements-list"></div>
@@ -2138,7 +2149,7 @@
     <div class="achievement-toast" id="achievement-toast">
         <div class="achievement-toast-icon" id="toast-icon">🏆</div>
         <div class="achievement-toast-text">
-            <div class="achievement-toast-label">Achievement Unlocked!</div>
+            <div class="achievement-toast-label">Trophy Unlocked!</div>
             <div class="achievement-toast-name" id="toast-name">Achievement Name</div>
         </div>
     </div>
@@ -2631,24 +2642,51 @@
             }
         }
         
-        // ===== ACHIEVEMENTS =====
+        // ===== postMessage to parent (GameVolt portal) =====
+        function gvPost(action, payload) {
+            try { window.parent.postMessage({ type: 'gamevolt', action: action, gameId: 'connect4', payload: payload }, '*'); } catch(e) {}
+        }
+
+        // ===== ACHIEVEMENTS (15 bronze, 10 silver, 5 gold, 1 platinum = 31) =====
         const ACHIEVEMENTS = [
-            { id: 'first_win', name: 'First Victory', desc: 'Win your first game', icon: '🌟', condition: (s) => s.totalWins >= 1 },
-            { id: 'win_5', name: 'On a Roll', desc: 'Win 5 games', icon: '🔥', condition: (s) => s.totalWins >= 5 },
-            { id: 'win_10', name: 'Veteran', desc: 'Win 10 games', icon: '⭐', condition: (s) => s.totalWins >= 10 },
-            { id: 'win_25', name: 'Master', desc: 'Win 25 games', icon: '👑', condition: (s) => s.totalWins >= 25 },
-            { id: 'win_50', name: 'Legend', desc: 'Win 50 games', icon: '🏆', condition: (s) => s.totalWins >= 50 },
-            { id: 'beat_lv1', name: 'Beginner Beaten', desc: 'Beat level 1', icon: '🟢', condition: (s) => s.levelWins[1] >= 1 },
-            { id: 'beat_lv2', name: 'Casual Crushed', desc: 'Beat level 2', icon: '🔵', condition: (s) => s.levelWins[2] >= 1 },
-            { id: 'beat_lv3', name: 'Challenger', desc: 'Beat level 3', icon: '🟡', condition: (s) => s.levelWins[3] >= 1 },
-            { id: 'beat_lv4', name: 'Tactician', desc: 'Beat level 4', icon: '🟠', condition: (s) => s.levelWins[4] >= 1 },
-            { id: 'beat_lv5', name: 'AI Slayer', desc: 'Beat level 5 - Expert', icon: '🔴', condition: (s) => s.levelWins[5] >= 1 },
-            { id: 'perfect_lv1', name: 'Perfect Beginner', desc: 'Win 10 games on level 1', icon: '💚', condition: (s) => s.levelWins[1] >= 10 },
-            { id: 'perfect_lv5', name: 'Ultimate Master', desc: 'Win 5 games on level 5', icon: '💎', condition: (s) => s.levelWins[5] >= 5 },
-            { id: 'play_10', name: 'Dedicated', desc: 'Play 10 games', icon: '🎮', condition: (s) => s.totalGames >= 10 },
-            { id: 'play_50', name: 'Enthusiast', desc: 'Play 50 games', icon: '🎯', condition: (s) => s.totalGames >= 50 },
-            { id: 'quick_win', name: 'Speed Demon', desc: 'Win in 7 moves or less', icon: '⚡', condition: (s) => s.quickestWin > 0 && s.quickestWin <= 7 },
-            { id: 'all_levels', name: 'Completionist', desc: 'Beat all 5 levels', icon: '🌈', condition: (s) => [1,2,3,4,5].every(l => s.levelWins[l] >= 1) },
+            // BRONZE (15)
+            { id: 'first_win',     tier: 'bronze',   icon: '🌟', name: 'First Victory',     desc: 'Win your first game',            condition: (s) => s.totalWins >= 1 },
+            { id: 'first_game',    tier: 'bronze',   icon: '🎲', name: 'First Move',         desc: 'Play your first game',           condition: (s) => s.totalGames >= 1 },
+            { id: 'win_5',         tier: 'bronze',   icon: '🔥', name: 'On a Roll',          desc: 'Win 5 games',                    condition: (s) => s.totalWins >= 5 },
+            { id: 'play_10',       tier: 'bronze',   icon: '🎮', name: 'Dedicated',          desc: 'Play 10 games',                  condition: (s) => s.totalGames >= 10 },
+            { id: 'beat_lv1',      tier: 'bronze',   icon: '🟢', name: 'Beginner Beaten',    desc: 'Beat level 1',                   condition: (s) => s.levelWins[1] >= 1 },
+            { id: 'beat_lv2',      tier: 'bronze',   icon: '🔵', name: 'Casual Crushed',     desc: 'Beat level 2',                   condition: (s) => s.levelWins[2] >= 1 },
+            { id: 'beat_lv3',      tier: 'bronze',   icon: '🟡', name: 'Challenger',         desc: 'Beat level 3',                   condition: (s) => s.levelWins[3] >= 1 },
+            { id: 'quick_win',     tier: 'bronze',   icon: '⚡', name: 'Speed Demon',        desc: 'Win in 7 moves or less',         condition: (s) => s.quickestWin > 0 && s.quickestWin <= 7 },
+            { id: 'streak_3',      tier: 'bronze',   icon: '📈', name: 'Hot Streak',         desc: 'Win 3 games in a row',           condition: (s) => s.bestStreak >= 3 },
+            { id: 'lv1_wins_5',    tier: 'bronze',   icon: '💚', name: 'Beginner Pro',       desc: 'Win 5 games on level 1',         condition: (s) => s.levelWins[1] >= 5 },
+            { id: 'lv2_wins_5',    tier: 'bronze',   icon: '💙', name: 'Casual Pro',         desc: 'Win 5 games on level 2',         condition: (s) => s.levelWins[2] >= 5 },
+            { id: 'play_25',       tier: 'bronze',   icon: '🕹️', name: 'Regular',            desc: 'Play 25 games',                  condition: (s) => s.totalGames >= 25 },
+            { id: 'center_king',   tier: 'bronze',   icon: '🎯', name: 'Center King',         desc: 'Win 3 games',                    condition: (s) => s.totalWins >= 3 },
+            { id: 'lv3_wins_3',    tier: 'bronze',   icon: '🧩', name: 'Puzzle Solver',      desc: 'Win 3 games on level 3',         condition: (s) => s.levelWins[3] >= 3 },
+            { id: 'win_10',        tier: 'bronze',   icon: '⭐', name: 'Veteran',            desc: 'Win 10 games',                   condition: (s) => s.totalWins >= 10 },
+
+            // SILVER (10)
+            { id: 'beat_lv4',      tier: 'silver',   icon: '🟠', name: 'Tactician',          desc: 'Beat level 4',                   condition: (s) => s.levelWins[4] >= 1 },
+            { id: 'win_25',        tier: 'silver',   icon: '👑', name: 'Master',             desc: 'Win 25 games',                   condition: (s) => s.totalWins >= 25 },
+            { id: 'play_50',       tier: 'silver',   icon: '🎯', name: 'Enthusiast',         desc: 'Play 50 games',                  condition: (s) => s.totalGames >= 50 },
+            { id: 'streak_5',      tier: 'silver',   icon: '🔥', name: 'On Fire',            desc: 'Win 5 games in a row',           condition: (s) => s.bestStreak >= 5 },
+            { id: 'perfect_lv1',   tier: 'silver',   icon: '💚', name: 'Perfect Beginner',   desc: 'Win 10 games on level 1',        condition: (s) => s.levelWins[1] >= 10 },
+            { id: 'lv4_wins_3',    tier: 'silver',   icon: '🧠', name: 'Thinker',            desc: 'Win 3 games on level 4',         condition: (s) => s.levelWins[4] >= 3 },
+            { id: 'play_100',      tier: 'silver',   icon: '💯', name: 'Centurion',          desc: 'Play 100 games',                 condition: (s) => s.totalGames >= 100 },
+            { id: 'all_levels',    tier: 'silver',   icon: '🌈', name: 'Completionist',      desc: 'Beat all 5 levels',              condition: (s) => [1,2,3,4,5].every(l => s.levelWins[l] >= 1) },
+            { id: 'lv2_wins_10',   tier: 'silver',   icon: '🔵', name: 'Casual Master',      desc: 'Win 10 games on level 2',        condition: (s) => s.levelWins[2] >= 10 },
+            { id: 'quick_win_6',   tier: 'silver',   icon: '⏱️', name: 'Lightning Fast',     desc: 'Win in 6 moves or less',         condition: (s) => s.quickestWin > 0 && s.quickestWin <= 6 },
+
+            // GOLD (5)
+            { id: 'beat_lv5',      tier: 'gold',     icon: '🔴', name: 'AI Slayer',          desc: 'Beat level 5 — Expert',          condition: (s) => s.levelWins[5] >= 1 },
+            { id: 'win_50',        tier: 'gold',     icon: '🏆', name: 'Legend',             desc: 'Win 50 games',                   condition: (s) => s.totalWins >= 50 },
+            { id: 'perfect_lv5',   tier: 'gold',     icon: '💎', name: 'Ultimate Master',    desc: 'Win 5 games on level 5',         condition: (s) => s.levelWins[5] >= 5 },
+            { id: 'streak_10',     tier: 'gold',     icon: '🌋', name: 'Unstoppable',        desc: 'Win 10 games in a row',          condition: (s) => s.bestStreak >= 10 },
+            { id: 'lv5_wins_10',   tier: 'gold',     icon: '🧬', name: 'Machine Breaker',    desc: 'Win 10 games on level 5',        condition: (s) => s.levelWins[5] >= 10 },
+
+            // PLATINUM (1)
+            { id: 'four_master',   tier: 'platinum', icon: '👑', name: 'Four Master',        desc: 'Unlock all 30 other trophies',   condition: (s) => s.totalUnlocked >= 30 },
         ];
         
         function getAchievementStats() {
@@ -2656,17 +2694,19 @@
             let totalWins = 0;
             let totalGames = 0;
             let levelWins = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
-            
+
             for (let i = 1; i <= 5; i++) {
                 const ls = stats[i] || { played: 0, wins: 0 };
                 totalWins += ls.wins;
                 totalGames += ls.played;
                 levelWins[i] = ls.wins;
             }
-            
+
             const quickestWin = stats.quickestWin || 0;
-            
-            return { totalWins, totalGames, levelWins, quickestWin };
+            const bestStreak = stats.bestStreak || 0;
+            const totalUnlocked = getUnlockedAchievements().length;
+
+            return { totalWins, totalGames, levelWins, quickestWin, bestStreak, totalUnlocked };
         }
         
         function getUnlockedAchievements() {
@@ -2681,22 +2721,25 @@
             const stats = getAchievementStats();
             const unlocked = getUnlockedAchievements();
             const newlyUnlocked = [];
-            
+
             ACHIEVEMENTS.forEach(achievement => {
                 if (!unlocked.includes(achievement.id) && achievement.condition(stats)) {
                     unlocked.push(achievement.id);
                     newlyUnlocked.push(achievement);
                 }
             });
-            
+
             if (newlyUnlocked.length > 0) {
                 saveUnlockedAchievements(unlocked);
+                newlyUnlocked.forEach(ach => {
+                    gvPost('achievement', { id: ach.id, name: ach.name, tier: ach.tier });
+                    if (window.GameVolt) GameVolt.achievements.unlock(ach.id);
+                });
                 // Show toast for first new achievement
                 showAchievementToast(newlyUnlocked[0]);
-                // Mark button as having new achievements
                 document.getElementById('achievements-btn').classList.add('has-new');
             }
-            
+
             return newlyUnlocked;
         }
         
@@ -2713,15 +2756,18 @@
             }, 4000);
         }
         
+        const TIER_COLORS = { bronze: '#cd7f32', silver: '#c0c0c0', gold: '#ffd700', platinum: '#b388ff' };
+
         function renderAchievements() {
             const list = document.getElementById('achievements-list');
             const unlocked = getUnlockedAchievements();
             const stats = getAchievementStats();
-            
+
             list.innerHTML = ACHIEVEMENTS.map(achievement => {
                 const isUnlocked = unlocked.includes(achievement.id);
                 const progress = getAchievementProgress(achievement, stats);
-                
+                const tierColor = TIER_COLORS[achievement.tier] || '#888';
+
                 return `
                     <div class="achievement-card ${isUnlocked ? 'unlocked' : ''}">
                         <div class="achievement-icon">${isUnlocked ? achievement.icon : '🔒'}</div>
@@ -2734,28 +2780,41 @@
                                 </div>
                             ` : ''}
                         </div>
+                        <span class="achievement-tier" style="background:${tierColor}">${achievement.tier}</span>
                     </div>
                 `;
             }).join('');
-            
+
             // Remove new indicator when viewing
             document.getElementById('achievements-btn').classList.remove('has-new');
         }
         
         function getAchievementProgress(achievement, stats) {
-            // Return progress percentage for trackable achievements
             const progressMap = {
-                'first_win': { current: stats.totalWins, max: 1 },
-                'win_5': { current: stats.totalWins, max: 5 },
-                'win_10': { current: stats.totalWins, max: 10 },
-                'win_25': { current: stats.totalWins, max: 25 },
-                'win_50': { current: stats.totalWins, max: 50 },
-                'play_10': { current: stats.totalGames, max: 10 },
-                'play_50': { current: stats.totalGames, max: 50 },
+                'first_game':  { current: stats.totalGames, max: 1 },
+                'first_win':   { current: stats.totalWins, max: 1 },
+                'center_king': { current: stats.totalWins, max: 3 },
+                'win_5':       { current: stats.totalWins, max: 5 },
+                'win_10':      { current: stats.totalWins, max: 10 },
+                'win_25':      { current: stats.totalWins, max: 25 },
+                'win_50':      { current: stats.totalWins, max: 50 },
+                'play_10':     { current: stats.totalGames, max: 10 },
+                'play_25':     { current: stats.totalGames, max: 25 },
+                'play_50':     { current: stats.totalGames, max: 50 },
+                'play_100':    { current: stats.totalGames, max: 100 },
+                'streak_3':    { current: stats.bestStreak, max: 3 },
+                'streak_5':    { current: stats.bestStreak, max: 5 },
+                'streak_10':   { current: stats.bestStreak, max: 10 },
+                'lv1_wins_5':  { current: stats.levelWins[1], max: 5 },
                 'perfect_lv1': { current: stats.levelWins[1], max: 10 },
+                'lv2_wins_5':  { current: stats.levelWins[2], max: 5 },
+                'lv2_wins_10': { current: stats.levelWins[2], max: 10 },
+                'lv3_wins_3':  { current: stats.levelWins[3], max: 3 },
+                'lv4_wins_3':  { current: stats.levelWins[4], max: 3 },
                 'perfect_lv5': { current: stats.levelWins[5], max: 5 },
+                'lv5_wins_10': { current: stats.levelWins[5], max: 10 },
             };
-            
+
             if (progressMap[achievement.id]) {
                 const p = progressMap[achievement.id];
                 return Math.min(100, (p.current / p.max) * 100);
@@ -2882,10 +2941,17 @@
                 if (moves > 0 && (!stats.quickestWin || moves < stats.quickestWin)) {
                     stats.quickestWin = moves;
                 }
+                // Track win streak
+                stats.currentStreak = (stats.currentStreak || 0) + 1;
+                if (stats.currentStreak > (stats.bestStreak || 0)) {
+                    stats.bestStreak = stats.currentStreak;
+                }
+            } else {
+                stats.currentStreak = 0;
             }
             saveStats(stats);
             updateStatsDisplay();
-            
+
             // Check for new achievements
             setTimeout(() => checkAchievements(), 500);
         }
@@ -3822,6 +3888,37 @@
                     .catch(err => console.log('Service Worker registration failed:', err));
             });
         }
+
+        // ===== GameVolt SDK integration =====
+        if (window.GameVolt) {
+            GameVolt.save.setup({
+                keys: ['connect4Stats', 'connect4Achievements'],
+                merge: function(local, cloud) {
+                    // Merge stats: keep highest values
+                    var ls = local['connect4Stats'] || {};
+                    var cs = cloud || {};
+                    var merged = {};
+                    for (var i = 1; i <= 5; i++) {
+                        var ll = ls[i] || { played: 0, wins: 0 };
+                        var cl = cs[i] || { played: 0, wins: 0 };
+                        merged[i] = {
+                            played: Math.max(ll.played, cl.played),
+                            wins: Math.max(ll.wins, cl.wins)
+                        };
+                    }
+                    merged.quickestWin = Math.min(ls.quickestWin || 999, cs.quickestWin || 999);
+                    if (merged.quickestWin === 999) merged.quickestWin = 0;
+                    merged.bestStreak = Math.max(ls.bestStreak || 0, cs.bestStreak || 0);
+                    merged.currentStreak = ls.currentStreak || 0;
+                    return merged;
+                },
+                getAchievements: function(local) {
+                    var ids = local['connect4Achievements'];
+                    if (!ids || !Array.isArray(ids)) return [];
+                    return ids.map(function(id) { return { id: id, unlocked_at: Date.now() }; });
+                }
+            });
+        }
     </script>
 
     <div id="seo-content">
@@ -3936,5 +4033,6 @@
   </footer>
     </div>
     <script>if(window.parent!==window){document.getElementById('seo-content').style.display='none';}</script>
+    <script src="/sdk/gamevolt.js" data-game="connect4" defer></script>
 </body>
 </html>
