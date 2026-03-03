@@ -2952,6 +2952,14 @@
             saveStats(stats);
             updateStatsDisplay();
 
+            // Submit total wins as score to leaderboard
+            if (won) {
+                let totalWins = 0;
+                for (let i = 1; i <= 5; i++) totalWins += (stats[i] || {}).wins || 0;
+                gvPost('score', { score: totalWins, mode: 'default' });
+                if (window.GameVolt) GameVolt.leaderboard.submit(totalWins, { mode: 'default' });
+            }
+
             // Check for new achievements
             setTimeout(() => checkAchievements(), 500);
         }
@@ -3911,6 +3919,14 @@
                     merged.bestStreak = Math.max(ls.bestStreak || 0, cs.bestStreak || 0);
                     merged.currentStreak = ls.currentStreak || 0;
                     return merged;
+                },
+                getScores: function(local) {
+                    var s = local['connect4Stats'];
+                    if (!s) return [];
+                    var totalWins = 0;
+                    for (var i = 1; i <= 5; i++) totalWins += (s[i] || {}).wins || 0;
+                    if (totalWins > 0) return [{ score: totalWins, mode: 'default' }];
+                    return [];
                 },
                 getAchievements: function(local) {
                     var ids = local['connect4Achievements'];
