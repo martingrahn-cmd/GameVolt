@@ -198,11 +198,13 @@ DROP POLICY IF EXISTS "scores_insert" ON scores;
 CREATE POLICY "scores_select" ON scores FOR SELECT USING (true);
 CREATE POLICY "scores_insert" ON scores FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- user_achievements: public read, own insert
+-- user_achievements: public read, own insert/update (update needed for upsert)
 DROP POLICY IF EXISTS "user_achievements_select" ON user_achievements;
 DROP POLICY IF EXISTS "user_achievements_insert" ON user_achievements;
+DROP POLICY IF EXISTS "user_achievements_update" ON user_achievements;
 CREATE POLICY "user_achievements_select" ON user_achievements FOR SELECT USING (true);
 CREATE POLICY "user_achievements_insert" ON user_achievements FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "user_achievements_update" ON user_achievements FOR UPDATE USING (auth.uid() = user_id);
 
 -- games: public read (admin inserts via SQL editor)
 DROP POLICY IF EXISTS "games_select" ON games;

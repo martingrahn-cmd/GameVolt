@@ -644,7 +644,69 @@ When adding a new game to the portal:
 - [ ] Avoid `filter`, `box-shadow`, `backdrop-filter` on frequently animated elements
 - [ ] Test on a low-end device (or throttle CPU in DevTools) — aim for solid 60fps
 
-### 10. Final Testing
+### 10. GameVolt SDK Integration
+
+Every game that wants cloud save, leaderboards, and trophies needs these steps:
+
+**A. Load SDK (BEFORE game script, no defer):**
+```html
+<script src="/sdk/gamevolt.js"></script>
+<script>
+  // Your game code here...
+</script>
+```
+> **IMPORTANT:** The SDK must load synchronously before your game script.
+> Do NOT use `defer` or place it after your `</script>`. If `window.GameVolt`
+> is `undefined` when your code runs, the SDK loaded too late.
+
+**B. Init + Migration (inside your game script):**
+```javascript
+if (window.GameVolt) {
+    GameVolt.init('your-game-slug');  // Must match games table id
+    GameVolt.save.registerMigration({
+        keys: ['yourGame_stats', 'yourGame_achievements'],
+        merge: function(local, cloud) { /* merge logic */ },
+        getScores: function(local) {
+            // Return array: [{ score: 1234, mode: 'default' }]
+        },
+        getAchievements: function(local) {
+            // Return array: [{ id: 'trophy_id', unlocked_at: Date.now() }]
+        }
+    });
+}
+```
+> **Method name:** It's `save.registerMigration()`, NOT `save.setup()`.
+
+**C. Submit scores on game over:**
+```javascript
+if (window.GameVolt) GameVolt.leaderboard.submit(score, { mode: 'default' });
+```
+
+**D. Unlock trophies when earned:**
+```javascript
+if (window.GameVolt) GameVolt.achievements.unlock('trophy_id');
+```
+> The SDK auto-prefixes with gameId: `unlock('first_win')` → `connect4-first_win`
+
+**E. postMessage to portal:**
+```javascript
+function gvPost(action, payload) {
+    try { window.parent.postMessage({ type: 'gamevolt', action: action, gameId: 'your-slug', payload: payload }, '*'); } catch(e) {}
+}
+gvPost('score', { score: 1234 });
+gvPost('achievement', { id: 'trophy_id', name: 'Name', tier: 'bronze' });
+```
+
+**Common pitfalls:**
+- `GameVolt.init()` is required — without it, Supabase never connects
+- SDK script must load BEFORE game script (no `defer`, no placement after game)
+- Method is `registerMigration`, not `setup`
+- `user_achievements` table needs both INSERT and UPDATE RLS policies (UPDATE required for upsert)
+- Use `maybeSingle()` instead of `single()` when a row may not exist (avoids 406)
+- Trophy IDs should be simple slugs: `first_win`, not `connect4-first_win` (SDK adds prefix)
+- Standard tier system: 15 bronze, 10 silver, 5 gold, 1 platinum = 31 total
+
+### 11. Final Testing
 
 - [ ] Desktop: game loads and plays in iframe at `/play/?game=slug`
 - [ ] Desktop: fullscreen toggle works (includes game bar with exit button)
@@ -655,6 +717,10 @@ When adding a new game to the portal:
 - [ ] Sidebar: thumbnail loads correctly
 - [ ] Session tracking: time counter works in game bar
 - [ ] postMessage: events appear in GVTracker localStorage (`gv_portal` key)
+- [ ] SDK: `window.GameVolt` exists when game code runs (check console)
+- [ ] SDK: score appears in Supabase `scores` table after game over
+- [ ] SDK: trophies appear in `user_achievements` after unlock (no 409 errors)
+- [ ] SDK: migration works (existing localStorage data syncs on first login)
 
 ---
 
