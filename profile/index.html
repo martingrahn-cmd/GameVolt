@@ -14,7 +14,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>My Profile — GameVolt</title>
-    <meta name="description" content="Your GameVolt profile — view stats, achievements, high scores, and manage your account.">
+    <meta name="description" content="Your GameVolt profile — view stats, trophies, high scores, and manage your account.">
     <meta name="robots" content="noindex">
 
     <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -418,7 +418,7 @@
         .recent-meta { font-size: 0.8rem; color: var(--text-muted); }
         .recent-time { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
 
-        /* Achievements */
+        /* Trophies */
         .ach-summary {
             display: flex;
             align-items: center;
@@ -593,8 +593,8 @@
                     <span class="stat-label">Play Time</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-value" id="stat-achievements">0</span>
-                    <span class="stat-label">Achievements</span>
+                    <span class="stat-value" id="stat-trophies">0</span>
+                    <span class="stat-label">Trophies</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-value" id="stat-best">0</span>
@@ -618,11 +618,11 @@
                 </ul>
             </div>
 
-            <!-- Achievements -->
+            <!-- Trophies -->
             <div class="content-card anim-3">
-                <div class="section-title">Achievements</div>
-                <div id="achievements-content">
-                    <div class="empty-state">No achievements yet.</div>
+                <div class="section-title">Trophies</div>
+                <div id="trophies-content">
+                    <div class="empty-state">No trophies yet.</div>
                 </div>
             </div>
         </div>
@@ -736,10 +736,10 @@
             document.getElementById('profile-email').textContent = user.email || '';
 
             // Load extended data
-            var achPromise = GameVolt.achievements.getProfile();
+            var trophyPromise = fetchTrophies(user.id);
             var profilePromise = GameVolt.auth.getFullProfile();
 
-            Promise.all([achPromise, profilePromise]).then(function(results) {
+            Promise.all([trophyPromise, profilePromise]).then(function(results) {
                 var achData = results[0];
                 var profile = results[1];
 
@@ -758,8 +758,8 @@
                 // Recently Played
                 renderRecentlyPlayed();
 
-                // Achievements
-                renderAchievements(achData);
+                // Trophies
+                renderTrophies(achData);
 
                 // Show content
                 loadingEl.style.display = 'none';
@@ -782,8 +782,8 @@
             }
             document.getElementById('stat-time').textContent = window.GVTracker ? GVTracker.formatPlayTime(totalMs) : '0';
 
-            // Achievements
-            document.getElementById('stat-achievements').textContent = achData ? achData.unlocked : 0;
+            // Trophies
+            document.getElementById('stat-trophies').textContent = achData ? achData.unlocked : 0;
 
             // Best score (from Supabase)
             var bestScore = 0;
@@ -842,26 +842,55 @@
             });
         }
 
-        function renderAchievements(achData) {
-            var container = document.getElementById('achievements-content');
-            if (!achData || achData.total === 0) return;
+        // Fetch trophies directly from user_achievements (no dependency on achievement_defs)
+        function fetchTrophies(userId) {
+            if (!window.GameVolt) return Promise.resolve(null);
+            // Access Supabase client through SDK internals isn't possible,
+            // so we use the SDK's onReady + raw fetch via the Supabase REST API
+            var url = 'https://nwkjayseuhvvpkdgpivm.supabase.co/rest/v1/user_achievements?user_id=eq.' + userId + '&select=achievement_id,unlocked_at';
+            return fetch(url, {
+                headers: {
+                    'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a2pheXNldWh2dnBrZGdwaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzQxMzYsImV4cCI6MjA4Nzk1MDEzNn0.lGCRdYlgxWJlzM6_XpML3f8AKUJG3tLmzNRLTPR0TnU',
+                    'Authorization': 'Bearer ' + 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a2pheXNldWh2dnBrZGdwaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzQxMzYsImV4cCI6MjA4Nzk1MDEzNn0.lGCRdYlgxWJlzM6_XpML3f8AKUJG3tLmzNRLTPR0TnU'
+                }
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(rows) {
+                if (!rows || !Array.isArray(rows)) return { unlocked: 0, games: {} };
+                var games = {};
+                rows.forEach(function(row) {
+                    // achievement_id format: "gameid-achname"
+                    var dash = row.achievement_id.indexOf('-');
+                    var gid = dash > 0 ? row.achievement_id.substring(0, dash) : 'other';
+                    if (!games[gid]) games[gid] = { unlocked: 0 };
+                    games[gid].unlocked++;
+                });
+                return { unlocked: rows.length, games: games };
+            })
+            .catch(function() { return { unlocked: 0, games: {} }; });
+        }
+
+        function renderTrophies(achData) {
+            var container = document.getElementById('trophies-content');
+            if (!achData || achData.unlocked === 0) return;
 
             var html = '';
 
             // Summary
             html += '<div class="ach-summary">';
             html += '<span class="ach-total">' + achData.unlocked + '</span>';
-            html += '<span class="ach-label">of ' + achData.total + ' achievements unlocked</span>';
+            html += '<span class="ach-label">trophies unlocked</span>';
             html += '</div>';
 
             // Per-game breakdown
-            for (var gid in achData.games) {
+            var gameIds = Object.keys(achData.games).sort();
+            for (var i = 0; i < gameIds.length; i++) {
+                var gid = gameIds[i];
                 var g = achData.games[gid];
-                var pct = g.total > 0 ? Math.round((g.unlocked / g.total) * 100) : 0;
                 html += '<div class="ach-game-row">';
                 html += '<span class="ach-game-name">' + (GAME_NAMES[gid] || gid) + '</span>';
-                html += '<div class="ach-bar-wrap"><div class="ach-bar" style="width:' + pct + '%"></div></div>';
-                html += '<span class="ach-count">' + g.unlocked + '/' + g.total + '</span>';
+                html += '<div class="ach-bar-wrap"><div class="ach-bar" style="width:100%"></div></div>';
+                html += '<span class="ach-count">' + g.unlocked + '</span>';
                 html += '</div>';
             }
 

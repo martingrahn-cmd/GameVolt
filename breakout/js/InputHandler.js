@@ -19,16 +19,54 @@ export default class InputHandler {
     this.keys = {};
     this.keyboardActive = false;
     window.addEventListener('keydown', (e) => {
+      const ui = this.game.ui;
+      const state = this.game.state;
+
+      // Menu / Game Over: Enter or Space → START / RETRY
+      if (e.key === 'Enter' || (e.key === ' ' && (state === 'menu' || state === 'gameover'))) {
+        if (state === 'menu' || state === 'gameover') {
+          e.preventDefault();
+          if (ui) ui.onStartClick();
+          return;
+        }
+      }
+
+      // Game Over: C → CONTINUE LEVEL, Escape → MENU
+      if (state === 'gameover') {
+        if (e.key === 'c' || e.key === 'C') { if (ui) ui.onContinueClick(); return; }
+        if (e.key === 'Escape') { e.preventDefault(); if (ui) ui.showMenu(); return; }
+      }
+
+      // Tab switching (menu, gameover, or paused): 1-5
+      if (state === 'menu' || state === 'gameover' || this.game.paused) {
+        var tabKeys = { '1': 'play', '2': 'scores', '3': 'trophies', '4': 'guide', '5': 'settings' };
+        if (tabKeys[e.key]) { if (ui) ui.switchTab(tabKeys[e.key]); return; }
+      }
+
+      // Music toggle: M (any non-gameplay state)
+      if ((e.key === 'm' || e.key === 'M') && state !== 'running') {
+        if (ui) ui.toggleMusic();
+        return;
+      }
+
+      // SFX toggle: F (any non-gameplay state)
+      if ((e.key === 'f' || e.key === 'F') && state !== 'running') {
+        if (ui) ui.toggleSfx();
+        return;
+      }
+
+      // Gameplay keys
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === ' ') {
         e.preventDefault();
         this.keys[e.key] = true;
         this.keyboardActive = true;
         if (e.key === ' ') this.onPress(e);
       }
+
       // Pause
-      if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && this.game.state === 'running') {
+      if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && state === 'running') {
         e.preventDefault();
-        if (this.game.ui) this.game.ui.togglePause();
+        if (ui) ui.togglePause();
       }
     });
     window.addEventListener('keyup', (e) => {

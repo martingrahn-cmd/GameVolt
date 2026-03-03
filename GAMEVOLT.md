@@ -628,7 +628,23 @@ When adding a new game to the portal:
 - [ ] Update GAME_META in portal homepage JS (for "Continue Playing" section)
 - [ ] Update game catalog table in this file (GAMEVOLT.md)
 
-### 9. Final Testing
+### 9. Performance Optimization
+
+- [ ] Game loop uses `requestAnimationFrame` (never `setInterval`/`setTimeout`)
+- [ ] Cap `devicePixelRatio` at 1.5–2 for mobile:
+  ```javascript
+  var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  ```
+- [ ] Canvas context created with `{ alpha: false }` if no transparency needed
+- [ ] Object pooling for frequently created/destroyed objects (particles, bullets)
+- [ ] Minimize garbage collection: reuse objects, avoid allocations in hot loops
+- [ ] Images: use WebP format, compress to appropriate size (not 2000px for a 200px sprite)
+- [ ] Audio: short clips in MP3, preloaded before gameplay
+- [ ] No heavy DOM manipulation during gameplay (canvas-based rendering preferred)
+- [ ] Avoid `filter`, `box-shadow`, `backdrop-filter` on frequently animated elements
+- [ ] Test on a low-end device (or throttle CPU in DevTools) — aim for solid 60fps
+
+### 10. Final Testing
 
 - [ ] Desktop: game loads and plays in iframe at `/play/?game=slug`
 - [ ] Desktop: fullscreen toggle works (includes game bar with exit button)
