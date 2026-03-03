@@ -438,20 +438,6 @@
 
         .ach-label { color: var(--text-muted); font-size: 0.9rem; }
 
-        .ach-game-row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 10px 0;
-        }
-
-        .ach-game-name {
-            width: 100px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-
         .ach-bar-wrap {
             flex: 1;
             height: 8px;
@@ -467,11 +453,83 @@
             transition: width 0.6s ease-out;
         }
 
-        .ach-count {
+        .trophy-game-section {
+            margin-bottom: 28px;
+        }
+
+        .trophy-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .trophy-game-title {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .trophy-game-count {
             font-size: 0.85rem;
             color: var(--text-muted);
-            width: 50px;
-            text-align: right;
+        }
+
+        .trophy-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .trophy-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--bg-glass);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: opacity 0.2s;
+        }
+
+        .trophy-card.locked {
+            opacity: 0.35;
+        }
+
+        .trophy-card.unlocked {
+            border-color: rgba(108, 92, 231, 0.3);
+        }
+
+        .trophy-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            width: 36px;
+            text-align: center;
+        }
+
+        .trophy-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .trophy-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .trophy-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .trophy-tier {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #111;
             flex-shrink: 0;
         }
 
@@ -525,7 +583,6 @@
             .profile-username { font-size: 1.4rem; }
             .footer-top { flex-direction: column; }
             .footer-links { gap: 32px; }
-            .ach-game-name { width: 80px; font-size: 0.8rem; }
         }
 
         @keyframes fadeInUp {
@@ -692,6 +749,96 @@
             axeluga: '/assets/thumbnails/axeluga.webp'
         };
 
+        // Full trophy catalog — all definitions from all games
+        var TROPHY_CATALOG = {
+            breakout: [
+                { id:'breakout-first_blood', icon:'🧱', name:'First Blood', desc:'Destroy your first brick', tier:'bronze' },
+                { id:'breakout-level_1', icon:'⭐', name:'Level 1 Clear', desc:'Clear level 1', tier:'bronze' },
+                { id:'breakout-power_player', icon:'⚡', name:'Power Player', desc:'Collect a power-up', tier:'bronze' },
+                { id:'breakout-wide_angle', icon:'🟢', name:'Wide Angle', desc:'Use wide paddle', tier:'bronze' },
+                { id:'breakout-trigger_happy', icon:'🔫', name:'Trigger Happy', desc:'Use laser cannons', tier:'bronze' },
+                { id:'breakout-safety_first', icon:'🛡️', name:'Safety First', desc:'Use floor shield', tier:'bronze' },
+                { id:'breakout-ball_frenzy', icon:'🎱', name:'Ball Frenzy', desc:'Get multiball', tier:'bronze' },
+                { id:'breakout-extra_life', icon:'❤️', name:'Extra Life', desc:'Collect a 1-UP', tier:'bronze' },
+                { id:'breakout-score_5k', icon:'💰', name:'Score 5K', desc:'Reach 5,000 points', tier:'bronze' },
+                { id:'breakout-score_10k', icon:'💰', name:'Score 10K', desc:'Reach 10,000 points', tier:'bronze' },
+                { id:'breakout-brick_layer', icon:'🧱', name:'Brick Layer', desc:'Destroy 100 bricks total', tier:'bronze' },
+                { id:'breakout-level_3', icon:'🏁', name:'Level 3', desc:'Reach level 3', tier:'bronze' },
+                { id:'breakout-combo_5', icon:'🔥', name:'Combo x5', desc:'Get a 5-brick combo', tier:'bronze' },
+                { id:'breakout-neon_novice', icon:'🎮', name:'Neon Novice', desc:'Play 5 games', tier:'bronze' },
+                { id:'breakout-quick_clear', icon:'⏱️', name:'Quick Clear', desc:'Clear a level in under 45s', tier:'bronze' },
+                { id:'breakout-halfway', icon:'🌟', name:'Halfway', desc:'Reach level 5', tier:'silver' },
+                { id:'breakout-score_25k', icon:'💰', name:'Score 25K', desc:'Reach 25,000 points', tier:'silver' },
+                { id:'breakout-brick_master', icon:'🧱', name:'Brick Master', desc:'Destroy 500 bricks total', tier:'silver' },
+                { id:'breakout-flawless', icon:'💎', name:'Flawless', desc:'Clear a level with no deaths', tier:'silver' },
+                { id:'breakout-laser_show', icon:'🔴', name:'Laser Show', desc:'Destroy 10 bricks with laser', tier:'silver' },
+                { id:'breakout-triple_threat', icon:'🎯', name:'Triple Threat', desc:'Have 3 balls active at once', tier:'silver' },
+                { id:'breakout-survivor', icon:'🛡️', name:'Survivor', desc:'Clear 3 levels without dying', tier:'silver' },
+                { id:'breakout-combo_10', icon:'🔥', name:'Combo x10', desc:'Get a 10-brick combo', tier:'silver' },
+                { id:'breakout-power_hoarder', icon:'⚡', name:'Power Hoarder', desc:'Collect 10 power-ups in one game', tier:'silver' },
+                { id:'breakout-marathon', icon:'🏃', name:'Marathon', desc:'Play 20 games', tier:'silver' },
+                { id:'breakout-level_10', icon:'🏆', name:'Level 10', desc:'Reach level 10', tier:'gold' },
+                { id:'breakout-score_50k', icon:'💰', name:'Score 50K', desc:'Reach 50,000 points', tier:'gold' },
+                { id:'breakout-brick_legend', icon:'🧱', name:'Brick Legend', desc:'Destroy 1,000 bricks total', tier:'gold' },
+                { id:'breakout-untouchable', icon:'👻', name:'Untouchable', desc:'Clear 5 levels without dying', tier:'gold' },
+                { id:'breakout-neon_god', icon:'🔱', name:'Neon God', desc:'Beat level 10', tier:'gold' },
+                { id:'breakout-neon_master', icon:'👑', name:'Neon Master', desc:'Unlock all 30 other trophies', tier:'platinum' }
+            ],
+            hoverdash: [
+                { id:'hoverdash-first_flight', icon:'🛫', name:'First Flight', desc:'Play your first game', tier:'bronze' },
+                { id:'hoverdash-getting_warmed_up', icon:'🔥', name:'Getting Warmed Up', desc:'Play 10 games', tier:'bronze' },
+                { id:'hoverdash-hundred_club', icon:'🏃', name:'100 Club', desc:'Reach 100 meters', tier:'bronze' },
+                { id:'hoverdash-coin_collector', icon:'🤙', name:'Coin Collector', desc:'Collect 100 coins in one game', tier:'bronze' },
+                { id:'hoverdash-shield_up', icon:'🛡️', name:'Shield Up', desc:'Pick up 3 Shields in one game', tier:'bronze' },
+                { id:'hoverdash-magnet_hands', icon:'🧲', name:'Magnet Hands', desc:'Pick up 3 Magnets in one game', tier:'bronze' },
+                { id:'hoverdash-nitro', icon:'⚡', name:'Nitro', desc:'Pick up 3 Boosts in one game', tier:'bronze' },
+                { id:'hoverdash-wave_rider', icon:'🌊', name:'Wave Rider', desc:'Clear Wave 3', tier:'bronze' },
+                { id:'hoverdash-close_call', icon:'😬', name:'Close Call', desc:'Get 3 Near Misses in one game', tier:'bronze' },
+                { id:'hoverdash-pad_surfer', icon:'🏄', name:'Pad Surfer', desc:'Hit 3 Boost Pads in one game', tier:'bronze' },
+                { id:'hoverdash-veteran_pilot', icon:'⭐', name:'Veteran Pilot', desc:'Play 100 games', tier:'silver' },
+                { id:'hoverdash-addicted', icon:'🎮', name:'Addicted', desc:'Play 500 games', tier:'silver' },
+                { id:'hoverdash-one_k_runner', icon:'🚀', name:'1K Runner', desc:'Reach 2,000 meters', tier:'silver' },
+                { id:'hoverdash-treasure_hunter', icon:'💰', name:'Treasure Hunter', desc:'Collect 1,000 coins in one game', tier:'silver' },
+                { id:'hoverdash-coin_hoarder', icon:'🏠', name:'Coin Hoarder', desc:'Collect 25,000 coins total', tier:'silver' },
+                { id:'hoverdash-shield_wall', icon:'🧱', name:'Shield Wall', desc:'Pick up 100 Shields total', tier:'silver' },
+                { id:'hoverdash-magnet_master', icon:'🧲', name:'Magnet Master', desc:'Pick up 100 Magnets total', tier:'silver' },
+                { id:'hoverdash-boost_junkie', icon:'🔥', name:'Boost Junkie', desc:'Pick up 100 Boosts total', tier:'silver' },
+                { id:'hoverdash-ramp_rat', icon:'🛹', name:'Ramp Rat', desc:'Ride 200 ramps total', tier:'silver' },
+                { id:'hoverdash-wave_5', icon:'🌊', name:'Wave 5', desc:'Clear Wave 7', tier:'silver' },
+                { id:'hoverdash-untouchable', icon:'👻', name:'Untouchable', desc:'Reach 1,000m without a shield hit', tier:'gold' },
+                { id:'hoverdash-five_k_legend', icon:'🏆', name:'5K Legend', desc:'Reach 5,000 meters', tier:'gold' },
+                { id:'hoverdash-near_miss_king', icon:'😎', name:'Near Miss King', desc:'20 near misses in one game', tier:'gold' },
+                { id:'hoverdash-combo_demon', icon:'🔗', name:'Combo Demon', desc:'Reach x10 combo', tier:'gold' },
+                { id:'hoverdash-spin_doctor', icon:'🌀', name:'Spin Doctor', desc:'30 barrel rolls in one game', tier:'gold' },
+                { id:'hoverdash-speed_demon', icon:'🏎️', name:'Speed Demon', desc:'Reach max speed', tier:'gold' },
+                { id:'hoverdash-bulldozer', icon:'🚚', name:'Bulldozer', desc:'Smash 15 obstacles with Boost', tier:'gold' },
+                { id:'hoverdash-wave_10', icon:'⚡', name:'Wave 10', desc:'Clear Wave 12', tier:'gold' },
+                { id:'hoverdash-score_crusher', icon:'💯', name:'Score Crusher', desc:'Reach 25,000 total score', tier:'gold' },
+                { id:'hoverdash-laser_dancer', icon:'💃', name:'Laser Dancer', desc:'Dodge 10 sweep lasers in one game', tier:'gold' },
+                { id:'hoverdash-daily_bronze', icon:'📅', name:'Daily Devotee', desc:'Complete 10 Daily Challenges', tier:'bronze' },
+                { id:'hoverdash-daily_silver', icon:'📋', name:'Daily Regular', desc:'Complete 25 Daily Challenges', tier:'silver' },
+                { id:'hoverdash-daily_gold', icon:'🌟', name:'Daily Legend', desc:'Complete 50 Daily Challenges', tier:'gold' }
+            ],
+            connect4: [
+                { id:'connect4-first_win', icon:'🌟', name:'First Victory', desc:'Win your first game', tier:'bronze' },
+                { id:'connect4-win_5', icon:'🔥', name:'On a Roll', desc:'Win 5 games', tier:'bronze' },
+                { id:'connect4-win_10', icon:'⭐', name:'Veteran', desc:'Win 10 games', tier:'silver' },
+                { id:'connect4-win_25', icon:'👑', name:'Master', desc:'Win 25 games', tier:'silver' },
+                { id:'connect4-win_50', icon:'🏆', name:'Legend', desc:'Win 50 games', tier:'gold' },
+                { id:'connect4-beat_lv1', icon:'🟢', name:'Beginner Beaten', desc:'Beat level 1', tier:'bronze' },
+                { id:'connect4-beat_lv2', icon:'🔵', name:'Casual Crushed', desc:'Beat level 2', tier:'bronze' },
+                { id:'connect4-beat_lv3', icon:'🟡', name:'Challenger', desc:'Beat level 3', tier:'silver' },
+                { id:'connect4-beat_lv4', icon:'🟠', name:'Tactician', desc:'Beat level 4', tier:'silver' },
+                { id:'connect4-beat_lv5', icon:'🔴', name:'AI Slayer', desc:'Beat level 5 - Expert', tier:'gold' },
+                { id:'connect4-perfect_lv1', icon:'💚', name:'Perfect Beginner', desc:'Win 10 games on level 1', tier:'silver' },
+                { id:'connect4-perfect_lv5', icon:'💎', name:'Ultimate Master', desc:'Win 5 games on level 5', tier:'gold' },
+                { id:'connect4-play_10', icon:'🎮', name:'Dedicated', desc:'Play 10 games', tier:'bronze' },
+                { id:'connect4-play_50', icon:'🎯', name:'Enthusiast', desc:'Play 50 games', tier:'silver' },
+                { id:'connect4-quick_win', icon:'⚡', name:'Speed Demon', desc:'Win in 7 moves or less', tier:'gold' },
+                { id:'connect4-all_levels', icon:'🌈', name:'Completionist', desc:'Beat all 5 levels', tier:'gold' }
+            ]
+        };
+
         if (!window.GameVolt) {
             document.getElementById('profile-loading').textContent = 'GameVolt SDK not available.';
             return;
@@ -842,11 +989,9 @@
             });
         }
 
-        // Fetch trophies directly from user_achievements (no dependency on achievement_defs)
+        // Fetch unlocked trophies from user_achievements
         function fetchTrophies(userId) {
             if (!window.GameVolt) return Promise.resolve(null);
-            // Access Supabase client through SDK internals isn't possible,
-            // so we use the SDK's onReady + raw fetch via the Supabase REST API
             var url = 'https://nwkjayseuhvvpkdgpivm.supabase.co/rest/v1/user_achievements?user_id=eq.' + userId + '&select=achievement_id,unlocked_at';
             return fetch(url, {
                 headers: {
@@ -856,42 +1001,78 @@
             })
             .then(function(r) { return r.json(); })
             .then(function(rows) {
-                if (!rows || !Array.isArray(rows)) return { unlocked: 0, games: {} };
-                var games = {};
+                if (!rows || !Array.isArray(rows)) return { unlocked: 0, unlockedSet: {} };
+                var unlockedSet = {};
                 rows.forEach(function(row) {
-                    // achievement_id format: "gameid-achname"
-                    var dash = row.achievement_id.indexOf('-');
-                    var gid = dash > 0 ? row.achievement_id.substring(0, dash) : 'other';
-                    if (!games[gid]) games[gid] = { unlocked: 0 };
-                    games[gid].unlocked++;
+                    unlockedSet[row.achievement_id] = row.unlocked_at;
                 });
-                return { unlocked: rows.length, games: games };
+                return { unlocked: rows.length, unlockedSet: unlockedSet };
             })
-            .catch(function() { return { unlocked: 0, games: {} }; });
+            .catch(function() { return { unlocked: 0, unlockedSet: {} }; });
         }
+
+        var TIER_ORDER = { bronze: 0, silver: 1, gold: 2, platinum: 3 };
+        var TIER_COLORS = { bronze: '#cd7f32', silver: '#c0c0c0', gold: '#ffd700', platinum: '#b388ff' };
 
         function renderTrophies(achData) {
             var container = document.getElementById('trophies-content');
-            if (!achData || achData.unlocked === 0) return;
+            if (!achData) return;
+
+            var unlockedSet = achData.unlockedSet || {};
+            var totalUnlocked = achData.unlocked || 0;
+            var totalAll = 0;
+
+            // Count total trophies across all games in catalog
+            var catalogGames = Object.keys(TROPHY_CATALOG);
+            for (var i = 0; i < catalogGames.length; i++) {
+                totalAll += TROPHY_CATALOG[catalogGames[i]].length;
+            }
 
             var html = '';
 
-            // Summary
+            // Summary bar
+            var pct = totalAll > 0 ? Math.round((totalUnlocked / totalAll) * 100) : 0;
             html += '<div class="ach-summary">';
-            html += '<span class="ach-total">' + achData.unlocked + '</span>';
-            html += '<span class="ach-label">trophies unlocked</span>';
+            html += '<span class="ach-total">' + totalUnlocked + '</span>';
+            html += '<span class="ach-label">' + totalUnlocked + ' of ' + totalAll + ' trophies unlocked (' + pct + '%)</span>';
             html += '</div>';
 
-            // Per-game breakdown
-            var gameIds = Object.keys(achData.games).sort();
-            for (var i = 0; i < gameIds.length; i++) {
-                var gid = gameIds[i];
-                var g = achData.games[gid];
-                html += '<div class="ach-game-row">';
-                html += '<span class="ach-game-name">' + (GAME_NAMES[gid] || gid) + '</span>';
-                html += '<div class="ach-bar-wrap"><div class="ach-bar" style="width:100%"></div></div>';
-                html += '<span class="ach-count">' + g.unlocked + '</span>';
+            // Per-game sections
+            for (var gi = 0; gi < catalogGames.length; gi++) {
+                var gid = catalogGames[gi];
+                var trophies = TROPHY_CATALOG[gid];
+                var gameUnlocked = 0;
+                for (var t = 0; t < trophies.length; t++) {
+                    if (unlockedSet[trophies[t].id]) gameUnlocked++;
+                }
+
+                html += '<div class="trophy-game-section">';
+                html += '<div class="trophy-game-header">';
+                html += '<span class="trophy-game-title">' + (GAME_NAMES[gid] || gid) + '</span>';
+                html += '<span class="trophy-game-count">' + gameUnlocked + ' / ' + trophies.length + '</span>';
                 html += '</div>';
+
+                // Progress bar
+                var gamePct = trophies.length > 0 ? Math.round((gameUnlocked / trophies.length) * 100) : 0;
+                html += '<div class="ach-bar-wrap" style="margin-bottom:12px"><div class="ach-bar" style="width:' + gamePct + '%"></div></div>';
+
+                // Trophy grid
+                html += '<div class="trophy-grid">';
+                for (var ti = 0; ti < trophies.length; ti++) {
+                    var tr = trophies[ti];
+                    var isUnlocked = !!unlockedSet[tr.id];
+                    var cls = 'trophy-card' + (isUnlocked ? ' unlocked' : ' locked');
+                    var tierColor = TIER_COLORS[tr.tier] || '#888';
+                    html += '<div class="' + cls + '">';
+                    html += '<div class="trophy-icon">' + tr.icon + '</div>';
+                    html += '<div class="trophy-info">';
+                    html += '<div class="trophy-name">' + tr.name + '</div>';
+                    html += '<div class="trophy-desc">' + tr.desc + '</div>';
+                    html += '</div>';
+                    html += '<span class="trophy-tier" style="background:' + tierColor + '">' + tr.tier + '</span>';
+                    html += '</div>';
+                }
+                html += '</div></div>';
             }
 
             container.innerHTML = html;
