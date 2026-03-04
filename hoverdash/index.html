@@ -145,16 +145,26 @@
   #scores-title{font-size:clamp(28px,6vw,42px);font-weight:900;color:#00e5ff;text-shadow:0 0 20px #00e5ff66;letter-spacing:4px;margin-bottom:14px;text-align:center}
   #scores-list{width:min(90vw,420px)}
   #scores-empty{font-size:12px;color:#556;letter-spacing:1px;text-align:center}
+  .lb-toggle{display:flex;gap:0;margin-bottom:14px;border:1px solid #00e5ff33;border-radius:6px;overflow:hidden;width:min(80vw,280px)}
+  .lb-toggle-btn{flex:1;padding:8px 0;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;background:transparent;border:none;color:#556;cursor:pointer;transition:all .15s}
+  .lb-toggle-btn.active{background:#00e5ff22;color:#00e5ff}
   .score-row{display:flex;align-items:center;padding:8px 10px;border-bottom:1px solid #ffffff0d}
   .score-row.new{background:#00e5ff0f}
+  .score-row.me{background:rgba(0,229,255,0.12);border-left:2px solid #00e5ff;padding-left:8px}
   .score-rank{width:28px;font-size:clamp(12px,2vw,14px);color:#556;flex-shrink:0}
   .score-row:nth-child(1) .score-rank{color:#ffd700}
   .score-row:nth-child(2) .score-rank{color:#c0c0c0}
   .score-row:nth-child(3) .score-rank{color:#cd7f32}
   .score-info{flex:1;min-width:0}
   .score-val{font-size:clamp(12px,2.5vw,16px);color:#eee;letter-spacing:1px}
+  .score-username{font-size:clamp(9px,1.8vw,12px);color:#aab;letter-spacing:0.5px}
   .score-meta{font-size:clamp(8px,1.5vw,10px);color:#556;margin-top:2px;letter-spacing:0.5px}
   .score-date{font-size:clamp(9px,1.5vw,11px);color:#445;flex-shrink:0;margin-left:10px}
+  .lb-loading{color:#445;font-size:11px;letter-spacing:2px;text-align:center;padding:24px 0;animation:lb-pulse 1.4s ease-in-out infinite}
+  @keyframes lb-pulse{0%,100%{opacity:.4}50%{opacity:1}}
+  .lb-empty{color:#445;font-size:11px;letter-spacing:1px;text-align:center;padding:20px 0}
+  .lb-login{color:#556;font-size:10px;letter-spacing:1px;text-align:center;padding:12px 0}
+  .lb-login button{background:none;border:1px solid #00e5ff55;color:#00e5ff;font-family:inherit;font-size:10px;letter-spacing:2px;padding:6px 14px;cursor:pointer;border-radius:4px;margin-top:8px}
   #trophy-title{font-size:clamp(28px,6vw,42px);font-weight:900;color:#00e5ff;text-shadow:0 0 20px #00e5ff66;letter-spacing:4px}
   #trophy-count{font-size:14px;color:#00e5ff88;letter-spacing:2px;margin-top:4px}
   #trophy-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;max-height:58vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:8px;width:min(92vw,540px);scrollbar-width:thin;scrollbar-color:#00e5ff33 transparent}
@@ -290,6 +300,10 @@
   </div>
   <div id="tab-scores" class="tab-content">
     <div id="scores-title">TOP SCORES</div>
+    <div class="lb-toggle" id="lb-toggle" style="display:none">
+      <button class="lb-toggle-btn active" id="lb-local-btn">LOCAL</button>
+      <button class="lb-toggle-btn" id="lb-global-btn">GLOBAL</button>
+    </div>
     <div id="scores-list"></div>
     <div id="scores-empty">No scores yet. Play a game!</div>
   </div>
@@ -507,11 +521,21 @@ function saveScore(score,meters){
   _lastSavedScore=entry;
   saveHDData();
 }
+let _lbCache=null;
+let _lbView='local';
 function renderScores(){
+  const toggle=document.getElementById('lb-toggle');
+  const hasSDK=!!window.GameVolt;
+  toggle.style.display=hasSDK?'flex':'none';
+  if(!hasSDK) _lbView='local';
+  if(_lbView==='global') renderGlobalScores();
+  else renderLocalScores();
+}
+function renderLocalScores(){
   const list=document.getElementById('scores-list');
   const empty=document.getElementById('scores-empty');
   const scores=hdData.scores;
-  if(!scores||scores.length===0){list.innerHTML='';empty.style.display='';return;}
+  if(!scores||scores.length===0){list.innerHTML='';empty.textContent='No scores yet. Play a game!';empty.style.display='';return;}
   empty.style.display='none';
   let html='';
   for(let i=0;i<scores.length;i++){
@@ -530,6 +554,49 @@ function renderScores(){
   }
   list.innerHTML=html;
 }
+function renderGlobalScores(){
+  const list=document.getElementById('scores-list');
+  const empty=document.getElementById('scores-empty');
+  empty.style.display='none';
+  if(_lbCache!==null){renderGlobalRows(_lbCache);return;}
+  list.innerHTML='<div class="lb-loading">LOADING...</div>';
+  GameVolt.leaderboard.get({mode:'default',limit:50}).then(function(rows){
+    _lbCache=rows;
+    renderGlobalRows(rows);
+  }).catch(function(){
+    list.innerHTML='<div class="lb-empty">Could not load scores.</div>';
+  });
+}
+function renderGlobalRows(rows){
+  const list=document.getElementById('scores-list');
+  const empty=document.getElementById('scores-empty');
+  const user=window.GameVolt?GameVolt.auth.getUser():null;
+  const myId=user?user.id:null;
+  if(!rows||rows.length===0){
+    list.innerHTML='';
+    empty.textContent='No global scores yet. Be the first!';
+    empty.style.display='';
+    return;
+  }
+  empty.style.display='none';
+  let html='';
+  for(let i=0;i<rows.length;i++){
+    const r=rows[i];
+    const isMe=myId&&r.user_id===myId;
+    html+='<div class="score-row'+(isMe?' me':'')+'">';
+    html+='<div class="score-rank">'+r.rank+'.</div>';
+    html+='<div class="score-info">';
+    html+='<div class="score-username">'+_escHtml(r.username)+'</div>';
+    html+='<div class="score-val">'+r.score.toLocaleString()+'</div>';
+    html+='</div>';
+    html+='</div>';
+  }
+  if(!myId&&window.GameVolt){
+    html+='<div class="lb-login">Log in to appear on the leaderboard.<br><button onclick="GameVolt.auth.login()">LOG IN</button></div>';
+  }
+  list.innerHTML=html;
+}
+function _escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // PostMessage bridge – only active inside an iframe (GameVolt portal)
 function gvPost(action,payload){
@@ -2304,7 +2371,7 @@ function die(){
   const isNewBest=finalScore>=bestScore;
   gvPost('game_over',{score:finalScore,mode:'default',stats:{meters:m,coins:coinScore}});
   if(isNewBest) gvPost('high_score',{score:finalScore,mode:'default'});
-  if(window.GameVolt) GameVolt.leaderboard.submit(finalScore,{mode:'default'});
+  if(window.GameVolt){GameVolt.leaderboard.submit(finalScore,{mode:'default'});_lbCache=null;}
   setTimeout(()=>{playGameOverSFX();if(isNewBest)setTimeout(playHighScoreSFX,500);},400);
   document.getElementById('overlay').classList.remove('hidden');
   switchTab('play');
@@ -2518,6 +2585,18 @@ function switchTab(name){
   menuFocus=-1;updateMenuFocus();
 }
 document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>{playSFXSample('menu_click',0.5);switchTab(b.dataset.tab);}));
+document.getElementById('lb-local-btn').addEventListener('click',function(){
+  _lbView='local';
+  document.getElementById('lb-local-btn').classList.add('active');
+  document.getElementById('lb-global-btn').classList.remove('active');
+  renderScores();
+});
+document.getElementById('lb-global-btn').addEventListener('click',function(){
+  _lbView='global';
+  document.getElementById('lb-global-btn').classList.add('active');
+  document.getElementById('lb-local-btn').classList.remove('active');
+  renderScores();
+});
 
 function renderTrophyGrid(){
   const grid=document.getElementById('trophy-grid');grid.innerHTML='';

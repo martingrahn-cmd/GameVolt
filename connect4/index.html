@@ -1156,7 +1156,89 @@
         .achievements-close:hover {
             color: var(--text-primary);
         }
-        
+
+        /* Leaderboard rows */
+        .lb-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+        }
+        .lb-row.me {
+            background: rgba(255,217,61,0.1);
+            border-left: 2px solid var(--accent-yellow);
+            padding-left: 8px;
+            margin-left: -8px;
+            border-radius: 4px;
+        }
+        .lb-rank {
+            width: 32px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        .lb-row:nth-child(1) .lb-rank { color: #ffd700; }
+        .lb-row:nth-child(2) .lb-rank { color: #c0c0c0; }
+        .lb-row:nth-child(3) .lb-rank { color: #cd7f32; }
+        .lb-name {
+            flex: 1;
+            color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .lb-score {
+            color: var(--accent-yellow);
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+        .lb-score::after {
+            content: ' W';
+            color: var(--text-secondary);
+            font-size: 0.65rem;
+        }
+        .lb-loading {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            text-align: center;
+            padding: 24px 0;
+            font-family: 'Space Mono', monospace;
+            animation: pulse-dot 1.4s ease-in-out infinite;
+        }
+        .lb-empty {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-align: center;
+            padding: 20px 0;
+            font-family: 'Space Mono', monospace;
+        }
+        .lb-login {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-align: center;
+            padding: 16px 0;
+            font-family: 'Space Mono', monospace;
+        }
+        .lb-login button {
+            background: none;
+            border: 1px solid rgba(255,217,61,0.4);
+            color: var(--accent-yellow);
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            padding: 6px 14px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 8px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         .achievement-card {
             background: var(--bg-primary);
             border-radius: 12px;
@@ -2134,7 +2216,9 @@
     
     <!-- Achievements Button -->
     <button class="achievements-btn" id="achievements-btn" title="Prestationer">🏆</button>
-    
+    <!-- Leaderboard Button -->
+    <button class="achievements-btn" id="leaderboard-btn" title="Leaderboard" style="right:128px">🏅</button>
+
     <!-- Achievements Panel -->
     <div class="achievements-overlay" id="achievements-overlay"></div>
     <div class="achievements-panel" id="achievements-panel">
@@ -2143,6 +2227,16 @@
             <button class="achievements-close" id="achievements-close">×</button>
         </div>
         <div id="achievements-list"></div>
+    </div>
+
+    <!-- Leaderboard Panel -->
+    <div class="achievements-overlay" id="leaderboard-overlay"></div>
+    <div class="achievements-panel" id="leaderboard-panel">
+        <div class="achievements-header">
+            <h2 class="achievements-title">🏅 Top 50</h2>
+            <button class="achievements-close" id="leaderboard-close">×</button>
+        </div>
+        <div id="leaderboard-list"></div>
     </div>
     
     <!-- Achievement Toast -->
@@ -2836,6 +2930,62 @@
             document.getElementById('achievements-overlay').classList.remove('open');
         }
 
+        // ===== LEADERBOARD =====
+        var _c4LbCache = null;
+
+        function openLeaderboard() {
+            document.getElementById('leaderboard-panel').classList.add('open');
+            document.getElementById('leaderboard-overlay').classList.add('open');
+            loadLeaderboard();
+        }
+
+        function closeLeaderboard() {
+            document.getElementById('leaderboard-panel').classList.remove('open');
+            document.getElementById('leaderboard-overlay').classList.remove('open');
+        }
+
+        function loadLeaderboard() {
+            var listEl = document.getElementById('leaderboard-list');
+            if (!window.GameVolt) {
+                listEl.innerHTML = '<div class="lb-login">Log in to see the leaderboard.<br><button onclick="GameVolt.auth.login()">LOG IN</button></div>';
+                return;
+            }
+            if (_c4LbCache !== null) { renderLeaderboardRows(_c4LbCache); return; }
+            listEl.innerHTML = '<div class="lb-loading">LOADING...</div>';
+            GameVolt.leaderboard.get({ mode: 'default', limit: 50 }).then(function(rows) {
+                _c4LbCache = rows;
+                renderLeaderboardRows(rows);
+            }).catch(function() {
+                listEl.innerHTML = '<div class="lb-empty">Could not load scores.</div>';
+            });
+        }
+
+        function renderLeaderboardRows(rows) {
+            var listEl = document.getElementById('leaderboard-list');
+            var user = window.GameVolt ? GameVolt.auth.getUser() : null;
+            var myId = user ? user.id : null;
+            if (!rows || rows.length === 0) {
+                listEl.innerHTML = '<div class="lb-empty">No scores yet. Be the first to win!</div>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                var isMe = myId && r.user_id === myId;
+                html += '<div class="lb-row' + (isMe ? ' me' : '') + '">';
+                html += '<div class="lb-rank">' + r.rank + '.</div>';
+                html += '<div class="lb-name">' + _c4EscHtml(r.username) + '</div>';
+                html += '<div class="lb-score">' + r.score + '</div>';
+                html += '</div>';
+            }
+            if (!myId && window.GameVolt) {
+                html += '<div class="lb-login">Log in to appear here.<br><button onclick="GameVolt.auth.login()">LOG IN</button></div>';
+            }
+            listEl.innerHTML = html;
+        }
+
+        function _c4EscHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
         // ===== AUDIO =====
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         let audioCtx = null;
@@ -2958,7 +3108,7 @@
                 let totalWins = 0;
                 for (let i = 1; i <= 5; i++) totalWins += (stats[i] || {}).wins || 0;
                 gvPost('score', { score: totalWins, mode: 'default' });
-                if (window.GameVolt) GameVolt.leaderboard.submit(totalWins, { mode: 'default' });
+                if (window.GameVolt) { GameVolt.leaderboard.submit(totalWins, { mode: 'default' }); _c4LbCache = null; }
             }
 
             // Check for new achievements
@@ -3837,6 +3987,9 @@
         document.getElementById('achievements-btn').addEventListener('click', openAchievements);
         document.getElementById('achievements-close').addEventListener('click', closeAchievements);
         document.getElementById('achievements-overlay').addEventListener('click', closeAchievements);
+        document.getElementById('leaderboard-btn').addEventListener('click', openLeaderboard);
+        document.getElementById('leaderboard-close').addEventListener('click', closeLeaderboard);
+        document.getElementById('leaderboard-overlay').addEventListener('click', closeLeaderboard);
         
         // Sound toggle
         document.getElementById('sound-toggle').addEventListener('click', toggleSound);

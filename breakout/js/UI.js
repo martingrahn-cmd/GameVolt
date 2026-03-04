@@ -1,5 +1,7 @@
 import { ACHIEVEMENTS, loadBOData, saveBOData } from './Achievements.js';
 
+function _escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 export default class UIManager {
   constructor(game) {
     this.game = game;
@@ -47,6 +49,12 @@ export default class UIManager {
     this.achToastIcon = document.getElementById('ach-toast-icon');
     this.achToastTier = document.getElementById('ach-toast-tier');
     this.achToastName = document.getElementById('ach-toast-name');
+
+    this.lbToggle = document.getElementById('lb-toggle');
+    this.lbLocalBtn = document.getElementById('lb-local-btn');
+    this.lbGlobalBtn = document.getElementById('lb-global-btn');
+    this._lbCache = null;
+    this._lbView = 'local';
   }
 
   setupListeners() {
@@ -65,6 +73,20 @@ export default class UIManager {
     // Settings
     this.musicBtn.addEventListener('click', () => this.toggleMusic());
     this.sfxBtn.addEventListener('click', () => this.toggleSfx());
+
+    // Leaderboard toggle
+    this.lbLocalBtn.addEventListener('click', () => {
+      this._lbView = 'local';
+      this.lbLocalBtn.classList.add('active');
+      this.lbGlobalBtn.classList.remove('active');
+      this.renderScores();
+    });
+    this.lbGlobalBtn.addEventListener('click', () => {
+      this._lbView = 'global';
+      this.lbGlobalBtn.classList.add('active');
+      this.lbLocalBtn.classList.remove('active');
+      this.renderScores();
+    });
   }
 
   // --- TAB SYSTEM ---
@@ -120,7 +142,7 @@ export default class UIManager {
     if (g.score >= this.boData.bestScore) {
       gvPost('high_score', { score: g.score, mode: 'default' });
     }
-    if (window.GameVolt) GameVolt.leaderboard.submit(g.score, { mode: 'default' });
+    if (window.GameVolt) { GameVolt.leaderboard.submit(g.score, { mode: 'default' }); this._lbCache = null; }
 
     this.overlay.classList.remove('hidden');
     this.pauseBtn.classList.remove('show');
@@ -252,9 +274,18 @@ export default class UIManager {
   }
 
   renderScores() {
+    var hasSDK = !!window.GameVolt;
+    this.lbToggle.style.display = hasSDK ? 'flex' : 'none';
+    if (!hasSDK) this._lbView = 'local';
+    if (this._lbView === 'global') this._renderGlobal();
+    else this._renderLocal();
+  }
+
+  _renderLocal() {
     var scores = this.boData.scores;
     if (!scores || scores.length === 0) {
       this.scoresList.innerHTML = '';
+      this.scoresEmpty.textContent = 'No scores yet. Play a game!';
       this.scoresEmpty.style.display = '';
       return;
     }
@@ -273,6 +304,47 @@ export default class UIManager {
       html += '</div>';
       html += '<div class="score-date">' + dateStr + '</div>';
       html += '</div>';
+    }
+    this.scoresList.innerHTML = html;
+  }
+
+  _renderGlobal() {
+    this.scoresEmpty.style.display = 'none';
+    if (this._lbCache !== null) { this._renderGlobalRows(this._lbCache); return; }
+    this.scoresList.innerHTML = '<div class="lb-loading">LOADING...</div>';
+    var self = this;
+    GameVolt.leaderboard.get({ mode: 'default', limit: 50 }).then(function(rows) {
+      self._lbCache = rows;
+      self._renderGlobalRows(rows);
+    }).catch(function() {
+      self.scoresList.innerHTML = '<div class="lb-empty">Could not load scores.</div>';
+    });
+  }
+
+  _renderGlobalRows(rows) {
+    var user = window.GameVolt ? GameVolt.auth.getUser() : null;
+    var myId = user ? user.id : null;
+    if (!rows || rows.length === 0) {
+      this.scoresList.innerHTML = '';
+      this.scoresEmpty.textContent = 'No global scores yet. Be the first!';
+      this.scoresEmpty.style.display = '';
+      return;
+    }
+    this.scoresEmpty.style.display = 'none';
+    var html = '';
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var isMe = myId && r.user_id === myId;
+      html += '<div class="score-row' + (isMe ? ' me' : '') + '">';
+      html += '<div class="score-rank">' + r.rank + '.</div>';
+      html += '<div class="score-info">';
+      html += '<div class="score-username">' + _escHtml(r.username) + '</div>';
+      html += '<div class="score-val">' + r.score.toLocaleString() + '</div>';
+      html += '</div>';
+      html += '</div>';
+    }
+    if (!myId && window.GameVolt) {
+      html += '<div class="lb-login">Log in to appear on the leaderboard.<br><button onclick="GameVolt.auth.login()">LOG IN</button></div>';
     }
     this.scoresList.innerHTML = html;
   }

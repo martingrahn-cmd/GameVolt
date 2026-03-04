@@ -382,7 +382,7 @@ CREATE INDEX idx_achievements_user ON user_achievements(user_id);
 - [ ] Trending/most played sorting on portal
 - [ ] Ad integration (non-intrusive, opt-in rewarded ads)
 
----
+---https://www.ammunitiondepot.com/blog/how-to-shoot-an-ar-15-faster-and-more-accurately
 
 ## Multi-Platform Strategy
 

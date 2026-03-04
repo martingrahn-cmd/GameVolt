@@ -513,6 +513,16 @@
       letter-spacing: 1px;
       text-align: center;
     }
+    .lb-toggle{display:flex;gap:0;margin-bottom:14px;border:1px solid #00eaff33;border-radius:6px;overflow:hidden;width:min(80vw,280px)}
+    .lb-toggle-btn{flex:1;padding:8px 0;font-family:'Press Start 2P',monospace;font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;background:transparent;border:none;color:#556;cursor:pointer;transition:all .15s}
+    .lb-toggle-btn.active{background:#00eaff22;color:#00eaff}
+    .score-row.me{background:rgba(0,234,255,0.12);border-left:2px solid #00eaff;padding-left:8px}
+    .score-username{font-size:clamp(7px,1.5vw,10px);color:#aab;letter-spacing:0.5px}
+    .lb-loading{color:#445;font-size:8px;letter-spacing:2px;text-align:center;padding:24px 0;font-family:'Press Start 2P',monospace;animation:lb-pulse 1.4s ease-in-out infinite}
+    @keyframes lb-pulse{0%,100%{opacity:.4}50%{opacity:1}}
+    .lb-empty{color:#445;font-size:8px;letter-spacing:1px;text-align:center;padding:20px 0;font-family:'Press Start 2P',monospace}
+    .lb-login{color:#556;font-size:8px;letter-spacing:1px;text-align:center;padding:12px 0;font-family:'Press Start 2P',monospace}
+    .lb-login button{background:none;border:1px solid #00eaff55;color:#00eaff;font-family:'Press Start 2P',monospace;font-size:7px;letter-spacing:2px;padding:6px 14px;cursor:pointer;border-radius:4px;margin-top:8px}
     .score-row {
       display: flex;
       align-items: center;
@@ -697,6 +707,10 @@
       <!-- SCORES TAB -->
       <div id="tab-scores" class="tab-content">
         <div id="scores-title">TOP SCORES</div>
+        <div class="lb-toggle" id="lb-toggle" style="display:none">
+          <button class="lb-toggle-btn active" id="lb-local-btn">LOCAL</button>
+          <button class="lb-toggle-btn" id="lb-global-btn">GLOBAL</button>
+        </div>
         <div id="scores-list"></div>
         <div id="scores-empty">No scores yet. Play a game!</div>
       </div>
