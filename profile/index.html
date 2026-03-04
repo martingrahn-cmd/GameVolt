@@ -454,14 +454,41 @@
         }
 
         .trophy-game-section {
-            margin-bottom: 28px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            overflow: hidden;
         }
 
         .trophy-game-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            padding: 14px 16px;
+            cursor: pointer;
+            background: var(--bg-glass);
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .trophy-game-header:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .trophy-game-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .trophy-game-chevron {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            transition: transform 0.25s ease;
+        }
+
+        .trophy-game-section.open .trophy-game-chevron {
+            transform: rotate(90deg);
         }
 
         .trophy-game-title {
@@ -472,6 +499,21 @@
         .trophy-game-count {
             font-size: 0.85rem;
             color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .trophy-game-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+        }
+
+        .trophy-game-section.open .trophy-game-body {
+            max-height: 5000px;
+        }
+
+        .trophy-game-inner {
+            padding: 0 16px 16px;
         }
 
         .trophy-grid {
@@ -795,29 +837,27 @@
                 { id:'hoverdash-wave_rider', icon:'🌊', name:'Wave Rider', desc:'Clear Wave 3', tier:'bronze' },
                 { id:'hoverdash-close_call', icon:'😬', name:'Close Call', desc:'Get 3 Near Misses in one game', tier:'bronze' },
                 { id:'hoverdash-pad_surfer', icon:'🏄', name:'Pad Surfer', desc:'Hit 3 Boost Pads in one game', tier:'bronze' },
+                { id:'hoverdash-shield_wall', icon:'🧱', name:'Shield Wall', desc:'Pick up 100 Shields total', tier:'bronze' },
+                { id:'hoverdash-magnet_master', icon:'🧲', name:'Magnet Master', desc:'Pick up 100 Magnets total', tier:'bronze' },
+                { id:'hoverdash-boost_junkie', icon:'🔥', name:'Boost Junkie', desc:'Pick up 100 Boosts total', tier:'bronze' },
+                { id:'hoverdash-ramp_rat', icon:'🛹', name:'Ramp Rat', desc:'Ride 200 ramps total', tier:'bronze' },
+                { id:'hoverdash-wave_5', icon:'🌊', name:'Wave 5', desc:'Clear Wave 7', tier:'bronze' },
                 { id:'hoverdash-veteran_pilot', icon:'⭐', name:'Veteran Pilot', desc:'Play 100 games', tier:'silver' },
                 { id:'hoverdash-addicted', icon:'🎮', name:'Addicted', desc:'Play 500 games', tier:'silver' },
                 { id:'hoverdash-one_k_runner', icon:'🚀', name:'1K Runner', desc:'Reach 2,000 meters', tier:'silver' },
                 { id:'hoverdash-treasure_hunter', icon:'💰', name:'Treasure Hunter', desc:'Collect 1,000 coins in one game', tier:'silver' },
                 { id:'hoverdash-coin_hoarder', icon:'🏠', name:'Coin Hoarder', desc:'Collect 25,000 coins total', tier:'silver' },
-                { id:'hoverdash-shield_wall', icon:'🧱', name:'Shield Wall', desc:'Pick up 100 Shields total', tier:'silver' },
-                { id:'hoverdash-magnet_master', icon:'🧲', name:'Magnet Master', desc:'Pick up 100 Magnets total', tier:'silver' },
-                { id:'hoverdash-boost_junkie', icon:'🔥', name:'Boost Junkie', desc:'Pick up 100 Boosts total', tier:'silver' },
-                { id:'hoverdash-ramp_rat', icon:'🛹', name:'Ramp Rat', desc:'Ride 200 ramps total', tier:'silver' },
-                { id:'hoverdash-wave_5', icon:'🌊', name:'Wave 5', desc:'Clear Wave 7', tier:'silver' },
+                { id:'hoverdash-near_miss_king', icon:'😎', name:'Near Miss King', desc:'20 near misses in one game', tier:'silver' },
+                { id:'hoverdash-spin_doctor', icon:'🌀', name:'Spin Doctor', desc:'30 barrel rolls in one game', tier:'silver' },
+                { id:'hoverdash-speed_demon', icon:'🏎️', name:'Speed Demon', desc:'Reach max speed', tier:'silver' },
+                { id:'hoverdash-bulldozer', icon:'🚚', name:'Bulldozer', desc:'Smash 15 obstacles with Boost', tier:'silver' },
+                { id:'hoverdash-laser_dancer', icon:'💃', name:'Laser Dancer', desc:'Dodge 10 sweep lasers in one game', tier:'silver' },
                 { id:'hoverdash-untouchable', icon:'👻', name:'Untouchable', desc:'Reach 1,000m without a shield hit', tier:'gold' },
                 { id:'hoverdash-five_k_legend', icon:'🏆', name:'5K Legend', desc:'Reach 5,000 meters', tier:'gold' },
-                { id:'hoverdash-near_miss_king', icon:'😎', name:'Near Miss King', desc:'20 near misses in one game', tier:'gold' },
                 { id:'hoverdash-combo_demon', icon:'🔗', name:'Combo Demon', desc:'Reach x10 combo', tier:'gold' },
-                { id:'hoverdash-spin_doctor', icon:'🌀', name:'Spin Doctor', desc:'30 barrel rolls in one game', tier:'gold' },
-                { id:'hoverdash-speed_demon', icon:'🏎️', name:'Speed Demon', desc:'Reach max speed', tier:'gold' },
-                { id:'hoverdash-bulldozer', icon:'🚚', name:'Bulldozer', desc:'Smash 15 obstacles with Boost', tier:'gold' },
                 { id:'hoverdash-wave_10', icon:'⚡', name:'Wave 10', desc:'Clear Wave 12', tier:'gold' },
                 { id:'hoverdash-score_crusher', icon:'💯', name:'Score Crusher', desc:'Reach 25,000 total score', tier:'gold' },
-                { id:'hoverdash-laser_dancer', icon:'💃', name:'Laser Dancer', desc:'Dodge 10 sweep lasers in one game', tier:'gold' },
-                { id:'hoverdash-daily_bronze', icon:'📅', name:'Daily Devotee', desc:'Complete 10 Daily Challenges', tier:'bronze' },
-                { id:'hoverdash-daily_silver', icon:'📋', name:'Daily Regular', desc:'Complete 25 Daily Challenges', tier:'silver' },
-                { id:'hoverdash-daily_gold', icon:'🌟', name:'Daily Legend', desc:'Complete 50 Daily Challenges', tier:'gold' }
+                { id:'hoverdash-hover_master', icon:'👑', name:'Hover Master', desc:'Unlock all 30 other trophies', tier:'platinum' }
             ],
             connect4: [
                 // Bronze (15)
@@ -1056,7 +1096,7 @@
             html += '<span class="ach-label">' + totalUnlocked + ' of ' + totalAll + ' trophies unlocked (' + pct + '%)</span>';
             html += '</div>';
 
-            // Per-game sections
+            // Per-game sections (collapsible)
             for (var gi = 0; gi < catalogGames.length; gi++) {
                 var gid = catalogGames[gi];
                 var trophies = TROPHY_CATALOG[gid];
@@ -1065,14 +1105,20 @@
                     if (unlockedSet[trophies[t].id]) gameUnlocked++;
                 }
 
-                html += '<div class="trophy-game-section">';
-                html += '<div class="trophy-game-header">';
+                var gamePct = trophies.length > 0 ? Math.round((gameUnlocked / trophies.length) * 100) : 0;
+
+                html += '<div class="trophy-game-section' + (gi === 0 ? ' open' : '') + '" data-game="' + gid + '">';
+                html += '<div class="trophy-game-header" onclick="this.parentElement.classList.toggle(\'open\')">';
+                html += '<div class="trophy-game-left">';
+                html += '<span class="trophy-game-chevron">&#9654;</span>';
                 html += '<span class="trophy-game-title">' + (GAME_NAMES[gid] || gid) + '</span>';
-                html += '<span class="trophy-game-count">' + gameUnlocked + ' / ' + trophies.length + '</span>';
+                html += '</div>';
+                html += '<span class="trophy-game-count">' + gameUnlocked + ' / ' + trophies.length + ' (' + gamePct + '%)</span>';
                 html += '</div>';
 
+                html += '<div class="trophy-game-body"><div class="trophy-game-inner">';
+
                 // Progress bar
-                var gamePct = trophies.length > 0 ? Math.round((gameUnlocked / trophies.length) * 100) : 0;
                 html += '<div class="ach-bar-wrap" style="margin-bottom:12px"><div class="ach-bar" style="width:' + gamePct + '%"></div></div>';
 
                 // Trophy grid
@@ -1091,7 +1137,7 @@
                     html += '<span class="trophy-tier" style="background:' + tierColor + '">' + tr.tier + '</span>';
                     html += '</div>';
                 }
-                html += '</div></div>';
+                html += '</div></div></div></div>';
             }
 
             container.innerHTML = html;

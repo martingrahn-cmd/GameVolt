@@ -701,10 +701,10 @@ gvPost('achievement', { id: 'trophy_id', name: 'Name', tier: 'bronze' });
 - `GameVolt.init()` is required — without it, Supabase never connects
 - SDK script must load BEFORE game script (no `defer`, no placement after game)
 - Method is `registerMigration`, not `setup`
-- Achievements use RPC function `unlock_achievement()` — must exist in database (see schema.sql)
 - Use `maybeSingle()` instead of `single()` when a row may not exist (avoids 406)
 - Trophy IDs should be simple slugs: `first_win`, not `connect4-first_win` (SDK adds prefix)
 - Standard tier system: 15 bronze, 10 silver, 5 gold, 1 platinum = 31 total
+- `user_achievements` must NOT have a foreign key to `achievement_defs` — trophies are defined client-side, not in the DB. A leftover FK constraint causes 409/23503 errors on unlock. If you see "foreign key violation" (error 23503), run: `ALTER TABLE user_achievements DROP CONSTRAINT IF EXISTS user_achievements_achievement_id_fkey;`
 
 ### 11. Final Testing
 
