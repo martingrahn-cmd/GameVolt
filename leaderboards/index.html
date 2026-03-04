@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Leaderboards — GameVolt</title>
+    <meta name="description" content="GameVolt leaderboards — see who has the most trophies and the highest scores across all games.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://gamevolt.io/leaderboards/">
+
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #7c5cfc;
+            --primary-light: #a78bfa;
+            --primary-dark: #6341e0;
+            --secondary: #f472b6;
+            --accent: #06d6a0;
+            --accent-blue: #38bdf8;
+            --hot: #ff6b6b;
+
+            --bg-body: #0f1221;
+            --bg-surface: #181c30;
+            --bg-card: rgba(25, 30, 55, 0.7);
+            --bg-card-hover: rgba(35, 42, 75, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.04);
+            --bg-gradient: linear-gradient(135deg, #7c5cfc 0%, #38bdf8 50%, #06d6a0 100%);
+
+            --text-bright: #f0f0ff;
+            --text-medium: #a0a4c0;
+            --text-muted: #626580;
+
+            --border-subtle: rgba(124, 92, 252, 0.15);
+            --border-glow: rgba(124, 92, 252, 0.3);
+
+            --glow-primary: 0 0 20px rgba(124, 92, 252, 0.3);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-bright);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 92, 252, 0.15), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 50%, rgba(56, 189, 248, 0.07), transparent),
+                radial-gradient(ellipse 60% 40% at 20% 80%, rgba(6, 214, 160, 0.05), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body > * { position: relative; z-index: 1; }
+
+        /* Header */
+        header {
+            background: rgba(15, 18, 33, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 44px; height: 44px;
+            background: var(--bg-gradient);
+            border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            box-shadow: var(--glow-primary);
+        }
+
+        .logo-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: var(--bg-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-link {
+            padding: 8px 16px;
+            color: var(--text-medium);
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+        }
+        .nav-link:hover { background: var(--bg-glass); color: var(--primary-light); }
+        .nav-link.active { color: var(--primary-light); background: rgba(124, 92, 252, 0.1); }
+
+        #gv-user-area { display: flex; align-items: center; gap: 8px; margin-left: 8px; }
+        .gv-login-btn {
+            padding: 8px 20px; background: var(--bg-gradient); color: #fff; border: none;
+            border-radius: var(--radius-sm); font-weight: 700; font-size: 0.85rem;
+            cursor: pointer; letter-spacing: 1px; transition: opacity 0.2s;
+        }
+        .gv-login-btn:hover { opacity: 0.85; }
+        .gv-logout-btn {
+            padding: 4px 12px; background: none; border: 1px solid var(--border-subtle);
+            color: var(--text-medium); border-radius: var(--radius-sm); font-size: 0.8rem;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .gv-logout-btn:hover { border-color: var(--text-medium); color: #fff; }
+
+        /* Main */
+        main {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        /* Page title */
+        .page-title {
+            text-align: center;
+            margin-bottom: 32px;
+            animation: fadeInUp 0.4s ease-out both;
+        }
+        .page-title h1 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--bg-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .page-title p {
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Main tabs */
+        .main-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.4s ease-out 0.05s both;
+        }
+        .main-tab {
+            flex: 1;
+            padding: 12px 16px;
+            text-align: center;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .main-tab:hover { color: var(--text-medium); }
+        .main-tab.active {
+            background: var(--bg-gradient);
+            color: #fff;
+            box-shadow: var(--glow-primary);
+        }
+
+        /* Filter pills */
+        .filter-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.4s ease-out 0.1s both;
+        }
+        .filter-pill {
+            padding: 7px 16px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-pill:hover { border-color: var(--primary); color: var(--text-medium); }
+        .filter-pill.active {
+            background: rgba(124, 92, 252, 0.15);
+            border-color: var(--primary);
+            color: var(--primary-light);
+        }
+
+        /* Leaderboard card */
+        .lb-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            animation: fadeInUp 0.4s ease-out 0.15s both;
+        }
+
+        /* Leaderboard row */
+        .lb-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: background 0.15s;
+        }
+        .lb-row:last-child { border-bottom: none; }
+        .lb-row:hover { background: var(--bg-card-hover); }
+        .lb-row.me {
+            background: rgba(124, 92, 252, 0.1);
+            border-left: 3px solid var(--primary);
+        }
+
+        .lb-rank {
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            min-width: 36px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .lb-row:nth-child(1) .lb-rank { color: #ffd700; font-size: 1.15rem; }
+        .lb-row:nth-child(2) .lb-rank { color: #c0c0c0; font-size: 1.1rem; }
+        .lb-row:nth-child(3) .lb-rank { color: #cd7f32; font-size: 1.05rem; }
+
+        .lb-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: var(--bg-gradient);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .lb-name {
+            flex: 1;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .lb-value {
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--accent-blue);
+            white-space: nowrap;
+        }
+        .lb-value .lb-unit {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 2px;
+        }
+
+        /* Tier badges in trophy rows */
+        .lb-tiers {
+            display: flex;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        .lb-tiers span { white-space: nowrap; }
+
+        /* Loading / empty states */
+        .lb-status {
+            text-align: center;
+            padding: 60px 24px;
+            color: var(--text-muted);
+        }
+        .lb-status .spinner {
+            display: inline-block;
+            width: 28px; height: 28px;
+            border: 3px solid var(--border-subtle);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-subtle);
+            margin-top: 80px;
+        }
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 24px 32px;
+        }
+        .footer-top { display: flex; justify-content: space-between; gap: 48px; }
+        .footer-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .footer-logo-icon {
+            width: 36px; height: 36px;
+            background: var(--bg-gradient);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .footer-logo-text {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: var(--bg-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .footer-tagline { color: var(--text-muted); font-size: 0.9rem; }
+        .footer-links { display: flex; gap: 64px; }
+        .footer-column h4 { color: var(--text-medium); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        .footer-column a { display: block; color: var(--text-muted); text-decoration: none; padding: 4px 0; font-size: 0.9rem; transition: color 0.2s; }
+        .footer-column a:hover { color: var(--primary-light); }
+        .footer-bottom { padding-top: 24px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content { padding: 12px 16px; }
+            .nav-links { display: none; }
+            .logo-text { font-size: 1.5rem; }
+            main { padding: 24px 16px; }
+            .page-title h1 { font-size: 1.6rem; }
+            .lb-row { padding: 12px 14px; gap: 10px; }
+            .lb-avatar { width: 30px; height: 30px; font-size: 0.75rem; }
+            .lb-tiers { display: none; }
+            .footer-top { flex-direction: column; }
+            .footer-links { gap: 32px; }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="/" class="logo">
+                <div class="logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+                <span class="logo-text">GameVolt</span>
+            </a>
+            <div class="header-right">
+                <nav class="nav-links">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/leaderboards/" class="nav-link active">Leaderboards</a>
+                    <a href="/profile/" class="nav-link" id="gv-profile-link" style="display:none">Profile</a>
+                    <a href="/about/" class="nav-link">About</a>
+                </nav>
+                <div id="gv-user-area">
+                    <button id="gv-login-btn" class="gv-login-btn" onclick="if(window.GameVolt)GameVolt.auth.login()">LOG IN</button>
+                    <div id="gv-user-info" style="display:none">
+                        <a href="/profile/" id="gv-username" class="gv-username" style="color:var(--text-bright);text-decoration:none;font-weight:700;font-size:0.9rem"></a>
+                        <button id="gv-logout-btn" class="gv-logout-btn" onclick="if(window.GameVolt)GameVolt.auth.logout()">Log out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-title">
+            <h1>Leaderboards</h1>
+            <p>Top players across all GameVolt games</p>
+        </div>
+
+        <!-- Main tabs -->
+        <div class="main-tabs">
+            <button class="main-tab active" data-tab="trophies">Trophies</button>
+            <button class="main-tab" data-tab="scores">High Scores</button>
+        </div>
+
+        <!-- Filter rows -->
+        <div class="filter-row" id="trophy-filters">
+            <button class="filter-pill active" data-period="all">All Time</button>
+            <button class="filter-pill" data-period="month">Month</button>
+            <button class="filter-pill" data-period="week">Week</button>
+            <button class="filter-pill" data-period="day">Today</button>
+        </div>
+
+        <div class="filter-row" id="score-filters" style="display:none">
+            <button class="filter-pill active" data-game="hoverdash">HoverDash</button>
+            <button class="filter-pill" data-game="breakout">Breakout</button>
+            <button class="filter-pill" data-game="connect4">Connect 4</button>
+        </div>
+
+        <!-- Leaderboard content -->
+        <div class="lb-card" id="lb-card">
+            <div class="lb-status" id="lb-status">
+                <div class="spinner"></div>
+                <div>Loading leaderboard...</div>
+            </div>
+            <div id="lb-rows"></div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <div class="footer-logo">
+                        <div class="footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+                        <span class="footer-logo-text">GameVolt</span>
+                    </div>
+                    <p class="footer-tagline">Free browser games for everyone.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4>Games</h4>
+                        <a href="/play/?game=hoverdash">HoverDash</a>
+                        <a href="/play/?game=snake">Snake Neo</a>
+                        <a href="/play/?game=breakout">Breakout</a>
+                        <a href="/play/?game=solitaire">Solitaire</a>
+                        <a href="/play/?game=blockstorm">BlockStorm</a>
+                        <a href="/play/?game=connect4">Connect 4</a>
+                        <a href="/play/?game=axeluga">Axeluga</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Info</h4>
+                        <a href="/about/">About</a>
+                        <a href="/contact/">Contact</a>
+                        <a href="/privacy/">Privacy Policy</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 GameVolt. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SDK (optional) -->
+    <script src="/sdk/gamevolt.js" defer></script>
+
+    <script>
+    (function() {
+        'use strict';
+
+        var SB_URL = 'https://nwkjayseuhvvpkdgpivm.supabase.co';
+        var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a2pheXNldWh2dnBrZGdwaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzQxMzYsImV4cCI6MjA4Nzk1MDEzNn0.lGCRdYlgxWJlzM6_XpML3f8AKUJG3tLmzNRLTPR0TnU';
+
+        var _cache = {};
+        var _activeTab = 'trophies';
+        var _activePeriod = 'all';
+        var _activeGame = 'hoverdash';
+        var _currentUser = null;
+
+        function escHtml(s) {
+            var d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        // ─── Supabase RPC fetch ───
+        function rpc(fn, params) {
+            return fetch(SB_URL + '/rest/v1/rpc/' + fn, {
+                method: 'POST',
+                headers: {
+                    'apikey': SB_KEY,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(params)
+            }).then(function(r) {
+                if (!r.ok) throw new Error('RPC ' + fn + ' failed: ' + r.status);
+                return r.json();
+            });
+        }
+
+        // ─── Cache key ───
+        function cacheKey() {
+            if (_activeTab === 'trophies') return 'trophies_' + _activePeriod;
+            return 'scores_' + _activeGame;
+        }
+
+        // ─── Load data ───
+        function loadData() {
+            var key = cacheKey();
+            if (_cache[key]) {
+                render(_cache[key]);
+                return;
+            }
+
+            showLoading();
+
+            var promise;
+            if (_activeTab === 'trophies') {
+                promise = rpc('get_trophy_leaderboard', { p_period: _activePeriod, p_limit: 50 });
+            } else {
+                promise = rpc('get_leaderboard', { p_game_id: _activeGame, p_mode: 'default', p_limit: 50 });
+            }
+
+            promise.then(function(rows) {
+                _cache[key] = rows;
+                render(rows);
+            }).catch(function(err) {
+                console.error(err);
+                showStatus('Failed to load leaderboard.');
+            });
+        }
+
+        // ─── Render rows ───
+        function render(rows) {
+            var container = document.getElementById('lb-rows');
+            var status = document.getElementById('lb-status');
+
+            if (!rows || rows.length === 0) {
+                container.innerHTML = '';
+                showStatus('No entries yet. Play some games!');
+                return;
+            }
+
+            status.style.display = 'none';
+
+            var myId = _currentUser ? _currentUser.id : null;
+            var html = '';
+
+            for (var i = 0; i < rows.length; i++) {
+                var r = rows[i];
+                var isMe = myId && r.user_id === myId;
+                var name = escHtml(r.username || 'Player');
+                var initial = name.charAt(0).toUpperCase();
+
+                html += '<div class="lb-row' + (isMe ? ' me' : '') + '">';
+                html += '<span class="lb-rank">#' + r.rank + '</span>';
+                html += '<div class="lb-avatar">' + initial + '</div>';
+                html += '<span class="lb-name">' + name + '</span>';
+
+                if (_activeTab === 'trophies') {
+                    html += '<span class="lb-value">' + r.trophy_count + '<span class="lb-unit">trophies</span></span>';
+                } else {
+                    html += '<span class="lb-value">' + Number(r.score).toLocaleString() + '<span class="lb-unit">pts</span></span>';
+                }
+
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function showLoading() {
+            document.getElementById('lb-rows').innerHTML = '';
+            var s = document.getElementById('lb-status');
+            s.innerHTML = '<div class="spinner"></div><div>Loading leaderboard...</div>';
+            s.style.display = 'block';
+        }
+
+        function showStatus(msg) {
+            var s = document.getElementById('lb-status');
+            s.innerHTML = '<div>' + escHtml(msg) + '</div>';
+            s.style.display = 'block';
+        }
+
+        // ─── Tab switching ───
+        document.querySelectorAll('.main-tab').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.main-tab').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                _activeTab = btn.dataset.tab;
+
+                document.getElementById('trophy-filters').style.display = _activeTab === 'trophies' ? 'flex' : 'none';
+                document.getElementById('score-filters').style.display = _activeTab === 'scores' ? 'flex' : 'none';
+
+                loadData();
+            });
+        });
+
+        // ─── Period pills ───
+        document.querySelectorAll('#trophy-filters .filter-pill').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#trophy-filters .filter-pill').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                _activePeriod = btn.dataset.period;
+                loadData();
+            });
+        });
+
+        // ─── Game pills ───
+        document.querySelectorAll('#score-filters .filter-pill').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#score-filters .filter-pill').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                _activeGame = btn.dataset.game;
+                loadData();
+            });
+        });
+
+        // ─── Auth state ───
+        function onAuth(user) {
+            _currentUser = user;
+            if (user) {
+                document.getElementById('gv-login-btn').style.display = 'none';
+                document.getElementById('gv-user-info').style.display = 'flex';
+                document.getElementById('gv-username').textContent = user.username || user.email || 'Player';
+                var pl = document.getElementById('gv-profile-link');
+                if (pl) pl.style.display = '';
+                // Re-render to highlight current user
+                var key = cacheKey();
+                if (_cache[key]) render(_cache[key]);
+            } else {
+                document.getElementById('gv-login-btn').style.display = '';
+                document.getElementById('gv-user-info').style.display = 'none';
+                var pl2 = document.getElementById('gv-profile-link');
+                if (pl2) pl2.style.display = 'none';
+            }
+        }
+
+        function initSDK() {
+            if (!window.GameVolt) return;
+            var user = GameVolt.auth.getUser();
+            if (user) onAuth(user);
+            GameVolt.auth.onStateChange(function(ev, session) {
+                onAuth(session && session.user ? { id: session.user.id, email: session.user.email, username: session.user.user_metadata && session.user.user_metadata.username } : null);
+            });
+        }
+
+        // ─── Init ───
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { initSDK(); loadData(); });
+        } else {
+            initSDK();
+            loadData();
+        }
+
+        // SDK may load after DOMContentLoaded
+        window.addEventListener('gamevolt:ready', function() { initSDK(); });
+    })();
+    </script>
+</body>
+</html>

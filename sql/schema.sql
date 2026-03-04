@@ -227,6 +227,51 @@ DROP POLICY IF EXISTS "achievement_defs_select" ON achievement_defs;
 CREATE POLICY "achievement_defs_select" ON achievement_defs FOR SELECT USING (true);
 
 -- ============================================================
+-- Trophy leaderboard: top players by achievement count + tier breakdown
+-- ============================================================
+CREATE INDEX IF NOT EXISTS idx_achievements_unlocked_at ON user_achievements(unlocked_at);
+
+CREATE OR REPLACE FUNCTION get_trophy_leaderboard(
+  p_period TEXT DEFAULT 'all',
+  p_limit  INT  DEFAULT 50
+)
+RETURNS TABLE(
+  rank         BIGINT,
+  user_id      UUID,
+  username     TEXT,
+  avatar_url   TEXT,
+  trophy_count BIGINT,
+  bronze       BIGINT,
+  silver       BIGINT,
+  gold         BIGINT,
+  platinum     BIGINT
+) AS $$
+  SELECT
+    ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) AS rank,
+    ua.user_id,
+    p.username,
+    p.avatar_url,
+    COUNT(*)                                       AS trophy_count,
+    COUNT(*) FILTER (WHERE ad.tier = 'bronze')     AS bronze,
+    COUNT(*) FILTER (WHERE ad.tier = 'silver')     AS silver,
+    COUNT(*) FILTER (WHERE ad.tier = 'gold')       AS gold,
+    COUNT(*) FILTER (WHERE ad.tier = 'platinum')   AS platinum
+  FROM user_achievements ua
+  JOIN profiles p ON p.id = ua.user_id
+  LEFT JOIN achievement_defs ad ON ad.id = ua.achievement_id
+  WHERE
+    CASE p_period
+      WHEN 'day'   THEN ua.unlocked_at >= NOW() - INTERVAL '1 day'
+      WHEN 'week'  THEN ua.unlocked_at >= NOW() - INTERVAL '7 days'
+      WHEN 'month' THEN ua.unlocked_at >= NOW() - INTERVAL '30 days'
+      ELSE TRUE
+    END
+  GROUP BY ua.user_id, p.username, p.avatar_url
+  ORDER BY trophy_count DESC
+  LIMIT p_limit;
+$$ LANGUAGE sql STABLE;
+
+-- ============================================================
 -- Seed: games registry
 -- ============================================================
 INSERT INTO games (id, title, thumbnail_url) VALUES
