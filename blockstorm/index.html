@@ -152,8 +152,9 @@
         <button id="leaderboardBtn" class="leaderboard-btn">🏆 LEADERBOARD</button>
         
         <div class="player-name-display">
-          Playing as: <span id="playerNameDisplay">...</span>
-          <button id="rerollNameBtn" class="reroll-btn">🎲</button>
+          Playing as: <span id="playerNameDisplay">Guest</span>
+          <button id="rerollNameBtn" class="reroll-btn" style="display:none">🎲</button>
+          <button id="loginBtn" class="reroll-btn" onclick="if(window.GameVolt)GameVolt.auth.login()">🔑 Log In</button>
         </div>
         
         <div class="keyboard-hints">
@@ -267,22 +268,46 @@
     </div>
   </div>
 
+  <!-- Achievement toast -->
+  <div id="achievement-toast">
+    <div id="ach-toast-icon"></div>
+    <div id="ach-toast-body">
+      <div id="ach-toast-label">TROPHY UNLOCKED</div>
+      <div id="ach-toast-tier" class="ach-tier-label bronze"></div>
+      <div id="ach-toast-name"></div>
+    </div>
+  </div>
+
+  <style>
+    #achievement-toast{position:fixed;bottom:-80px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:#0a0a18ee;border:1px solid #ffd70066;border-radius:8px;padding:10px 20px;z-index:30;transition:bottom .5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 30px #ffd70033;pointer-events:none;font-family:'Nunito',sans-serif}
+    #achievement-toast.show{bottom:24px}
+    #ach-toast-icon{font-size:28px}
+    #ach-toast-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#ffd700;font-weight:700}
+    .ach-tier-label{display:inline-block;font-size:9px;padding:1px 6px;border-radius:4px;font-weight:700;letter-spacing:.5px;margin-top:2px}
+    .ach-tier-label.bronze{background:#cd7f3233;color:#cd7f32}
+    .ach-tier-label.silver{background:#c0c0c033;color:#c0c0c0}
+    .ach-tier-label.gold{background:#ffd70033;color:#ffd700}
+    .ach-tier-label.platinum{background:#e5e4e233;color:#e5e4e2}
+    #ach-toast-name{font-size:14px;color:#fff;font-weight:600}
+  </style>
+
+  <!-- GameVolt SDK -->
+  <script src="/sdk/gamevolt.js"></script>
+
   <!-- GAME BOOT -->
   <script type="module" src="src/js/game.js"></script>
 
   <!-- LEADERBOARD MODULE -->
   <script type="module">
     import { getPlayerName, regeneratePlayerName, submitScore, getLeaderboard } from './src/js/leaderboard.js';
-    
-    // Expose to global scope for use in non-module scripts
+
     window.leaderboard = {
       getPlayerName,
       regeneratePlayerName,
       submitScore,
       getLeaderboard
     };
-    
-    // Initialize player name display
+
     document.addEventListener('DOMContentLoaded', () => {
       const nameDisplay = document.getElementById('playerNameDisplay');
       if (nameDisplay) {
@@ -565,20 +590,29 @@
       
       overlay.classList.add("visible");
       
-      // Submit score to leaderboard
-      if (g && window.submitGameScore) {
-        const gameMode = g.gameMode || 'marathon';
-        const submitStats = {
-          level: g.level,
-          lines: g.lines,
-          time: stats.time || 0
-        };
-        
-        // Only submit if score > 0 or (sprint mode and completed)
-        const shouldSubmit = score > 0 || (gameMode === 'sprint' && g.gameWon);
-        
+      // Update cumulative stats + check achievements
+      const gameMode = g ? (g.gameMode || 'marathon') : 'marathon';
+      const gameWon = g ? g.gameWon : false;
+      if (window.updateCumulativeStats) {
+        window.updateCumulativeStats(stats, score, gameMode, gameWon);
+      }
+      if (window.checkAchievements) {
+        window.checkAchievements(stats, score, gameMode, gameWon);
+      }
+
+      // PostMessage to portal
+      if (window.gvPost) {
+        window.gvPost('game_over', {score: score, mode: gameMode, stats: stats});
+        if (g && score > 0 && score >= g.highScore) {
+          window.gvPost('high_score', {score: score, mode: gameMode});
+        }
+      }
+
+      // Submit score via SDK
+      if (window.GameVolt) {
+        const shouldSubmit = score > 0 || (gameMode === 'sprint' && gameWon);
         if (shouldSubmit) {
-          window.submitGameScore(score, submitStats, gameMode);
+          GameVolt.leaderboard.submit(score, {mode: gameMode});
         }
       }
     };
@@ -880,54 +914,51 @@
     async function loadLeaderboard(mode) {
       leaderboardList.innerHTML = '<div class="loading">Loading...</div>';
       currentLeaderboardMode = mode;
-      
+
       // Update tabs
       lbTabs.forEach(tab => {
         tab.classList.toggle('active', tab.dataset.mode === mode);
       });
-      
-      // Wait for leaderboard module to load
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      if (!window.leaderboard) {
+
+      if (!window.GameVolt) {
         leaderboardList.innerHTML = '<div class="lb-empty">Leaderboard unavailable</div>';
         return;
       }
-      
+
       try {
-        const scores = await window.leaderboard.getLeaderboard(mode, 10);
-        const playerName = window.leaderboard.getPlayerName();
-        
-        if (scores.length === 0) {
-          leaderboardList.innerHTML = '<div class="lb-empty">No scores yet!<br>Be the first to play!</div>';
+        const scores = await GameVolt.leaderboard.get({mode: mode, limit: 50});
+        const user = GameVolt.auth.getUser();
+        const myId = user ? user.id : null;
+
+        if (!scores || scores.length === 0) {
+          let html = '<div class="lb-empty">No scores yet!<br>Be the first to play!</div>';
+          if (!myId) {
+            html += '<div class="lb-login">Log in to appear on the leaderboard.<br><button onclick="GameVolt.auth.login()">LOG IN</button></div>';
+          }
+          leaderboardList.innerHTML = html;
           return;
         }
-        
+
         let html = '';
         scores.forEach((entry, index) => {
-          const isPlayer = entry.name === playerName;
+          const isMe = myId && entry.user_id === myId;
           const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
           const topClass = index < 3 ? `top${index + 1}` : '';
-          
-          // Format display based on mode
-          let valueDisplay;
-          if (mode === 'sprint') {
-            const mins = Math.floor(entry.time / 60);
-            const secs = Math.floor(entry.time % 60);
-            valueDisplay = `<span class="lb-time">${mins}:${secs.toString().padStart(2, '0')}</span>`;
-          } else {
-            valueDisplay = `<span class="lb-score">${entry.score.toLocaleString()}</span>`;
-          }
-          
+          const name = entry.username || 'Player';
+
           html += `
-            <div class="lb-entry ${topClass} ${isPlayer ? 'highlight' : ''}">
-              <span class="lb-rank ${rankClass}">#${entry.rank}</span>
-              <span class="lb-name">${entry.name}</span>
-              ${valueDisplay}
+            <div class="lb-entry ${topClass} ${isMe ? 'highlight' : ''}">
+              <span class="lb-rank ${rankClass}">#${entry.rank || (index+1)}</span>
+              <span class="lb-name">${name.replace(/</g,'&lt;')}</span>
+              <span class="lb-score">${(entry.score||0).toLocaleString()}</span>
             </div>
           `;
         });
-        
+
+        if (!myId) {
+          html += '<div class="lb-login">Log in to appear on the leaderboard.<br><button onclick="GameVolt.auth.login()">LOG IN</button></div>';
+        }
+
         leaderboardList.innerHTML = html;
       } catch (error) {
         console.error('Failed to load leaderboard:', error);
@@ -970,41 +1001,262 @@
       });
     });
     
-    // Reroll name button
-    rerollNameBtn.addEventListener('click', () => {
-      if (window.leaderboard) {
-        const newName = window.leaderboard.regeneratePlayerName();
-        playerNameDisplay.textContent = newName;
-      }
-    });
-    rerollNameBtn.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      if (window.leaderboard) {
-        const newName = window.leaderboard.regeneratePlayerName();
-        playerNameDisplay.textContent = newName;
-      }
-    });
-    
-    // Submit score on game over
-    async function submitGameScore(score, stats, mode) {
-      if (!window.leaderboard) return null;
-      
-      try {
-        const result = await window.leaderboard.submitScore(mode, {
-          score: score,
-          level: stats.level || 0,
-          lines: stats.lines || 0,
-          time: stats.time || 0
-        });
-        return result;
-      } catch (error) {
-        console.error('Failed to submit score:', error);
-        return null;
-      }
+    // Legacy submit function (no longer used, kept for compatibility)
+    window.submitGameScore = function() {};
+  </script>
+
+  <!-- ========================================
+       SDK INTEGRATION + ACHIEVEMENTS
+       ======================================== -->
+  <script>
+  (function(){
+    // ========================================
+    // POSTMESSAGE BRIDGE
+    // ========================================
+    function gvPost(action,payload){
+      if(window.parent!==window){try{window.parent.postMessage({type:'gamevolt',action:action,gameId:'blockstorm',payload:payload||{}},'*');}catch(e){}}
     }
-    
-    // Expose submit function globally
-    window.submitGameScore = submitGameScore;
+    window.gvPost=gvPost;
+
+    // ========================================
+    // PERSISTENT STATS (bs_data)
+    // ========================================
+    var BS_KEY='bs_data';
+    function defaultBSData(){
+      return{totalGames:0,totalLines:0,totalPieces:0,totalTetrises:0,totalTSpins:0,totalHardDrops:0,maxCombo:0,maxLevel:0,bestMarathon:0,bestSprint:0,bestUltra:0,unlocked:{}};
+    }
+    function loadBSData(){
+      try{var raw=localStorage.getItem(BS_KEY);return raw?Object.assign(defaultBSData(),JSON.parse(raw)):defaultBSData();}catch(e){return defaultBSData();}
+    }
+    function saveBSData(){try{localStorage.setItem(BS_KEY,JSON.stringify(bsData));}catch(e){}}
+    var bsData=loadBSData();
+    window.bsData=bsData;
+    window.saveBSData=saveBSData;
+
+    // ========================================
+    // ACHIEVEMENT DEFINITIONS (31)
+    // ========================================
+    var ACHIEVEMENTS=[
+      // BRONZE (15)
+      {id:'first_piece',   tier:'bronze',   icon:'🧩', name:'First Piece',    desc:'Place your first piece'},
+      {id:'first_clear',   tier:'bronze',   icon:'✨', name:'First Clear',    desc:'Clear your first line'},
+      {id:'play_5',        tier:'bronze',   icon:'🎮', name:'Getting Started', desc:'Play 5 games'},
+      {id:'score_1k',      tier:'bronze',   icon:'💰', name:'Score 1K',       desc:'Reach 1,000 points'},
+      {id:'double_up',     tier:'bronze',   icon:'2️⃣', name:'Double Up',      desc:'Clear a double'},
+      {id:'triple_threat', tier:'bronze',   icon:'3️⃣', name:'Triple Threat',  desc:'Clear a triple'},
+      {id:'level_3',       tier:'bronze',   icon:'⭐', name:'Level 3',        desc:'Reach level 3'},
+      {id:'combo_3',       tier:'bronze',   icon:'🔥', name:'Combo x3',       desc:'Get a 3-hit combo'},
+      {id:'sprint_finish', tier:'bronze',   icon:'🏁', name:'Sprint Finish',  desc:'Complete a Sprint game'},
+      {id:'hard_dropper',  tier:'bronze',   icon:'⬇️', name:'Hard Dropper',   desc:'50 hard drops total'},
+      {id:'lines_50',      tier:'bronze',   icon:'📊', name:'50 Lines',       desc:'Clear 50 lines total'},
+      {id:'score_5k',      tier:'bronze',   icon:'💰', name:'Score 5K',       desc:'Reach 5,000 points'},
+      {id:'pieces_100',    tier:'bronze',   icon:'🧱', name:'Century',        desc:'Place 100 pieces total'},
+      {id:'t_spin_novice', tier:'bronze',   icon:'🌀', name:'T-Spin Novice',  desc:'Perform your first T-spin'},
+      {id:'play_10',       tier:'bronze',   icon:'🕹️', name:'Regular',        desc:'Play 10 games'},
+      // SILVER (10)
+      {id:'tetris_first',  tier:'silver',   icon:'4️⃣', name:'TETRIS!',        desc:'Clear 4 lines at once'},
+      {id:'score_25k',     tier:'silver',   icon:'💰', name:'Score 25K',      desc:'Reach 25,000 points'},
+      {id:'level_5',       tier:'silver',   icon:'🌟', name:'Level 5',        desc:'Reach level 5'},
+      {id:'combo_5',       tier:'silver',   icon:'🔥', name:'Combo x5',       desc:'Get a 5-hit combo'},
+      {id:'play_25',       tier:'silver',   icon:'🎮', name:'Dedicated',      desc:'Play 25 games'},
+      {id:'lines_200',     tier:'silver',   icon:'📊', name:'200 Lines',      desc:'Clear 200 lines total'},
+      {id:'sprint_3min',   tier:'silver',   icon:'⏱️', name:'Speed Runner',   desc:'Complete Sprint under 3 min'},
+      {id:'t_spin_double', tier:'silver',   icon:'🌀', name:'T-Spin Double',  desc:'Perform a T-spin double'},
+      {id:'pieces_500',    tier:'silver',   icon:'🧱', name:'Piece Master',   desc:'Place 500 pieces total'},
+      {id:'marathon_10',   tier:'silver',   icon:'🏆', name:'Marathon 10',    desc:'Reach level 10 in Marathon'},
+      // GOLD (5)
+      {id:'score_50k',     tier:'gold',     icon:'💎', name:'Score 50K',      desc:'Reach 50,000 points'},
+      {id:'tetris_3',      tier:'gold',     icon:'🔱', name:'Tetris Machine', desc:'Get 3 Tetrises in one game'},
+      {id:'combo_8',       tier:'gold',     icon:'🔥', name:'Combo King',     desc:'Get an 8-hit combo'},
+      {id:'sprint_2min',   tier:'gold',     icon:'⚡', name:'Sprint Legend',  desc:'Complete Sprint under 2 min'},
+      {id:'t_spin_triple', tier:'gold',     icon:'🌀', name:'T-Spin Master',  desc:'Perform a T-spin triple'},
+      // PLATINUM (1)
+      {id:'block_master',  tier:'platinum', icon:'👑', name:'Block Master',   desc:'Unlock all 30 other trophies'}
+    ];
+    window.BS_ACHIEVEMENTS=ACHIEVEMENTS;
+
+    // ========================================
+    // ACHIEVEMENT TOAST
+    // ========================================
+    var achToastQueue=[];
+    var achToastActive=false;
+
+    function showAchToast(ach){
+      achToastQueue.push(ach);
+      if(!achToastActive) popAchToast();
+    }
+    function popAchToast(){
+      if(!achToastQueue.length){achToastActive=false;return;}
+      achToastActive=true;
+      var ach=achToastQueue.shift();
+      var t=document.getElementById('achievement-toast');
+      document.getElementById('ach-toast-icon').textContent=ach.icon;
+      document.getElementById('ach-toast-name').textContent=ach.name;
+      var tierEl=document.getElementById('ach-toast-tier');
+      tierEl.textContent=ach.tier.toUpperCase();tierEl.className='ach-tier-label '+ach.tier;
+      t.classList.add('show');
+      setTimeout(function(){t.classList.remove('show');setTimeout(popAchToast,400);},2800);
+    }
+
+    function tryUnlock(ach){
+      if(bsData.unlocked[ach.id]) return false;
+      bsData.unlocked[ach.id]=Date.now();saveBSData();
+      showAchToast(ach);
+      gvPost('achievement',{id:ach.id,name:ach.name});
+      if(window.GameVolt) GameVolt.achievements.unlock(ach.id);
+      // Check platinum
+      if(ach.id!=='block_master'){
+        var count=0;
+        for(var k in bsData.unlocked){if(k!=='block_master'&&bsData.unlocked[k]>0) count++;}
+        if(count>=30){var p=ACHIEVEMENTS.find(function(a){return a.id==='block_master';});if(p) tryUnlock(p);}
+      }
+      return true;
+    }
+    window.tryUnlock=tryUnlock;
+
+    // ========================================
+    // ACHIEVEMENT CHECKING
+    // ========================================
+    function checkAchievements(gameStats,gameScore,gameMode,gameWon){
+      var g=window.PULSE_TETRIS;
+      if(!g) return;
+
+      // Per-game stats
+      var s=gameStats||{};
+      var level=g.level||0;
+
+      // --- Cumulative checks (from bsData) ---
+      ACHIEVEMENTS.forEach(function(ach){
+        if(bsData.unlocked[ach.id]) return;
+        var pass=false;
+        switch(ach.id){
+          // Bronze
+          case 'first_piece':   pass=bsData.totalPieces>=1; break;
+          case 'first_clear':   pass=bsData.totalLines>=1; break;
+          case 'play_5':        pass=bsData.totalGames>=5; break;
+          case 'score_1k':      pass=gameScore>=1000; break;
+          case 'double_up':     pass=(s.doubles||0)>0; break;
+          case 'triple_threat': pass=(s.triples||0)>0; break;
+          case 'level_3':       pass=level>=3; break;
+          case 'combo_3':       pass=(s.maxCombo||0)>=3; break;
+          case 'sprint_finish': pass=gameMode==='sprint'&&gameWon; break;
+          case 'hard_dropper':  pass=bsData.totalHardDrops>=50; break;
+          case 'lines_50':      pass=bsData.totalLines>=50; break;
+          case 'score_5k':      pass=gameScore>=5000; break;
+          case 'pieces_100':    pass=bsData.totalPieces>=100; break;
+          case 't_spin_novice': pass=bsData.totalTSpins>=1; break;
+          case 'play_10':       pass=bsData.totalGames>=10; break;
+          // Silver
+          case 'tetris_first':  pass=(s.tetrises||0)>0; break;
+          case 'score_25k':     pass=gameScore>=25000; break;
+          case 'level_5':       pass=level>=5; break;
+          case 'combo_5':       pass=(s.maxCombo||0)>=5; break;
+          case 'play_25':       pass=bsData.totalGames>=25; break;
+          case 'lines_200':     pass=bsData.totalLines>=200; break;
+          case 'sprint_3min':   pass=gameMode==='sprint'&&gameWon&&(s.time||999)<180; break;
+          case 't_spin_double': pass=s.tSpinLines&&(s.tSpinLines[2]||0)>0; break;
+          case 'pieces_500':    pass=bsData.totalPieces>=500; break;
+          case 'marathon_10':   pass=gameMode==='marathon'&&level>=10; break;
+          // Gold
+          case 'score_50k':     pass=gameScore>=50000; break;
+          case 'tetris_3':      pass=(s.tetrises||0)>=3; break;
+          case 'combo_8':       pass=(s.maxCombo||0)>=8; break;
+          case 'sprint_2min':   pass=gameMode==='sprint'&&gameWon&&(s.time||999)<120; break;
+          case 't_spin_triple': pass=s.tSpinLines&&(s.tSpinLines[3]||0)>0; break;
+        }
+        if(pass) tryUnlock(ach);
+      });
+    }
+    window.checkAchievements=checkAchievements;
+
+    // ========================================
+    // UPDATE CUMULATIVE STATS (called on game over)
+    // ========================================
+    function updateCumulativeStats(gameStats,gameScore,gameMode,gameWon){
+      var s=gameStats||{};
+      var g=window.PULSE_TETRIS;
+      bsData.totalGames++;
+      bsData.totalLines+=(g?g.lines:0);
+      bsData.totalPieces+=(s.piecesPlaced||0);
+      bsData.totalTetrises+=(s.tetrises||0);
+      bsData.totalTSpins+=((s.tSpins||0)+(s.tSpinMinis||0));
+      bsData.totalHardDrops+=(s.hardDrops||0);
+      if((s.maxCombo||0)>bsData.maxCombo) bsData.maxCombo=s.maxCombo;
+      var lv=g?g.level:0;
+      if(lv>bsData.maxLevel) bsData.maxLevel=lv;
+      // Best per mode
+      if(gameMode==='marathon'&&gameScore>bsData.bestMarathon) bsData.bestMarathon=gameScore;
+      if(gameMode==='sprint'&&gameWon&&(bsData.bestSprint===0||gameScore>bsData.bestSprint)) bsData.bestSprint=gameScore;
+      if(gameMode==='ultra'&&gameScore>bsData.bestUltra) bsData.bestUltra=gameScore;
+      saveBSData();
+    }
+    window.updateCumulativeStats=updateCumulativeStats;
+
+    // ========================================
+    // SDK INIT + MIGRATION
+    // ========================================
+    if(window.GameVolt){
+      GameVolt.init('blockstorm');
+      GameVolt.save.registerMigration({
+        keys:['bs_data','blockstorm_highscore'],
+        merge:function(local,cloud){
+          var l=local['bs_data']||{};
+          var c=cloud||{};
+          return{
+            totalGames:Math.max(l.totalGames||0,c.totalGames||0),
+            totalLines:Math.max(l.totalLines||0,c.totalLines||0),
+            totalPieces:Math.max(l.totalPieces||0,c.totalPieces||0),
+            totalTetrises:Math.max(l.totalTetrises||0,c.totalTetrises||0),
+            totalTSpins:Math.max(l.totalTSpins||0,c.totalTSpins||0),
+            totalHardDrops:Math.max(l.totalHardDrops||0,c.totalHardDrops||0),
+            maxCombo:Math.max(l.maxCombo||0,c.maxCombo||0),
+            maxLevel:Math.max(l.maxLevel||0,c.maxLevel||0),
+            bestMarathon:Math.max(l.bestMarathon||0,c.bestMarathon||0),
+            bestSprint:Math.max(l.bestSprint||0,c.bestSprint||0),
+            bestUltra:Math.max(l.bestUltra||0,c.bestUltra||0),
+            unlocked:Object.assign({},c.unlocked||{},l.unlocked||{})
+          };
+        },
+        getScores:function(local){
+          var d=local['bs_data'];
+          if(!d) return[];
+          var out=[];
+          if(d.bestMarathon>0) out.push({score:d.bestMarathon,mode:'marathon'});
+          if(d.bestSprint>0) out.push({score:d.bestSprint,mode:'sprint'});
+          if(d.bestUltra>0) out.push({score:d.bestUltra,mode:'ultra'});
+          return out;
+        },
+        getAchievements:function(local){
+          var d=local['bs_data'];
+          if(!d||!d.unlocked) return[];
+          var out=[];
+          for(var id in d.unlocked){if(d.unlocked[id]) out.push({id:id,unlocked_at:d.unlocked[id]});}
+          return out;
+        }
+      });
+
+      // Update player name when auth state changes
+      GameVolt.auth.onStateChange(function(user){
+        var nameDisplay=document.getElementById('playerNameDisplay');
+        var loginBtn=document.getElementById('loginBtn');
+        if(user){
+          if(nameDisplay) nameDisplay.textContent=user.user_metadata&&user.user_metadata.username||user.email||'Player';
+          if(loginBtn) loginBtn.style.display='none';
+        } else {
+          if(nameDisplay) nameDisplay.textContent='Guest';
+          if(loginBtn) loginBtn.style.display='';
+        }
+      });
+    }
+
+    // ========================================
+    // HIDE SEO CONTENT IN IFRAME
+    // ========================================
+    if(window.parent!==window){
+      var seo=document.getElementById('seo-content');
+      if(seo) seo.style.display='none';
+    }
+  })();
   </script>
 
 

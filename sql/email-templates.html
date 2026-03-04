@@ -1,0 +1,153 @@
+<!--
+  GameVolt — Supabase Email Templates
+  Paste each section into Supabase Dashboard → Authentication → Email Templates
+  Remember to update both Subject and Body for each template type.
+-->
+
+
+<!-- ============================================================
+     1. MAGIC LINK
+     Subject: Your GameVolt Login Link ⚡
+     ============================================================ -->
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f1221;padding:40px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <tr><td align="center">
+    <table width="480" cellpadding="0" cellspacing="0" style="background-color:#181c30;border-radius:16px;overflow:hidden;border:1px solid rgba(124,92,252,0.2);">
+      <!-- Header -->
+      <tr><td style="background:linear-gradient(135deg,#7c5cfc 0%,#38bdf8 50%,#06d6a0 100%);padding:32px;text-align:center;">
+        <span style="font-size:36px;">⚡</span>
+        <h1 style="margin:8px 0 0;font-size:24px;font-weight:700;color:#fff;letter-spacing:-0.5px;">GameVolt</h1>
+      </td></tr>
+      <!-- Body -->
+      <tr><td style="padding:32px 32px 16px;">
+        <h2 style="margin:0 0 8px;font-size:20px;color:#f0f0ff;">Log in to GameVolt</h2>
+        <p style="margin:0 0 24px;font-size:15px;color:#a0a4c0;line-height:1.5;">
+          Click the button below to sign in. This link expires in 10 minutes.
+        </p>
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#7c5cfc,#38bdf8);color:#fff;font-size:16px;font-weight:600;text-decoration:none;border-radius:10px;">
+            Sign In
+          </a>
+        </td></tr></table>
+      </td></tr>
+      <!-- Footer -->
+      <tr><td style="padding:24px 32px 32px;">
+        <p style="margin:0;font-size:12px;color:#626580;line-height:1.5;">
+          If you didn't request this link, you can safely ignore this email.<br>
+          <a href="https://gamevolt.io" style="color:#7c5cfc;text-decoration:none;">gamevolt.io</a>
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+
+
+<!-- ============================================================
+     2. CONFIRM SIGNUP
+     Subject: Welcome to GameVolt ⚡
+     ============================================================ -->
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f1221;padding:40px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <tr><td align="center">
+    <table width="480" cellpadding="0" cellspacing="0" style="background-color:#181c30;border-radius:16px;overflow:hidden;border:1px solid rgba(124,92,252,0.2);">
+      <!-- Header -->
+      <tr><td style="background:linear-gradient(135deg,#7c5cfc 0%,#38bdf8 50%,#06d6a0 100%);padding:32px;text-align:center;">
+        <span style="font-size:36px;">⚡</span>
+        <h1 style="margin:8px 0 0;font-size:24px;font-weight:700;color:#fff;letter-spacing:-0.5px;">GameVolt</h1>
+      </td></tr>
+      <!-- Body -->
+      <tr><td style="padding:32px 32px 16px;">
+        <h2 style="margin:0 0 8px;font-size:20px;color:#f0f0ff;">Welcome, player!</h2>
+        <p style="margin:0 0 24px;font-size:15px;color:#a0a4c0;line-height:1.5;">
+          Confirm your account to start saving progress, climbing leaderboards, and collecting trophies.
+        </p>
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#7c5cfc,#38bdf8);color:#fff;font-size:16px;font-weight:600;text-decoration:none;border-radius:10px;">
+            Confirm Account
+          </a>
+        </td></tr></table>
+      </td></tr>
+      <!-- Footer -->
+      <tr><td style="padding:24px 32px 32px;">
+        <p style="margin:0;font-size:12px;color:#626580;line-height:1.5;">
+          If you didn't create a GameVolt account, you can safely ignore this email.<br>
+          <a href="https://gamevolt.io" style="color:#7c5cfc;text-decoration:none;">gamevolt.io</a>
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+
+
+<!-- ============================================================
+     3. RESET PASSWORD
+     Subject: Reset Your GameVolt Password ⚡
+     ============================================================ -->
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f1221;padding:40px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <tr><td align="center">
+    <table width="480" cellpadding="0" cellspacing="0" style="background-color:#181c30;border-radius:16px;overflow:hidden;border:1px solid rgba(124,92,252,0.2);">
+      <!-- Header -->
+      <tr><td style="background:linear-gradient(135deg,#7c5cfc 0%,#38bdf8 50%,#06d6a0 100%);padding:32px;text-align:center;">
+        <span style="font-size:36px;">⚡</span>
+        <h1 style="margin:8px 0 0;font-size:24px;font-weight:700;color:#fff;letter-spacing:-0.5px;">GameVolt</h1>
+      </td></tr>
+      <!-- Body -->
+      <tr><td style="padding:32px 32px 16px;">
+        <h2 style="margin:0 0 8px;font-size:20px;color:#f0f0ff;">Reset your password</h2>
+        <p style="margin:0 0 24px;font-size:15px;color:#a0a4c0;line-height:1.5;">
+          Click the button below to set a new password. This link expires in 10 minutes.
+        </p>
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#7c5cfc,#38bdf8);color:#fff;font-size:16px;font-weight:600;text-decoration:none;border-radius:10px;">
+            Reset Password
+          </a>
+        </td></tr></table>
+      </td></tr>
+      <!-- Footer -->
+      <tr><td style="padding:24px 32px 32px;">
+        <p style="margin:0;font-size:12px;color:#626580;line-height:1.5;">
+          If you didn't request a password reset, you can safely ignore this email.<br>
+          <a href="https://gamevolt.io" style="color:#7c5cfc;text-decoration:none;">gamevolt.io</a>
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+
+
+<!-- ============================================================
+     4. CHANGE EMAIL
+     Subject: Confirm Your New Email ⚡
+     ============================================================ -->
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f1221;padding:40px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <tr><td align="center">
+    <table width="480" cellpadding="0" cellspacing="0" style="background-color:#181c30;border-radius:16px;overflow:hidden;border:1px solid rgba(124,92,252,0.2);">
+      <!-- Header -->
+      <tr><td style="background:linear-gradient(135deg,#7c5cfc 0%,#38bdf8 50%,#06d6a0 100%);padding:32px;text-align:center;">
+        <span style="font-size:36px;">⚡</span>
+        <h1 style="margin:8px 0 0;font-size:24px;font-weight:700;color:#fff;letter-spacing:-0.5px;">GameVolt</h1>
+      </td></tr>
+      <!-- Body -->
+      <tr><td style="padding:32px 32px 16px;">
+        <h2 style="margin:0 0 8px;font-size:20px;color:#f0f0ff;">Confirm your new email</h2>
+        <p style="margin:0 0 24px;font-size:15px;color:#a0a4c0;line-height:1.5;">
+          Click the button below to confirm changing your email address to this one.
+        </p>
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#7c5cfc,#38bdf8);color:#fff;font-size:16px;font-weight:600;text-decoration:none;border-radius:10px;">
+            Confirm Email
+          </a>
+        </td></tr></table>
+      </td></tr>
+      <!-- Footer -->
+      <tr><td style="padding:24px 32px 32px;">
+        <p style="margin:0;font-size:12px;color:#626580;line-height:1.5;">
+          If you didn't request this change, please secure your account immediately.<br>
+          <a href="https://gamevolt.io" style="color:#7c5cfc;text-decoration:none;">gamevolt.io</a>
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>

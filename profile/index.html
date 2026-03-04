@@ -915,6 +915,39 @@
                 { id:'connect4-lv5_wins_10', icon:'🧬', name:'Machine Breaker', desc:'Win 10 games on level 5', tier:'gold' },
                 // Platinum (1)
                 { id:'connect4-four_master', icon:'👑', name:'Four Master', desc:'Unlock all 30 other trophies', tier:'platinum' }
+            ],
+            blockstorm: [
+                { id:'blockstorm-first_piece', icon:'🧩', name:'First Piece', desc:'Place your first piece', tier:'bronze' },
+                { id:'blockstorm-first_clear', icon:'✨', name:'First Clear', desc:'Clear your first line', tier:'bronze' },
+                { id:'blockstorm-play_5', icon:'🎮', name:'Getting Started', desc:'Play 5 games', tier:'bronze' },
+                { id:'blockstorm-score_1k', icon:'💰', name:'Score 1K', desc:'Reach 1,000 points', tier:'bronze' },
+                { id:'blockstorm-double_up', icon:'2️⃣', name:'Double Up', desc:'Clear a double', tier:'bronze' },
+                { id:'blockstorm-triple_threat', icon:'3️⃣', name:'Triple Threat', desc:'Clear a triple', tier:'bronze' },
+                { id:'blockstorm-level_3', icon:'⭐', name:'Level 3', desc:'Reach level 3', tier:'bronze' },
+                { id:'blockstorm-combo_3', icon:'🔥', name:'Combo x3', desc:'Get a 3-hit combo', tier:'bronze' },
+                { id:'blockstorm-sprint_finish', icon:'🏁', name:'Sprint Finish', desc:'Complete a Sprint game', tier:'bronze' },
+                { id:'blockstorm-hard_dropper', icon:'⬇️', name:'Hard Dropper', desc:'50 hard drops total', tier:'bronze' },
+                { id:'blockstorm-lines_50', icon:'📊', name:'50 Lines', desc:'Clear 50 lines total', tier:'bronze' },
+                { id:'blockstorm-score_5k', icon:'💰', name:'Score 5K', desc:'Reach 5,000 points', tier:'bronze' },
+                { id:'blockstorm-pieces_100', icon:'🧱', name:'Century', desc:'Place 100 pieces total', tier:'bronze' },
+                { id:'blockstorm-t_spin_novice', icon:'🌀', name:'T-Spin Novice', desc:'Perform your first T-spin', tier:'bronze' },
+                { id:'blockstorm-play_10', icon:'🕹️', name:'Regular', desc:'Play 10 games', tier:'bronze' },
+                { id:'blockstorm-tetris_first', icon:'4️⃣', name:'TETRIS!', desc:'Clear 4 lines at once', tier:'silver' },
+                { id:'blockstorm-score_25k', icon:'💰', name:'Score 25K', desc:'Reach 25,000 points', tier:'silver' },
+                { id:'blockstorm-level_5', icon:'🌟', name:'Level 5', desc:'Reach level 5', tier:'silver' },
+                { id:'blockstorm-combo_5', icon:'🔥', name:'Combo x5', desc:'Get a 5-hit combo', tier:'silver' },
+                { id:'blockstorm-play_25', icon:'🎮', name:'Dedicated', desc:'Play 25 games', tier:'silver' },
+                { id:'blockstorm-lines_200', icon:'📊', name:'200 Lines', desc:'Clear 200 lines total', tier:'silver' },
+                { id:'blockstorm-sprint_3min', icon:'⏱️', name:'Speed Runner', desc:'Complete Sprint under 3 min', tier:'silver' },
+                { id:'blockstorm-t_spin_double', icon:'🌀', name:'T-Spin Double', desc:'Perform a T-spin double', tier:'silver' },
+                { id:'blockstorm-pieces_500', icon:'🧱', name:'Piece Master', desc:'Place 500 pieces total', tier:'silver' },
+                { id:'blockstorm-marathon_10', icon:'🏆', name:'Marathon 10', desc:'Reach level 10 in Marathon', tier:'silver' },
+                { id:'blockstorm-score_50k', icon:'💎', name:'Score 50K', desc:'Reach 50,000 points', tier:'gold' },
+                { id:'blockstorm-tetris_3', icon:'🔱', name:'Tetris Machine', desc:'Get 3 Tetrises in one game', tier:'gold' },
+                { id:'blockstorm-combo_8', icon:'🔥', name:'Combo King', desc:'Get an 8-hit combo', tier:'gold' },
+                { id:'blockstorm-sprint_2min', icon:'⚡', name:'Sprint Legend', desc:'Complete Sprint under 2 min', tier:'gold' },
+                { id:'blockstorm-t_spin_triple', icon:'🌀', name:'T-Spin Master', desc:'Perform a T-spin triple', tier:'gold' },
+                { id:'blockstorm-block_master', icon:'👑', name:'Block Master', desc:'Unlock all 30 other trophies', tier:'platinum' }
             ]
         };
 
@@ -1061,7 +1094,7 @@
                     '<img class="recent-thumb" src="' + (GAME_THUMBS[game.id] || '') + '" alt="" loading="lazy">' +
                     '<div class="recent-info">' +
                         '<div class="recent-name">' + (GAME_NAMES[game.id] || game.id) + '</div>' +
-                        '<div class="recent-meta">' + game.sessions + ' sessions &middot; ' + GVTracker.formatPlayTime(game.totalPlayTimeMs) + '</div>' +
+                        '<div class="recent-meta">' + game.sessions + (game.sessions === 1 ? ' session' : ' sessions') + ' &middot; ' + GVTracker.formatPlayTime(game.totalPlayTimeMs) + '</div>' +
                     '</div>' +
                     '<span class="recent-time">' + GVTracker.formatTimeAgo(game.lastPlayed) + '</span>';
                 list.appendChild(a);

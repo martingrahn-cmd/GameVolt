@@ -99,6 +99,7 @@ export class Game {
       tetrises: 0,
       tSpins: 0,
       tSpinMinis: 0,
+      tSpinLines: {},  // tracks T-spin line clears: {1:count, 2:count, 3:count}
       maxCombo: 0,
       hardDrops: 0,
       time: 0,  // sekunder
@@ -218,6 +219,7 @@ export class Game {
       tetrises: 0,
       tSpins: 0,
       tSpinMinis: 0,
+      tSpinLines: {},
       maxCombo: 0,
       hardDrops: 0,
       time: 0,
@@ -485,6 +487,7 @@ export class Game {
       // Statistik: line clears
       if (tSpin === 'full') {
         this.stats.tSpins++;
+        this.stats.tSpinLines[res.count] = (this.stats.tSpinLines[res.count] || 0) + 1;
         const names = ['T-SPIN', 'T-SPIN SINGLE', 'T-SPIN DOUBLE', 'T-SPIN TRIPLE'];
         message = names[res.count] || 'T-SPIN';
         this.renderer.triggerTSpinEffect();

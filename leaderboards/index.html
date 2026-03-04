@@ -442,6 +442,7 @@
             <button class="filter-pill active" data-game="hoverdash">HoverDash</button>
             <button class="filter-pill" data-game="breakout">Breakout</button>
             <button class="filter-pill" data-game="connect4">Connect 4</button>
+            <button class="filter-pill" data-game="blockstorm">BlockStorm</button>
         </div>
 
         <!-- Leaderboard content -->
@@ -546,7 +547,8 @@
             if (_activeTab === 'trophies') {
                 promise = rpc('get_trophy_leaderboard', { p_period: _activePeriod, p_limit: 50 });
             } else {
-                promise = rpc('get_leaderboard', { p_game_id: _activeGame, p_mode: 'default', p_limit: 50 });
+                var scoreMode = _activeGame === 'blockstorm' ? 'marathon' : 'default';
+                promise = rpc('get_leaderboard', { p_game_id: _activeGame, p_mode: scoreMode, p_limit: 50 });
             }
 
             promise.then(function(rows) {
