@@ -49,17 +49,17 @@ When writing code for this project, follow these rules:
 
 | # | Game | Status | SDK integrated |
 |---|---|---|---|
-| 1 | Breakout | ✅ Live | ❌ Not yet |
-| 2 | ClickRush | ✅ Live | ❌ Not yet |
+| 1 | Breakout | ✅ Live | ✅ Yes |
+| 2 | TapRush | ✅ Live | ❌ Not yet |
 | 3 | BlockStorm (Tetris) | ✅ Live | ❌ Not yet |
 | 4 | Solitaire Collection | ✅ Live | ❌ Not yet |
 | 5 | Snake Neo (3 modes) | ✅ Live | ❌ Not yet |
-| 6 | Connect 4 | ✅ Live | ❌ Not yet |
+| 6 | Connect 4 | ✅ Live | ✅ Yes |
 | 7 | Flappy Bird (404 page) | ✅ Live | ❌ Not yet |
-| 8 | HoverDash | 🔧 In dev | 🎯 PILOT GAME |
-| 9 | Golden Glyphs | 🔧 Needs polish | ❌ Not yet |
+| 8 | HoverDash | ✅ Live | ✅ Yes (pilot) |
+| 9 | Axeluga | ✅ Live | ❌ Not yet |
 
-**HoverDash is the pilot game for SDK integration.** Get everything working here first, then roll out to the other games.
+**HoverDash was the pilot game for SDK integration.** SDK is now also integrated in Breakout and Connect 4.
 
 *Note: Update this table as games are completed and SDK is integrated.*
 
@@ -354,26 +354,26 @@ CREATE INDEX idx_achievements_user ON user_achievements(user_id);
 
 ### Phase 1 — Foundation (MVP)
 - [x] Write this specification
-- [ ] Rebrand PulseGames → GameVolt (see Migration Checklist below)
-- [ ] Set up Supabase project + run schema SQL
-- [ ] Build GameVolt SDK v1 (auth + cloud save)
-- [ ] Integrate SDK in HoverDash (pilot game)
-- [ ] Test full flow: guest play → create account → progress migrated
+- [x] Rebrand PulseGames → GameVolt (see Migration Checklist below)
+- [x] Set up Supabase project + run schema SQL
+- [x] Build GameVolt SDK v1 (auth + cloud save)
+- [x] Integrate SDK in HoverDash (pilot game)
+- [x] Test full flow: guest play → create account → progress migrated
 - [ ] Upload Golden Glyphs to portal
-- [ ] Upload HoverDash to portal
+- [x] Upload HoverDash to portal
 
 ### Phase 2 — Engagement
-- [ ] Add leaderboard API to SDK
-- [ ] Add leaderboards to HoverDash
-- [ ] Build profile page (`/profile/{username}`)
-- [ ] Roll out SDK to remaining games (one by one)
+- [x] Add leaderboard API to SDK
+- [x] Add leaderboards to HoverDash
+- [x] Build profile page (`/profile/`)
+- [ ] Roll out SDK to remaining games (one by one) — done: Breakout, Connect 4
 - [ ] Submit HoverDash to Poki (clean version without SDK)
 - [ ] Submit HoverDash to CrazyGames (clean version without SDK)
 
 ### Phase 3 — Retention
-- [ ] Add achievements API to SDK
-- [ ] Define achievements per game
-- [ ] Build achievement panel on profile
+- [x] Add achievements API to SDK
+- [x] Define achievements per game — done: HoverDash, Breakout, Connect 4
+- [x] Build achievement panel on profile (trophy catalog with per-game breakdown)
 - [ ] Add daily challenges system
 - [ ] Add streak tracking
 
@@ -404,102 +404,62 @@ HoverDash (and future games) target multiple platforms from one codebase:
 
 ## Migration Checklist — Step by Step
 
-### Step 1: Rebrand PulseGames → GameVolt
+### Step 1: Rebrand PulseGames → GameVolt ✅
 
 **GitHub Repo:**
-- [ ] Rename repo from `pulsegames` → `gamevolt` (Settings → General)
-- [ ] Or create new repo `gamevolt` and move files (cleaner history)
+- [x] Created new repo `GameVolt` on GitHub
 
 **Branding:**
-- [ ] Design GameVolt logo (favicon, header, og-image)
-- [ ] Create og:image for social sharing (1200x630px)
+- [x] Design GameVolt logo (favicon, header, og-image)
+- [x] Create og:image for social sharing (1200x630px) — portal + Axeluga done
 
 **Code changes:**
-- [ ] Search entire codebase for "pulsegames" (case-insensitive) and replace with "gamevolt"
-- [ ] Update `<title>`, `<meta>` tags, og:tags in index.html
-- [ ] Update header/footer/nav with new branding
-- [ ] Update favicon
-- [ ] Update `manifest.json` / `site.webmanifest` if present
-- [ ] Update `robots.txt` and `sitemap.xml` with new domain
-- [ ] Verify all games load correctly after changes
+- [x] Search entire codebase for "pulsegames" (case-insensitive) and replace with "gamevolt"
+- [x] Update `<title>`, `<meta>` tags, og:tags in index.html
+- [x] Update header/footer/nav with new branding
+- [x] Update favicon
+- [x] Update `manifest.json` / `site.webmanifest` if present
+- [x] Update `robots.txt` and `sitemap.xml` with new domain
+- [x] Verify all games load correctly after changes
 
 **External references:**
 - [ ] Update GameMonetize developer profile
 - [ ] Update portal submissions with new URL
 - [ ] Update social media / Reddit if possible
 
-### Step 2: Configure Domain
+### Step 2: Configure Domain ✅
 
-**Option A: Keep domain at One.com (simplest)**
-- [ ] Cancel One.com hosting (keep domain registration only)
-- [ ] In One.com DNS settings, add A records for GitHub Pages:
-  ```
-  @  A  185.199.108.153
-  @  A  185.199.109.153
-  @  A  185.199.110.153
-  @  A  185.199.111.153
-  ```
-- [ ] Add CNAME: `www  CNAME  <username>.github.io`
-- [ ] In GitHub repo → Settings → Pages → Custom domain → `gamevolt.io`
-- [ ] Check "Enforce HTTPS"
-- [ ] Wait for DNS propagation (up to 24h)
-- [ ] Verify https://gamevolt.io loads
-- [ ] Cost: ~699 kr/year (domain only)
-
-**Option B: Transfer to Cloudflare (cheaper long-term)**
-- [ ] Create Cloudflare account
-- [ ] At One.com: unlock domain, get EPP auth code
-- [ ] At Cloudflare: initiate transfer, enter code, pay
-- [ ] Wait 5-7 days for transfer
-- [ ] Set up same DNS records as Option A
-- [ ] Bonus: free CDN, DDoS protection, analytics
-
-**Note:** Transfer possible 60 days after original registration.
+- [x] Domain gamevolt.io configured with GitHub Pages
+- [x] HTTPS enforced
+- [x] CNAME file in repo
+- [x] pulsegames.eu still active (redirect or keep)
 
 ### Step 3: PulseGames.eu redirect
-- [ ] Replace PulseGames repo content with redirect to GameVolt.io:
-  ```html
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta http-equiv="refresh" content="0; url=https://gamevolt.io">
-    <link rel="canonical" href="https://gamevolt.io">
-    <title>Redirecting to GameVolt.io</title>
-  </head>
-  <body>
-    <p>Moved to <a href="https://gamevolt.io">GameVolt.io</a></p>
-  </body>
-  </html>
-  ```
-- [ ] Or let pulsegames.eu expire if not worth keeping
+- [ ] Decide: redirect pulsegames.eu → gamevolt.io, or let it expire
 
-### Step 4: Set up Supabase
-- [ ] Create account at supabase.com
-- [ ] Create project "GameVolt" in EU West region
-- [ ] Save project URL and anon key
-- [ ] Auth → Providers → Enable Google + Email
-- [ ] Set up Google OAuth (Google Cloud Console)
-- [ ] Run database schema SQL (see Database Schema section)
-- [ ] Enable Row Level Security on all tables
-- [ ] Set up RLS policies (users read all scores, write only own data)
-- [ ] Test auth flow
+### Step 4: Set up Supabase ✅
+- [x] Create account at supabase.com
+- [x] Create project (URL: `nwkjayseuhvvpkdgpivm.supabase.co`)
+- [x] Auth: magic link (passwordless email), callback → `/auth/callback/`
+- [x] Run database schema SQL (`/sql/schema.sql` — idempotent)
+- [x] Enable RLS on all tables
+- [x] Test auth flow
 
-### Step 5: Build & Integrate SDK
-- [ ] Create `/sdk/gamevolt.js`
-- [ ] Implement Phase 1 API (auth + save)
-- [ ] Integrate in HoverDash as pilot
-- [ ] Test: guest play, login, save migration, cloud save
-- [ ] Roll out to remaining games
+### Step 5: Build & Integrate SDK ✅
+- [x] Create `/sdk/gamevolt.js`
+- [x] Implement auth + cloud save + leaderboards + achievements
+- [x] Integrate in HoverDash (pilot), Breakout, Connect 4
+- [x] Auth modal, save migration, leaderboard submit, achievement sync all working
+- [ ] Roll out SDK to remaining games (TapRush, BlockStorm, Solitaire, Snake, Axeluga)
 
-### Step 6: Verify
-- [ ] All games load on gamevolt.io
-- [ ] Auth works (sign up, login, logout)
-- [ ] Cloud save works (save on desktop, load on mobile)
-- [ ] Guest mode works (localStorage)
-- [ ] Migration works (guest → account)
-- [ ] PulseGames.eu redirects correctly
-- [ ] HTTPS works
-- [ ] Open Graph tags show correctly
+### Step 6: Verify ✅
+- [x] All games load on gamevolt.io
+- [x] Auth works (magic link login/logout)
+- [x] Cloud save works
+- [x] Guest mode works (localStorage fallback)
+- [x] Migration works (guest → account)
+- [x] HTTPS works
+- [x] Open Graph tags show correctly (portal + Axeluga updated)
 
 ---
 
@@ -729,9 +689,8 @@ gvPost('achievement', { id: 'trophy_id', name: 'Name', tier: 'bronze' });
 - [ ] Keep PulseGames.eu as redirect, or drop the domain?
 - [ ] Transfer GameVolt.io to Cloudflare or keep at One.com?
 - [ ] Avatar system: upload custom vs pick from preset gallery?
-- [ ] Drop GameVolt.one domain?
-- [ ] Confirm exact game list currently live on PulseGames.eu
-- [ ] Define achievements per game (do this when integrating each game)
+- [ ] Customize Supabase email template
+- [ ] Global leaderboard UI in game tabs
 - [ ] Hover-preview on game cards: show short gameplay video/GIF when hovering over a game thumbnail on the portal
 
 ---
@@ -749,35 +708,45 @@ Optional: Transfer domain to Cloudflare to save ~100-200 kr/year.
 
 ---
 
-## File Structure (Target)
+## File Structure (Actual)
 
 ```
-/gamevolt-repo/
+/GameVolt/
 ├── index.html                    ← Portal landing page
 ├── GAMEVOLT.md                   ← This file (project spec)
+├── CLAUDE.md                     ← Claude Code instructions
+├── CNAME                         ← gamevolt.io
 ├── sdk/
 │   └── gamevolt.js               ← GameVolt SDK
-├── games/
-│   ├── hoverdash/
-│   │   ├── game.js
-│   │   ├── index.html            ← GameVolt version
-│   │   ├── index-standalone.html ← Portal submission version
-│   │   └── assets/
-│   ├── snake-neo/
-│   ├── golden-glyphs/
-│   ├── connect4/
-│   ├── breakout/
-│   ├── clickrush/
-│   ├── tetris/
-│   ├── solitaire/
-│   └── flappy-404/
+├── js/
+│   └── gv-tracker.js             ← localStorage tracker (gv_portal key)
+├── sql/
+│   └── schema.sql                ← Supabase DB schema (idempotent)
+├── play/
+│   └── index.html                ← Game player (iframe loader, sidebar, session timer)
 ├── profile/
-│   └── index.html                ← User profile page
-├── css/
-│   └── portal.css                ← Portal styles
+│   └── index.html                ← User profile page (trophy catalog)
+├── auth/
+│   └── callback/
+│       └── index.html            ← Supabase auth callback
 ├── assets/
-│   ├── logo.svg
-│   ├── og-image.png
-│   └── favicon.ico
+│   ├── og-image.jpg              ← Portal OG image (1200x630)
+│   ├── favicon.png
+│   └── thumbnails/               ← Game thumbnails (.webp)
+├── axeluga/                      ← Space shooter (standalone game)
+├── breakout/                     ← Breakout (multi-file ES6 modules)
+│   └── js/                       ← UI.js, Achievements.js, etc.
+├── blockstorm/                   ← Tetris clone
+├── connect4/                     ← Connect 4
+├── hoverdash/                    ← HoverDash (SDK pilot)
+├── snake/                        ← Snake Neo (3 modes)
+├── solitaire/                    ← Solitaire Collection
+├── taprush/                      ← TapRush (was ClickRush)
+├── action-games/                 ← Category landing page
+├── arcade-games/                 ← Category landing page
+├── board-games/                  ← Category landing page
+├── puzzle-games/                 ← Category landing page
 └── 404.html                      ← Flappy Bird easter egg
 ```
+
+> **Note:** Games are at root level (not in a `/games/` folder). Each game is a self-contained folder except Breakout which uses ES6 modules.
