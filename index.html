@@ -938,9 +938,108 @@
             font-weight: 600;
         }
 
+        /* Powered Up section */
+        .powered-section {
+            margin-bottom: 40px;
+        }
+
+        .powered-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: -8px;
+            margin-bottom: 16px;
+        }
+
+        .powered-grid {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(124,92,252,0.2) transparent;
+        }
+        .powered-grid::-webkit-scrollbar { height: 4px; }
+        .powered-grid::-webkit-scrollbar-track { background: transparent; }
+        .powered-grid::-webkit-scrollbar-thumb { background: rgba(124,92,252,0.2); border-radius: 2px; }
+
+        .powered-card {
+            flex-shrink: 0;
+            width: 260px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+        }
+        .powered-card:hover {
+            border-color: var(--border-glow);
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-card-hover);
+            background: var(--bg-card-hover);
+        }
+
+        .powered-card img {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+
+        .powered-card .powered-bolt {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #7c5cfc, #38bdf8);
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 10px rgba(124, 92, 252, 0.5);
+            z-index: 2;
+        }
+
+        .powered-info {
+            padding: 14px 16px;
+        }
+
+        .powered-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+        }
+
+        .powered-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .powered-feat {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(124, 92, 252, 0.12);
+            color: var(--primary-light);
+            border: 1px solid rgba(124, 92, 252, 0.15);
+        }
+
+        .powered-feat.trophy { background: rgba(255, 193, 7, 0.12); color: #ffc107; border-color: rgba(255, 193, 7, 0.15); }
+        .powered-feat.cloud { background: rgba(56, 189, 248, 0.12); color: #38bdf8; border-color: rgba(56, 189, 248, 0.15); }
+        .powered-feat.board { background: rgba(6, 214, 160, 0.12); color: #06d6a0; border-color: rgba(6, 214, 160, 0.15); }
+
         @media (max-width: 600px) {
             .continue-card {
                 width: 180px;
+            }
+            .powered-card {
+                width: 220px;
             }
         }
     </style>
@@ -1065,6 +1164,63 @@
                 <h2 class="section-title">Continue Playing</h2>
             </div>
             <div class="continue-grid" id="continueGrid"></div>
+        </div>
+
+        <div class="powered-section">
+            <div class="section-header">
+                <h2 class="section-title">Powered Up</h2>
+            </div>
+            <p class="powered-subtitle">Cloud saves, global leaderboards & trophies</p>
+            <div class="powered-grid">
+                <a href="/play/?game=hoverdash" class="powered-card">
+                    <img src="/hoverdash/og-image.png" alt="HoverDash">
+                    <span class="powered-bolt">⚡</span>
+                    <div class="powered-info">
+                        <div class="powered-name">HoverDash</div>
+                        <div class="powered-features">
+                            <span class="powered-feat cloud">Cloud Save</span>
+                            <span class="powered-feat board">Leaderboard</span>
+                            <span class="powered-feat trophy">31 Trophies</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/play/?game=breakout" class="powered-card">
+                    <img src="/assets/thumbnails/breakout.webp" alt="Breakout">
+                    <span class="powered-bolt">⚡</span>
+                    <div class="powered-info">
+                        <div class="powered-name">Breakout</div>
+                        <div class="powered-features">
+                            <span class="powered-feat cloud">Cloud Save</span>
+                            <span class="powered-feat board">Leaderboard</span>
+                            <span class="powered-feat trophy">31 Trophies</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/play/?game=blockstorm" class="powered-card">
+                    <img src="/assets/thumbnails/blockstorm.webp" alt="BlockStorm">
+                    <span class="powered-bolt">⚡</span>
+                    <div class="powered-info">
+                        <div class="powered-name">BlockStorm</div>
+                        <div class="powered-features">
+                            <span class="powered-feat cloud">Cloud Save</span>
+                            <span class="powered-feat board">Leaderboard</span>
+                            <span class="powered-feat trophy">31 Trophies</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/play/?game=connect4" class="powered-card">
+                    <img src="/assets/thumbnails/connect4-thumbnail.webp" alt="Connect 4">
+                    <span class="powered-bolt">⚡</span>
+                    <div class="powered-info">
+                        <div class="powered-name">Connect 4</div>
+                        <div class="powered-features">
+                            <span class="powered-feat cloud">Cloud Save</span>
+                            <span class="powered-feat board">Leaderboard</span>
+                            <span class="powered-feat trophy">31 Trophies</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div>
 
         <div class="section-header">
