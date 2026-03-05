@@ -150,6 +150,7 @@
         <button id="startBtn" class="start-btn">PLAY <kbd>Enter</kbd></button>
         
         <button id="leaderboardBtn" class="leaderboard-btn">🏆 LEADERBOARD</button>
+        <button id="guideBtn" class="leaderboard-btn">📖 HOW TO PLAY</button>
         
         <div class="player-name-display">
           Playing as: <span id="playerNameDisplay">Guest</span>
@@ -179,6 +180,48 @@
         </div>
         
         <button id="closeLeaderboardBtn" class="close-lb-btn">CLOSE</button>
+      </div>
+    </div>
+
+    <!-- HOW TO PLAY OVERLAY -->
+    <div id="guideOverlay">
+      <div class="guide-container">
+        <h2>📖 HOW TO PLAY</h2>
+
+        <div class="guide-scroll">
+          <div class="guide-section">CONTROLS</div>
+          <div class="guide-row"><span class="gl">Move left</span><span class="gv">← / A</span></div>
+          <div class="guide-row"><span class="gl">Move right</span><span class="gv">→ / D</span></div>
+          <div class="guide-row"><span class="gl">Soft drop</span><span class="gv">↓ / S</span></div>
+          <div class="guide-row"><span class="gl">Hard drop</span><span class="gv">SPACE</span></div>
+          <div class="guide-row"><span class="gl">Rotate CW</span><span class="gv">↑ / W / X</span></div>
+          <div class="guide-row"><span class="gl">Rotate CCW</span><span class="gv">Z</span></div>
+          <div class="guide-row"><span class="gl">Pause</span><span class="gv">P / ESC</span></div>
+          <div class="guide-note">Swipe on mobile: left/right to move, down to soft drop, up to hard drop, tap to rotate</div>
+
+          <div class="guide-section">SCORING</div>
+          <div class="guide-row"><span class="gl">Single</span><span class="gv">40 × level</span></div>
+          <div class="guide-row"><span class="gl">Double</span><span class="gv">100 × level</span></div>
+          <div class="guide-row"><span class="gl">Triple</span><span class="gv">300 × level</span></div>
+          <div class="guide-row"><span class="gl">Tetris (4 lines)</span><span class="gv">1200 × level</span></div>
+          <div class="guide-row"><span class="gl">Soft drop</span><span class="gv">+1 per cell</span></div>
+          <div class="guide-row"><span class="gl">Hard drop</span><span class="gv">+2 per cell</span></div>
+          <div class="guide-row"><span class="gl">Combo bonus</span><span class="gv">50 × combo × level</span></div>
+
+          <div class="guide-section">T-SPINS</div>
+          <div class="guide-row"><span class="gl">T-Spin (no lines)</span><span class="gv">100 × level</span></div>
+          <div class="guide-row"><span class="gl">T-Spin Single</span><span class="gv">200 × level</span></div>
+          <div class="guide-row"><span class="gl">T-Spin Double</span><span class="gv">400 × level</span></div>
+          <div class="guide-row"><span class="gl">T-Spin Triple</span><span class="gv">800 × level</span></div>
+          <div class="guide-note">Rotate a T-piece into a tight space with 3+ corners filled</div>
+
+          <div class="guide-section">GAME MODES</div>
+          <div class="guide-row"><span class="gl">Marathon</span><span class="gv">Endless, play until you top out</span></div>
+          <div class="guide-row"><span class="gl">Sprint</span><span class="gv">Clear 40 lines as fast as possible</span></div>
+          <div class="guide-row"><span class="gl">Ultra</span><span class="gv">3 minutes, highest score wins</span></div>
+        </div>
+
+        <button id="closeGuideBtn" class="close-lb-btn">CLOSE</button>
       </div>
     </div>
 
@@ -905,8 +948,38 @@
         }
         return;
       }
+
+      // GUIDE SCREEN
+      if (currentScreen === 'guide') {
+        if (key === "Escape" || key === "Enter") {
+          e.preventDefault();
+          closeGuide();
+        }
+        return;
+      }
     });
     
+    // ==========================================
+    // HOW TO PLAY
+    // ==========================================
+    const guideOverlay = document.getElementById("guideOverlay");
+    const guideBtn = document.getElementById("guideBtn");
+    const closeGuideBtn = document.getElementById("closeGuideBtn");
+
+    function openGuide() {
+      guideOverlay.classList.add('visible');
+      currentScreen = 'guide';
+    }
+    function closeGuide() {
+      guideOverlay.classList.remove('visible');
+      currentScreen = 'start';
+    }
+
+    guideBtn.addEventListener('click', openGuide);
+    guideBtn.addEventListener('touchend', (e) => { e.preventDefault(); openGuide(); });
+    closeGuideBtn.addEventListener('click', closeGuide);
+    closeGuideBtn.addEventListener('touchend', (e) => { e.preventDefault(); closeGuide(); });
+
     // ==========================================
     // LEADERBOARD FUNCTIONS
     // ==========================================
@@ -1240,7 +1313,7 @@
         var nameDisplay=document.getElementById('playerNameDisplay');
         var loginBtn=document.getElementById('loginBtn');
         if(user){
-          if(nameDisplay) nameDisplay.textContent=user.user_metadata&&user.user_metadata.username||user.email||'Player';
+          if(nameDisplay) nameDisplay.textContent=user.username||user.email||'Player';
           if(loginBtn) loginBtn.style.display='none';
         } else {
           if(nameDisplay) nameDisplay.textContent='Guest';

@@ -10,7 +10,7 @@
 function getPlayerName() {
   if (window.GameVolt) {
     var user = GameVolt.auth.getUser();
-    if (user) return user.user_metadata && user.user_metadata.username || user.email || 'Player';
+    if (user) return user.username || user.email || 'Player';
   }
   return 'Guest';
 }
