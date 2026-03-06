@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://gamevolt.io/sitemap.xml
+Sitemap: https://gamevolt.io/sitemap-v2.xml
