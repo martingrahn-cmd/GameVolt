@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; }
+  body { background: #000; display: flex; align-items: center; justify-content: center; height: 100vh; }
+  .thumb {
+    width: 800px;
+    height: 450px;
+    background: radial-gradient(ellipse at 50% 50%, #1a0a3a 0%, #0a0018 40%, #000 70%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  /* Starfield */
+  .stars { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+  .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle 3s infinite alternate;
+  }
+  @keyframes twinkle { 0% { opacity: 0.2; } 100% { opacity: 1; } }
+
+  /* Black hole */
+  .black-hole {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #000 30%, #1a0033 50%, transparent 70%);
+    box-shadow:
+      0 0 40px 10px rgba(120, 80, 255, 0.3),
+      0 0 80px 20px rgba(120, 80, 255, 0.15),
+      0 0 120px 30px rgba(120, 80, 255, 0.08),
+      inset 0 0 30px 10px rgba(120, 80, 255, 0.2);
+    position: relative;
+    z-index: 5;
+    margin-bottom: 20px;
+  }
+  .black-hole::before {
+    content: '';
+    position: absolute;
+    top: -20px; left: -20px; right: -20px; bottom: -20px;
+    border-radius: 50%;
+    border: 2px solid rgba(120, 80, 255, 0.4);
+    animation: pulse 2s infinite;
+  }
+  .black-hole::after {
+    content: '';
+    position: absolute;
+    top: -35px; left: -35px; right: -35px; bottom: -35px;
+    border-radius: 50%;
+    border: 1px solid rgba(120, 80, 255, 0.15);
+  }
+  @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.5; } }
+
+  /* Particles orbiting */
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(1px);
+  }
+  .p1 { width: 8px; height: 8px; background: #00ffaa; top: 35%; left: 25%; box-shadow: 0 0 12px #00ffaa; }
+  .p2 { width: 6px; height: 6px; background: #88eeff; top: 28%; right: 30%; box-shadow: 0 0 10px #88eeff; }
+  .p3 { width: 7px; height: 7px; background: #cc66ff; bottom: 35%; left: 20%; box-shadow: 0 0 12px #cc66ff; }
+  .p4 { width: 10px; height: 10px; background: #ffdd44; top: 45%; right: 22%; box-shadow: 0 0 16px #ffdd44; }
+  .p5 { width: 5px; height: 5px; background: #ff2244; bottom: 30%; right: 35%; box-shadow: 0 0 10px #ff2244; }
+  .p6 { width: 6px; height: 6px; background: #00ffaa; top: 60%; left: 35%; box-shadow: 0 0 12px #00ffaa; }
+  .p7 { width: 12px; height: 12px; background: #fff; top: 25%; left: 40%; box-shadow: 0 0 20px #fff, 0 0 40px #ffdd44; }
+  .p8 { width: 7px; height: 7px; background: #cc66ff; bottom: 25%; right: 25%; box-shadow: 0 0 12px #cc66ff; }
+
+  /* Title */
+  .title {
+    font-family: 'Arial Black', Impact, sans-serif;
+    font-size: 64px;
+    font-weight: 900;
+    color: #7850ff;
+    text-shadow: 0 0 30px rgba(120, 80, 255, 0.6), 0 0 60px rgba(120, 80, 255, 0.3);
+    letter-spacing: 8px;
+    text-align: center;
+    z-index: 10;
+    line-height: 1;
+  }
+  .subtitle {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    color: #ff6644;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    z-index: 10;
+    opacity: 0.8;
+    margin-top: 4px;
+  }
+
+  /* Accretion disk effect */
+  .disk {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: conic-gradient(
+      rgba(120, 80, 255, 0.1) 0deg,
+      rgba(0, 255, 170, 0.05) 60deg,
+      rgba(120, 80, 255, 0.1) 120deg,
+      rgba(136, 238, 255, 0.05) 180deg,
+      rgba(120, 80, 255, 0.1) 240deg,
+      rgba(204, 102, 255, 0.05) 300deg,
+      rgba(120, 80, 255, 0.1) 360deg
+    );
+    z-index: 3;
+    animation: spin 10s linear infinite;
+  }
+  @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="thumb">
+  <div class="stars">
+    <script>
+      for (let i = 0; i < 80; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = Math.random() * 100 + '%';
+        s.style.width = s.style.height = (Math.random() * 2 + 0.5) + 'px';
+        s.style.animationDelay = Math.random() * 3 + 's';
+        s.style.opacity = Math.random() * 0.6 + 0.1;
+        document.querySelector('.stars').appendChild(s);
+      }
+    </script>
+  </div>
+  <div class="disk"></div>
+  <div class="particle p1"></div>
+  <div class="particle p2"></div>
+  <div class="particle p3"></div>
+  <div class="particle p4"></div>
+  <div class="particle p5"></div>
+  <div class="particle p6"></div>
+  <div class="particle p7"></div>
+  <div class="particle p8"></div>
+  <div class="black-hole"></div>
+  <div class="title">GRAVITY<br>WELL</div>
+  <div class="subtitle">Consume the Cosmos</div>
+</div>
+</body>
+</html>

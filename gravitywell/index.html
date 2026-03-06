@@ -1,0 +1,3396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Gravity Well – Consume the Cosmos | GameVolt</title>
+<meta name="description" content="Control a black hole and consume cosmic particles. Absorb energy, avoid antimatter, survive 5 waves. Free browser game – no download needed.">
+<meta property="og:title" content="Gravity Well – Consume the Cosmos">
+<meta property="og:description" content="Control a black hole and consume cosmic particles. Free browser arcade game on GameVolt.">
+<meta property="og:image" content="https://gamevolt.io/assets/thumbnails/gravitywell.webp">
+<meta property="og:url" content="https://gamevolt.io/gravitywell/">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    overflow: hidden;
+    font-family: 'Exo 2', sans-serif;
+    cursor: default;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  body.playing {
+    cursor: none;
+    touch-action: none;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 24px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .hud-item {
+    color: #fff;
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(120, 200, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .hud-label {
+    font-size: 10px;
+    color: rgba(120, 200, 255, 0.6);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .hud-value {
+    font-weight: 700;
+    font-size: 20px;
+  }
+
+  .hud-center {
+    text-align: center;
+  }
+
+  .hud-right {
+    text-align: right;
+  }
+
+  #health-bar {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .heart {
+    width: 16px;
+    height: 16px;
+    background: #ff3366;
+    clip-path: path('M8 14s-6-4.35-6-8.2A3.8 3.8 0 0 1 5.5 2C6.8 2 7.6 2.7 8 3.4 8.4 2.7 9.2 2 10.5 2A3.8 3.8 0 0 1 14 5.8C14 9.65 8 14 8 14z');
+    filter: drop-shadow(0 0 6px rgba(255, 51, 102, 0.7));
+    transition: all 0.3s;
+  }
+
+  .heart.lost {
+    background: #333;
+    filter: none;
+    opacity: 0.3;
+  }
+
+  .color-good { color: #00ffaa; text-shadow: 0 0 8px rgba(0, 255, 170, 0.4); }
+  .color-bad { color: #ff3366; text-shadow: 0 0 8px rgba(255, 51, 102, 0.4); }
+  .color-gold { color: #ffdd44; text-shadow: 0 0 8px rgba(255, 221, 68, 0.4); }
+
+  @media (max-width: 600px) {
+    .hud-value { font-size: 16px; }
+    .hud-item { font-size: 12px; }
+    #hud { padding: 12px 16px; }
+  }
+
+  #audio-toggle {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 30;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(120, 160, 255, 0.3);
+    background: rgba(10, 10, 30, 0.6);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    pointer-events: all;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+  }
+
+  #audio-toggle:hover {
+    background: rgba(60, 40, 120, 0.5);
+    border-color: rgba(120, 160, 255, 0.6);
+  }
+
+  #audio-toggle.muted {
+    opacity: 0.4;
+  }
+
+  /* === MENU SYSTEM === */
+  #menu-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(10px);
+    transition: opacity 0.4s;
+  }
+  #menu-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #menu-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(94vw, 600px);
+    max-height: 92vh;
+    max-height: 92dvh;
+    overflow: hidden;
+  }
+  #tab-bar {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #7850ff33;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+  .tab-btn {
+    padding: 8px 14px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #556;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all .2s;
+    margin-bottom: -2px;
+    font-family: 'Orbitron', monospace;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: #7850ff88; }
+  .menu-focused {
+    outline: none !important;
+    box-shadow: 0 0 0 3px #fff, 0 0 20px #ffffffaa !important;
+    transform: scale(1.08);
+    background: #fff !important;
+    color: #050508 !important;
+    border-color: #fff !important;
+    transition: all .15s;
+  }
+  .tab-btn.active {
+    color: #7850ff;
+    border-bottom-color: #7850ff;
+    text-shadow: 0 0 10px #7850ff44;
+  }
+  .tab-content {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    padding: 0 4px;
+  }
+  .tab-content::-webkit-scrollbar { display: none; }
+  .tab-content.active { display: flex; }
+
+  /* PLAY TAB */
+  #game-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(42px, 10vw, 72px);
+    font-weight: 900;
+    color: #7850ff;
+    text-shadow: 0 0 30px #7850ff88, 0 0 60px #7850ff44;
+    letter-spacing: 6px;
+    line-height: 1.1;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  #game-subtitle {
+    font-size: 13px;
+    color: #ff6644;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 30px;
+    opacity: .8;
+  }
+  #final-score, #final-stats, #best-score-display {
+    font-family: 'Orbitron', monospace;
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  #final-score {
+    font-size: clamp(36px, 8vw, 56px);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 30px rgba(120, 80, 255, 0.5);
+  }
+  #final-stats {
+    font-size: 12px;
+    color: #889;
+    letter-spacing: 2px;
+  }
+  #best-score-display {
+    font-size: 13px;
+    color: rgba(255, 221, 68, 0.7);
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+  #start-btn, #menu-btn {
+    padding: 16px 48px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all .2s;
+    clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+    font-family: 'Orbitron', monospace;
+    color: #7850ff;
+    background: transparent;
+    border: 2px solid #7850ff;
+  }
+  #start-btn:hover, #menu-btn:hover {
+    background: #fff;
+    color: #050508;
+    transform: scale(1.05);
+  }
+
+  /* SCORES TAB */
+  #scores-title, .guide-title, #settings-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(24px, 6vw, 36px);
+    font-weight: 900;
+    color: #7850ff;
+    text-shadow: 0 0 20px #7850ff66;
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  #scores-list {
+    width: min(90vw, 420px);
+  }
+  .score-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #ffffff0d;
+    gap: 10px;
+  }
+  .score-row.new { background: #7850ff0f; }
+  .score-rank {
+    width: 28px;
+    font-size: 14px;
+    color: #556;
+    flex-shrink: 0;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+  }
+  .score-row:nth-child(1) .score-rank { color: #ffd700; }
+  .score-row:nth-child(2) .score-rank { color: #c0c0c0; }
+  .score-row:nth-child(3) .score-rank { color: #cd7f32; }
+  .score-info { flex: 1; }
+  .score-val {
+    font-size: 15px;
+    color: #eee;
+    letter-spacing: 1px;
+    font-family: 'Orbitron', monospace;
+  }
+  .score-meta {
+    font-size: 10px;
+    color: #556;
+    margin-top: 2px;
+  }
+  .score-date {
+    font-size: 10px;
+    color: #445;
+    flex-shrink: 0;
+  }
+  #scores-empty {
+    font-size: 13px;
+    color: #556;
+    letter-spacing: 2px;
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  /* TROPHIES TAB */
+  #trophy-header { text-align: center; margin-bottom: 12px; }
+  #trophy-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(24px, 6vw, 36px);
+    font-weight: 900;
+    color: #7850ff;
+    text-shadow: 0 0 20px #7850ff66;
+    letter-spacing: 4px;
+  }
+  #trophy-count {
+    font-size: 13px;
+    color: #7850ff88;
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+  #trophy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    padding: 8px;
+    width: min(92vw, 540px);
+  }
+  .trophy-card {
+    background: #0a0a1899;
+    border: 1px solid #ffffff11;
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    transition: all .3s;
+    position: relative;
+  }
+  .trophy-card.unlocked.bronze { border-color: #cd7f3266; background: #cd7f3210; }
+  .trophy-card.unlocked.silver { border-color: #c0c0c066; background: #c0c0c010; }
+  .trophy-card.unlocked.gold { border-color: #ffd70066; background: #ffd70010; }
+  .trophy-card.unlocked.platinum { border-color: #b4ffff66; background: #b4ffff0a; }
+  .trophy-card.locked { opacity: .45; filter: grayscale(.7); }
+  .trophy-icon { font-size: 26px; margin-bottom: 4px; }
+  .trophy-name { font-size: 10px; font-weight: 700; color: #fff; letter-spacing: 1px; margin-bottom: 2px; }
+  .trophy-desc { font-size: 9px; color: #889; line-height: 1.3; }
+  .trophy-tier {
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 4px;
+  }
+  .trophy-tier.bronze { color: #cd7f32; }
+  .trophy-tier.silver { color: #c0c0c0; }
+  .trophy-tier.gold { color: #ffd700; }
+  .trophy-tier.platinum { color: #b4ffff; }
+  .trophy-progress {
+    width: 100%; height: 3px;
+    background: #ffffff0a; border-radius: 2px;
+    margin-top: 6px; overflow: hidden;
+  }
+  .trophy-pbar { height: 100%; border-radius: 2px; transition: width .4s ease; }
+  .trophy-pbar.bronze { background: #cd7f32; }
+  .trophy-pbar.silver { background: #c0c0c0; }
+  .trophy-pbar.gold { background: #ffd700; }
+  .trophy-pbar.platinum { background: linear-gradient(90deg, #7850ff, #ff00ff); }
+  .trophy-check {
+    color: #44ff88; font-size: 14px;
+    position: absolute; top: 4px; right: 6px;
+  }
+  .trophy-tier-header {
+    grid-column: 1 / -1;
+    font-size: 11px; font-weight: 700; letter-spacing: 4px;
+    text-transform: uppercase; padding: 10px 2px 5px;
+    border-bottom: 1px solid; margin-bottom: 2px;
+    font-family: 'Orbitron', monospace;
+  }
+  .trophy-tier-header.bronze { color: #cd7f32; border-color: #cd7f3244; }
+  .trophy-tier-header.silver { color: #c0c0c0; border-color: #c0c0c044; }
+  .trophy-tier-header.gold { color: #ffd700; border-color: #ffd70044; }
+  .trophy-tier-header.platinum { color: #b4ffff; border-color: #b4ffff44; }
+  .trophy-tier-header:first-child { padding-top: 2px; }
+
+  /* GUIDE TAB */
+  #guide-wrap {
+    width: min(90vw, 400px);
+    padding: 0 8px;
+  }
+  .guide-section {
+    font-size: 12px; font-weight: 700; letter-spacing: 3px;
+    color: #7850ff; margin: 16px 0 8px; padding-bottom: 4px;
+    border-bottom: 1px solid #7850ff33;
+    font-family: 'Orbitron', monospace;
+  }
+  .guide-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 4px 0; font-size: 13px; color: #99a; line-height: 1.5;
+  }
+  .guide-row .gl { color: #aab; font-weight: 600; }
+  .guide-row .gv { color: #44ffaa; font-weight: 700; text-align: right; white-space: nowrap; margin-left: 12px; }
+  .guide-note { font-size: 11px; color: #556; margin-top: 2px; line-height: 1.4; }
+
+  /* SETTINGS TAB */
+  #settings-list { width: min(80vw, 320px); }
+  .setting-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid #ffffff11;
+  }
+  .setting-label {
+    font-size: 14px; font-weight: 700; letter-spacing: 3px; color: #aab;
+    font-family: 'Orbitron', monospace;
+  }
+  .setting-toggle {
+    padding: 6px 20px; font-size: 13px; font-weight: 700; letter-spacing: 2px;
+    cursor: pointer; border-radius: 3px; font-family: 'Orbitron', monospace;
+    transition: all .2s; border: 1px solid #ff445566; color: #ff4455; background: transparent;
+  }
+  .setting-toggle.on { border-color: #44ff8866; color: #44ff88; }
+
+  /* ACHIEVEMENT TOAST */
+  #achievement-toast {
+    position: fixed; bottom: -80px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 12px;
+    background: #0a0a18ee; border: 1px solid #ffd70066; border-radius: 8px;
+    padding: 10px 20px; z-index: 30;
+    transition: bottom .5s cubic-bezier(.34, 1.56, .64, 1);
+    box-shadow: 0 0 30px #ffd70033; pointer-events: none;
+  }
+  #achievement-toast.show { bottom: 24px; }
+  #ach-toast-icon { font-size: 28px; }
+  #ach-toast-label { font-size: 9px; color: #ffd700; letter-spacing: 3px; font-weight: 700; text-transform: uppercase; }
+  .ach-tier-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; }
+  .ach-tier-label.bronze { color: #cd7f32; }
+  .ach-tier-label.silver { color: #c0c0c0; }
+  .ach-tier-label.gold { color: #ffd700; }
+  .ach-tier-label.platinum { color: #b4ffff; }
+  #ach-toast-name { font-size: 14px; color: #fff; font-weight: 700; letter-spacing: 1px; }
+
+  @media (max-width: 480px) {
+    .tab-btn { padding: 6px 8px; font-size: 8px; letter-spacing: 1px; }
+    #menu-inner { max-height: 94dvh; }
+    #game-title { margin-bottom: 2px; font-size: clamp(28px, 8vw, 48px); }
+    #game-subtitle { margin-bottom: 8px; font-size: 10px; }
+    #final-score { font-size: clamp(24px, 7vw, 36px); }
+    #final-stats { font-size: 10px; gap: 4px; }
+    #best-score-display { font-size: 11px; margin-bottom: 12px; }
+    #start-btn, #menu-btn { padding: 12px 28px; font-size: 14px; }
+    #trophy-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 6px; }
+    #scores-title, .guide-title, #settings-title, #trophy-title { font-size: clamp(18px, 5vw, 24px); }
+    .guide-row { font-size: 11px; }
+    .setting-label { font-size: 11px; letter-spacing: 2px; }
+    .setting-toggle { padding: 8px 20px; min-height: 38px; font-size: 11px; }
+    #tab-bar { margin-bottom: 8px; }
+    #hud { padding: 10px 12px; }
+    .hud-value { font-size: 16px; }
+    .hud-label { font-size: 9px; }
+  }
+  @media (max-height: 600px) {
+    #game-title { font-size: clamp(28px, 8vw, 44px); }
+    #game-subtitle { margin-bottom: 8px; }
+    #best-score-display { margin-bottom: 12px; }
+  }
+  #login-btn {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    z-index: 30;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(120, 80, 255, 0.4);
+    background: rgba(10, 10, 30, 0.7);
+    backdrop-filter: blur(6px);
+    color: #a78bfa;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Orbitron', monospace;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  #login-btn:hover {
+    background: rgba(120, 80, 255, 0.2);
+    border-color: rgba(120, 80, 255, 0.6);
+    color: #fff;
+  }
+  #login-btn.logged-in {
+    color: #44ff88;
+    border-color: rgba(68, 255, 136, 0.3);
+    pointer-events: none;
+    font-size: 11px;
+  }
+  #login-btn.hidden { display: none; }
+</style>
+<script src="/sdk/gamevolt.js"></script>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="hud" style="display:none;">
+  <div class="hud-item">
+    <span class="hud-label">Health</span>
+    <div id="health-bar"></div>
+  </div>
+  <div class="hud-item hud-center">
+    <span class="hud-label">Score</span>
+    <span class="hud-value" id="score-val">0</span>
+  </div>
+  <div class="hud-item hud-right">
+    <span class="hud-label">Mass</span>
+    <span class="hud-value" id="mass-val">500</span>
+  </div>
+</div>
+
+<button id="audio-toggle" title="Toggle Music">🔊</button>
+<button id="login-btn" onclick="if(window.GameVolt)GameVolt.auth.login()">🔑 LOG IN</button>
+
+<div id="menu-overlay">
+  <div id="menu-inner">
+    <div id="tab-bar">
+      <button class="tab-btn active" data-tab="play">PLAY</button>
+      <button class="tab-btn" data-tab="scores">SCORES</button>
+      <button class="tab-btn" data-tab="trophies">TROPHIES</button>
+      <button class="tab-btn" data-tab="guide">GUIDE</button>
+      <button class="tab-btn" data-tab="settings">SETTINGS</button>
+    </div>
+
+    <div id="tab-play" class="tab-content active">
+      <div id="game-title">GRAVITY<br>WELL</div>
+      <div id="game-subtitle">Consume the Cosmos</div>
+      <div id="final-score"></div>
+      <div id="final-stats"></div>
+      <div id="best-score-display"></div>
+      <button id="start-btn">ENTER THE VOID</button>
+    </div>
+
+    <div id="tab-scores" class="tab-content">
+      <div id="scores-title">TOP SCORES</div>
+      <div id="scores-list"></div>
+      <div id="scores-empty">No scores yet. Play a game!</div>
+    </div>
+
+    <div id="tab-trophies" class="tab-content">
+      <div id="trophy-header">
+        <div id="trophy-title">TROPHIES</div>
+        <div id="trophy-count">0 / 31</div>
+      </div>
+      <div id="trophy-grid"></div>
+    </div>
+
+    <div id="tab-guide" class="tab-content">
+      <div class="guide-title">HOW TO PLAY</div>
+      <div id="guide-wrap">
+        <div class="guide-section">CONTROLS</div>
+        <div class="guide-row"><span class="gl">Move black hole</span><span class="gv">Mouse / Touch</span></div>
+        <div class="guide-note">The black hole follows your cursor or finger</div>
+
+        <div class="guide-section">PARTICLES</div>
+        <div class="guide-row"><span class="gl" style="color:#00ffaa">● Energy</span><span class="gv">+10 pts, +15 mass</span></div>
+        <div class="guide-row"><span class="gl" style="color:#88eeff">● Plasma</span><span class="gv">+25 pts, fast zigzag</span></div>
+        <div class="guide-row"><span class="gl" style="color:#cc66ff">● Dark Energy</span><span class="gv">+35 pts, spiraling</span></div>
+        <div class="guide-row"><span class="gl" style="color:#ffdd44">★ Golden Orb</span><span class="gv">+50 pts bonus</span></div>
+        <div class="guide-row"><span class="gl" style="color:#ffffff">✦ Supernova</span><span class="gv">+200 pts, rare!</span></div>
+        <div class="guide-row"><span class="gl" style="color:#ff2244">✖ Antimatter</span><span class="gv">-1 health, avoid!</span></div>
+        <div class="guide-row"><span class="gl" style="color:#ff4400">◎ Hunter</span><span class="gv">-1 health, tracks you!</span></div>
+
+        <div class="guide-section">SCORING</div>
+        <div class="guide-row"><span class="gl">Base score</span><span class="gv">per particle type</span></div>
+        <div class="guide-row"><span class="gl">Difficulty mult</span><span class="gv">increases over time</span></div>
+        <div class="guide-row"><span class="gl">Combo eating</span><span class="gv">pitch rises with chain</span></div>
+
+        <div class="guide-section">WAVES</div>
+        <div class="guide-row"><span class="gl">Wave 1</span><span class="gv">Plasma Storm</span></div>
+        <div class="guide-row"><span class="gl">Wave 2 (1,500)</span><span class="gv">Dark Energy</span></div>
+        <div class="guide-row"><span class="gl">Wave 3 (4,000)</span><span class="gv">Neutron Burst</span></div>
+        <div class="guide-row"><span class="gl">Wave 4 (8,000)</span><span class="gv">Cosmic Maelstrom</span></div>
+        <div class="guide-row"><span class="gl">Wave 5 (14,000)</span><span class="gv">Event Horizon</span></div>
+        <div class="guide-note">Each wave heals 1 health and clears antimatter</div>
+      </div>
+    </div>
+
+    <div id="tab-settings" class="tab-content">
+      <div id="settings-title">SETTINGS</div>
+      <div id="settings-list">
+        <div class="setting-row">
+          <span class="setting-label">MUSIC</span>
+          <button id="music-btn" class="setting-toggle on">ON</button>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">SFX</span>
+          <button id="sfx-btn" class="setting-toggle on">ON</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="achievement-toast">
+  <div id="ach-toast-icon"></div>
+  <div>
+    <div id="ach-toast-label">TROPHY UNLOCKED</div>
+    <div id="ach-toast-tier"></div>
+    <div id="ach-toast-name"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// GRAVITY WELL - A cosmic arcade game
+// ============================================================
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const hud = document.getElementById('hud');
+const menuOverlay = document.getElementById('menu-overlay');
+const btnStart = document.getElementById('start-btn');
+const scoreEl = document.getElementById('score-val');
+const massEl = document.getElementById('mass-val');
+const healthBar = document.getElementById('health-bar');
+const audioToggle = document.getElementById('audio-toggle');
+
+// --- Persistent Data ---
+const GW_KEY = 'gw_data';
+function loadGWData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(GW_KEY));
+    if (d && typeof d === 'object') return d;
+  } catch(e) {}
+  return {
+    totalGames: 0, bestScore: 0, bestWave: 0, bestMass: 0, bestAbsorbed: 0,
+    totalAbsorbed: 0, totalScore: 0, totalSupernovas: 0, totalGolden: 0,
+    scores: [], unlocked: {}, musicEnabled: true, sfxEnabled: true
+  };
+}
+let gwData = loadGWData();
+function saveGWData() {
+  try { localStorage.setItem(GW_KEY, JSON.stringify(gwData)); } catch(e) {}
+}
+
+// --- Per-game stats (reset each game) ---
+let pgGolden = 0, pgSupernovas = 0, hitsTaken = 0, pgMaxMass = 0, pgDamageTaken = false;
+
+// --- Achievements ---
+const ACHIEVEMENTS = [
+  // BRONZE (15)
+  {id:'first_void', name:'First Void', desc:'Play your first game', tier:'bronze', icon:'🕳️', check:'lifetime', stat:'totalGames', target:1},
+  {id:'hungry', name:'Hungry', desc:'Absorb 10 particles in one game', tier:'bronze', icon:'😋', check:'endgame', stat:'absorbed', target:10},
+  {id:'mass_up', name:'Mass Up', desc:'Reach 1,000 mass', tier:'bronze', icon:'⚫', check:'instant', stat:'mass', target:1000},
+  {id:'score_500', name:'Star Dust', desc:'Score 500 points', tier:'bronze', icon:'✨', check:'endgame', stat:'score', target:500},
+  {id:'dark_energy', name:'Dark Energy', desc:'Reach Wave 2', tier:'bronze', icon:'🌀', check:'instant', stat:'waveNum', target:2},
+  {id:'golden_touch', name:'Golden Touch', desc:'Absorb a golden orb', tier:'bronze', icon:'⭐', check:'instant', stat:'pgGolden', target:1},
+  {id:'nova_catch', name:'Nova Catch', desc:'Absorb a supernova', tier:'bronze', icon:'💫', check:'instant', stat:'pgSupernovas', target:1},
+  {id:'tough_void', name:'Tough Void', desc:'Survive a hit', tier:'bronze', icon:'💪', check:'instant', stat:'hitsTaken', target:1},
+  {id:'regular', name:'Regular', desc:'Play 10 games', tier:'bronze', icon:'🔄', check:'lifetime', stat:'totalGames', target:10},
+  {id:'glutton', name:'Glutton', desc:'Absorb 50 particles in one game', tier:'bronze', icon:'🌑', check:'endgame', stat:'absorbed', target:50},
+  {id:'score_2k', name:'Cosmic Dust', desc:'Score 2,000 points', tier:'bronze', icon:'🌌', check:'endgame', stat:'score', target:2000},
+  {id:'neutron', name:'Neutron Burst', desc:'Reach Wave 3', tier:'bronze', icon:'⚡', check:'instant', stat:'waveNum', target:3},
+  {id:'gold_rush', name:'Gold Rush', desc:'Absorb 5 golden orbs in one game', tier:'bronze', icon:'🏆', check:'endgame', stat:'pgGolden', target:5},
+  {id:'heavy', name:'Heavy', desc:'Reach 2,000 mass', tier:'bronze', icon:'🪨', check:'instant', stat:'mass', target:2000},
+  {id:'dedicated', name:'Dedicated', desc:'Play 25 games', tier:'bronze', icon:'🎯', check:'lifetime', stat:'totalGames', target:25},
+  // SILVER (10)
+  {id:'maelstrom', name:'Maelstrom', desc:'Reach Wave 4', tier:'silver', icon:'🌪️', check:'instant', stat:'waveNum', target:4},
+  {id:'score_5k', name:'Star Collector', desc:'Score 5,000 points', tier:'silver', icon:'🌟', check:'endgame', stat:'score', target:5000},
+  {id:'absorb_100', name:'Mass Eater', desc:'Absorb 100 particles in one game', tier:'silver', icon:'🕳️', check:'endgame', stat:'absorbed', target:100},
+  {id:'veteran', name:'Veteran', desc:'Play 50 games', tier:'silver', icon:'🎖️', check:'lifetime', stat:'totalGames', target:50},
+  {id:'score_10k', name:'Nebula', desc:'Score 10,000 points', tier:'silver', icon:'🌈', check:'endgame', stat:'score', target:10000},
+  {id:'nova_3', name:'Nova Hunter', desc:'Absorb 3 supernovas in one game', tier:'silver', icon:'💥', check:'endgame', stat:'pgSupernovas', target:3},
+  {id:'max_mass', name:'Critical Mass', desc:'Reach maximum mass (4,500)', tier:'silver', icon:'🔮', check:'instant', stat:'mass', target:4500},
+  {id:'horizon', name:'Event Horizon', desc:'Reach Wave 5', tier:'silver', icon:'🌊', check:'instant', stat:'waveNum', target:5},
+  {id:'addict', name:'Addicted', desc:'Play 100 games', tier:'silver', icon:'🎮', check:'lifetime', stat:'totalGames', target:100},
+  {id:'score_15k', name:'Galaxy', desc:'Score 15,000 points', tier:'silver', icon:'🌠', check:'endgame', stat:'score', target:15000},
+  // GOLD (5)
+  {id:'score_25k', name:'Quasar', desc:'Score 25,000 points', tier:'gold', icon:'☀️', check:'endgame', stat:'score', target:25000},
+  {id:'absorb_200', name:'Devourer', desc:'Absorb 200 particles in one game', tier:'gold', icon:'👾', check:'endgame', stat:'absorbed', target:200},
+  {id:'score_50k', name:'Supermassive', desc:'Score 40,000 points', tier:'gold', icon:'🏅', check:'endgame', stat:'score', target:40000},
+  {id:'obsessed', name:'Obsessed', desc:'Play 150 games', tier:'gold', icon:'💎', check:'lifetime', stat:'totalGames', target:150},
+  {id:'perfect_waves', name:'Untouched', desc:'Reach Wave 3 without taking damage', tier:'gold', icon:'👻', check:'instant', stat:'pgPerfectWave3', target:1},
+  // PLATINUM (1)
+  {id:'gravity_master', name:'Gravity Master', desc:'Unlock all 30 other trophies', tier:'platinum', icon:'👑', check:'none', stat:'', target:0},
+];
+
+function getAchStatValue(stat) {
+  // Per-game stats
+  if (stat === 'absorbed') return state.absorbed;
+  if (stat === 'score') return state.score;
+  if (stat === 'mass') return Math.floor(state.mass);
+  if (stat === 'waveNum') return state.waveIndex + 1;
+  if (stat === 'pgGolden') return pgGolden;
+  if (stat === 'pgSupernovas') return pgSupernovas;
+  if (stat === 'hitsTaken') return hitsTaken;
+  if (stat === 'pgPerfectWave3') return (state.waveIndex >= 2 && !pgDamageTaken) ? 1 : 0;
+  // Lifetime stats
+  if (stat === 'totalGames') return gwData.totalGames;
+  return 0;
+}
+
+let achToastQueue = [];
+let achToastShowing = false;
+
+function tryUnlock(ach) {
+  if (gwData.unlocked[ach.id]) return false;
+  gwData.unlocked[ach.id] = Date.now();
+  saveGWData();
+  showAchToast(ach);
+  // Auto-check platinum
+  if (ach.id !== 'gravity_master') {
+    let count = 0;
+    for (const k in gwData.unlocked) {
+      if (k !== 'gravity_master' && gwData.unlocked[k] > 0) count++;
+    }
+    if (count >= 30) {
+      const p = ACHIEVEMENTS.find(a => a.id === 'gravity_master');
+      if (p) tryUnlock(p);
+    }
+  }
+  return true;
+}
+
+function checkInstantAch() {
+  for (const a of ACHIEVEMENTS) {
+    if (a.check !== 'instant' || gwData.unlocked[a.id]) continue;
+    if (getAchStatValue(a.stat) >= a.target) tryUnlock(a);
+  }
+}
+
+function checkEndgameAch() {
+  // Update lifetime stats
+  gwData.totalGames++;
+  gwData.totalAbsorbed += state.absorbed;
+  gwData.totalScore += state.score;
+  gwData.totalSupernovas += pgSupernovas;
+  gwData.totalGolden += pgGolden;
+  if (state.score > gwData.bestScore) gwData.bestScore = state.score;
+  if (state.waveIndex + 1 > gwData.bestWave) gwData.bestWave = state.waveIndex + 1;
+  if (pgMaxMass > gwData.bestMass) gwData.bestMass = Math.floor(pgMaxMass);
+  if (state.absorbed > gwData.bestAbsorbed) gwData.bestAbsorbed = state.absorbed;
+
+  // Add to scores
+  gwData.scores.push({
+    score: state.score, wave: state.waveIndex + 1,
+    absorbed: state.absorbed, date: new Date().toISOString().slice(0, 10), isNew: true
+  });
+  gwData.scores.sort((a, b) => b.score - a.score);
+  gwData.scores = gwData.scores.slice(0, 10);
+
+  saveGWData();
+
+  // Check all endgame + lifetime achievements
+  for (const a of ACHIEVEMENTS) {
+    if (gwData.unlocked[a.id]) continue;
+    if (a.check === 'endgame' || a.check === 'lifetime') {
+      if (getAchStatValue(a.stat) >= a.target) tryUnlock(a);
+    }
+  }
+}
+
+function showAchToast(ach) {
+  achToastQueue.push(ach);
+  if (!achToastShowing) processAchToast();
+}
+
+function processAchToast() {
+  if (achToastQueue.length === 0) { achToastShowing = false; return; }
+  achToastShowing = true;
+  const ach = achToastQueue.shift();
+  const toast = document.getElementById('achievement-toast');
+  document.getElementById('ach-toast-icon').textContent = ach.icon;
+  document.getElementById('ach-toast-name').textContent = ach.name;
+  const tierEl = document.getElementById('ach-toast-tier');
+  tierEl.className = 'ach-tier-label ' + ach.tier;
+  tierEl.textContent = ach.tier.toUpperCase();
+  toast.style.borderColor = ach.tier === 'gold' ? '#ffd70066' : ach.tier === 'silver' ? '#c0c0c066' : ach.tier === 'platinum' ? '#b4ffff66' : '#cd7f3266';
+  toast.classList.add('show');
+  // Play unlock sound
+  playAchSFX();
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(processAchToast, 400);
+  }, 3000);
+}
+
+function playAchSFX() {
+  if (!SFX.ctx || !gwData.sfxEnabled) return;
+  const ctx = SFX.ctx;
+  const now = ctx.currentTime;
+  // Bright chime
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(880, now);
+  osc.frequency.exponentialRampToValueAtTime(1760, now + 0.1);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.12, now);
+  g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+  osc.connect(g); g.connect(ctx.destination);
+  osc.start(now); osc.stop(now + 0.4);
+  // Second chime
+  const osc2 = ctx.createOscillator();
+  osc2.type = 'sine';
+  osc2.frequency.setValueAtTime(1320, now + 0.08);
+  osc2.frequency.exponentialRampToValueAtTime(2200, now + 0.18);
+  const g2 = ctx.createGain();
+  g2.gain.setValueAtTime(0.08, now + 0.08);
+  g2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+  osc2.connect(g2); g2.connect(ctx.destination);
+  osc2.start(now + 0.08); osc2.stop(now + 0.5);
+}
+
+// --- Tab Switching & Keyboard Navigation ---
+const TAB_ORDER = ['play', 'scores', 'trophies', 'guide', 'settings'];
+let menuFocus = -1;
+let currentTabIndex = 0;
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tabName));
+  if (tabName === 'scores') renderScores();
+  if (tabName === 'trophies') renderTrophyGrid();
+}
+document.querySelectorAll('.tab-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    const idx = TAB_ORDER.indexOf(b.dataset.tab);
+    if (idx >= 0) currentTabIndex = idx;
+    menuFocus = -1;
+    switchTab(b.dataset.tab);
+    updateMenuFocusVisual();
+  });
+});
+
+// --- Render Scores ---
+function renderScores() {
+  const list = document.getElementById('scores-list');
+  const empty = document.getElementById('scores-empty');
+  if (gwData.scores.length === 0) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = gwData.scores.map((s, i) => {
+    const isNew = s.isNew ? ' new' : '';
+    return '<div class="score-row' + isNew + '">' +
+      '<div class="score-rank">#' + (i + 1) + '</div>' +
+      '<div class="score-info"><div class="score-val">' + s.score.toLocaleString() + '</div>' +
+      '<div class="score-meta">Wave ' + s.wave + ' · ' + s.absorbed + ' absorbed</div></div>' +
+      '<div class="score-date">' + s.date + '</div></div>';
+  }).join('');
+}
+
+// --- Render Trophy Grid ---
+function renderTrophyGrid() {
+  const grid = document.getElementById('trophy-grid');
+  grid.innerHTML = '';
+  let n = 0;
+  for (const tier of ['bronze', 'silver', 'gold', 'platinum']) {
+    const h = document.createElement('div');
+    h.className = 'trophy-tier-header ' + tier;
+    h.textContent = tier.toUpperCase();
+    grid.appendChild(h);
+    for (const a of ACHIEVEMENTS) {
+      if (a.tier !== tier) continue;
+      const ok = !!gwData.unlocked[a.id];
+      if (ok) n++;
+      let cur, pct;
+      if (a.id === 'gravity_master') {
+        let uc = 0;
+        for (const k in gwData.unlocked) { if (k !== 'gravity_master' && gwData.unlocked[k] > 0) uc++; }
+        cur = ok ? 30 : uc;
+        pct = Math.min(100, Math.round(cur / 30 * 100));
+      } else {
+        cur = ok ? a.target : Math.min(getAchStatValue(a.stat), a.target);
+        pct = a.target > 0 ? Math.min(100, Math.round(cur / a.target * 100)) : 0;
+      }
+      const c = document.createElement('div');
+      c.className = 'trophy-card ' + tier + (ok ? ' unlocked' : ' locked');
+      c.innerHTML = '<div class="trophy-icon">' + (ok ? a.icon : '🔒') + '</div>' +
+        '<div class="trophy-name">' + a.name + '</div>' +
+        '<div class="trophy-desc">' + a.desc + '</div>' +
+        (ok ? '<div class="trophy-check">✓</div>'
+          : '<div class="trophy-progress"><div class="trophy-pbar ' + tier + '" style="width:' + pct + '%"></div></div>');
+      grid.appendChild(c);
+    }
+  }
+  document.getElementById('trophy-count').textContent = n + ' / ' + ACHIEVEMENTS.length;
+}
+
+// --- Settings ---
+function initSettings() {
+  const musicBtn = document.getElementById('music-btn');
+  const sfxBtn = document.getElementById('sfx-btn');
+  musicBtn.textContent = gwData.musicEnabled ? 'ON' : 'OFF';
+  musicBtn.classList.toggle('on', gwData.musicEnabled);
+  sfxBtn.textContent = gwData.sfxEnabled ? 'ON' : 'OFF';
+  sfxBtn.classList.toggle('on', gwData.sfxEnabled);
+  if (!gwData.musicEnabled) { AudioSystem.muted = true; audioToggle.textContent = '🔇'; audioToggle.classList.add('muted'); }
+
+  musicBtn.addEventListener('click', () => {
+    gwData.musicEnabled = !gwData.musicEnabled;
+    AudioSystem.muted = !gwData.musicEnabled;
+    if (AudioSystem.muted && AudioSystem.track) AudioSystem.track.volume = 0;
+    musicBtn.textContent = gwData.musicEnabled ? 'ON' : 'OFF';
+    musicBtn.classList.toggle('on', gwData.musicEnabled);
+    audioToggle.textContent = gwData.musicEnabled ? '🔊' : '🔇';
+    audioToggle.classList.toggle('muted', !gwData.musicEnabled);
+    saveGWData();
+  });
+  sfxBtn.addEventListener('click', () => {
+    gwData.sfxEnabled = !gwData.sfxEnabled;
+    sfxBtn.textContent = gwData.sfxEnabled ? 'ON' : 'OFF';
+    sfxBtn.classList.toggle('on', gwData.sfxEnabled);
+    saveGWData();
+  });
+}
+
+// --- Show Menu ---
+function showMenu(isGameOver) {
+  menuOverlay.classList.remove('hidden');
+  document.body.classList.remove('playing');
+  const finalScore = document.getElementById('final-score');
+  const finalStats = document.getElementById('final-stats');
+  const bestDisplay = document.getElementById('best-score-display');
+
+  if (isGameOver) {
+    finalScore.textContent = state.score.toLocaleString();
+    finalStats.textContent = 'WAVE ' + (state.waveIndex + 1) + ' · ABSORBED: ' + state.absorbed;
+    bestDisplay.textContent = 'BEST: ' + gwData.bestScore.toLocaleString();
+    btnStart.textContent = 'TRY AGAIN';
+    // Clear new flags from previous scores
+    gwData.scores.forEach(s => { if (s !== gwData.scores.find(x => x.isNew)) s.isNew = false; });
+  } else {
+    finalScore.textContent = '';
+    finalStats.textContent = '';
+    if (gwData.bestScore > 0) {
+      bestDisplay.textContent = 'BEST: ' + gwData.bestScore.toLocaleString();
+    } else {
+      bestDisplay.textContent = '';
+    }
+    btnStart.textContent = 'ENTER THE VOID';
+  }
+  switchTab('play');
+  menuFocus = -1; // reset focus to tab bar
+}
+
+// --- Keyboard Navigation ---
+function getActiveTab() { return TAB_ORDER[currentTabIndex]; }
+
+function getFocusableItems() {
+  const tab = getActiveTab();
+  if (tab === 'play') return [btnStart];
+  if (tab === 'settings') return Array.from(document.querySelectorAll('.setting-toggle'));
+  return [];
+}
+
+function updateMenuFocusVisual() {
+  // Remove all focus highlights
+  document.querySelectorAll('.menu-focused').forEach(el => el.classList.remove('menu-focused'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('menu-focused'));
+
+  if (!menuOverlay.classList.contains('hidden')) {
+    if (menuFocus < 0) {
+      // Highlight active tab button
+      const tabBtns = document.querySelectorAll('.tab-btn');
+      if (tabBtns[currentTabIndex]) tabBtns[currentTabIndex].classList.add('menu-focused');
+    } else {
+      // Highlight content item
+      const items = getFocusableItems();
+      if (items[menuFocus]) items[menuFocus].classList.add('menu-focused');
+    }
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  // If game is running, ignore menu keys (except Escape for future pause)
+  if (state.running || state.dying) return;
+  if (menuOverlay.classList.contains('hidden')) return;
+
+  const key = e.key;
+
+  if (key === 'Tab') {
+    e.preventDefault();
+    // Cycle tabs
+    if (e.shiftKey) {
+      currentTabIndex = (currentTabIndex - 1 + TAB_ORDER.length) % TAB_ORDER.length;
+    } else {
+      currentTabIndex = (currentTabIndex + 1) % TAB_ORDER.length;
+    }
+    menuFocus = -1;
+    switchTab(TAB_ORDER[currentTabIndex]);
+    updateMenuFocusVisual();
+    return;
+  }
+
+  if (key === 'ArrowLeft' || key === 'a' || key === 'A') {
+    e.preventDefault();
+    if (menuFocus < 0) {
+      currentTabIndex = (currentTabIndex - 1 + TAB_ORDER.length) % TAB_ORDER.length;
+      switchTab(TAB_ORDER[currentTabIndex]);
+    }
+    updateMenuFocusVisual();
+    return;
+  }
+
+  if (key === 'ArrowRight' || key === 'd' || key === 'D') {
+    e.preventDefault();
+    if (menuFocus < 0) {
+      currentTabIndex = (currentTabIndex + 1) % TAB_ORDER.length;
+      switchTab(TAB_ORDER[currentTabIndex]);
+    }
+    updateMenuFocusVisual();
+    return;
+  }
+
+  if (key === 'ArrowDown' || key === 's' || key === 'S') {
+    e.preventDefault();
+    const items = getFocusableItems();
+    if (items.length > 0) {
+      menuFocus = Math.min(menuFocus + 1, items.length - 1);
+    }
+    updateMenuFocusVisual();
+    return;
+  }
+
+  if (key === 'ArrowUp' || key === 'w' || key === 'W') {
+    e.preventDefault();
+    if (menuFocus >= 0) {
+      menuFocus--;
+    }
+    updateMenuFocusVisual();
+    return;
+  }
+
+  if (key === 'Enter' || key === ' ') {
+    e.preventDefault();
+    if (menuFocus < 0) {
+      // On tab bar — enter tab content
+      const items = getFocusableItems();
+      if (items.length > 0) {
+        menuFocus = 0;
+        updateMenuFocusVisual();
+      }
+    } else {
+      // Activate focused item
+      const items = getFocusableItems();
+      if (items[menuFocus]) items[menuFocus].click();
+    }
+    return;
+  }
+
+  // Number keys 1-5 to switch tabs directly
+  if (key >= '1' && key <= '5') {
+    e.preventDefault();
+    currentTabIndex = parseInt(key) - 1;
+    menuFocus = -1;
+    switchTab(TAB_ORDER[currentTabIndex]);
+    updateMenuFocusVisual();
+    return;
+  }
+
+  // Escape from content back to tab bar
+  if (key === 'Escape') {
+    e.preventDefault();
+    if (menuFocus >= 0) {
+      menuFocus = -1;
+      updateMenuFocusVisual();
+    }
+    return;
+  }
+});
+
+// --- Audio System ---
+const AudioSystem = {
+  track: null,
+  volume: 0.6,
+  muted: false,
+  started: false,
+
+  init() {
+    this.track = new Audio('audio/music_01.mp3');
+    this.track.loop = true;
+    this.track.volume = 0;
+    this.track.preload = 'auto';
+
+    audioToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      gwData.musicEnabled = !gwData.musicEnabled;
+      this.muted = !gwData.musicEnabled;
+      audioToggle.textContent = this.muted ? '🔇' : '🔊';
+      audioToggle.classList.toggle('muted', this.muted);
+      if (this.muted) {
+        this.track.volume = 0;
+      } else if (this.started) {
+        this.track.volume = this.volume;
+      }
+      const musicBtn = document.getElementById('music-btn');
+      if (musicBtn) {
+        musicBtn.textContent = gwData.musicEnabled ? 'ON' : 'OFF';
+        musicBtn.classList.toggle('on', gwData.musicEnabled);
+      }
+      saveGWData();
+    });
+  },
+
+  start() {
+    if (this.started) return;
+    this.started = true;
+    this.track.currentTime = 0;
+    this.track.volume = this.muted ? 0 : this.volume;
+    this.track.play().catch(() => {});
+  },
+
+  setWave() {},
+
+  update() {
+    if (!this.started || this.muted) return;
+    // Smooth fade in
+    if (this.track.volume < this.volume) {
+      this.track.volume = Math.min(this.volume, this.track.volume + 0.005);
+    }
+  },
+
+  stop() {
+    if (this.track) {
+      this.track.pause();
+      this.track.currentTime = 0;
+    }
+    this.started = false;
+  }
+};
+
+AudioSystem.init();
+
+// --- SFX System (Web Audio API) ---
+const SFX = {
+  ctx: null,
+  drone: null,
+  droneGain: null,
+  droneFilter: null,
+  droneLFO: null,
+  droneLFOGain: null,
+  windGain: null,
+  windFilter: null,
+  heartbeatOsc: null,
+  heartbeatGain: null,
+  tensionOsc: null,
+  tensionGain: null,
+  started: false,
+  combo: 0,
+  comboTimer: 0,
+  lastHealth: 3,
+  closestAntimatter: 999,
+
+  ensureContext() {
+    if (this.ctx) return;
+    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  },
+
+  startDrone() {
+    this.ensureContext();
+    if (this.started) return;
+    this.started = true;
+    this.combo = 0;
+    this.comboTimer = 0;
+    const ctx = this.ctx;
+
+    // === MASTER DRONE GAIN ===
+    this.droneGain = ctx.createGain();
+    this.droneGain.gain.value = 0;
+    this.droneGain.connect(ctx.destination);
+
+    // Lowpass filter - opens up as mass grows
+    this.droneFilter = ctx.createBiquadFilter();
+    this.droneFilter.type = 'lowpass';
+    this.droneFilter.frequency.value = 80;
+    this.droneFilter.Q.value = 8;
+    this.droneFilter.connect(this.droneGain);
+
+    // Main drone - two detuned sawtooths
+    const osc1 = ctx.createOscillator();
+    osc1.type = 'sawtooth';
+    osc1.frequency.value = 35;
+    osc1.connect(this.droneFilter);
+    osc1.start();
+
+    const osc2 = ctx.createOscillator();
+    osc2.type = 'sawtooth';
+    osc2.frequency.value = 35.5;
+    osc2.connect(this.droneFilter);
+    osc2.start();
+
+    // Sub bass
+    const sub = ctx.createOscillator();
+    sub.type = 'sine';
+    sub.frequency.value = 22;
+    const subGain = ctx.createGain();
+    subGain.gain.value = 0.3;
+    sub.connect(subGain);
+    subGain.connect(this.droneGain);
+    sub.start();
+
+    // LFO wobble
+    this.droneLFO = ctx.createOscillator();
+    this.droneLFO.type = 'sine';
+    this.droneLFO.frequency.value = 0.4;
+    this.droneLFOGain = ctx.createGain();
+    this.droneLFOGain.gain.value = 15;
+    this.droneLFO.connect(this.droneLFOGain);
+    this.droneLFOGain.connect(this.droneFilter.frequency);
+    this.droneLFO.start();
+
+    this.drone = { osc1, osc2, sub, subGain };
+
+    // === SPACE WIND — filtered noise layer ===
+    const windBufferSize = ctx.sampleRate * 4;
+    const windBuffer = ctx.createBuffer(2, windBufferSize, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = windBuffer.getChannelData(ch);
+      let v = 0;
+      for (let i = 0; i < windBufferSize; i++) {
+        // Brownian noise — smooth, deep
+        v += (Math.random() * 2 - 1) * 0.1;
+        v *= 0.995;
+        d[i] = v;
+      }
+    }
+    const windSource = ctx.createBufferSource();
+    windSource.buffer = windBuffer;
+    windSource.loop = true;
+
+    this.windFilter = ctx.createBiquadFilter();
+    this.windFilter.type = 'bandpass';
+    this.windFilter.frequency.value = 150;
+    this.windFilter.Q.value = 0.5;
+
+    // Slow modulation on wind filter
+    const windLFO = ctx.createOscillator();
+    windLFO.type = 'sine';
+    windLFO.frequency.value = 0.08;
+    const windLFOGain = ctx.createGain();
+    windLFOGain.gain.value = 60;
+    windLFO.connect(windLFOGain);
+    windLFOGain.connect(this.windFilter.frequency);
+    windLFO.start();
+
+    this.windGain = ctx.createGain();
+    this.windGain.gain.value = 0;
+    windSource.connect(this.windFilter);
+    this.windFilter.connect(this.windGain);
+    this.windGain.connect(ctx.destination);
+    windSource.start();
+    this.drone.windSource = windSource;
+    this.drone.windLFO = windLFO;
+
+    // === HEARTBEAT — pulsing bass at low health ===
+    this.heartbeatOsc = ctx.createOscillator();
+    this.heartbeatOsc.type = 'sine';
+    this.heartbeatOsc.frequency.value = 40;
+    this.heartbeatGain = ctx.createGain();
+    this.heartbeatGain.gain.value = 0;
+
+    // Heartbeat LFO — ~1.2 beats/sec
+    const hbLFO = ctx.createOscillator();
+    hbLFO.type = 'sine';
+    hbLFO.frequency.value = 1.2;
+    const hbLFOGain = ctx.createGain();
+    hbLFOGain.gain.value = 0.12;
+    hbLFO.connect(hbLFOGain);
+    hbLFOGain.connect(this.heartbeatGain.gain);
+    hbLFO.start();
+
+    this.heartbeatOsc.connect(this.heartbeatGain);
+    this.heartbeatGain.connect(ctx.destination);
+    this.heartbeatOsc.start();
+    this.drone.hbLFO = hbLFO;
+
+    // === TENSION TONE — proximity warning ===
+    this.tensionOsc = ctx.createOscillator();
+    this.tensionOsc.type = 'sine';
+    this.tensionOsc.frequency.value = 2200;
+    this.tensionGain = ctx.createGain();
+    this.tensionGain.gain.value = 0;
+
+    // Slight vibrato
+    const tensionVib = ctx.createOscillator();
+    tensionVib.type = 'sine';
+    tensionVib.frequency.value = 8;
+    const tensionVibGain = ctx.createGain();
+    tensionVibGain.gain.value = 30;
+    tensionVib.connect(tensionVibGain);
+    tensionVibGain.connect(this.tensionOsc.frequency);
+    tensionVib.start();
+
+    this.tensionOsc.connect(this.tensionGain);
+    this.tensionGain.connect(ctx.destination);
+    this.tensionOsc.start();
+    this.drone.tensionVib = tensionVib;
+  },
+
+  // Call every frame
+  update(mass, maxMass, startMass, health, maxHealth, particles, holeX, holeY) {
+    if (!this.started || !gwData.sfxEnabled) {
+      if (this.droneGain) this.droneGain.gain.value = 0;
+      if (this.windGain) this.windGain.gain.value = 0;
+      if (this.heartbeatGain) this.heartbeatGain.gain.value = 0;
+      if (this.tensionGain) this.tensionGain.gain.value = 0;
+      return;
+    }
+
+    const factor = Math.max(0, (mass - startMass) / (maxMass - startMass));
+
+    // --- Drone: volume, filter, pitch ---
+    const targetVol = 0.02 + factor * 0.13;
+    this.droneGain.gain.value += (targetVol - this.droneGain.gain.value) * 0.03;
+    const targetFreq = 80 + factor * 170;
+    this.droneFilter.frequency.value += (targetFreq - this.droneFilter.frequency.value) * 0.03;
+    this.droneLFO.frequency.value = 0.4 + factor * 1.6;
+    this.droneLFOGain.gain.value = 15 + factor * 40;
+    this.drone.osc1.frequency.value = 35 - factor * 8;
+    this.drone.osc2.frequency.value = 35.5 - factor * 8;
+
+    // --- Space wind: grows with mass ---
+    const windTarget = factor * 0.06;
+    this.windGain.gain.value += (windTarget - this.windGain.gain.value) * 0.02;
+    this.windFilter.frequency.value = 150 + factor * 300;
+
+    // --- Heartbeat: louder at low health ---
+    let hbTarget = 0;
+    if (health === 1) hbTarget = 0.18;
+    else if (health === 2 && maxHealth >= 3) hbTarget = 0.04;
+    this.heartbeatGain.gain.value += (hbTarget - this.heartbeatGain.gain.value) * 0.05;
+
+    // --- Tension: proximity to nearest antimatter ---
+    let closest = 999;
+    if (particles) {
+      for (const p of particles) {
+        if (p.type === 'antimatter' || p.type === 'hunter') {
+          const dx = holeX - p.x;
+          const dy = holeY - p.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < closest) closest = d;
+        }
+      }
+    }
+    this.closestAntimatter = closest;
+
+    // Tension ramps up below 120px, max at 40px
+    let tensionTarget = 0;
+    if (closest < 120) {
+      tensionTarget = Math.pow(1 - (closest - 40) / 80, 2) * 0.05;
+      tensionTarget = Math.max(0, Math.min(0.05, tensionTarget));
+      // Pitch rises as they get closer
+      this.tensionOsc.frequency.value = 1800 + (1 - closest / 120) * 800;
+    }
+    this.tensionGain.gain.value += (tensionTarget - this.tensionGain.gain.value) * 0.1;
+
+    // --- Combo decay ---
+    if (this.comboTimer > 0) {
+      this.comboTimer--;
+    } else if (this.combo > 0) {
+      this.combo = Math.max(0, this.combo - 0.05);
+    }
+  },
+
+  // Eat sound with combo pitch scaling
+  playEat(type) {
+    if (!this.ctx || !gwData.sfxEnabled) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // Combo: each eat within ~30 frames raises pitch
+    this.combo = Math.min(this.combo + 1, 15);
+    this.comboTimer = 30;
+    const comboPitch = 1 + this.combo * 0.06; // up to 1.9x at max combo
+    const comboVol = Math.min(1, 0.8 + this.combo * 0.015);
+
+    const gain = ctx.createGain();
+    gain.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+
+    if (type === 'supernova') {
+      // Massive satisfying sweep with harmonics
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400 * comboPitch, now);
+      osc.frequency.exponentialRampToValueAtTime(1000 * comboPitch, now + 0.15);
+      gain.gain.setValueAtTime(0.16 * comboVol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      osc.connect(gain);
+      osc.start(now);
+      osc.stop(now + 0.5);
+
+      // Shimmer
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(800 * comboPitch, now);
+      osc2.frequency.exponentialRampToValueAtTime(1800 * comboPitch, now + 0.2);
+      const g2 = ctx.createGain();
+      g2.gain.setValueAtTime(0.07 * comboVol, now);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc2.connect(g2); g2.connect(ctx.destination);
+      osc2.start(now); osc2.stop(now + 0.4);
+
+      // Third harmonic sparkle
+      const osc3 = ctx.createOscillator();
+      osc3.type = 'sine';
+      osc3.frequency.setValueAtTime(1200 * comboPitch, now + 0.05);
+      osc3.frequency.exponentialRampToValueAtTime(2400 * comboPitch, now + 0.25);
+      const g3 = ctx.createGain();
+      g3.gain.setValueAtTime(0.04 * comboVol, now + 0.05);
+      g3.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc3.connect(g3); g3.connect(ctx.destination);
+      osc3.start(now + 0.05); osc3.stop(now + 0.35);
+
+    } else if (type === 'golden') {
+      // Bright double chime
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600 * comboPitch, now);
+      osc.frequency.exponentialRampToValueAtTime(1200 * comboPitch, now + 0.08);
+      gain.gain.setValueAtTime(0.09 * comboVol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.connect(gain);
+      osc.start(now); osc.stop(now + 0.25);
+
+      // Second chime, slightly delayed
+      const osc2 = ctx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(900 * comboPitch, now + 0.04);
+      osc2.frequency.exponentialRampToValueAtTime(1500 * comboPitch, now + 0.12);
+      const g2 = ctx.createGain();
+      g2.gain.setValueAtTime(0.05 * comboVol, now + 0.04);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc2.connect(g2); g2.connect(ctx.destination);
+      osc2.start(now + 0.04); osc2.stop(now + 0.2);
+
+    } else if (type === 'plasma') {
+      // Electric zap
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(300 * comboPitch, now);
+      osc.frequency.exponentialRampToValueAtTime(700 * comboPitch, now + 0.03);
+      osc.frequency.exponentialRampToValueAtTime(200 * comboPitch, now + 0.07);
+      gain.gain.setValueAtTime(0.05 * comboVol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc.connect(gain);
+      osc.start(now); osc.stop(now + 0.1);
+
+    } else if (type === 'darkenergy') {
+      // Deep whomp
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(250 * comboPitch, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+      gain.gain.setValueAtTime(0.09 * comboVol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(gain);
+      osc.start(now); osc.stop(now + 0.22);
+
+    } else {
+      // Energy: soft rising blip, pitch rises with combo
+      osc.type = 'sine';
+      const baseFreq = (250 + Math.random() * 80) * comboPitch;
+      osc.frequency.setValueAtTime(baseFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.4, now + 0.04);
+      gain.gain.setValueAtTime(0.04 * comboVol, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+      osc.connect(gain);
+      osc.start(now); osc.stop(now + 0.07);
+    }
+  },
+
+  // Damage sound — violent metallic crunch
+  playHit() {
+    if (!this.ctx || !gwData.sfxEnabled) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // Reset combo on hit
+    this.combo = 0;
+
+    // === SHARP METALLIC IMPACT ===
+    const impact = ctx.createOscillator();
+    impact.type = 'square';
+    impact.frequency.setValueAtTime(800, now);
+    impact.frequency.exponentialRampToValueAtTime(80, now + 0.06);
+    const impactGain = ctx.createGain();
+    impactGain.gain.setValueAtTime(0.2, now);
+    impactGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+    impact.connect(impactGain); impactGain.connect(ctx.destination);
+    impact.start(now); impact.stop(now + 0.1);
+
+    // === NOISE CRUNCH ===
+    const bufSize = ctx.sampleRate * 0.4;
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.06));
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const bpf = ctx.createBiquadFilter();
+    bpf.type = 'bandpass'; bpf.frequency.value = 250; bpf.Q.value = 2;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.22, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    noise.connect(bpf); bpf.connect(noiseGain); noiseGain.connect(ctx.destination);
+    noise.start(now); noise.stop(now + 0.4);
+
+    // === HEAVY LOW THUD ===
+    const thud = ctx.createOscillator();
+    thud.type = 'sine';
+    thud.frequency.setValueAtTime(120, now);
+    thud.frequency.exponentialRampToValueAtTime(20, now + 0.25);
+    const thudGain = ctx.createGain();
+    thudGain.gain.setValueAtTime(0.25, now);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    thud.connect(thudGain); thudGain.connect(ctx.destination);
+    thud.start(now); thud.stop(now + 0.35);
+
+    // === DISSONANT BUZZ ===
+    const buzz = ctx.createOscillator();
+    buzz.type = 'sawtooth';
+    buzz.frequency.setValueAtTime(180, now);
+    buzz.frequency.exponentialRampToValueAtTime(35, now + 0.18);
+    const buzzGain = ctx.createGain();
+    buzzGain.gain.setValueAtTime(0.09, now);
+    buzzGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+    buzz.connect(buzzGain); buzzGain.connect(ctx.destination);
+    buzz.start(now); buzz.stop(now + 0.22);
+
+    // === WARNING STING — brief high alarm ===
+    const sting = ctx.createOscillator();
+    sting.type = 'sine';
+    sting.frequency.setValueAtTime(1800, now);
+    sting.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+    const stingGain = ctx.createGain();
+    stingGain.gain.setValueAtTime(0.08, now);
+    stingGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    sting.connect(stingGain); stingGain.connect(ctx.destination);
+    sting.start(now); sting.stop(now + 0.2);
+  },
+
+  // Wave transition sound — dramatic swoosh + impact
+  playWaveTransition() {
+    if (!this.ctx || !gwData.sfxEnabled) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // Rising sweep
+    const sweep = ctx.createOscillator();
+    sweep.type = 'sawtooth';
+    sweep.frequency.setValueAtTime(80, now);
+    sweep.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+    sweep.frequency.exponentialRampToValueAtTime(60, now + 0.5);
+    const sweepFilter = ctx.createBiquadFilter();
+    sweepFilter.type = 'lowpass';
+    sweepFilter.frequency.setValueAtTime(200, now);
+    sweepFilter.frequency.exponentialRampToValueAtTime(3000, now + 0.3);
+    sweepFilter.frequency.exponentialRampToValueAtTime(100, now + 0.6);
+    sweepFilter.Q.value = 5;
+    const sweepGain = ctx.createGain();
+    sweepGain.gain.setValueAtTime(0.12, now);
+    sweepGain.gain.linearRampToValueAtTime(0.15, now + 0.25);
+    sweepGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+    sweep.connect(sweepFilter); sweepFilter.connect(sweepGain); sweepGain.connect(ctx.destination);
+    sweep.start(now); sweep.stop(now + 0.6);
+
+    // Impact boom at peak
+    const boom = ctx.createOscillator();
+    boom.type = 'sine';
+    boom.frequency.setValueAtTime(80, now + 0.28);
+    boom.frequency.exponentialRampToValueAtTime(20, now + 0.6);
+    const boomGain = ctx.createGain();
+    boomGain.gain.setValueAtTime(0.001, now);
+    boomGain.gain.setValueAtTime(0.2, now + 0.28);
+    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+    boom.connect(boomGain); boomGain.connect(ctx.destination);
+    boom.start(now + 0.25); boom.stop(now + 0.7);
+
+    // Noise crash at impact
+    const crashSize = ctx.sampleRate * 0.4;
+    const crashBuf = ctx.createBuffer(1, crashSize, ctx.sampleRate);
+    const cd = crashBuf.getChannelData(0);
+    for (let i = 0; i < crashSize; i++) {
+      cd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (crashSize * 0.15));
+    }
+    const crash = ctx.createBufferSource();
+    crash.buffer = crashBuf;
+    const crashFilt = ctx.createBiquadFilter();
+    crashFilt.type = 'highpass'; crashFilt.frequency.value = 800;
+    const crashGain = ctx.createGain();
+    crashGain.gain.setValueAtTime(0.001, now);
+    crashGain.gain.setValueAtTime(0.08, now + 0.28);
+    crashGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+    crash.connect(crashFilt); crashFilt.connect(crashGain); crashGain.connect(ctx.destination);
+    crash.start(now + 0.25); crash.stop(now + 0.65);
+  },
+
+  // Death sequence sound — implosion boom + descending doom chord
+  playDeath() {
+    if (!this.ctx || !gwData.sfxEnabled) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    // Fade drone out smoothly
+    if (this.droneGain) this.droneGain.gain.linearRampToValueAtTime(0, now + 1);
+    if (this.windGain) this.windGain.gain.linearRampToValueAtTime(0, now + 0.5);
+    if (this.heartbeatGain) this.heartbeatGain.gain.linearRampToValueAtTime(0, now + 0.3);
+    if (this.tensionGain) this.tensionGain.gain.linearRampToValueAtTime(0, now + 0.2);
+
+    // === MASSIVE IMPACT BOOM ===
+    const boomOsc = ctx.createOscillator();
+    boomOsc.type = 'sine';
+    boomOsc.frequency.setValueAtTime(60, now);
+    boomOsc.frequency.exponentialRampToValueAtTime(15, now + 1.5);
+    const boomGain = ctx.createGain();
+    boomGain.gain.setValueAtTime(0.3, now);
+    boomGain.gain.linearRampToValueAtTime(0.25, now + 0.3);
+    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 2);
+    boomOsc.connect(boomGain); boomGain.connect(ctx.destination);
+    boomOsc.start(now); boomOsc.stop(now + 2);
+
+    // Noise explosion
+    const noiseLen = ctx.sampleRate * 2;
+    const noiseBuf = ctx.createBuffer(2, noiseLen, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = noiseBuf.getChannelData(ch);
+      for (let i = 0; i < noiseLen; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (noiseLen * 0.15));
+      }
+    }
+    const noiseSrc = ctx.createBufferSource();
+    noiseSrc.buffer = noiseBuf;
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.setValueAtTime(2000, now);
+    noiseFilter.frequency.exponentialRampToValueAtTime(80, now + 1.5);
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.15, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+    noiseSrc.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(ctx.destination);
+    noiseSrc.start(now); noiseSrc.stop(now + 2);
+
+    // === DESCENDING DOOM CHORD ===
+    const chordDelay = 0.4;
+    [180, 135, 90].forEach(freq => {
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + chordDelay);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + chordDelay + 2.5);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.001, now);
+      g.gain.linearRampToValueAtTime(0.08, now + chordDelay + 0.1);
+      g.gain.exponentialRampToValueAtTime(0.001, now + chordDelay + 3);
+      osc.connect(g); g.connect(ctx.destination);
+      osc.start(now + chordDelay); osc.stop(now + chordDelay + 3);
+    });
+
+    // Eerie high ring (tinnitus)
+    const ring = ctx.createOscillator();
+    ring.type = 'sine';
+    ring.frequency.setValueAtTime(3500, now + 0.1);
+    ring.frequency.exponentialRampToValueAtTime(1200, now + 3);
+    const ringGain = ctx.createGain();
+    ringGain.gain.setValueAtTime(0.001, now);
+    ringGain.gain.linearRampToValueAtTime(0.03, now + 0.3);
+    ringGain.gain.exponentialRampToValueAtTime(0.001, now + 3);
+    ring.connect(ringGain); ringGain.connect(ctx.destination);
+    ring.start(now + 0.1); ring.stop(now + 3);
+
+    // Sub rumble
+    const rumble = ctx.createOscillator();
+    rumble.type = 'sine';
+    rumble.frequency.value = 25;
+    const rumbleGain = ctx.createGain();
+    rumbleGain.gain.setValueAtTime(0.2, now);
+    rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+    rumble.connect(rumbleGain); rumbleGain.connect(ctx.destination);
+    rumble.start(now); rumble.stop(now + 2.5);
+  },
+
+  // Stop just the gameplay drone layers
+  stopDrone() {
+    if (this.droneGain) this.droneGain.gain.value = 0;
+    if (this.windGain) this.windGain.gain.value = 0;
+    if (this.heartbeatGain) this.heartbeatGain.gain.value = 0;
+    if (this.tensionGain) this.tensionGain.gain.value = 0;
+    this.started = false;
+    this.combo = 0;
+    if (this.drone) {
+      try {
+        this.drone.osc1.stop(); this.drone.osc2.stop(); this.drone.sub.stop();
+        this.droneLFO.stop(); this.drone.windSource.stop(); this.drone.windLFO.stop();
+        this.heartbeatOsc.stop(); this.drone.hbLFO.stop();
+        this.tensionOsc.stop(); this.drone.tensionVib.stop();
+      } catch(e) {}
+      this.drone = null;
+    }
+  },
+
+  // Game over ambient music — somber, evolving pad
+  gameOverNodes: null,
+  playGameOver() {
+    this.ensureContext();
+    if (!gwData.sfxEnabled) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.001, now);
+    master.gain.linearRampToValueAtTime(0.12, now + 2);
+    master.connect(ctx.destination);
+
+    const nodes = [];
+
+    // Pad chord: Cm (C, Eb, G) in low register — dark, somber
+    const padFreqs = [65.4, 77.8, 98]; // C2, Eb2, G2
+    padFreqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+
+      // Slow detuning drift for movement
+      const driftLFO = ctx.createOscillator();
+      driftLFO.type = 'sine';
+      driftLFO.frequency.value = 0.05 + i * 0.02;
+      const driftGain = ctx.createGain();
+      driftGain.gain.value = 1.5;
+      driftLFO.connect(driftGain);
+      driftGain.connect(osc.frequency);
+      driftLFO.start(now);
+
+      const g = ctx.createGain();
+      g.gain.value = 0.35;
+      osc.connect(g);
+      g.connect(master);
+      osc.start(now);
+      nodes.push(osc, driftLFO);
+    });
+
+    // Higher haunting tone — slow wobble
+    const haunt = ctx.createOscillator();
+    haunt.type = 'sine';
+    haunt.frequency.value = 311; // Eb4
+    const hauntVib = ctx.createOscillator();
+    hauntVib.type = 'sine';
+    hauntVib.frequency.value = 0.3;
+    const hauntVibG = ctx.createGain();
+    hauntVibG.gain.value = 4;
+    hauntVib.connect(hauntVibG);
+    hauntVibG.connect(haunt.frequency);
+    hauntVib.start(now);
+    const hauntGain = ctx.createGain();
+    hauntGain.gain.setValueAtTime(0.001, now);
+    hauntGain.gain.linearRampToValueAtTime(0.15, now + 3);
+    haunt.connect(hauntGain);
+    hauntGain.connect(master);
+    haunt.start(now);
+    nodes.push(haunt, hauntVib);
+
+    // Slow pulse LFO on master — breathing effect
+    const breathLFO = ctx.createOscillator();
+    breathLFO.type = 'sine';
+    breathLFO.frequency.value = 0.15;
+    const breathGain = ctx.createGain();
+    breathGain.gain.value = 0.04;
+    breathLFO.connect(breathGain);
+    breathGain.connect(master.gain);
+    breathLFO.start(now);
+    nodes.push(breathLFO);
+
+    // Filtered noise — distant wind
+    const noiseLen = ctx.sampleRate * 4;
+    const noiseBuf = ctx.createBuffer(2, noiseLen, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = noiseBuf.getChannelData(ch);
+      let v = 0;
+      for (let i = 0; i < noiseLen; i++) {
+        v += (Math.random() * 2 - 1) * 0.06;
+        v *= 0.998;
+        d[i] = v;
+      }
+    }
+    const noiseSrc = ctx.createBufferSource();
+    noiseSrc.buffer = noiseBuf;
+    noiseSrc.loop = true;
+    const noiseFilt = ctx.createBiquadFilter();
+    noiseFilt.type = 'bandpass';
+    noiseFilt.frequency.value = 300;
+    noiseFilt.Q.value = 0.3;
+    const noiseG = ctx.createGain();
+    noiseG.gain.value = 0.3;
+    noiseSrc.connect(noiseFilt);
+    noiseFilt.connect(noiseG);
+    noiseG.connect(master);
+    noiseSrc.start(now);
+    nodes.push(noiseSrc);
+
+    this.gameOverNodes = { nodes, master };
+  },
+
+  stopGameOver() {
+    if (!this.gameOverNodes) return;
+    const now = this.ctx ? this.ctx.currentTime : 0;
+    try {
+      this.gameOverNodes.master.gain.linearRampToValueAtTime(0.001, now + 0.5);
+      setTimeout(() => {
+        if (this.gameOverNodes) {
+          this.gameOverNodes.nodes.forEach(n => { try { n.stop(); } catch(e) {} });
+          this.gameOverNodes = null;
+        }
+      }, 600);
+    } catch(e) {
+      this.gameOverNodes = null;
+    }
+  },
+
+  // Stop everything
+  stop() {
+    this.stopDrone();
+    this.stopGameOver();
+  }
+};
+
+// --- Config ---
+const CONFIG = {
+  MAX_HEALTH: 3,
+  START_MASS: 500,
+  MAX_MASS: 4500,
+  GRAVITY_RANGE_MULT: 6,
+  GRAVITY_STRENGTH: 2.0,
+  PARTICLE_SPAWN_RATE: 0.045,    // base per frame - action from the start
+  ANTIMATTER_RATIO: 0.07,        // fewer but meaner
+  GOLDEN_RATIO: 0.05,            // % golden bonus orbs
+  PARTICLE_BASE_SPEED: 1.5,
+  DIFFICULTY_RAMP: 0.00003,      // per frame - gentler ramp
+  ANTIMATTER_DELAY: 30,          // half a second grace, that's it
+  SCREEN_SHAKE_DECAY: 0.9,
+  INVULN_FRAMES: 75,
+};
+
+// --- Wave / Milestone System ---
+const WAVES = [
+  { score: 0,     name: 'PLASMA STORM',      subtitle: 'Consume the cosmos',            antimatter: true,  spawnMult: 2,   antimatterMult: 0.5, hue: 220,
+    types: ['energy', 'golden', 'antimatter', 'plasma', 'supernova'], starSpeed: 2, nebulaAlpha: 0.1, gridAlpha: 0.02, dustCount: 35, bgPulse: true, starColor: '#aaeeff' },
+  { score: 1500,  name: 'DARK ENERGY',       subtitle: 'Beware the orbiting voids',     antimatter: true,  spawnMult: 2.3, antimatterMult: 0.7, hue: 280,
+    types: ['energy', 'golden', 'antimatter', 'plasma', 'darkenergy', 'supernova'], starSpeed: 2.5, nebulaAlpha: 0.14, gridAlpha: 0.04, dustCount: 45, bgPulse: true, starColor: '#ddaaff' },
+  { score: 4000,  name: 'NEUTRON BURST',     subtitle: 'The cosmos fights back',        antimatter: true,  spawnMult: 2.8, antimatterMult: 1.0, hue: 200,
+    types: ['energy', 'golden', 'antimatter', 'plasma', 'darkenergy', 'supernova'], starSpeed: 3, nebulaAlpha: 0.18, gridAlpha: 0.06, dustCount: 55, bgPulse: true, starColor: '#88ddff' },
+  { score: 8000,  name: 'COSMIC MAELSTROM',  subtitle: 'Hunters have arrived',          antimatter: true,  spawnMult: 3.2, antimatterMult: 1.3, hue: 300,
+    types: ['energy', 'golden', 'antimatter', 'plasma', 'darkenergy', 'hunter', 'supernova'], starSpeed: 3.5, nebulaAlpha: 0.22, gridAlpha: 0.08, dustCount: 65, bgPulse: true, starColor: '#ff99dd' },
+  { score: 14000, name: 'EVENT HORIZON',     subtitle: 'Maximum entropy',               antimatter: true,  spawnMult: 4,   antimatterMult: 1.8, hue: 330,
+    types: ['energy', 'golden', 'antimatter', 'plasma', 'darkenergy', 'hunter', 'supernova'], starSpeed: 4.5, nebulaAlpha: 0.28, gridAlpha: 0.12, dustCount: 80, bgPulse: true, starColor: '#ffaaaa' },
+];
+
+// --- State ---
+let state = {
+  running: false,
+  gameOver: false,
+  score: 0,
+  health: CONFIG.MAX_HEALTH,
+  mass: CONFIG.START_MASS,
+  mouseX: 0,
+  mouseY: 0,
+  holeX: 0,
+  holeY: 0,
+  particles: [],
+  trails: [],
+  explosions: [],
+  bgStars: [],
+  shake: { x: 0, y: 0, intensity: 0 },
+  difficulty: 1,
+  frame: 0,
+  invulnTimer: 0,
+  absorbed: 0,
+  scorePopups: [],
+  waveIndex: 0,
+  waveAnnounce: { active: false, text: '', subtitle: '', timer: 0, maxTimer: 180 },
+  waveCalmTimer: 0,
+  bgHue: 250,
+  bgHueTarget: 250,
+  dying: false,
+  deathTimer: 0,
+};
+
+// --- Resize ---
+function resize() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // Regenerate stars
+  generateStars();
+}
+
+function generateStars() {
+  state.bgStars = [];
+  for (let i = 0; i < 200; i++) {
+    state.bgStars.push({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      size: Math.random() * 1.5 + 0.3,
+      alpha: Math.random() * 0.6 + 0.2,
+      twinkleSpeed: Math.random() * 0.02 + 0.005,
+      twinklePhase: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => {
+  setTimeout(resize, 150); // Delay for browser to finish rotating
+});
+resize();
+
+// --- Input ---
+const TOUCH_OFFSET_Y = -60; // Black hole appears above finger so thumb doesn't cover it
+let isTouch = false;
+
+function handlePointer(e) {
+  if (e.touches) {
+    isTouch = true;
+    const touch = e.touches[0];
+    state.mouseX = touch.clientX;
+    state.mouseY = touch.clientY + TOUCH_OFFSET_Y;
+  } else {
+    state.mouseX = e.clientX;
+    state.mouseY = e.clientY;
+  }
+}
+
+window.addEventListener('mousemove', handlePointer);
+window.addEventListener('touchmove', (e) => {
+  handlePointer(e);
+  if (state.running) e.preventDefault();
+}, { passive: false });
+window.addEventListener('touchstart', (e) => {
+  handlePointer(e);
+  if (state.running) e.preventDefault();
+}, { passive: false });
+
+// --- Start / Restart ---
+function startGame() {
+  // Placeholder — overridden below with the full version
+}
+
+function startDeathSequence() {
+  state.dying = true;
+  state.deathTimer = 0;
+  state.running = false;
+  hud.style.display = 'none';
+
+  // Stop music, keep SFX drone alive briefly
+  AudioSystem.stop();
+  SFX.playDeath();
+
+  // Massive explosion at hole position
+  for (let i = 0; i < 40; i++) {
+    createExplosion(state.holeX, state.holeY, ['#ff4444', '#ff8800', '#ffcc00', '#ffffff'][Math.floor(Math.random() * 4)], 3);
+  }
+  state.shake.intensity = 25;
+
+  // Run death animation loop
+  function deathLoop() {
+    state.deathTimer++;
+    const t = state.deathTimer;
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const totalFrames = 180; // 3 seconds
+
+    // Keep frame ticking for existing renders
+    state.frame++;
+
+    // Suck all particles toward hole (implosion)
+    for (const p of state.particles) {
+      const dx = state.holeX - p.x;
+      const dy = state.holeY - p.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 2) {
+        const suckForce = 0.15 + t * 0.01;
+        p.vx += (dx / dist) * suckForce;
+        p.vy += (dy / dist) * suckForce;
+      }
+      p.x += p.vx;
+      p.y += p.vy;
+      // Shrink particles as they approach
+      if (dist < 60) {
+        p.radius *= 0.95;
+      }
+    }
+    // Remove absorbed particles
+    state.particles = state.particles.filter(p => {
+      const dx = state.holeX - p.x;
+      const dy = state.holeY - p.y;
+      return Math.sqrt(dx * dx + dy * dy) > 5 && p.radius > 0.5;
+    });
+
+    // Update explosions
+    for (let i = state.explosions.length - 1; i >= 0; i--) {
+      const e = state.explosions[i];
+      e.x += e.vx; e.y += e.vy;
+      e.alpha -= e.decay * 0.5; // slower decay during death
+      e.vx *= 0.97; e.vy *= 0.97;
+      if (e.alpha <= 0) state.explosions.splice(i, 1);
+    }
+
+    // Screen shake decay
+    if (state.shake.intensity > 0.5) {
+      state.shake.x = (Math.random() - 0.5) * state.shake.intensity;
+      state.shake.y = (Math.random() - 0.5) * state.shake.intensity;
+      state.shake.intensity *= 0.94;
+    } else {
+      state.shake.x = 0; state.shake.y = 0;
+    }
+
+    // Render normal scene
+    render();
+
+    // === DEATH OVERLAY EFFECTS ===
+    ctx.save();
+
+    // Phase 1 (0-40): White flash that fades
+    if (t < 40) {
+      const flashAlpha = (1 - t / 40) * 0.7;
+      ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Phase 2 (20-120): Imploding ring effect
+    if (t > 20 && t < 120) {
+      const ringProgress = (t - 20) / 100;
+      const ringRadius = Math.max(0, (1 - ringProgress) * Math.max(W, H) * 0.8);
+      ctx.globalAlpha = 0.3;
+      ctx.strokeStyle = '#ff4444';
+      ctx.lineWidth = 3 + ringProgress * 15;
+      ctx.beginPath();
+      ctx.arc(state.holeX, state.holeY, ringRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Second ring
+      const ringRadius2 = Math.max(0, (1 - ringProgress * 0.8) * Math.max(W, H) * 0.6);
+      ctx.globalAlpha = 0.15;
+      ctx.strokeStyle = '#ff8800';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(state.holeX, state.holeY, ringRadius2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Phase 3 (80-180): Vignette closes in, darkening
+    if (t > 80) {
+      const darkProgress = Math.min(1, (t - 80) / 100);
+      const vigRadius = Math.max(0, (1 - darkProgress) * Math.max(W, H) * 0.7 + 50);
+      const vig = ctx.createRadialGradient(state.holeX, state.holeY, 0, state.holeX, state.holeY, vigRadius);
+      vig.addColorStop(0, `rgba(0, 0, 0, 0)`);
+      vig.addColorStop(0.5, `rgba(0, 0, 0, ${darkProgress * 0.3})`);
+      vig.addColorStop(1, `rgba(0, 0, 0, ${darkProgress * 0.95})`);
+      ctx.fillStyle = vig;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Phase 4 (140-180): Final darkness + text fade in
+    if (t > 140) {
+      const textAlpha = Math.min(1, (t - 140) / 30);
+      ctx.globalAlpha = textAlpha;
+      ctx.fillStyle = '#ff6644';
+      ctx.font = 'bold 42px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('VOID COLLAPSED', W / 2, H / 2 - 20);
+
+      ctx.fillStyle = '#aaa';
+      ctx.font = '18px "Courier New", monospace';
+      ctx.fillText(`SCORE: ${state.score.toLocaleString()}`, W / 2, H / 2 + 25);
+    }
+
+    ctx.restore();
+    ctx.globalAlpha = 1;
+
+    if (t < totalFrames) {
+      requestAnimationFrame(deathLoop);
+    } else {
+      // Done — show actual game over screen
+      endGame();
+    }
+  }
+
+  requestAnimationFrame(deathLoop);
+}
+
+function endGame() {
+  state.dying = false;
+  state.running = false;
+  state.gameOver = true;
+
+  AudioSystem.stop();
+  SFX.stopDrone();
+  SFX.playGameOver();
+
+  checkEndgameAch();
+  showMenu(true);
+  titleLoop();
+}
+
+// --- HUD ---
+function updateHUD() {
+  scoreEl.textContent = state.score.toLocaleString();
+  massEl.textContent = Math.floor(state.mass).toLocaleString();
+
+  let hearts = '';
+  for (let i = 0; i < CONFIG.MAX_HEALTH; i++) {
+    hearts += `<div class="heart ${i >= state.health ? 'lost' : ''}"></div>`;
+  }
+  healthBar.innerHTML = hearts;
+}
+
+// --- Particle Types ---
+const PARTICLE_TYPES = {
+  energy: {
+    colors: ['#00ffaa', '#44ddff', '#88ff44', '#00ccff', '#66ffdd'],
+    radius: () => Math.random() * 5 + 3,
+    scoreValue: 10,
+    massValue: 15,
+  },
+  antimatter: {
+    colors: ['#ff2244', '#ff0033', '#ff0044'],
+    radius: () => Math.random() * 12 + 16,
+    scoreValue: 0,
+    massValue: 0,
+    damage: 1,
+  },
+  golden: {
+    colors: ['#ffdd44', '#ffcc00', '#ffaa00'],
+    radius: () => Math.random() * 5 + 5,
+    scoreValue: 50,
+    massValue: 40,
+  },
+  plasma: {
+    colors: ['#88eeff', '#aaddff', '#ccffff', '#44ccff'],
+    radius: () => Math.random() * 4 + 3,
+    scoreValue: 25,
+    massValue: 20,
+  },
+  darkenergy: {
+    colors: ['#cc66ff', '#aa44dd', '#9933cc'],
+    radius: () => Math.random() * 6 + 5,
+    scoreValue: 35,
+    massValue: 30,
+  },
+  hunter: {
+    colors: ['#ff4400', '#ff2200', '#ff6600'],
+    radius: () => Math.random() * 8 + 12,
+    scoreValue: 0,
+    massValue: 0,
+    damage: 1,
+  },
+  supernova: {
+    colors: ['#ffffff', '#ffe4ff', '#fff4dd'],
+    radius: () => Math.random() * 4 + 10,
+    scoreValue: 200,
+    massValue: 60,
+  },
+};
+
+function spawnParticle() {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  // Spawn from edges
+  let x, y;
+  const side = Math.floor(Math.random() * 4);
+  const margin = 40;
+  if (side === 0) { x = -margin; y = Math.random() * H; }
+  else if (side === 1) { x = W + margin; y = Math.random() * H; }
+  else if (side === 2) { x = Math.random() * W; y = -margin; }
+  else { x = Math.random() * W; y = H + margin; }
+
+  // Choose type based on current wave
+  const wave = WAVES[state.waveIndex];
+  const availableTypes = wave.types;
+  const roll = Math.random();
+  let type;
+
+  // Separate dangerous vs safe types
+  const dangerTypes = availableTypes.filter(t => t === 'antimatter' || t === 'hunter');
+  const safeTypes = availableTypes.filter(t => t !== 'antimatter' && t !== 'hunter');
+
+  const dangerChance = dangerTypes.length > 0 ? CONFIG.ANTIMATTER_RATIO * wave.antimatterMult : 0;
+  const goldenChance = availableTypes.includes('golden') ? CONFIG.GOLDEN_RATIO : 0;
+  const supernovaChance = availableTypes.includes('supernova') ? 0.012 : 0; // ~1.2% rare
+
+  if (roll < supernovaChance) {
+    type = 'supernova';
+  } else if (roll < supernovaChance + goldenChance) {
+    type = 'golden';
+  } else if (roll < supernovaChance + goldenChance + dangerChance && dangerTypes.length > 0) {
+    type = dangerTypes[Math.floor(Math.random() * dangerTypes.length)];
+  } else {
+    // Pick from safe non-golden types
+    const normalTypes = safeTypes.filter(t => t !== 'golden');
+    type = normalTypes[Math.floor(Math.random() * normalTypes.length)];
+  }
+
+  const def = PARTICLE_TYPES[type];
+  const color = def.colors[Math.floor(Math.random() * def.colors.length)];
+  const pScale = Math.min(1, Math.min(W, H) / 800);
+  const radius = def.radius() * pScale;
+
+  // Drift toward center-ish
+  const angle = Math.atan2(H / 2 - y + (Math.random() - 0.5) * H * 0.6, W / 2 - x + (Math.random() - 0.5) * W * 0.6);
+  const speed = CONFIG.PARTICLE_BASE_SPEED * (0.5 + Math.random() * 0.8) * state.difficulty * pScale;
+
+  state.particles.push({
+    x, y, radius, color, type,
+    vx: Math.cos(angle) * speed * (type === 'plasma' ? 2.2 : type === 'antimatter' ? 1.8 : type === 'supernova' ? 0.4 : 1),
+    vy: Math.sin(angle) * speed * (type === 'plasma' ? 2.2 : type === 'antimatter' ? 1.8 : type === 'supernova' ? 0.4 : 1),
+    alpha: 1,
+    life: 1,
+    pulsePhase: Math.random() * Math.PI * 2,
+    orbitAngle: Math.random() * Math.PI * 2,
+  });
+}
+
+// --- Explosion Effect ---
+function createExplosion(x, y, color, count = 12) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 / count) * i + Math.random() * 0.3;
+    const speed = Math.random() * 3 + 1.5;
+    state.explosions.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      radius: Math.random() * 3 + 1,
+      color,
+      alpha: 1,
+      decay: Math.random() * 0.02 + 0.02,
+    });
+  }
+}
+
+// --- Main Loop ---
+function update() {
+  if (!state.running) return;
+
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  state.frame++;
+  state.difficulty = 1 + state.frame * CONFIG.DIFFICULTY_RAMP;
+
+  if (state.invulnTimer > 0) state.invulnTimer--;
+
+  // --- Wave transition check ---
+  const nextWaveIndex = state.waveIndex + 1;
+  if (nextWaveIndex < WAVES.length && state.score >= WAVES[nextWaveIndex].score) {
+    state.waveIndex = nextWaveIndex;
+    const w = WAVES[state.waveIndex];
+    state.waveAnnounce = { active: true, text: w.name, subtitle: w.subtitle, timer: 0, maxTimer: 180 };
+    state.waveCalmTimer = 90; // brief calm: clear danger, pause spawns
+    state.bgHueTarget = w.hue;
+    // Reward: restore 1 health on wave up
+    state.health = Math.min(state.health + 1, CONFIG.MAX_HEALTH);
+    // Clear all dangerous particles for breathing room
+    state.particles = state.particles.filter(p => p.type !== 'antimatter' && p.type !== 'hunter');
+    state.shake.intensity = 8;
+    AudioSystem.setWave(state.waveIndex);
+    SFX.playWaveTransition();
+    checkInstantAch();
+  }
+
+  if (state.waveCalmTimer > 0) state.waveCalmTimer--;
+
+  // Smooth background hue transition
+  state.bgHue += (state.bgHueTarget - state.bgHue) * 0.02;
+
+  // Wave announcement timer
+  if (state.waveAnnounce.active) {
+    state.waveAnnounce.timer++;
+    if (state.waveAnnounce.timer >= state.waveAnnounce.maxTimer) {
+      state.waveAnnounce.active = false;
+    }
+  }
+
+  // Move black hole toward mouse (smooth follow)
+  const followSpeed = 0.08;
+  state.holeX += (state.mouseX - state.holeX) * followSpeed;
+  state.holeY += (state.mouseY - state.holeY) * followSpeed;
+
+  const screenScale = Math.min(window.innerWidth, window.innerHeight) / 800;
+  const holeRadius = (18 + (state.mass - CONFIG.START_MASS) / 45) * Math.min(1, screenScale);
+  const gravityRange = holeRadius * CONFIG.GRAVITY_RANGE_MULT;
+
+  // Spawn particles (paused during wave calm)
+  const wave = WAVES[state.waveIndex];
+  const spawnChance = CONFIG.PARTICLE_SPAWN_RATE * (1 + (state.difficulty - 1) * 0.5) * wave.spawnMult;
+  if (state.waveCalmTimer <= 0 && Math.random() < spawnChance && state.particles.length < 80) {
+    spawnParticle();
+  }
+
+  // Update particles
+  for (let i = state.particles.length - 1; i >= 0; i--) {
+    const p = state.particles[i];
+    const dx = state.holeX - p.x;
+    const dy = state.holeY - p.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    // Gravity pull (antimatter resists - feels more threatening)
+    if (dist < gravityRange && dist > 5) {
+      const isDanger = p.type === 'antimatter' || p.type === 'hunter';
+      const gravResist = isDanger ? 0.6 : 1;
+      const force = CONFIG.GRAVITY_STRENGTH * (state.mass / 500) / (dist * 0.8) * gravResist;
+      p.vx += (dx / dist) * force;
+      p.vy += (dy / dist) * force;
+    }
+
+    p.x += p.vx;
+    p.y += p.vy;
+    p.pulsePhase += 0.08;
+
+    // Special movement behaviors
+    if (p.type === 'antimatter') {
+      // Slight drift toward player - feels menacing
+      const adx = state.holeX - p.x;
+      const ady = state.holeY - p.y;
+      const adist = Math.sqrt(adx * adx + ady * ady);
+      if (adist > 5) {
+        const amScale = Math.min(1, Math.min(window.innerWidth, window.innerHeight) / 800);
+        p.vx += (adx / adist) * 0.025 * amScale;
+        p.vy += (ady / adist) * 0.025 * amScale;
+      }
+      // Speed cap (scaled to screen)
+      const amCap = 3.5 * Math.min(1, Math.min(window.innerWidth, window.innerHeight) / 800);
+      const aspd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      if (aspd > amCap) { p.vx *= amCap / aspd; p.vy *= amCap / aspd; }
+    } else if (p.type === 'plasma') {
+      // Zigzag: perpendicular jitter
+      const perpX = -p.vy;
+      const perpY = p.vx;
+      const jitter = Math.sin(state.frame * 0.15 + p.pulsePhase) * 0.6;
+      p.x += perpX * jitter * 0.3;
+      p.y += perpY * jitter * 0.3;
+    } else if (p.type === 'darkenergy') {
+      // Slow spiraling orbit - harder to catch
+      p.orbitAngle += 0.02;
+      p.vx += Math.cos(p.orbitAngle) * 0.15;
+      p.vy += Math.sin(p.orbitAngle) * 0.15;
+      // Slight speed cap
+      const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      if (spd > 3) { p.vx *= 2.8 / spd; p.vy *= 2.8 / spd; }
+    } else if (p.type === 'hunter') {
+      // Slowly homes toward the black hole
+      const hdx = state.holeX - p.x;
+      const hdy = state.holeY - p.y;
+      const hdist = Math.sqrt(hdx * hdx + hdy * hdy);
+      if (hdist > 5) {
+        p.vx += (hdx / hdist) * 0.06;
+        p.vy += (hdy / hdist) * 0.06;
+      }
+      // Speed cap
+      const hspd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      if (hspd > 2.5) { p.vx *= 2.5 / hspd; p.vy *= 2.5 / hspd; }
+    }
+
+    // Trail
+    if (dist < gravityRange * 1.2) {
+      state.trails.push({
+        x: p.x, y: p.y,
+        radius: p.radius * 0.4,
+        color: p.color,
+        alpha: 0.4,
+      });
+    }
+
+    // Absorption check
+    const absorbDist = holeRadius + p.radius * 0.5;
+    if (dist < absorbDist) {
+      const def = PARTICLE_TYPES[p.type];
+
+      if (p.type === 'antimatter' || p.type === 'hunter') {
+        if (state.invulnTimer <= 0) {
+          state.health -= def.damage;
+          hitsTaken++;
+          pgDamageTaken = true;
+          state.shake.intensity = 15;
+          state.invulnTimer = CONFIG.INVULN_FRAMES;
+          createExplosion(p.x, p.y, p.color, 20);
+          SFX.playHit();
+          checkInstantAch();
+          if (state.health <= 0) {
+            startDeathSequence();
+            return;
+          }
+        }
+      } else {
+        const points = Math.floor(def.scoreValue * state.difficulty);
+        state.score += points;
+        state.mass = Math.min(state.mass + def.massValue, CONFIG.MAX_MASS);
+        state.absorbed++;
+        if (state.mass > pgMaxMass) pgMaxMass = state.mass;
+        if (p.type === 'golden') pgGolden++;
+        if (p.type === 'supernova') pgSupernovas++;
+        SFX.playEat(p.type);
+        checkInstantAch();
+
+        if (p.type === 'supernova') {
+          // Big dramatic absorption
+          createExplosion(p.x, p.y, '#ffffff', 25);
+          createExplosion(p.x, p.y, '#ffaaff', 20);
+          state.shake.intensity = 6;
+          // Score popup
+          state.scorePopups.push({
+            x: p.x, y: p.y, text: `+${points}`, timer: 0, maxTimer: 90, color: '#ffddff', size: 28
+          });
+        } else if (p.type === 'golden') {
+          createExplosion(p.x, p.y, p.color, 12);
+          state.scorePopups.push({
+            x: p.x, y: p.y, text: `+${points}`, timer: 0, maxTimer: 60, color: '#ffdd44', size: 20
+          });
+        } else {
+          createExplosion(p.x, p.y, p.color, 8);
+        }
+      }
+
+      state.particles.splice(i, 1);
+      continue;
+    }
+
+    // Remove off-screen particles
+    if (p.x < -100 || p.x > W + 100 || p.y < -100 || p.y > H + 100) {
+      state.particles.splice(i, 1);
+    }
+  }
+
+  // Update trails
+  for (let i = state.trails.length - 1; i >= 0; i--) {
+    state.trails[i].alpha -= 0.025;
+    if (state.trails[i].alpha <= 0) state.trails.splice(i, 1);
+  }
+
+  // Update explosions
+  for (let i = state.explosions.length - 1; i >= 0; i--) {
+    const e = state.explosions[i];
+    e.x += e.vx;
+    e.y += e.vy;
+    e.alpha -= e.decay;
+    e.vx *= 0.97;
+    e.vy *= 0.97;
+    if (e.alpha <= 0) state.explosions.splice(i, 1);
+  }
+
+  // Update score popups
+  for (let i = state.scorePopups.length - 1; i >= 0; i--) {
+    state.scorePopups[i].timer++;
+    if (state.scorePopups[i].timer >= state.scorePopups[i].maxTimer) {
+      state.scorePopups.splice(i, 1);
+    }
+  }
+
+  // Screen shake
+  if (state.shake.intensity > 0.5) {
+    state.shake.x = (Math.random() - 0.5) * state.shake.intensity;
+    state.shake.y = (Math.random() - 0.5) * state.shake.intensity;
+    state.shake.intensity *= CONFIG.SCREEN_SHAKE_DECAY;
+  } else {
+    state.shake.x = 0;
+    state.shake.y = 0;
+    state.shake.intensity = 0;
+  }
+
+  // Audio crossfade
+  AudioSystem.update();
+  SFX.update(state.mass, CONFIG.MAX_MASS, CONFIG.START_MASS, state.health, CONFIG.MAX_HEALTH, state.particles, state.holeX, state.holeY);
+
+  updateHUD();
+}
+
+// --- Render ---
+function render() {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+
+  ctx.save();
+  ctx.translate(state.shake.x, state.shake.y);
+
+  // Background - shifts hue per wave
+  const curWave = WAVES[state.waveIndex];
+  const bgL = 3 + Math.sin(state.frame * 0.003) * 1;
+  ctx.fillStyle = `hsl(${Math.floor(state.bgHue)}, 30%, ${bgL}%)`;
+  ctx.fillRect(-10, -10, W + 20, H + 20);
+
+  // --- Background pulse (waves 3+) ---
+  if (curWave.bgPulse) {
+    const pulseAlpha = Math.sin(state.frame * 0.015) * 0.03 + 0.02;
+    ctx.globalAlpha = pulseAlpha;
+    const pulseGrad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+    pulseGrad.addColorStop(0, `hsla(${Math.floor(state.bgHue)}, 60%, 40%, 1)`);
+    pulseGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = pulseGrad;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+  }
+
+  // --- Nebula clouds (growing per wave) ---
+  if (curWave.nebulaAlpha > 0) {
+    const nebulaCount = 3;
+    for (let n = 0; n < nebulaCount; n++) {
+      // Fixed positions based on index so they don't jump
+      const nx = (W * (0.2 + n * 0.3)) + Math.sin(state.frame * 0.002 + n * 2) * 50;
+      const ny = (H * (0.25 + (n % 2) * 0.5)) + Math.cos(state.frame * 0.003 + n * 3) * 40;
+      const nr = Math.max(W, H) * (0.15 + n * 0.05);
+      const nebGrad = ctx.createRadialGradient(nx, ny, 0, nx, ny, nr);
+      const nebHue = Math.floor(state.bgHue) + n * 40;
+      nebGrad.addColorStop(0, `hsla(${nebHue}, 50%, 30%, ${curWave.nebulaAlpha})`);
+      nebGrad.addColorStop(0.4, `hsla(${nebHue + 20}, 40%, 20%, ${curWave.nebulaAlpha * 0.5})`);
+      nebGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = nebGrad;
+      ctx.beginPath();
+      ctx.arc(nx, ny, nr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // --- Grid lines (waves 4+) ---
+  if (curWave.gridAlpha > 0) {
+    ctx.globalAlpha = curWave.gridAlpha;
+    ctx.strokeStyle = `hsla(${Math.floor(state.bgHue)}, 40%, 50%, 1)`;
+    ctx.lineWidth = 0.5;
+    const gridSize = 80;
+    // Subtle drift
+    const gOffX = (state.frame * 0.2) % gridSize;
+    const gOffY = (state.frame * 0.15) % gridSize;
+    for (let gx = -gridSize + gOffX; gx < W + gridSize; gx += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, H);
+      ctx.stroke();
+    }
+    for (let gy = -gridSize + gOffY; gy < H + gridSize; gy += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, gy);
+      ctx.lineTo(W, gy);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Stars - color and twinkle speed change per wave
+  state.bgStars.forEach(s => {
+    const twinkle = Math.sin(state.frame * s.twinkleSpeed * curWave.starSpeed + s.twinklePhase) * 0.3 + 0.7;
+    ctx.globalAlpha = s.alpha * twinkle;
+    ctx.fillStyle = curWave.starColor;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // --- Floating dust motes (increase per wave) ---
+  if (curWave.dustCount > 0) {
+    ctx.globalAlpha = 0.25;
+    for (let d = 0; d < curWave.dustCount; d++) {
+      // Deterministic positions that slowly drift
+      const dx = ((d * 137.5 + state.frame * 0.1 * (0.5 + (d % 3) * 0.3)) % (W + 40)) - 20;
+      const dy = ((d * 251.3 + state.frame * 0.08 * (0.3 + (d % 4) * 0.2)) % (H + 40)) - 20;
+      const dSize = 0.5 + (d % 5) * 0.3;
+      ctx.fillStyle = `hsla(${Math.floor(state.bgHue) + d * 7}, 30%, 60%, 1)`;
+      ctx.beginPath();
+      ctx.arc(dx, dy, dSize, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  const screenScale = Math.min(window.innerWidth, window.innerHeight) / 800;
+  const holeRadius = (18 + (state.mass - CONFIG.START_MASS) / 45) * Math.min(1, screenScale);
+
+  // --- Draw gravity field (color matches wave) ---
+  const gravRange = holeRadius * CONFIG.GRAVITY_RANGE_MULT;
+  const fieldGrad = ctx.createRadialGradient(
+    state.holeX, state.holeY, holeRadius,
+    state.holeX, state.holeY, gravRange
+  );
+  const fHue = Math.floor(state.bgHue);
+  fieldGrad.addColorStop(0, `hsla(${fHue}, 60%, 30%, 0.15)`);
+  fieldGrad.addColorStop(0.5, `hsla(${fHue}, 50%, 20%, 0.06)`);
+  fieldGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = fieldGrad;
+  ctx.beginPath();
+  ctx.arc(state.holeX, state.holeY, gravRange, 0, Math.PI * 2);
+  ctx.fill();
+
+  // --- Trails ---
+  state.trails.forEach(t => {
+    ctx.globalAlpha = t.alpha;
+    ctx.fillStyle = t.color;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // --- Particles ---
+  state.particles.forEach(p => {
+    const pulse = Math.sin(p.pulsePhase) * 0.2 + 1;
+    const r = p.radius * pulse;
+
+    if (p.type === 'antimatter' || p.type === 'hunter') {
+      // === DANGEROUS: Evil, flickering, teeth-like spikes ===
+      const dangerPulse = Math.sin(state.frame * 0.15 + p.pulsePhase) * 0.5 + 1;
+      const flicker = Math.random() > 0.92 ? 1.3 : 1; // random flicker
+      const ar = r * dangerPulse * flicker;
+
+      // Outer warning glow - larger, more aggressive
+      const glowPulse = 0.2 + Math.sin(state.frame * 0.1) * 0.15;
+      ctx.globalAlpha = glowPulse;
+      const warningGlow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, ar * 5);
+      const isHunter = p.type === 'hunter';
+      warningGlow.addColorStop(0, isHunter ? 'rgba(255, 80, 0, 0.6)' : 'rgba(255, 0, 20, 0.7)');
+      warningGlow.addColorStop(0.3, isHunter ? 'rgba(255, 60, 0, 0.3)' : 'rgba(200, 0, 0, 0.3)');
+      warningGlow.addColorStop(0.6, isHunter ? 'rgba(255, 40, 0, 0.1)' : 'rgba(150, 0, 0, 0.1)');
+      warningGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = warningGlow;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, ar * 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Outer crackling ring
+      ctx.globalAlpha = 0.3 + Math.sin(state.frame * 0.2 + p.pulsePhase) * 0.2;
+      ctx.strokeStyle = isHunter ? '#ff6600' : '#ff0033';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let a = 0; a < Math.PI * 2; a += 0.15) {
+        const jitter = (Math.random() - 0.5) * ar * 0.4;
+        const cr = ar * 2.2 + jitter;
+        const cx = p.x + Math.cos(a) * cr;
+        const cy = p.y + Math.sin(a) * cr;
+        if (a === 0) ctx.moveTo(cx, cy);
+        else ctx.lineTo(cx, cy);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      // Jagged body - irregular teeth, faster spin
+      ctx.globalAlpha = 0.95;
+      const spikes = isHunter ? 6 : 10;
+      const rotSpeed = isHunter ? 0.07 : 0.05;
+
+      // Dark fill first
+      ctx.fillStyle = '#220008';
+      ctx.beginPath();
+      for (let s = 0; s < spikes; s++) {
+        const a = (Math.PI * 2 / spikes) * s + state.frame * rotSpeed;
+        const spikeWobble = Math.sin(state.frame * 0.2 + s * 1.7) * 0.4;
+        const outerR = ar * (1.6 + spikeWobble);
+        const innerR = ar * (0.35 + Math.sin(state.frame * 0.15 + s) * 0.1);
+        const midA = a + Math.PI / spikes;
+        if (s === 0) ctx.moveTo(p.x + Math.cos(a) * outerR, p.y + Math.sin(a) * outerR);
+        else ctx.lineTo(p.x + Math.cos(a) * outerR, p.y + Math.sin(a) * outerR);
+        ctx.lineTo(p.x + Math.cos(midA) * innerR, p.y + Math.sin(midA) * innerR);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // Red/orange edge stroke
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Inner pulsing veins
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = isHunter ? '#ff9944' : '#ff3355';
+      ctx.lineWidth = 1;
+      for (let v = 0; v < 4; v++) {
+        const va = (Math.PI / 2) * v + state.frame * 0.03;
+        const vr = ar * 0.8;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        const mx = p.x + Math.cos(va + 0.3) * vr * 0.5;
+        const my = p.y + Math.sin(va + 0.3) * vr * 0.5;
+        ctx.quadraticCurveTo(mx, my, p.x + Math.cos(va) * vr, p.y + Math.sin(va) * vr);
+        ctx.stroke();
+      }
+
+      // Evil eye center
+      ctx.globalAlpha = 0.9;
+      const eyeGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, ar * 0.4);
+      eyeGrad.addColorStop(0, isHunter ? '#ffcc00' : '#ff0000');
+      eyeGrad.addColorStop(0.5, isHunter ? '#ff6600' : '#aa0000');
+      eyeGrad.addColorStop(1, '#000');
+      ctx.fillStyle = eyeGrad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, ar * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Tiny black pupil
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, ar * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (isHunter) {
+        // Crosshair for hunter
+        ctx.globalAlpha = 0.7;
+        ctx.strokeStyle = '#ffcc00';
+        ctx.lineWidth = 1.5;
+        const xSize = ar * 0.7;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, xSize, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(p.x - xSize * 1.4, p.y);
+        ctx.lineTo(p.x + xSize * 1.4, p.y);
+        ctx.moveTo(p.x, p.y - xSize * 1.4);
+        ctx.lineTo(p.x, p.y + xSize * 1.4);
+        ctx.stroke();
+      } else {
+        // Skull-like X
+        ctx.globalAlpha = 0.8;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2.5;
+        const xSize = ar * 0.25;
+        ctx.beginPath();
+        ctx.moveTo(p.x - xSize, p.y - xSize);
+        ctx.lineTo(p.x + xSize, p.y + xSize);
+        ctx.moveTo(p.x + xSize, p.y - xSize);
+        ctx.lineTo(p.x - xSize, p.y + xSize);
+        ctx.stroke();
+      }
+
+    } else if (p.type === 'plasma') {
+      // === PLASMA: Bright, electric, fast-looking ===
+      // Electric trail glow
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = '#aaeeff';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r * 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Core with electric white center
+      ctx.globalAlpha = 0.95;
+      const plasmaGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      plasmaGrad.addColorStop(0, '#ffffff');
+      plasmaGrad.addColorStop(0.5, p.color);
+      plasmaGrad.addColorStop(1, p.color + '00');
+      ctx.fillStyle = plasmaGrad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Tiny lightning bolts
+      ctx.globalAlpha = 0.6;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1;
+      for (let b = 0; b < 3; b++) {
+        const ba = (Math.PI * 2 / 3) * b + state.frame * 0.1;
+        const bx = p.x + Math.cos(ba) * r * 1.8;
+        const by = p.y + Math.sin(ba) * r * 1.8;
+        const mx = (p.x + bx) / 2 + (Math.random() - 0.5) * r;
+        const my = (p.y + by) / 2 + (Math.random() - 0.5) * r;
+        ctx.beginPath();
+        ctx.moveTo(p.x + Math.cos(ba) * r * 0.5, p.y + Math.sin(ba) * r * 0.5);
+        ctx.lineTo(mx, my);
+        ctx.lineTo(bx, by);
+        ctx.stroke();
+      }
+
+    } else if (p.type === 'darkenergy') {
+      // === DARK ENERGY: Mysterious purple orb with rings ===
+      ctx.globalAlpha = 0.2;
+      ctx.fillStyle = '#9944dd';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = 0.85;
+      const deGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+      deGrad.addColorStop(0, '#eeccff');
+      deGrad.addColorStop(0.4, p.color);
+      deGrad.addColorStop(1, p.color + '00');
+      ctx.fillStyle = deGrad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Orbiting ring
+      ctx.globalAlpha = 0.5;
+      ctx.strokeStyle = '#cc88ff';
+      ctx.lineWidth = 1;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(state.frame * 0.03 + p.pulsePhase);
+      ctx.scale(1, 0.4);
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.8, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+    } else if (p.type === 'supernova') {
+      // === SUPERNOVA: Rainbow-shifting star, unmissable ===
+      const novaPulse = Math.sin(state.frame * 0.1 + p.pulsePhase) * 0.3 + 1;
+      const nr = r * novaPulse;
+      const novaHue = (state.frame * 3 + p.pulsePhase * 100) % 360;
+
+      // Big rainbow aura
+      ctx.globalAlpha = 0.2 + Math.sin(state.frame * 0.06) * 0.1;
+      const auraGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, nr * 5);
+      auraGrad.addColorStop(0, `hsla(${novaHue}, 100%, 80%, 0.6)`);
+      auraGrad.addColorStop(0.3, `hsla(${(novaHue + 60) % 360}, 80%, 60%, 0.3)`);
+      auraGrad.addColorStop(0.6, `hsla(${(novaHue + 120) % 360}, 70%, 50%, 0.1)`);
+      auraGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = auraGrad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, nr * 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Star shape (6-point)
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = `hsla(${novaHue}, 100%, 85%, 1)`;
+      ctx.beginPath();
+      for (let s = 0; s < 12; s++) {
+        const a = (Math.PI * 2 / 12) * s + state.frame * 0.02;
+        const starR = s % 2 === 0 ? nr * 1.8 : nr * 0.7;
+        const sx = p.x + Math.cos(a) * starR;
+        const sy = p.y + Math.sin(a) * starR;
+        if (s === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      // White hot core
+      ctx.globalAlpha = 1;
+      const coreGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, nr * 0.6);
+      coreGrad.addColorStop(0, '#fff');
+      coreGrad.addColorStop(0.5, `hsla(${novaHue}, 100%, 90%, 0.8)`);
+      coreGrad.addColorStop(1, `hsla(${novaHue}, 80%, 60%, 0)`);
+      ctx.fillStyle = coreGrad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, nr * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Orbiting sparkles
+      ctx.globalAlpha = 0.9;
+      for (let s = 0; s < 6; s++) {
+        const a = (Math.PI / 3) * s + state.frame * 0.08;
+        const sparkDist = nr * (1.5 + Math.sin(state.frame * 0.05 + s * 2) * 0.5);
+        const sx = p.x + Math.cos(a) * sparkDist;
+        const sy = p.y + Math.sin(a) * sparkDist;
+        ctx.fillStyle = `hsla(${(novaHue + s * 60) % 360}, 100%, 80%, 1)`;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+    } else {
+      // === ENERGY & GOLDEN: Soft, friendly circles ===
+      // Soft glow
+      ctx.globalAlpha = 0.2;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Core with gradient
+      ctx.globalAlpha = 0.9;
+      const grad = ctx.createRadialGradient(p.x - r * 0.2, p.y - r * 0.2, 0, p.x, p.y, r);
+      grad.addColorStop(0, '#fff');
+      grad.addColorStop(0.4, p.color);
+      grad.addColorStop(1, p.color + '00');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Golden sparkle
+      if (p.type === 'golden') {
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = '#fff';
+        for (let s = 0; s < 4; s++) {
+          const a = (Math.PI / 2) * s + state.frame * 0.05;
+          const sx = p.x + Math.cos(a) * r * 1.4;
+          const sy = p.y + Math.sin(a) * r * 1.4;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+  });
+  ctx.globalAlpha = 1;
+
+  // --- Explosions ---
+  state.explosions.forEach(e => {
+    ctx.globalAlpha = e.alpha;
+    ctx.fillStyle = e.color;
+    ctx.beginPath();
+    ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // --- Score Popups ---
+  state.scorePopups.forEach(sp => {
+    const progress = sp.timer / sp.maxTimer;
+    const yOff = progress * -60;
+    const alpha = 1 - progress * progress; // ease out
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = sp.color;
+    ctx.font = `bold ${sp.size}px 'Courier New', monospace`;
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3;
+    ctx.strokeText(sp.text, sp.x, sp.y + yOff);
+    ctx.fillText(sp.text, sp.x, sp.y + yOff);
+  });
+  ctx.globalAlpha = 1;
+
+  // --- Black Hole ---
+  const massFactor = (state.mass - CONFIG.START_MASS) / (CONFIG.MAX_MASS - CONFIG.START_MASS); // 0 to 1
+
+  // === VORTEX EFFECT - spiral arms that intensify with size ===
+  const vortexArms = 3 + Math.floor(massFactor * 3); // 3-6 arms
+  const vortexRadius = holeRadius * (2.5 + massFactor * 3);
+  const vortexSpeed = 0.008 + massFactor * 0.025;
+  const vortexPhase = state.frame * vortexSpeed;
+
+  // Spiral particle streams
+  const streamCount = Math.floor(15 + massFactor * 50); // 15-65 particles in streams
+  for (let i = 0; i < streamCount; i++) {
+    const arm = i % vortexArms;
+    const t = (i / streamCount); // 0..1 along spiral
+    const armOffset = (Math.PI * 2 / vortexArms) * arm;
+    const spiralAngle = armOffset + vortexPhase + t * (3 + massFactor * 4);
+    const dist = holeRadius * 1.1 + t * (vortexRadius - holeRadius);
+
+    const px = state.holeX + Math.cos(spiralAngle) * dist;
+    const py = state.holeY + Math.sin(spiralAngle) * dist;
+
+    // Fade out at edges, brighten near center
+    const fadeIn = Math.min(1, t * 4);
+    const fadeOut = 1 - t;
+    const alpha = fadeIn * fadeOut * (0.15 + massFactor * 0.45);
+
+    const size = (1 + massFactor * 2.5) * (1 - t * 0.6);
+    const hue = Math.floor(state.bgHue) + t * 60 + arm * 20;
+
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = `hsla(${hue}, 80%, ${55 + t * 20}%, 1)`;
+    ctx.beginPath();
+    ctx.arc(px, py, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Spiral trail lines (faint connecting wisps)
+  ctx.globalAlpha = 0.06 + massFactor * 0.14;
+  ctx.lineWidth = 0.8 + massFactor * 1.5;
+  for (let arm = 0; arm < vortexArms; arm++) {
+    const armOffset = (Math.PI * 2 / vortexArms) * arm;
+    ctx.strokeStyle = `hsla(${Math.floor(state.bgHue) + arm * 25}, 70%, 60%, 1)`;
+    ctx.beginPath();
+    for (let s = 0; s <= 40; s++) {
+      const t = s / 40;
+      const spiralAngle = armOffset + vortexPhase + t * (3 + massFactor * 4);
+      const dist = holeRadius * 1.1 + t * (vortexRadius - holeRadius);
+      const px = state.holeX + Math.cos(spiralAngle) * dist;
+      const py = state.holeY + Math.sin(spiralAngle) * dist;
+      if (s === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // Accretion disk (tilted rings)
+  const diskPhase = state.frame * 0.02;
+  ctx.globalAlpha = 0.2 + massFactor * 0.15;
+  for (let ring = 0; ring < 3; ring++) {
+    const ringR = holeRadius * (1.3 + ring * 0.4);
+    ctx.save();
+    ctx.translate(state.holeX, state.holeY);
+    ctx.rotate(diskPhase * (ring % 2 === 0 ? 1 : -0.7));
+    ctx.scale(1, 0.3);
+    const diskGrad = ctx.createRadialGradient(0, 0, ringR * 0.6, 0, 0, ringR);
+    const hue = Math.floor(state.bgHue) + ring * 30;
+    diskGrad.addColorStop(0, `hsla(${hue}, 80%, 60%, 0.5)`);
+    diskGrad.addColorStop(0.5, `hsla(${hue + 20}, 90%, 50%, 0.2)`);
+    diskGrad.addColorStop(1, `hsla(${hue}, 80%, 40%, 0)`);
+    ctx.fillStyle = diskGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, ringR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+
+  // Outer glow - scales with mass
+  const glowSize = holeRadius * (2.5 + massFactor * 1.5);
+  const outerGlow = ctx.createRadialGradient(
+    state.holeX, state.holeY, holeRadius * 0.8,
+    state.holeX, state.holeY, glowSize
+  );
+  outerGlow.addColorStop(0, `rgba(100, 60, 200, ${0.25 + massFactor * 0.2})`);
+  outerGlow.addColorStop(0.5, 'rgba(80, 40, 160, 0.1)');
+  outerGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = outerGlow;
+  ctx.beginPath();
+  ctx.arc(state.holeX, state.holeY, glowSize, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Event horizon
+  const holeGrad = ctx.createRadialGradient(
+    state.holeX, state.holeY, 0,
+    state.holeX, state.holeY, holeRadius
+  );
+  holeGrad.addColorStop(0, '#000');
+  holeGrad.addColorStop(0.7, '#0a0515');
+  holeGrad.addColorStop(0.9, `rgba(80, 40, 160, ${0.4 + massFactor * 0.3})`);
+  holeGrad.addColorStop(1, 'rgba(120, 80, 220, 0.15)');
+  ctx.fillStyle = holeGrad;
+  ctx.beginPath();
+  ctx.arc(state.holeX, state.holeY, holeRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Invulnerability flash
+  if (state.invulnTimer > 0 && state.frame % 8 < 4) {
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = '#ff3366';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(state.holeX, state.holeY, holeRadius + 6, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // Photon ring - brighter with mass
+  ctx.strokeStyle = `rgba(180, 140, 255, ${0.3 + massFactor * 0.3 + Math.sin(state.frame * 0.04) * 0.15})`;
+  ctx.lineWidth = 1.5 + massFactor * 1;
+  ctx.beginPath();
+  ctx.arc(state.holeX, state.holeY, holeRadius + 2, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // --- Wave Announcement ---
+  if (state.waveAnnounce.active) {
+    const t = state.waveAnnounce.timer;
+    const max = state.waveAnnounce.maxTimer;
+    // Fade in (0-30), hold (30-130), fade out (130-180)
+    let alpha;
+    if (t < 30) alpha = t / 30;
+    else if (t < max - 50) alpha = 1;
+    else alpha = (max - t) / 50;
+
+    // Full screen flash on entry
+    if (t < 15) {
+      ctx.globalAlpha = (1 - t / 15) * 0.15;
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Wave title
+    ctx.globalAlpha = alpha;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Title glow
+    ctx.shadowColor = `hsla(${Math.floor(state.bgHue)}, 80%, 60%, 0.8)`;
+    ctx.shadowBlur = 30;
+    const waveFS = Math.min(48, W * 0.1, H * 0.08);
+    ctx.font = `900 ${waveFS}px Orbitron, monospace`;
+    ctx.fillStyle = '#fff';
+    const yOff = Math.sin(t * 0.05) * 3;
+    ctx.fillText(state.waveAnnounce.text, W / 2, H / 2 - waveFS * 0.3 + yOff);
+
+    // Subtitle
+    ctx.shadowBlur = 15;
+    const subFS = Math.min(18, W * 0.04, H * 0.03);
+    ctx.font = `300 ${subFS}px "Exo 2", sans-serif`;
+    ctx.fillStyle = `hsla(${Math.floor(state.bgHue)}, 60%, 75%, 1)`;
+    ctx.fillText(state.waveAnnounce.subtitle, W / 2, H / 2 + waveFS * 0.5 + yOff);
+
+    // Wave number
+    const numFS = Math.min(13, W * 0.03, H * 0.025);
+    ctx.font = `600 ${numFS}px Orbitron, monospace`;
+    ctx.fillStyle = `hsla(${Math.floor(state.bgHue)}, 50%, 55%, 0.8)`;
+    ctx.fillText(`WAVE ${state.waveIndex + 1}`, W / 2, H / 2 + waveFS * 0.5 + subFS + 12 + yOff);
+
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+    ctx.globalAlpha = 1;
+  }
+
+  // --- Wave indicator (top center, small) ---
+  if (state.running) {
+    ctx.globalAlpha = 0.5;
+    ctx.textAlign = 'center';
+    ctx.font = '600 10px Orbitron, monospace';
+    ctx.fillStyle = `hsla(${Math.floor(state.bgHue)}, 60%, 65%, 1)`;
+    const waveName = WAVES[state.waveIndex].name;
+    ctx.fillText(`WAVE ${state.waveIndex + 1} · ${waveName}`, W / 2, 58);
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
+// --- Game Loop ---
+function loop() {
+  if (!state.dying) {
+    update();
+    render();
+  }
+  requestAnimationFrame(loop);
+}
+
+// Start background animation even on title screen
+state.holeX = window.innerWidth / 2;
+state.holeY = window.innerHeight / 2;
+state.mouseX = state.holeX;
+state.mouseY = state.holeY;
+
+// Animate title screen background
+function titleLoop() {
+  if (state.running || state.dying) return;
+  state.frame++;
+  render();
+  requestAnimationFrame(titleLoop);
+}
+titleLoop();
+
+// Fix: prevent double-loop
+let mainLoopStarted = false;
+startGame = function() {
+  state.running = true;
+  state.gameOver = false;
+  state.dying = false;
+  state.deathTimer = 0;
+  state.score = 0;
+  state.health = CONFIG.MAX_HEALTH;
+  state.mass = CONFIG.START_MASS;
+  state.particles = [];
+  state.trails = [];
+  state.explosions = [];
+  state.scorePopups = [];
+  state.shake = { x: 0, y: 0, intensity: 0 };
+  state.difficulty = 1;
+  state.frame = 0;
+  state.invulnTimer = 0;
+  state.absorbed = 0;
+  state.waveIndex = 0;
+  state.waveAnnounce = { active: false, text: '', subtitle: '', timer: 0, maxTimer: 0 };
+  state.waveCalmTimer = 0;
+  state.bgHue = WAVES[0].hue;
+  state.bgHueTarget = WAVES[0].hue;
+  state.holeX = window.innerWidth / 2;
+  state.holeY = window.innerHeight / 2;
+  state.mouseX = state.holeX;
+  state.mouseY = state.holeY;
+
+  // Reset per-game stats
+  pgGolden = 0; pgSupernovas = 0; hitsTaken = 0; pgMaxMass = CONFIG.START_MASS; pgDamageTaken = false;
+  // Clear new flags on scores
+  gwData.scores.forEach(s => s.isNew = false);
+  saveGWData();
+
+  menuOverlay.classList.add('hidden');
+  document.body.classList.add('playing');
+  hud.style.display = 'flex';
+  updateHUD();
+
+  AudioSystem.start();
+  SFX.stopGameOver();
+  SFX.startDrone();
+  AudioSystem.setWave(0);
+
+  // Pre-spawn burst - action from frame 1
+  for (let i = 0; i < 25; i++) spawnParticle();
+
+  if (!mainLoopStarted) {
+    mainLoopStarted = true;
+    loop();
+  }
+};
+
+btnStart.addEventListener('click', function() { startGame(); });
+
+// Init settings and show menu
+initSettings();
+showMenu(false);
+
+// ============================================================
+// GameVolt SDK Integration
+// ============================================================
+(function() {
+  if (!window.GameVolt) {
+    document.getElementById('login-btn').classList.add('hidden');
+    return;
+  }
+
+  GameVolt.init('gravitywell');
+
+  // --- postMessage bridge ---
+  function gvPost(action, payload) {
+    try {
+      window.parent.postMessage({
+        type: 'gamevolt',
+        action: action,
+        gameId: 'gravitywell',
+        payload: payload || {}
+      }, '*');
+    } catch(e) {}
+  }
+
+  // --- Save migration ---
+  GameVolt.save.registerMigration({
+    keys: ['gw_data'],
+    merge: function(local, cloud) {
+      if (!cloud) return local;
+      if (!local) return cloud;
+      var merged = {};
+      merged.totalGames = Math.max(local.totalGames || 0, cloud.totalGames || 0);
+      merged.bestScore = Math.max(local.bestScore || 0, cloud.bestScore || 0);
+      merged.bestWave = Math.max(local.bestWave || 0, cloud.bestWave || 0);
+      merged.bestMass = Math.max(local.bestMass || 0, cloud.bestMass || 0);
+      merged.bestAbsorbed = Math.max(local.bestAbsorbed || 0, cloud.bestAbsorbed || 0);
+      merged.totalAbsorbed = Math.max(local.totalAbsorbed || 0, cloud.totalAbsorbed || 0);
+      merged.totalScore = Math.max(local.totalScore || 0, cloud.totalScore || 0);
+      merged.totalSupernovas = Math.max(local.totalSupernovas || 0, cloud.totalSupernovas || 0);
+      merged.totalGolden = Math.max(local.totalGolden || 0, cloud.totalGolden || 0);
+      merged.musicEnabled = local.musicEnabled !== undefined ? local.musicEnabled : true;
+      merged.sfxEnabled = local.sfxEnabled !== undefined ? local.sfxEnabled : true;
+      // Merge unlocked achievements
+      merged.unlocked = {};
+      var lu = local.unlocked || {};
+      var cu = cloud.unlocked || {};
+      for (var k in lu) merged.unlocked[k] = lu[k];
+      for (var k in cu) {
+        if (!merged.unlocked[k] || cu[k] < merged.unlocked[k]) merged.unlocked[k] = cu[k];
+      }
+      // Merge scores (keep top 10)
+      var allScores = (local.scores || []).concat(cloud.scores || []);
+      allScores.sort(function(a, b) { return b.score - a.score; });
+      merged.scores = allScores.slice(0, 10);
+      return merged;
+    },
+    getScores: function(local) {
+      if (!local || !local.bestScore) return [];
+      return [{ score: local.bestScore, mode: 'default' }];
+    },
+    getAchievements: function(local) {
+      if (!local || !local.unlocked) return [];
+      var arr = [];
+      for (var id in local.unlocked) {
+        if (local.unlocked[id]) {
+          arr.push({ id: id, unlocked_at: local.unlocked[id] });
+        }
+      }
+      return arr;
+    }
+  });
+
+  // --- Auth state UI ---
+  var loginBtn = document.getElementById('login-btn');
+  GameVolt.auth.onStateChange(function(user) {
+    if (user) {
+      loginBtn.textContent = user.username || user.email || 'Player';
+      loginBtn.classList.add('logged-in');
+      loginBtn.onclick = null;
+    } else {
+      loginBtn.textContent = '🔑 LOG IN';
+      loginBtn.classList.remove('logged-in');
+      loginBtn.onclick = function() { GameVolt.auth.login(); };
+    }
+  });
+
+  // --- Patch endGame to submit score + postMessage ---
+  var _origEndGame = endGame;
+  endGame = function() {
+    _origEndGame();
+
+    // Submit score via SDK
+    if (window.GameVolt) {
+      GameVolt.leaderboard.submit(state.score, { mode: 'default' });
+    }
+
+    // postMessage
+    gvPost('game_over', {
+      score: state.score,
+      wave: state.waveIndex + 1,
+      absorbed: state.absorbed
+    });
+
+    // High score
+    if (state.score >= gwData.bestScore) {
+      gvPost('high_score', { score: state.score });
+    }
+  };
+
+  // --- Patch tryUnlock to sync via SDK + postMessage ---
+  var _origTryUnlock = tryUnlock;
+  tryUnlock = function(ach) {
+    var wasNew = _origTryUnlock(ach);
+    if (wasNew && window.GameVolt) {
+      GameVolt.achievements.unlock(ach.id);
+      gvPost('achievement', { id: ach.id, name: ach.name, tier: ach.tier });
+    }
+    return wasNew;
+  };
+
+  // --- Patch startGame to send game_start ---
+  var _origStartGame = startGame;
+  startGame = function() {
+    _origStartGame();
+    gvPost('game_start', {});
+  };
+
+  // --- Global leaderboard in scores tab ---
+  var _origRenderScores = renderScores;
+  renderScores = function() {
+    _origRenderScores();
+
+    if (!window.GameVolt) return;
+
+    var list = document.getElementById('scores-list');
+    var empty = document.getElementById('scores-empty');
+
+    // Add global leaderboard section
+    var globalDiv = document.createElement('div');
+    globalDiv.style.cssText = 'margin-top:20px;';
+    globalDiv.innerHTML = '<div style="font-family:Orbitron,monospace;font-size:12px;color:#7850ff;letter-spacing:3px;text-align:center;margin-bottom:10px;border-top:1px solid #7850ff33;padding-top:14px;">GLOBAL LEADERBOARD</div>' +
+      '<div id="global-scores-loading" style="text-align:center;color:#556;font-size:12px;letter-spacing:2px;">Loading...</div>' +
+      '<div id="global-scores-list"></div>';
+    list.parentNode.insertBefore(globalDiv, list.nextSibling);
+    empty.style.display = 'none';
+
+    GameVolt.leaderboard.get({ mode: 'default', limit: 10 }).then(function(rows) {
+      var loadingEl = document.getElementById('global-scores-loading');
+      var globalList = document.getElementById('global-scores-list');
+      if (!loadingEl || !globalList) return;
+
+      if (!rows || rows.length === 0) {
+        loadingEl.textContent = 'No scores yet';
+        return;
+      }
+      loadingEl.style.display = 'none';
+
+      var user = GameVolt.auth.getUser();
+      var userId = user ? user.id : null;
+
+      globalList.innerHTML = rows.map(function(r, i) {
+        var isMe = r.user_id === userId;
+        var highlight = isMe ? 'background:#7850ff15;' : '';
+        return '<div class="score-row" style="' + highlight + '">' +
+          '<div class="score-rank">#' + (r.rank || (i + 1)) + '</div>' +
+          '<div class="score-info"><div class="score-val">' + (r.score || 0).toLocaleString() + '</div>' +
+          '<div class="score-meta">' + (r.username || 'Player') + '</div></div></div>';
+      }).join('');
+
+      if (!user) {
+        globalList.innerHTML += '<div style="text-align:center;color:#7850ff88;font-size:11px;letter-spacing:2px;padding:12px 0;">Log in to appear on the leaderboard</div>';
+      }
+    }).catch(function() {
+      var loadingEl = document.getElementById('global-scores-loading');
+      if (loadingEl) loadingEl.textContent = 'Could not load';
+    });
+  };
+})();
+
+</script>
+</body>
+</html>

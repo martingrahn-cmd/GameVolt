@@ -282,7 +282,8 @@ INSERT INTO games (id, title, thumbnail_url) VALUES
   ('solitaire',  'Solitaire',   '/assets/thumbnails/solitaire.webp'),
   ('connect4',   'Connect 4',   '/assets/thumbnails/connect4.webp'),
   ('clickrush',  'ClickRush',   '/assets/thumbnails/clickrush.webp'),
-  ('axeluga',    'Axeluga',     '/assets/thumbnails/axeluga.webp')
+  ('axeluga',    'Axeluga',     '/assets/thumbnails/axeluga.webp'),
+  ('gravitywell','Gravity Well', '/assets/thumbnails/gravitywell.webp')
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
@@ -431,5 +432,40 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   ('blockstorm-sprint_2min',     'blockstorm', 'Sprint Legend',   'Complete Sprint under 2 min',         '⚡', 'gold', 29),
   ('blockstorm-t_spin_triple',   'blockstorm', 'T-Spin Master',   'Perform a T-spin triple',             '🌀', 'gold', 30),
   -- BlockStorm: Platinum (1)
-  ('blockstorm-block_master',    'blockstorm', 'Block Master',    'Unlock all 30 other trophies',        '👑', 'platinum', 31)
+  ('blockstorm-block_master',    'blockstorm', 'Block Master',    'Unlock all 30 other trophies',        '👑', 'platinum', 31),
+  -- Gravity Well: Bronze (15)
+  ('gravitywell-first_void',     'gravitywell', 'First Void',      'Play your first game',                '🕳️', 'bronze', 1),
+  ('gravitywell-hungry',         'gravitywell', 'Hungry',          'Absorb 10 particles in one game',     '😋', 'bronze', 2),
+  ('gravitywell-mass_up',        'gravitywell', 'Mass Up',         'Reach 1,000 mass',                    '⚫', 'bronze', 3),
+  ('gravitywell-score_500',      'gravitywell', 'Star Dust',       'Score 500 points',                    '✨', 'bronze', 4),
+  ('gravitywell-dark_energy',    'gravitywell', 'Dark Energy',     'Reach Wave 2',                        '🌀', 'bronze', 5),
+  ('gravitywell-golden_touch',   'gravitywell', 'Golden Touch',    'Absorb a golden orb',                 '⭐', 'bronze', 6),
+  ('gravitywell-nova_catch',     'gravitywell', 'Nova Catch',      'Absorb a supernova',                  '💫', 'bronze', 7),
+  ('gravitywell-tough_void',     'gravitywell', 'Tough Void',      'Survive a hit',                       '💪', 'bronze', 8),
+  ('gravitywell-regular',        'gravitywell', 'Regular',         'Play 10 games',                       '🔄', 'bronze', 9),
+  ('gravitywell-glutton',        'gravitywell', 'Glutton',         'Absorb 50 particles in one game',     '🌑', 'bronze', 10),
+  ('gravitywell-score_2k',       'gravitywell', 'Cosmic Dust',     'Score 2,000 points',                  '🌌', 'bronze', 11),
+  ('gravitywell-neutron',        'gravitywell', 'Neutron Burst',   'Reach Wave 3',                        '⚡', 'bronze', 12),
+  ('gravitywell-gold_rush',      'gravitywell', 'Gold Rush',       'Absorb 5 golden orbs in one game',    '🏆', 'bronze', 13),
+  ('gravitywell-heavy',          'gravitywell', 'Heavy',           'Reach 2,000 mass',                    '🪨', 'bronze', 14),
+  ('gravitywell-dedicated',      'gravitywell', 'Dedicated',       'Play 25 games',                       '🎯', 'bronze', 15),
+  -- Gravity Well: Silver (10)
+  ('gravitywell-maelstrom',      'gravitywell', 'Maelstrom',       'Reach Wave 4',                        '🌪️', 'silver', 16),
+  ('gravitywell-score_5k',       'gravitywell', 'Star Collector',  'Score 5,000 points',                  '🌟', 'silver', 17),
+  ('gravitywell-absorb_100',     'gravitywell', 'Mass Eater',      'Absorb 100 particles in one game',    '🕳️', 'silver', 18),
+  ('gravitywell-veteran',        'gravitywell', 'Veteran',         'Play 50 games',                       '🎖️', 'silver', 19),
+  ('gravitywell-score_10k',      'gravitywell', 'Nebula',          'Score 10,000 points',                 '🌈', 'silver', 20),
+  ('gravitywell-nova_3',         'gravitywell', 'Nova Hunter',     'Absorb 3 supernovas in one game',     '💥', 'silver', 21),
+  ('gravitywell-max_mass',       'gravitywell', 'Critical Mass',   'Reach maximum mass (4,500)',           '🔮', 'silver', 22),
+  ('gravitywell-horizon',        'gravitywell', 'Event Horizon',   'Reach Wave 5',                        '🌊', 'silver', 23),
+  ('gravitywell-addict',         'gravitywell', 'Addicted',        'Play 100 games',                      '🎮', 'silver', 24),
+  ('gravitywell-score_15k',      'gravitywell', 'Galaxy',          'Score 15,000 points',                 '🌠', 'silver', 25),
+  -- Gravity Well: Gold (5)
+  ('gravitywell-score_25k',      'gravitywell', 'Quasar',          'Score 25,000 points',                 '☀️', 'gold', 26),
+  ('gravitywell-absorb_200',     'gravitywell', 'Devourer',        'Absorb 200 particles in one game',    '👾', 'gold', 27),
+  ('gravitywell-score_50k',      'gravitywell', 'Supermassive',    'Score 40,000 points',                 '🏅', 'gold', 28),
+  ('gravitywell-obsessed',       'gravitywell', 'Obsessed',        'Play 150 games',                      '💎', 'gold', 29),
+  ('gravitywell-perfect_waves',  'gravitywell', 'Untouched',       'Reach Wave 3 without taking damage',  '👻', 'gold', 30),
+  -- Gravity Well: Platinum (1)
+  ('gravitywell-gravity_master', 'gravitywell', 'Gravity Master',  'Unlock all 30 other trophies',        '👑', 'platinum', 31)
 ON CONFLICT (id) DO NOTHING;

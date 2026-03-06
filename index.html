@@ -142,6 +142,15 @@
                 "url": "https://gamevolt.io/hoverdash/",
                 "genre": ["Arcade", "Runner", "Action"],
                 "gamePlatform": "Web Browser"
+            },
+            {
+                "@type": "VideoGame",
+                "position": 9,
+                "name": "Gravity Well",
+                "description": "Control a black hole and consume cosmic particles across 5 waves",
+                "url": "https://gamevolt.io/gravitywell/",
+                "genre": ["Arcade", "Space"],
+                "gamePlatform": "Web Browser"
             }
         ]
     }
@@ -875,6 +884,8 @@
         .game-card:nth-child(5) { animation-delay: 0.25s; }
         .game-card:nth-child(6) { animation-delay: 0.3s; }
         .game-card:nth-child(7) { animation-delay: 0.35s; }
+        .game-card:nth-child(8) { animation-delay: 0.4s; }
+        .game-card:nth-child(9) { animation-delay: 0.45s; }
 
         /* Continue Playing section */
         .continue-section {
@@ -951,20 +962,12 @@
         }
 
         .powered-grid {
-            display: flex;
-            gap: 20px;
-            overflow-x: auto;
-            padding-bottom: 8px;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(124,92,252,0.2) transparent;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
         }
-        .powered-grid::-webkit-scrollbar { height: 4px; }
-        .powered-grid::-webkit-scrollbar-track { background: transparent; }
-        .powered-grid::-webkit-scrollbar-thumb { background: rgba(124,92,252,0.2); border-radius: 2px; }
 
         .powered-card {
-            flex-shrink: 0;
-            width: 260px;
             background: var(--bg-card);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-lg);
@@ -1038,8 +1041,8 @@
             .continue-card {
                 width: 180px;
             }
-            .powered-card {
-                width: 220px;
+            .powered-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -1143,7 +1146,7 @@
             <p>Play classic and arcade games right in your browser. No downloads, no signups – just pure gaming enjoyment.</p>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="stat-number">8</span>
+                    <span class="stat-number">9</span>
                     <span class="stat-label">Games Available</span>
                 </div>
                 <div class="stat">
@@ -1213,6 +1216,18 @@
                     <span class="powered-bolt">⚡</span>
                     <div class="powered-info">
                         <div class="powered-name">Connect 4</div>
+                        <div class="powered-features">
+                            <span class="powered-feat cloud">Cloud Save</span>
+                            <span class="powered-feat board">Leaderboard</span>
+                            <span class="powered-feat trophy">31 Trophies</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/play/?game=gravitywell" class="powered-card">
+                    <img src="/assets/thumbnails/gravitywell.webp" alt="Gravity Well">
+                    <span class="powered-bolt">⚡</span>
+                    <div class="powered-info">
+                        <div class="powered-name">Gravity Well</div>
                         <div class="powered-features">
                             <span class="powered-feat cloud">Cloud Save</span>
                             <span class="powered-feat board">Leaderboard</span>
@@ -1366,6 +1381,24 @@
                     <span class="play-btn">▶ Play Now</span>
                 </div>
             </a>
+
+            <!-- Gravity Well -->
+            <a href="/play/?game=gravitywell" class="game-card">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/gravitywell.webp" alt="Gravity Well" loading="lazy">
+                    <span class="game-badge new">NEW</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Gravity Well</h3>
+                    <p class="game-description">Control a black hole and consume cosmic particles. Absorb energy, avoid antimatter, survive 5 waves!</p>
+                    <div class="game-tags">
+                        <span class="tag">Arcade</span>
+                        <span class="tag">Space</span>
+                        <span class="tag">Trophies</span>
+                    </div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
         </div>
         
         <section class="features-section">
@@ -1416,6 +1449,7 @@
                         <a href="/play/?game=blockstorm">BlockStorm</a>
                         <a href="/play/?game=connect4">Connect 4</a>
                         <a href="/play/?game=axeluga">Axeluga</a>
+                        <a href="/play/?game=gravitywell">Gravity Well</a>
                     </div>
                     <div class="footer-column">
                         <h4>Categories</h4>
@@ -1492,7 +1526,8 @@
             connect4:  { name: "Connect 4",  thumb: "/assets/thumbnails/connect4-thumbnail.webp" },
             blockstorm:{ name: "BlockStorm", thumb: "/assets/thumbnails/blockstorm.webp" },
             hoverdash: { name: "HoverDash",  thumb: "/hoverdash/og-image.png" },
-            axeluga:   { name: "Axeluga",    thumb: "/assets/thumbnails/axeluga.webp" }
+            axeluga:   { name: "Axeluga",    thumb: "/assets/thumbnails/axeluga.webp" },
+            gravitywell:{ name: "Gravity Well", thumb: "/assets/thumbnails/gravitywell.webp" }
         };
 
         var recent = GVTracker.getRecentlyPlayed(4);
