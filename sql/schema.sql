@@ -272,6 +272,83 @@ RETURNS TABLE(
 $$ LANGUAGE sql STABLE;
 
 -- ============================================================
+-- Recent activity feed: latest scores + achievements across all games
+-- ============================================================
+CREATE OR REPLACE FUNCTION get_recent_activity(p_limit INT DEFAULT 20)
+RETURNS TABLE(
+  activity_type TEXT,
+  user_id UUID,
+  username TEXT,
+  avatar_url TEXT,
+  game_id TEXT,
+  game_title TEXT,
+  detail TEXT,
+  created_at TIMESTAMPTZ
+) AS $$
+  (
+    SELECT
+      'score'::TEXT AS activity_type,
+      s.user_id, p.username, p.avatar_url,
+      s.game_id, g.title AS game_title,
+      s.score::TEXT AS detail,
+      s.created_at
+    FROM scores s
+    JOIN profiles p ON p.id = s.user_id
+    JOIN games g ON g.id = s.game_id
+    ORDER BY s.created_at DESC
+    LIMIT p_limit
+  )
+  UNION ALL
+  (
+    SELECT
+      'achievement'::TEXT AS activity_type,
+      ua.user_id, p.username, p.avatar_url,
+      ad.game_id, g.title AS game_title,
+      ad.title AS detail,
+      ua.unlocked_at AS created_at
+    FROM user_achievements ua
+    JOIN profiles p ON p.id = ua.user_id
+    LEFT JOIN achievement_defs ad ON ad.id = ua.achievement_id
+    LEFT JOIN games g ON g.id = ad.game_id
+    ORDER BY ua.unlocked_at DESC
+    LIMIT p_limit
+  )
+  ORDER BY created_at DESC
+  LIMIT p_limit;
+$$ LANGUAGE sql STABLE;
+
+-- ============================================================
+-- Top scores per game (for homepage mini-leaderboards)
+-- ============================================================
+CREATE OR REPLACE FUNCTION get_top_scores_all_games(p_limit INT DEFAULT 3)
+RETURNS TABLE(
+  game_id TEXT,
+  user_id UUID,
+  username TEXT,
+  score INT,
+  rank BIGINT
+) AS $$
+  SELECT sub.game_id, sub.user_id, sub.username, sub.score, sub.rank
+  FROM (
+    SELECT
+      s.game_id,
+      s.user_id,
+      p.username,
+      s.score,
+      ROW_NUMBER() OVER (PARTITION BY s.game_id ORDER BY s.score DESC) AS rank
+    FROM (
+      SELECT DISTINCT ON (game_id, user_id) game_id, user_id, score
+      FROM scores
+      WHERE mode = 'default'
+      ORDER BY game_id, user_id, score DESC
+    ) s
+    JOIN profiles p ON p.id = s.user_id
+  ) sub
+  WHERE sub.rank <= p_limit
+  ORDER BY sub.game_id, sub.rank;
+$$ LANGUAGE sql STABLE;
+
+-- ============================================================
 -- Seed: games registry
 -- ============================================================
 INSERT INTO games (id, title, thumbnail_url) VALUES

@@ -291,6 +291,81 @@
       color: var(--text-muted);
     }
 
+    /* ── Sidebar Leaderboard ── */
+    .gv-sidebar-section {
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .gv-lb-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 4px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+    }
+    .gv-lb-row.you {
+      background: rgba(124, 92, 252, 0.1);
+      border: 1px solid rgba(124, 92, 252, 0.2);
+    }
+
+    .gv-lb-rank {
+      width: 20px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    .gv-lb-rank.gold { color: #ffc107; }
+    .gv-lb-rank.silver { color: #b0b8c8; }
+    .gv-lb-rank.bronze { color: #cd7f32; }
+
+    .gv-lb-name {
+      flex: 1;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gv-lb-score {
+      font-weight: 700;
+      color: #06d6a0;
+      font-variant-numeric: tabular-nums;
+      font-size: 0.8rem;
+    }
+
+    .gv-lb-divider {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      padding: 2px 0;
+      letter-spacing: 2px;
+    }
+
+    .gv-lb-empty {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    .gv-lb-link {
+      display: block;
+      text-align: center;
+      margin-top: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #a78bfa;
+      text-decoration: none;
+      padding: 6px;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .gv-lb-link:hover { background: rgba(124, 92, 252, 0.1); }
+
     /* ── Mobile ── */
     @media (max-width: 768px) {
       :root {
@@ -537,6 +612,11 @@
 
     <!-- Sidebar -->
     <aside class="gv-sidebar" id="sidebar">
+      <div class="gv-sidebar-section" id="sidebarLbSection" style="display:none">
+        <div class="gv-sidebar-title">Leaderboard</div>
+        <div id="sidebarLbList"></div>
+        <a href="/leaderboards/" class="gv-lb-link" id="sidebarLbLink">Full Leaderboard →</a>
+      </div>
       <div class="gv-sidebar-title">More Games</div>
       <div class="gv-sidebar-grid" id="sidebarGrid"></div>
     </aside>
@@ -740,6 +820,7 @@
     }
 
     // GameVolt SDK: init + auth state
+    var gvCurrentUserId = null;
     if (window.GameVolt) {
       GameVolt.init('player');
       GameVolt.auth.onStateChange(function(user) {
@@ -751,13 +832,104 @@
           usernameEl.style.display = '';
           usernameEl.textContent = user.username || user.email || 'Player';
           if (profileLink) profileLink.style.display = '';
+          gvCurrentUserId = user.id;
         } else {
           loginBtn.style.display = '';
           usernameEl.style.display = 'none';
           if (profileLink) profileLink.style.display = 'none';
+          gvCurrentUserId = null;
         }
       });
     }
+
+    // ── Sidebar Leaderboard ──
+    var SB_URL = 'https://nwkjayseuhvvpkdgpivm.supabase.co';
+    var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a2pheXNldWh2dnBrZGdwaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzQxMzYsImV4cCI6MjA4Nzk1MDEzNn0.lGCRdYlgxWJlzM6_XpML3f8AKUJG3tLmzNRLTPR0TnU';
+
+    var lastLbGame = null;
+
+    function loadSidebarLeaderboard(gameId) {
+      if (!gameId || gameId === lastLbGame) return;
+      lastLbGame = gameId;
+
+      var section = document.getElementById('sidebarLbSection');
+      var list = document.getElementById('sidebarLbList');
+
+      fetch(SB_URL + '/rest/v1/rpc/get_leaderboard', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer ' + SB_KEY
+        },
+        body: JSON.stringify({ p_game_id: gameId, p_mode: 'default', p_limit: 5 })
+      })
+      .then(function(r) { return r.ok ? r.json() : []; })
+      .then(function(rows) {
+        if (!rows || !rows.length) {
+          section.style.display = 'none';
+          return;
+        }
+
+        section.style.display = '';
+        var userInTop = false;
+        var html = rows.map(function(r) {
+          var isYou = gvCurrentUserId && r.user_id === gvCurrentUserId;
+          if (isYou) userInTop = true;
+          var rankClass = r.rank === 1 ? 'gold' : r.rank === 2 ? 'silver' : r.rank === 3 ? 'bronze' : '';
+          var name = r.username || 'Player';
+          return '<div class="gv-lb-row' + (isYou ? ' you' : '') + '">' +
+            '<span class="gv-lb-rank ' + rankClass + '">#' + r.rank + '</span>' +
+            '<span class="gv-lb-name">' + escHtml(name) + (isYou ? ' (you)' : '') + '</span>' +
+            '<span class="gv-lb-score">' + Number(r.score).toLocaleString() + '</span>' +
+          '</div>';
+        }).join('');
+
+        // If logged in user not in top 5, fetch their rank
+        if (gvCurrentUserId && !userInTop) {
+          fetch(SB_URL + '/rest/v1/rpc/get_leaderboard', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SB_KEY,
+              'Authorization': 'Bearer ' + SB_KEY
+            },
+            body: JSON.stringify({ p_game_id: gameId, p_mode: 'default', p_limit: 100 })
+          })
+          .then(function(r) { return r.ok ? r.json() : []; })
+          .then(function(all) {
+            var me = all.find(function(r) { return r.user_id === gvCurrentUserId; });
+            if (me) {
+              html += '<div class="gv-lb-divider">···</div>';
+              html += '<div class="gv-lb-row you">' +
+                '<span class="gv-lb-rank">#' + me.rank + '</span>' +
+                '<span class="gv-lb-name">' + escHtml(me.username || 'Player') + ' (you)</span>' +
+                '<span class="gv-lb-score">' + Number(me.score).toLocaleString() + '</span>' +
+              '</div>';
+            }
+            list.innerHTML = html;
+          });
+        } else {
+          list.innerHTML = html;
+        }
+      });
+    }
+
+    function escHtml(s) {
+      var d = document.createElement('div');
+      d.textContent = s || '';
+      return d.innerHTML;
+    }
+
+    // Hook into loadGame to refresh leaderboard
+    var _origLoadGame = loadGame;
+    loadGame = function(key) {
+      _origLoadGame(key);
+      loadSidebarLeaderboard(key);
+    };
+
+    // Load for initial game
+    if (currentGame) loadSidebarLeaderboard(currentGame);
   </script>
 </body>
 </html>
