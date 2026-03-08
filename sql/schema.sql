@@ -360,7 +360,8 @@ INSERT INTO games (id, title, thumbnail_url) VALUES
   ('connect4',   'Connect 4',   '/assets/thumbnails/connect4.webp'),
   ('clickrush',  'ClickRush',   '/assets/thumbnails/clickrush.webp'),
   ('axeluga',    'Axeluga',     '/assets/thumbnails/axeluga.webp'),
-  ('gravitywell','Gravity Well', '/assets/thumbnails/gravitywell.webp')
+  ('gravitywell','Gravity Well', '/assets/thumbnails/gravitywell.webp'),
+  ('sudoku',     'Sudoku',      '/assets/thumbnails/sudoku.webp')
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
@@ -544,5 +545,41 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   ('gravitywell-obsessed',       'gravitywell', 'Obsessed',        'Play 150 games',                      '💎', 'gold', 29),
   ('gravitywell-perfect_waves',  'gravitywell', 'Untouched',       'Reach Wave 3 without taking damage',  '👻', 'gold', 30),
   -- Gravity Well: Platinum (1)
-  ('gravitywell-gravity_master', 'gravitywell', 'Gravity Master',  'Unlock all 30 other trophies',        '👑', 'platinum', 31)
+  ('gravitywell-gravity_master', 'gravitywell', 'Gravity Master',  'Unlock all 30 other trophies',        '👑', 'platinum', 31),
+
+  -- Sudoku: Bronze (15)
+  ('sudoku-first_win',        'sudoku', 'First Win',        'Complete your first puzzle',              '🌟', 'bronze', 1),
+  ('sudoku-easy_5',           'sudoku', 'Easy Does It',     'Complete 5 Easy puzzles',                '🔢', 'bronze', 2),
+  ('sudoku-medium_first',     'sudoku', 'Stepping Up',      'Complete a Medium puzzle',               '📈', 'bronze', 3),
+  ('sudoku-hard_first',       'sudoku', 'Brave Soul',       'Complete a Hard puzzle',                 '💪', 'bronze', 4),
+  ('sudoku-no_notes',         'sudoku', 'Pure Logic',       'Win without using pencil notes',         '🧠', 'bronze', 5),
+  ('sudoku-speed_10',         'sudoku', 'Under 10',         'Complete Easy in under 10 minutes',      '⏱️', 'bronze', 6),
+  ('sudoku-play_10',          'sudoku', 'Regular',          'Complete 10 puzzles',                    '🎮', 'bronze', 7),
+  ('sudoku-flawless_easy',    'sudoku', 'Flawless Easy',    'Complete Easy with zero mistakes',       '💎', 'bronze', 8),
+  ('sudoku-streak_3',         'sudoku', 'Hat Trick',        'Win 3 games in a row',                   '🎩', 'bronze', 9),
+  ('sudoku-one_mistake',      'sudoku', 'Close Call',       'Win with exactly 1 mistake',             '😅', 'bronze', 10),
+  ('sudoku-all_difficulties', 'sudoku', 'All Rounder',      'Complete each difficulty at least once',  '🎯', 'bronze', 11),
+  ('sudoku-easy_15',          'sudoku', 'Easy Street',      'Complete 15 Easy puzzles',               '🛤️', 'bronze', 12),
+  ('sudoku-note_taker',       'sudoku', 'Note Taker',       'Use pencil notes in 10 games',           '✏️', 'bronze', 13),
+  ('sudoku-speed_5_easy',     'sudoku', 'Speed Demon',      'Complete Easy in under 5 minutes',       '⚡', 'bronze', 14),
+  ('sudoku-total_25',         'sudoku', 'Puzzle Fan',       'Complete 25 puzzles',                    '🧩', 'bronze', 15),
+  -- Sudoku: Silver (10)
+  ('sudoku-medium_10',        'sudoku', 'Medium Master',    'Complete 10 Medium puzzles',             '🏅', 'silver', 16),
+  ('sudoku-hard_5',           'sudoku', 'Hard Hitter',      'Complete 5 Hard puzzles',                '🔥', 'silver', 17),
+  ('sudoku-flawless_medium',  'sudoku', 'Flawless Medium',  'Complete Medium with zero mistakes',     '💎', 'silver', 18),
+  ('sudoku-total_50',         'sudoku', 'Dedicated',        'Complete 50 puzzles',                    '⭐', 'silver', 19),
+  ('sudoku-speed_15_med',     'sudoku', 'Quick Thinker',    'Complete Medium under 15 minutes',       '🚀', 'silver', 20),
+  ('sudoku-speed_30_hard',    'sudoku', 'Hard & Fast',      'Complete Hard under 30 minutes',         '💨', 'silver', 21),
+  ('sudoku-streak_5',         'sudoku', 'On Fire',          'Win 5 games in a row',                   '🔥', 'silver', 22),
+  ('sudoku-total_100',        'sudoku', 'Century',          'Complete 100 puzzles',                   '💯', 'silver', 23),
+  ('sudoku-hard_10',          'sudoku', 'Hardened',         'Complete 10 Hard puzzles',               '🗿', 'silver', 24),
+  ('sudoku-no_notes_medium',  'sudoku', 'Pure Medium',      'Win Medium without pencil notes',        '🧠', 'silver', 25),
+  -- Sudoku: Gold (5)
+  ('sudoku-flawless_hard',    'sudoku', 'Flawless Hard',    'Complete Hard with zero mistakes',       '👑', 'gold', 26),
+  ('sudoku-speed_10_hard',    'sudoku', 'Hard Sprint',      'Complete Hard under 10 minutes',         '⚡', 'gold', 27),
+  ('sudoku-total_200',        'sudoku', 'Puzzle Addict',    'Complete 200 puzzles',                   '🏆', 'gold', 28),
+  ('sudoku-streak_10',        'sudoku', 'Unstoppable',      'Win 10 games in a row',                  '🌟', 'gold', 29),
+  ('sudoku-speed_3_easy',     'sudoku', 'Lightning',        'Complete Easy under 3 minutes',          '⚡', 'gold', 30),
+  -- Sudoku: Platinum (1)
+  ('sudoku-sudoku_master',    'sudoku', 'Sudoku Master',    'Unlock all 30 other trophies',           '👑', 'platinum', 31)
 ON CONFLICT (id) DO NOTHING;

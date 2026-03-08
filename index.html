@@ -567,7 +567,7 @@
             object-fit: cover;
             opacity: 0;
             transition: opacity 0.3s ease;
-            z-index: 1;
+            z-index: 2;
             pointer-events: none;
         }
 
@@ -938,10 +938,31 @@
             box-shadow: var(--shadow-card-hover);
         }
 
+        .continue-card .continue-thumb {
+            position: relative;
+            overflow: hidden;
+        }
+
         .continue-card img {
             width: 100%;
             aspect-ratio: 16/9;
             object-fit: cover;
+            display: block;
+        }
+
+        .continue-card .preview-video {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .continue-card:hover .preview-video.playing {
+            opacity: 1;
         }
 
         .continue-info {
@@ -1020,6 +1041,7 @@
             object-fit: cover;
             opacity: 0;
             transition: opacity 0.3s ease;
+            z-index: 2;
             pointer-events: none;
         }
 
@@ -1364,7 +1386,7 @@
             <p>Play classic and arcade games right in your browser. No downloads, no signups – just pure gaming enjoyment.</p>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="stat-number">9</span>
+                    <span class="stat-number">10</span>
                     <span class="stat-label">Games Available</span>
                 </div>
                 <div class="stat">
@@ -1491,6 +1513,18 @@
                         <div class="powered-features">
                             <span class="powered-feat cloud">Cloud Save</span>
                             <span class="powered-feat board">Leaderboard</span>
+                            <span class="powered-feat trophy">31 Trophies</span>
+                        </div>
+                    </div>
+                </a>
+                <a href="/play/?game=sudoku" class="powered-card">
+                    <img src="/assets/thumbnails/sudoku.webp" alt="Sudoku">
+                    <span class="powered-bolt">⚡</span>
+                    <div class="powered-info">
+                        <div class="powered-name">Sudoku</div>
+                        <div class="powered-features">
+                            <span class="powered-feat" style="background:rgba(6,214,160,0.12);color:#06d6a0;border-color:rgba(6,214,160,0.15)">New</span>
+                            <span class="powered-feat cloud">Cloud Save</span>
                             <span class="powered-feat trophy">31 Trophies</span>
                         </div>
                     </div>
@@ -1678,8 +1712,26 @@
                     <span class="play-btn">▶ Play Now</span>
                 </div>
             </a>
+            <!-- Sudoku -->
+            <a href="/play/?game=sudoku" class="game-card">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/sudoku.webp" alt="Sudoku Puzzle" loading="lazy">
+                    <span class="game-badge new">NEW</span>
+                    <span class="game-bolt">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Sudoku</h3>
+                    <p class="game-description">Classic number puzzle with three difficulty levels. Pencil marks, undo, and auto-save!</p>
+                    <div class="game-tags">
+                        <span class="tag">Puzzle</span>
+                        <span class="tag">Brain</span>
+                        <span class="tag">Classic</span>
+                    </div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
         </div>
-        
+
         <section class="features-section">
             <h2 class="section-title">Why GameVolt?</h2>
             <div class="features-grid">
@@ -1776,22 +1828,27 @@
     </script>
     <script>
     // Hover video preview on game cards
-    document.querySelectorAll('[data-preview]').forEach(card => {
-        const video = card.querySelector('.preview-video');
-        const src = card.dataset.preview;
-        if (!video || !src) return;
+    function initVideoPreview(container) {
+        (container || document).querySelectorAll('[data-preview]').forEach(function(card) {
+            if (card._previewBound) return;
+            card._previewBound = true;
+            var video = card.querySelector('.preview-video');
+            var src = card.dataset.preview;
+            if (!video || !src) return;
 
-        card.addEventListener('mouseenter', () => {
-            if (!video.src) video.src = src;
-            video.play().then(() => video.classList.add('playing')).catch(() => {});
-        });
+            card.addEventListener('mouseenter', function() {
+                if (!video.src) video.src = src;
+                video.play().then(function() { video.classList.add('playing'); }).catch(function() {});
+            });
 
-        card.addEventListener('mouseleave', () => {
-            video.classList.remove('playing');
-            video.pause();
-            video.currentTime = 0;
+            card.addEventListener('mouseleave', function() {
+                video.classList.remove('playing');
+                video.pause();
+                video.currentTime = 0;
+            });
         });
-    });
+    }
+    initVideoPreview();
 
     // Continue Playing section
     (function() {
@@ -1799,14 +1856,15 @@
 
         var GAME_META = {
             snake:     { name: "Snake Neo",  thumb: "/assets/thumbnails/snake.webp" },
-            breakout:  { name: "Breakout",   thumb: "/assets/thumbnails/breakout.webp" },
+            breakout:  { name: "Breakout",   thumb: "/assets/thumbnails/breakout.webp", preview: "/breakout/preview.mp4" },
             taprush:   { name: "Tap Rush",   thumb: "/assets/thumbnails/taprush.webp" },
             solitaire: { name: "Solitaire",  thumb: "/assets/thumbnails/solitaire.webp" },
             connect4:  { name: "Connect 4",  thumb: "/assets/thumbnails/connect4-thumbnail.webp" },
             blockstorm:{ name: "BlockStorm", thumb: "/assets/thumbnails/blockstorm.webp" },
-            hoverdash: { name: "HoverDash",  thumb: "/hoverdash/og-image.png" },
+            hoverdash: { name: "HoverDash",  thumb: "/hoverdash/og-image.png", preview: "/hoverdash/preview.mp4" },
             axeluga:   { name: "Axeluga",    thumb: "/assets/thumbnails/axeluga.webp" },
-            gravitywell:{ name: "Gravity Well", thumb: "/assets/thumbnails/gravitywell.webp" }
+            gravitywell:{ name: "Gravity Well", thumb: "/assets/thumbnails/gravitywell.webp" },
+            sudoku:    { name: "Sudoku",      thumb: "/assets/thumbnails/sudoku.webp" }
         };
 
         var recent = GVTracker.getRecentlyPlayed(4);
@@ -1821,14 +1879,22 @@
             if (!meta) return '';
             var timeAgo = GVTracker.formatTimeAgo(game.lastPlayed);
             var playTime = GVTracker.formatPlayTime(game.totalPlayTimeMs);
-            return '<a href="/play/?game=' + game.id + '" class="continue-card">' +
-                '<img src="' + meta.thumb + '" alt="' + meta.name + '" loading="lazy">' +
+            var previewAttr = meta.preview ? ' data-preview="' + meta.preview + '"' : '';
+            var videoEl = meta.preview ? '<video class="preview-video" muted loop playsinline preload="none"></video>' : '';
+            return '<a href="/play/?game=' + game.id + '" class="continue-card"' + previewAttr + '>' +
+                '<div class="continue-thumb">' +
+                    '<img src="' + meta.thumb + '" alt="' + meta.name + '" loading="lazy">' +
+                    videoEl +
+                '</div>' +
                 '<div class="continue-info">' +
                     '<div class="continue-name">' + meta.name + '</div>' +
                     '<div class="continue-meta">' + timeAgo + ' &middot; ' + playTime + ' played</div>' +
                 '</div>' +
             '</a>';
         }).join('');
+
+        // Bind video hover on dynamically created continue-cards
+        if (window.initVideoPreview) initVideoPreview(grid);
 
         // Add "Last played" indicator to game cards (before the play button)
         document.querySelectorAll('.game-card').forEach(function(card) {

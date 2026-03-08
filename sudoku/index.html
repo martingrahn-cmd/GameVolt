@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Sudoku – Free Online Puzzle | GameVolt</title>
+  <meta name="description" content="Play Sudoku online for free. Three difficulty levels, pencil marks, undo, trophies, and global leaderboards. No download needed.">
+  <link rel="canonical" href="https://gamevolt.io/sudoku/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Sudoku – Free Online Puzzle | GameVolt">
+  <meta property="og:description" content="Classic Sudoku with three difficulty levels. Earn trophies, climb global leaderboards. Play free!">
+  <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/sudoku.webp">
+  <meta property="og:url" content="https://gamevolt.io/sudoku/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Sudoku – Free Online Puzzle | GameVolt">
+  <meta name="twitter:description" content="Classic Sudoku with three difficulty levels. Earn trophies, climb global leaderboards.">
+  <meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/sudoku.webp">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #7c5cfc;
+      --primary-light: #a78bfa;
+      --primary-dark: #6341e0;
+      --accent: #06d6a0;
+      --accent-blue: #38bdf8;
+      --teal: #14b8a6;
+      --teal-glow: rgba(124, 92, 252, 0.25);
+      --bg: #0f1221;
+      --bg-surface: #181c30;
+      --bg-cell: #1a2340;
+      --bg-cell-hover: #232e54;
+      --bg-cell-selected: rgba(124, 92, 252, 0.2);
+      --bg-cell-highlight: rgba(124, 92, 252, 0.07);
+      --bg-cell-same: rgba(124, 92, 252, 0.14);
+      --bg-cell-error: rgba(239, 68, 68, 0.18);
+      --text: #f0f0ff;
+      --text-dim: #a0a4c0;
+      --text-muted: #626580;
+      --given: #f0f0ff;
+      --placed: #a78bfa;
+      --error: #f87171;
+      --pencil: #7a8ba8;
+      --border-box: rgba(124, 92, 252, 0.4);
+      --border-cell: rgba(100, 120, 160, 0.15);
+      --border-subtle: rgba(124, 92, 252, 0.15);
+      --radius: 12px;
+      --cell-size: min(10.5vw, 52px);
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #7c5cfc, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 2px;
+    }
+    .header-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+
+    /* ── Login button ── */
+    #login-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 6px 14px;
+      background: linear-gradient(135deg, #6C5CE7, #00B4D8);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.75rem;
+      cursor: pointer;
+      letter-spacing: 1px;
+      font-family: 'Nunito', sans-serif;
+      z-index: 50;
+      transition: opacity 0.3s;
+    }
+    #login-btn:hover { opacity: 0.9; }
+    #login-btn.hidden { display: none; }
+
+    /* ── Top bar ── */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: calc(var(--cell-size) * 9 + 8px);
+      max-width: 90vw;
+      margin-bottom: 8px;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+    }
+    .difficulty-label {
+      font-weight: 700;
+      color: var(--primary-light);
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+    }
+    .timer { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .mistakes { font-weight: 600; }
+    .mistakes .count { color: var(--error); }
+
+    /* ── Grid ── */
+    .grid-wrapper {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 0 40px var(--teal-glow), 0 8px 32px rgba(0,0,0,0.5);
+      border: 2px solid var(--border-box);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(9, var(--cell-size));
+      grid-template-rows: repeat(9, var(--cell-size));
+      background: var(--border-cell);
+      gap: 1px;
+    }
+
+    .cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-cell);
+      font-size: calc(var(--cell-size) * 0.48);
+      font-weight: 700;
+      cursor: pointer;
+      position: relative;
+      transition: background 0.12s;
+    }
+    .cell:hover { background: var(--bg-cell-hover); }
+    .cell.given { color: var(--given); }
+    .cell.placed { color: var(--placed); }
+    .cell.selected {
+      background: var(--bg-cell-selected);
+      box-shadow: inset 0 0 0 2px var(--primary-light);
+      z-index: 2;
+    }
+    .cell.highlighted { background: var(--bg-cell-highlight); }
+    .cell.same-number { background: var(--bg-cell-same); }
+    .cell.error { background: var(--bg-cell-error); color: var(--error); animation: shake 0.3s; }
+    .cell.completed-flash { animation: cellFlash 0.5s ease-out; }
+
+    .cell.box-right { border-right: 2px solid var(--border-box); }
+    .cell.box-bottom { border-bottom: 2px solid var(--border-box); }
+
+    .cell .pencil-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      width: 100%; height: 100%;
+      position: absolute; inset: 0; padding: 2px;
+    }
+    .cell .pencil-grid span {
+      display: flex; align-items: center; justify-content: center;
+      font-size: calc(var(--cell-size) * 0.22);
+      font-weight: 600; color: var(--pencil); line-height: 1;
+    }
+
+    /* ── Number pad ── */
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 5px;
+      width: calc(var(--cell-size) * 9 + 8px);
+      max-width: 90vw;
+      margin-top: 12px;
+    }
+    .numpad button {
+      aspect-ratio: 1; max-height: 52px;
+      border: 1px solid var(--border-cell);
+      border-radius: 8px;
+      background: var(--bg-surface);
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.2rem; font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .numpad button:hover { background: var(--primary-dark); border-color: var(--primary); }
+    .numpad button:active { transform: scale(0.93); }
+    .numpad button.completed-num { opacity: 0.25; pointer-events: none; }
+
+    /* ── Action buttons ── */
+    .actions {
+      display: flex; gap: 8px; margin-top: 10px;
+      flex-wrap: wrap; justify-content: center;
+    }
+    .actions button {
+      display: flex; align-items: center; gap: 5px;
+      padding: 8px 14px;
+      border: 1px solid var(--border-cell);
+      border-radius: 8px;
+      background: var(--bg-surface);
+      color: var(--text-dim);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.8rem; font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .actions button:hover { background: var(--bg-cell-hover); color: var(--text); border-color: var(--border-subtle); }
+    .actions button.active { background: var(--primary-dark); color: #fff; border-color: var(--primary); }
+    .actions button .icon { font-size: 1rem; }
+
+    /* ── Overlays / Modals ── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(8, 12, 24, 0.92);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .overlay.hidden { display: none; }
+
+    .modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 32px 28px;
+      text-align: center;
+      max-width: 380px;
+      width: 90vw;
+      box-shadow: 0 0 60px var(--teal-glow), 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .modal h2 {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.5rem; font-weight: 700;
+      background: linear-gradient(135deg, #7c5cfc, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+    }
+    .modal p { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 20px; }
+
+    .diff-buttons { display: flex; flex-direction: column; gap: 10px; }
+    .diff-btn {
+      padding: 14px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      background: var(--bg-cell);
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .diff-btn:hover {
+      background: var(--primary-dark);
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px var(--teal-glow);
+    }
+    .diff-btn .label { display: block; font-size: 1.05rem; }
+    .diff-btn .desc { display: block; font-size: 0.72rem; color: var(--text-dim); font-weight: 600; margin-top: 2px; }
+
+    /* Win modal stats */
+    .win-stats { display: flex; justify-content: center; gap: 24px; margin: 16px 0; }
+    .win-stat { text-align: center; }
+    .win-stat .val {
+      font-size: 1.5rem; font-weight: 800;
+      background: linear-gradient(135deg, #7c5cfc, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .win-stat .lbl { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* ── Trophy Toast ── */
+    .trophy-toast {
+      position: fixed;
+      top: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 200;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px var(--teal-glow);
+      transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
+      max-width: 90vw;
+    }
+    .trophy-toast.show { top: 16px; }
+    .trophy-toast .toast-icon { font-size: 1.5rem; }
+    .trophy-toast .toast-text { display: flex; flex-direction: column; }
+    .trophy-toast .toast-title {
+      font-weight: 800; font-size: 0.85rem;
+      background: linear-gradient(135deg, #7c5cfc, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .trophy-toast .toast-sub { font-size: 0.7rem; color: var(--text-dim); }
+
+    .toast-tier-bronze { border-color: #cd7f32; }
+    .toast-tier-silver { border-color: #b0b8c8; }
+    .toast-tier-gold { border-color: #ffc107; }
+    .toast-tier-platinum { border-color: #e5e4e2; box-shadow: 0 0 24px rgba(229,228,226,0.3), 0 8px 32px rgba(0,0,0,0.5); }
+
+    /* ── Trophy Grid (in win modal) ── */
+    .trophy-section { margin-top: 16px; text-align: left; }
+    .trophy-section-title {
+      font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+    }
+    .trophy-mini-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+    }
+    .trophy-mini {
+      width: 100%; aspect-ratio: 1;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      background: rgba(124, 92, 252, 0.08);
+      border: 1px solid var(--border-subtle);
+      position: relative;
+    }
+    .trophy-mini.locked { opacity: 0.3; filter: grayscale(1); }
+    .trophy-mini.bronze { border-color: rgba(205, 127, 50, 0.4); }
+    .trophy-mini.silver { border-color: rgba(176, 184, 200, 0.4); }
+    .trophy-mini.gold { border-color: rgba(255, 193, 7, 0.4); }
+    .trophy-mini.platinum { border-color: rgba(229, 228, 226, 0.5); background: rgba(229, 228, 226, 0.08); }
+
+    /* ── Animations ── */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    @keyframes cellFlash {
+      0% { background: var(--primary-light); }
+      100% { background: var(--bg-cell); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 420px) {
+      :root { --cell-size: 10.2vw; }
+      .header h1 { font-size: 1.3rem; }
+      .top-bar { font-size: 0.78rem; }
+      .numpad button { font-size: 1.05rem; }
+      .actions button { padding: 7px 10px; font-size: 0.73rem; }
+    }
+
+    @media (max-height: 650px) {
+      .header { margin-bottom: 4px; }
+      .header h1 { font-size: 1.1rem; }
+      .top-bar { margin-bottom: 4px; }
+      .numpad { margin-top: 6px; gap: 3px; }
+      .actions { margin-top: 6px; gap: 5px; }
+      .actions button { padding: 5px 9px; }
+    }
+
+    @media (min-width: 500px) { :root { --cell-size: 52px; } }
+
+    @media (max-height: 500px) and (orientation: landscape) {
+      body { flex-direction: row; gap: 16px; justify-content: center; overflow-y: auto; }
+      .game-left { display: flex; flex-direction: column; align-items: center; }
+      .game-right { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+      :root { --cell-size: min(8vh, 42px); }
+      .numpad { grid-template-columns: repeat(3, 1fr); width: 140px; max-width: none; }
+      .numpad button { max-height: 42px; }
+      .actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login button -->
+  <button id="login-btn" class="hidden" onclick="if(window.GameVolt)GameVolt.auth.login()">LOG IN</button>
+
+  <!-- Trophy Toast -->
+  <div class="trophy-toast" id="trophyToast">
+    <span class="toast-icon" id="toastIcon"></span>
+    <div class="toast-text">
+      <span class="toast-title" id="toastTitle"></span>
+      <span class="toast-sub" id="toastSub"></span>
+    </div>
+  </div>
+
+  <!-- Difficulty Select -->
+  <div class="overlay" id="diffOverlay">
+    <div class="modal">
+      <h2>Sudoku</h2>
+      <p>Choose your challenge</p>
+      <div class="diff-buttons">
+        <button class="diff-btn" onclick="startGame('easy')">
+          <span class="label">Easy</span>
+          <span class="desc">38 clues — perfect for warming up</span>
+        </button>
+        <button class="diff-btn" onclick="startGame('medium')">
+          <span class="label">Medium</span>
+          <span class="desc">30 clues — a solid challenge</span>
+        </button>
+        <button class="diff-btn" onclick="startGame('hard')">
+          <span class="label">Hard</span>
+          <span class="desc">24 clues — only for the brave</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Win Modal -->
+  <div class="overlay hidden" id="winOverlay">
+    <div class="modal">
+      <h2 id="winTitle">Puzzle Complete!</h2>
+      <div class="win-stats">
+        <div class="win-stat">
+          <div class="val" id="winTime">--:--</div>
+          <div class="lbl">Time</div>
+        </div>
+        <div class="win-stat">
+          <div class="val" id="winMistakes">0</div>
+          <div class="lbl">Mistakes</div>
+        </div>
+        <div class="win-stat">
+          <div class="val" id="winDiff">Easy</div>
+          <div class="lbl">Difficulty</div>
+        </div>
+      </div>
+      <div id="winTrophies"></div>
+      <div class="diff-buttons" style="margin-top:16px">
+        <button class="diff-btn" onclick="showDifficultySelect()">
+          <span class="label">New Game</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game layout -->
+  <div class="game-left">
+    <div class="header">
+      <h1>SUDOKU</h1>
+      <div class="header-sub">GAMEVOLT.IO</div>
+    </div>
+
+    <div class="top-bar">
+      <span class="difficulty-label" id="diffLabel">Easy</span>
+      <span class="mistakes">Mistakes: <span class="count" id="mistakeCount">0</span>/3</span>
+      <span class="timer" id="timer">00:00</span>
+    </div>
+
+    <div class="grid-wrapper">
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+
+  <div class="game-right">
+    <div class="numpad" id="numpad"></div>
+    <div class="actions">
+      <button id="undoBtn" onclick="undo()"><span class="icon">↩</span> Undo</button>
+      <button id="pencilBtn" onclick="togglePencil()"><span class="icon">✏</span> Notes</button>
+      <button id="eraseBtn" onclick="erase()"><span class="icon">✕</span> Erase</button>
+      <button onclick="showDifficultySelect()"><span class="icon">↻</span> New</button>
+    </div>
+  </div>
+
+  <div id="seo-content">
+    <h2>Play Sudoku Online Free</h2>
+    <p>Sudoku is a classic number puzzle game. Fill the 9x9 grid so every row, column, and 3x3 box contains 1–9. Choose from Easy, Medium, or Hard difficulty. Features pencil marks, undo, auto-save, trophies, and global leaderboards on GameVolt.</p>
+  </div>
+
+  <script src="/sdk/gamevolt.js"></script>
+  <script>
+  (function() {
+    'use strict';
+
+    // ── Persistent Stats ──
+    var STORAGE_KEY = 'su_data';
+    var stats = loadStats();
+
+    function loadStats() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : defaultStats();
+      } catch(e) { return defaultStats(); }
+    }
+
+    function defaultStats() {
+      return {
+        totalGames: 0, totalWins: 0,
+        easyWins: 0, mediumWins: 0, hardWins: 0,
+        bestEasy: 0, bestMedium: 0, bestHard: 0,
+        perfectEasy: 0, perfectMedium: 0, perfectHard: 0,
+        totalNotesUsed: 0, currentStreak: 0, bestStreak: 0,
+        gamesWithNotes: 0,
+        unlocked: {}
+      };
+    }
+
+    function saveStats() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); } catch(e) {}
+    }
+
+    // ── Achievements ──
+    var ACHIEVEMENTS = [
+      // Bronze (15)
+      { id: 'first_win',       title: 'First Win',        desc: 'Complete your first puzzle',           icon: '🌟', tier: 'bronze' },
+      { id: 'easy_5',          title: 'Easy Does It',     desc: 'Complete 5 Easy puzzles',              icon: '🔢', tier: 'bronze' },
+      { id: 'medium_first',    title: 'Stepping Up',      desc: 'Complete a Medium puzzle',             icon: '📈', tier: 'bronze' },
+      { id: 'hard_first',      title: 'Brave Soul',       desc: 'Complete a Hard puzzle',               icon: '💪', tier: 'bronze' },
+      { id: 'no_notes',        title: 'Pure Logic',       desc: 'Win without using pencil notes',       icon: '🧠', tier: 'bronze' },
+      { id: 'speed_10',        title: 'Under 10',         desc: 'Complete Easy in under 10 minutes',    icon: '⏱️', tier: 'bronze' },
+      { id: 'play_10',         title: 'Regular',          desc: 'Complete 10 puzzles',                  icon: '🎮', tier: 'bronze' },
+      { id: 'flawless_easy',   title: 'Flawless Easy',    desc: 'Complete Easy with zero mistakes',     icon: '💎', tier: 'bronze' },
+      { id: 'streak_3',        title: 'Hat Trick',        desc: 'Win 3 games in a row',                 icon: '🎩', tier: 'bronze' },
+      { id: 'one_mistake',     title: 'Close Call',       desc: 'Win with exactly 1 mistake',           icon: '😅', tier: 'bronze' },
+      { id: 'all_difficulties', title: 'All Rounder',     desc: 'Complete each difficulty at least once', icon: '🎯', tier: 'bronze' },
+      { id: 'easy_15',         title: 'Easy Street',      desc: 'Complete 15 Easy puzzles',             icon: '🛤️', tier: 'bronze' },
+      { id: 'note_taker',      title: 'Note Taker',       desc: 'Use pencil notes in 10 games',         icon: '✏️', tier: 'bronze' },
+      { id: 'speed_5_easy',    title: 'Speed Demon',      desc: 'Complete Easy in under 5 minutes',     icon: '⚡', tier: 'bronze' },
+      { id: 'total_25',        title: 'Puzzle Fan',        desc: 'Complete 25 puzzles',                  icon: '🧩', tier: 'bronze' },
+      // Silver (10)
+      { id: 'medium_10',       title: 'Medium Master',     desc: 'Complete 10 Medium puzzles',           icon: '🏅', tier: 'silver' },
+      { id: 'hard_5',          title: 'Hard Hitter',       desc: 'Complete 5 Hard puzzles',              icon: '🔥', tier: 'silver' },
+      { id: 'flawless_medium', title: 'Flawless Medium',   desc: 'Complete Medium with zero mistakes',   icon: '💎', tier: 'silver' },
+      { id: 'total_50',        title: 'Dedicated',         desc: 'Complete 50 puzzles',                  icon: '⭐', tier: 'silver' },
+      { id: 'speed_15_med',    title: 'Quick Thinker',     desc: 'Complete Medium under 15 minutes',     icon: '🚀', tier: 'silver' },
+      { id: 'speed_30_hard',   title: 'Hard & Fast',       desc: 'Complete Hard under 30 minutes',       icon: '💨', tier: 'silver' },
+      { id: 'streak_5',        title: 'On Fire',           desc: 'Win 5 games in a row',                 icon: '🔥', tier: 'silver' },
+      { id: 'total_100',       title: 'Century',           desc: 'Complete 100 puzzles',                 icon: '💯', tier: 'silver' },
+      { id: 'hard_10',         title: 'Hardened',          desc: 'Complete 10 Hard puzzles',              icon: '🗿', tier: 'silver' },
+      { id: 'no_notes_medium', title: 'Pure Medium',       desc: 'Win Medium without pencil notes',      icon: '🧠', tier: 'silver' },
+      // Gold (5)
+      { id: 'flawless_hard',   title: 'Flawless Hard',     desc: 'Complete Hard with zero mistakes',     icon: '👑', tier: 'gold' },
+      { id: 'speed_10_hard',   title: 'Hard Sprint',       desc: 'Complete Hard under 10 minutes',       icon: '⚡', tier: 'gold' },
+      { id: 'total_200',       title: 'Puzzle Addict',     desc: 'Complete 200 puzzles',                 icon: '🏆', tier: 'gold' },
+      { id: 'streak_10',       title: 'Unstoppable',       desc: 'Win 10 games in a row',                icon: '🌟', tier: 'gold' },
+      { id: 'speed_3_easy',    title: 'Lightning',         desc: 'Complete Easy under 3 minutes',        icon: '⚡', tier: 'gold' },
+      // Platinum (1)
+      { id: 'sudoku_master',   title: 'Sudoku Master',     desc: 'Unlock all 30 other trophies',         icon: '👑', tier: 'platinum' }
+    ];
+
+    var toastQueue = [];
+    var toastActive = false;
+
+    function showToast(achievement) {
+      toastQueue.push(achievement);
+      if (!toastActive) processToastQueue();
+    }
+
+    function processToastQueue() {
+      if (toastQueue.length === 0) { toastActive = false; return; }
+      toastActive = true;
+      var a = toastQueue.shift();
+      var toast = document.getElementById('trophyToast');
+      document.getElementById('toastIcon').textContent = a.icon;
+      document.getElementById('toastTitle').textContent = a.title;
+      document.getElementById('toastSub').textContent = a.desc;
+      toast.className = 'trophy-toast toast-tier-' + a.tier + ' show';
+      setTimeout(function() {
+        toast.classList.remove('show');
+        setTimeout(processToastQueue, 400);
+      }, 2800);
+    }
+
+    function tryUnlock(id) {
+      if (stats.unlocked[id]) return;
+      var a = ACHIEVEMENTS.find(function(a) { return a.id === id; });
+      if (!a) return;
+      stats.unlocked[id] = Date.now();
+      saveStats();
+      showToast(a);
+      gvPost('achievement', { id: 'sudoku-' + id, title: a.title });
+      if (window.GameVolt) {
+        GameVolt.achievements.unlock('sudoku-' + id);
+      }
+    }
+
+    function checkAchievements(diff, time, mistakeCount, usedNotes) {
+      // First win
+      if (stats.totalWins >= 1) tryUnlock('first_win');
+
+      // Difficulty-specific
+      if (diff === 'easy') {
+        if (stats.easyWins >= 5) tryUnlock('easy_5');
+        if (stats.easyWins >= 15) tryUnlock('easy_15');
+        if (time < 600) tryUnlock('speed_10');
+        if (time < 300) tryUnlock('speed_5_easy');
+        if (time < 180) tryUnlock('speed_3_easy');
+        if (mistakeCount === 0) tryUnlock('flawless_easy');
+      }
+      if (diff === 'medium') {
+        tryUnlock('medium_first');
+        if (stats.mediumWins >= 10) tryUnlock('medium_10');
+        if (time < 900) tryUnlock('speed_15_med');
+        if (mistakeCount === 0) tryUnlock('flawless_medium');
+        if (!usedNotes) tryUnlock('no_notes_medium');
+      }
+      if (diff === 'hard') {
+        tryUnlock('hard_first');
+        if (stats.hardWins >= 5) tryUnlock('hard_5');
+        if (stats.hardWins >= 10) tryUnlock('hard_10');
+        if (time < 1800) tryUnlock('speed_30_hard');
+        if (time < 600) tryUnlock('speed_10_hard');
+        if (mistakeCount === 0) tryUnlock('flawless_hard');
+      }
+
+      // General
+      if (!usedNotes) tryUnlock('no_notes');
+      if (mistakeCount === 1) tryUnlock('one_mistake');
+      if (stats.totalWins >= 10) tryUnlock('play_10');
+      if (stats.totalWins >= 25) tryUnlock('total_25');
+      if (stats.totalWins >= 50) tryUnlock('total_50');
+      if (stats.totalWins >= 100) tryUnlock('total_100');
+      if (stats.totalWins >= 200) tryUnlock('total_200');
+      if (stats.gamesWithNotes >= 10) tryUnlock('note_taker');
+
+      // All difficulties
+      if (stats.easyWins > 0 && stats.mediumWins > 0 && stats.hardWins > 0) tryUnlock('all_difficulties');
+
+      // Streaks
+      if (stats.currentStreak >= 3) tryUnlock('streak_3');
+      if (stats.currentStreak >= 5) tryUnlock('streak_5');
+      if (stats.currentStreak >= 10) tryUnlock('streak_10');
+
+      // Platinum
+      var unlocked = Object.keys(stats.unlocked).length;
+      if (unlocked >= 30) tryUnlock('sudoku_master');
+    }
+
+    // ── State ──
+    var board = [];
+    var solution = [];
+    var given = [];
+    var pencilMarks = [];
+    var selectedCell = -1;
+    var pencilMode = false;
+    var mistakes = 0;
+    var maxMistakes = 3;
+    var difficulty = 'easy';
+    var timerSeconds = 0;
+    var timerInterval = null;
+    var gameActive = false;
+    var historyStack = [];
+    var usedNotesThisGame = false;
+
+    var GIVENS = { easy: 38, medium: 30, hard: 24 };
+
+    var gridEl = document.getElementById('grid');
+    var numpadEl = document.getElementById('numpad');
+    var timerEl = document.getElementById('timer');
+    var mistakeEl = document.getElementById('mistakeCount');
+    var diffLabel = document.getElementById('diffLabel');
+    var diffOverlay = document.getElementById('diffOverlay');
+    var winOverlay = document.getElementById('winOverlay');
+    var pencilBtn = document.getElementById('pencilBtn');
+
+    // ── SDK ──
+    if (window.GameVolt) {
+      GameVolt.init('sudoku');
+
+      GameVolt.save.registerMigration({
+        keys: [STORAGE_KEY],
+        merge: function(local, cloud) {
+          if (!cloud) return local;
+          if (!local) return cloud;
+          var merged = {};
+          var numKeys = ['totalGames','totalWins','easyWins','mediumWins','hardWins',
+                         'perfectEasy','perfectMedium','perfectHard','totalNotesUsed',
+                         'gamesWithNotes','bestStreak'];
+          numKeys.forEach(function(k) { merged[k] = Math.max(local[k]||0, cloud[k]||0); });
+          ['bestEasy','bestMedium','bestHard'].forEach(function(k) {
+            var l = local[k]||0, c = cloud[k]||0;
+            if (l === 0) merged[k] = c;
+            else if (c === 0) merged[k] = l;
+            else merged[k] = Math.min(l, c); // lower time = better
+          });
+          merged.currentStreak = Math.max(local.currentStreak||0, cloud.currentStreak||0);
+          merged.unlocked = Object.assign({}, cloud.unlocked||{}, local.unlocked||{});
+          return merged;
+        },
+        getScores: function(data) {
+          var scores = [];
+          if (data.bestEasy) scores.push({ score: data.bestEasy, mode: 'easy' });
+          if (data.bestMedium) scores.push({ score: data.bestMedium, mode: 'medium' });
+          if (data.bestHard) scores.push({ score: data.bestHard, mode: 'hard' });
+          return scores;
+        },
+        getAchievements: function(data) {
+          if (!data.unlocked) return [];
+          return Object.keys(data.unlocked).map(function(k) { return 'sudoku-' + k; });
+        }
+      });
+
+      GameVolt.auth.onStateChange(function(user) {
+        var btn = document.getElementById('login-btn');
+        if (user) {
+          btn.classList.add('hidden');
+        } else {
+          btn.classList.remove('hidden');
+        }
+      });
+    } else {
+      document.getElementById('login-btn').classList.remove('hidden');
+    }
+
+    function gvPost(action, payload) {
+      if (window.parent !== window) {
+        try { window.parent.postMessage({ type: 'gamevolt', action: action, gameId: 'sudoku', payload: payload || {} }, '*'); } catch(e) {}
+      }
+    }
+
+    // ── Generator ──
+    function generateSolution() {
+      var b = new Array(81).fill(0);
+      fillBoard(b);
+      return b;
+    }
+
+    function fillBoard(b) {
+      var idx = b.indexOf(0);
+      if (idx === -1) return true;
+      var nums = shuffle([1,2,3,4,5,6,7,8,9]);
+      for (var i = 0; i < nums.length; i++) {
+        if (isValid(b, idx, nums[i])) {
+          b[idx] = nums[i];
+          if (fillBoard(b)) return true;
+          b[idx] = 0;
+        }
+      }
+      return false;
+    }
+
+    function isValid(b, idx, n) {
+      var r = Math.floor(idx / 9), c = idx % 9;
+      for (var i = 0; i < 9; i++) {
+        if (b[r * 9 + i] === n) return false;
+        if (b[i * 9 + c] === n) return false;
+      }
+      var br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
+      for (var dr = 0; dr < 3; dr++)
+        for (var dc = 0; dc < 3; dc++)
+          if (b[(br + dr) * 9 + (bc + dc)] === n) return false;
+      return true;
+    }
+
+    function shuffle(arr) {
+      for (var i = arr.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+      }
+      return arr;
+    }
+
+    function createPuzzle(sol, numGiven) {
+      var puzzle = sol.slice();
+      var indices = shuffle([].concat(Array.from({length:81}, function(_,i){return i;})));
+      var toRemove = 81 - numGiven;
+      for (var i = 0; i < indices.length && toRemove > 0; i++) {
+        puzzle[indices[i]] = 0;
+        toRemove--;
+      }
+      return puzzle;
+    }
+
+    // ── Game Logic ──
+    function startGame(diff) {
+      difficulty = diff;
+      diffLabel.textContent = diff.charAt(0).toUpperCase() + diff.slice(1);
+      diffOverlay.classList.add('hidden');
+      winOverlay.classList.add('hidden');
+
+      solution = generateSolution();
+      board = createPuzzle(solution, GIVENS[diff]);
+      given = board.map(function(v) { return v !== 0; });
+      pencilMarks = Array.from({ length: 81 }, function() { return new Set(); });
+      selectedCell = -1;
+      pencilMode = false;
+      pencilBtn.classList.remove('active');
+      mistakes = 0;
+      mistakeEl.textContent = '0';
+      historyStack = [];
+      timerSeconds = 0;
+      gameActive = true;
+      usedNotesThisGame = false;
+
+      stats.totalGames++;
+      saveStats();
+
+      clearInterval(timerInterval);
+      timerEl.textContent = '00:00';
+      timerInterval = setInterval(function() {
+        if (!gameActive) return;
+        timerSeconds++;
+        timerEl.textContent = formatTime(timerSeconds);
+      }, 1000);
+
+      renderGrid();
+      renderNumpad();
+      gvPost('game_start', { difficulty: diff });
+      saveState();
+    }
+
+    function formatTime(s) {
+      var m = Math.floor(s / 60);
+      return String(m).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    }
+
+    // ── Rendering ──
+    function renderGrid() {
+      gridEl.innerHTML = '';
+      for (var i = 0; i < 81; i++) {
+        var cell = document.createElement('div');
+        cell.className = 'cell';
+        var r = Math.floor(i / 9), c = i % 9;
+
+        if (c === 2 || c === 5) cell.classList.add('box-right');
+        if (r === 2 || r === 5) cell.classList.add('box-bottom');
+
+        if (given[i]) {
+          cell.classList.add('given');
+          cell.textContent = board[i];
+        } else if (board[i] !== 0) {
+          cell.classList.add('placed');
+          cell.textContent = board[i];
+          if (board[i] !== solution[i]) cell.classList.add('error');
+        } else if (pencilMarks[i].size > 0) {
+          var pg = document.createElement('div');
+          pg.className = 'pencil-grid';
+          for (var n = 1; n <= 9; n++) {
+            var s = document.createElement('span');
+            s.textContent = pencilMarks[i].has(n) ? n : '';
+            pg.appendChild(s);
+          }
+          cell.appendChild(pg);
+        }
+
+        if (i === selectedCell) {
+          cell.classList.add('selected');
+        } else if (selectedCell >= 0) {
+          var sr = Math.floor(selectedCell / 9), sc = selectedCell % 9;
+          if (r === sr || c === sc ||
+              (Math.floor(r/3) === Math.floor(sr/3) && Math.floor(c/3) === Math.floor(sc/3))) {
+            cell.classList.add('highlighted');
+          }
+          var selVal = board[selectedCell];
+          if (selVal !== 0 && board[i] === selVal) cell.classList.add('same-number');
+        }
+
+        cell.setAttribute('data-idx', i);
+        cell.addEventListener('click', cellClick);
+        cell.addEventListener('touchend', cellTouch);
+        gridEl.appendChild(cell);
+      }
+    }
+
+    function cellClick(e) { selectCell(parseInt(e.currentTarget.getAttribute('data-idx'))); }
+    function cellTouch(e) { e.preventDefault(); selectCell(parseInt(e.currentTarget.getAttribute('data-idx'))); }
+
+    function renderNumpad() {
+      numpadEl.innerHTML = '';
+      var counts = new Array(10).fill(0);
+      for (var i = 0; i < 81; i++) {
+        if (board[i] !== 0 && board[i] === solution[i]) counts[board[i]]++;
+      }
+      for (var n = 1; n <= 9; n++) {
+        var btn = document.createElement('button');
+        btn.textContent = n;
+        if (counts[n] >= 9) btn.classList.add('completed-num');
+        btn.setAttribute('data-num', n);
+        btn.addEventListener('click', numClick);
+        numpadEl.appendChild(btn);
+      }
+    }
+
+    function numClick(e) { placeNumber(parseInt(e.currentTarget.getAttribute('data-num'))); }
+
+    function selectCell(idx) {
+      selectedCell = idx;
+      renderGrid();
+    }
+
+    function placeNumber(n) {
+      if (!gameActive || selectedCell < 0 || given[selectedCell]) return;
+      var idx = selectedCell;
+
+      if (pencilMode) {
+        var prev = new Set(pencilMarks[idx]);
+        if (pencilMarks[idx].has(n)) pencilMarks[idx].delete(n);
+        else pencilMarks[idx].add(n);
+        historyStack.push({ idx: idx, prevVal: board[idx], prevPencil: prev });
+        usedNotesThisGame = true;
+        renderGrid();
+        saveState();
+        return;
+      }
+
+      var prevVal = board[idx];
+      var prevPencil = new Set(pencilMarks[idx]);
+      historyStack.push({ idx: idx, prevVal: prevVal, prevPencil: prevPencil });
+
+      board[idx] = n;
+      pencilMarks[idx].clear();
+
+      if (n !== solution[idx]) {
+        mistakes++;
+        mistakeEl.textContent = mistakes;
+        renderGrid();
+        if (mistakes >= maxMistakes) {
+          gameActive = false;
+          clearInterval(timerInterval);
+          stats.currentStreak = 0;
+          saveStats();
+          setTimeout(function() {
+            alert('Game Over! Too many mistakes.');
+            showDifficultySelect();
+          }, 400);
+        }
+      } else {
+        clearRelatedPencilMarks(idx, n);
+        renderGrid();
+        renderNumpad();
+        checkWin();
+      }
+      saveState();
+    }
+
+    function clearRelatedPencilMarks(idx, n) {
+      var r = Math.floor(idx / 9), c = idx % 9;
+      var br = Math.floor(r / 3) * 3, bc = Math.floor(c / 3) * 3;
+      for (var i = 0; i < 9; i++) {
+        pencilMarks[r * 9 + i].delete(n);
+        pencilMarks[i * 9 + c].delete(n);
+      }
+      for (var dr = 0; dr < 3; dr++)
+        for (var dc = 0; dc < 3; dc++)
+          pencilMarks[(br + dr) * 9 + (bc + dc)].delete(n);
+    }
+
+    function erase() {
+      if (!gameActive || selectedCell < 0 || given[selectedCell]) return;
+      var idx = selectedCell;
+      if (board[idx] === 0 && pencilMarks[idx].size === 0) return;
+      historyStack.push({ idx: idx, prevVal: board[idx], prevPencil: new Set(pencilMarks[idx]) });
+      board[idx] = 0;
+      pencilMarks[idx].clear();
+      renderGrid();
+      renderNumpad();
+      saveState();
+    }
+
+    function undo() {
+      if (!gameActive || historyStack.length === 0) return;
+      var h = historyStack.pop();
+      board[h.idx] = h.prevVal;
+      pencilMarks[h.idx] = h.prevPencil;
+      renderGrid();
+      renderNumpad();
+      saveState();
+    }
+
+    function togglePencil() {
+      pencilMode = !pencilMode;
+      pencilBtn.classList.toggle('active', pencilMode);
+    }
+
+    function checkWin() {
+      for (var i = 0; i < 81; i++) {
+        if (board[i] !== solution[i]) return;
+      }
+      gameActive = false;
+      clearInterval(timerInterval);
+
+      // Update stats
+      stats.totalWins++;
+      stats.currentStreak++;
+      if (stats.currentStreak > stats.bestStreak) stats.bestStreak = stats.currentStreak;
+      if (usedNotesThisGame) stats.gamesWithNotes++;
+
+      if (difficulty === 'easy') {
+        stats.easyWins++;
+        if (mistakes === 0) stats.perfectEasy++;
+        if (!stats.bestEasy || timerSeconds < stats.bestEasy) stats.bestEasy = timerSeconds;
+      } else if (difficulty === 'medium') {
+        stats.mediumWins++;
+        if (mistakes === 0) stats.perfectMedium++;
+        if (!stats.bestMedium || timerSeconds < stats.bestMedium) stats.bestMedium = timerSeconds;
+      } else if (difficulty === 'hard') {
+        stats.hardWins++;
+        if (mistakes === 0) stats.perfectHard++;
+        if (!stats.bestHard || timerSeconds < stats.bestHard) stats.bestHard = timerSeconds;
+      }
+      saveStats();
+
+      // Flash cells
+      setTimeout(function() {
+        var cells = gridEl.children;
+        for (var i = 0; i < 81; i++) {
+          (function(idx) {
+            setTimeout(function() { cells[idx].classList.add('completed-flash'); }, idx * 12);
+          })(i);
+        }
+      }, 100);
+
+      setTimeout(function() {
+        document.getElementById('winTime').textContent = formatTime(timerSeconds);
+        document.getElementById('winMistakes').textContent = mistakes;
+        document.getElementById('winDiff').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+        renderWinTrophies();
+        winOverlay.classList.remove('hidden');
+
+        // For Sudoku, lower time = better, so we submit as score
+        // Leaderboard sorts DESC, so we invert: score = 100000 - seconds
+        var score = Math.max(0, 100000 - timerSeconds);
+        gvPost('game_over', { score: score, mode: difficulty, time: timerSeconds, mistakes: mistakes });
+
+        if (window.GameVolt) {
+          GameVolt.leaderboard.submit(score, { mode: difficulty });
+        }
+
+        checkAchievements(difficulty, timerSeconds, mistakes, usedNotesThisGame);
+      }, 1200);
+
+      clearSavedState();
+    }
+
+    function renderWinTrophies() {
+      var container = document.getElementById('winTrophies');
+      var html = '<div class="trophy-section"><div class="trophy-section-title">Trophies ' +
+        Object.keys(stats.unlocked).length + '/' + ACHIEVEMENTS.length + '</div><div class="trophy-mini-grid">';
+      ACHIEVEMENTS.forEach(function(a) {
+        var unlocked = !!stats.unlocked[a.id];
+        html += '<div class="trophy-mini ' + a.tier + (unlocked ? '' : ' locked') + '" title="' + a.title + ': ' + a.desc + '">' + a.icon + '</div>';
+      });
+      html += '</div></div>';
+      container.innerHTML = html;
+    }
+
+    function showDifficultySelect() {
+      gameActive = false;
+      clearInterval(timerInterval);
+      winOverlay.classList.add('hidden');
+      diffOverlay.classList.remove('hidden');
+      clearSavedState();
+    }
+
+    // ── Keyboard ──
+    document.addEventListener('keydown', function(e) {
+      if (!gameActive) return;
+      var n = parseInt(e.key);
+      if (n >= 1 && n <= 9) { placeNumber(n); return; }
+      if (e.key === 'Backspace' || e.key === 'Delete') { erase(); return; }
+      if (e.key === 'z' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undo(); return; }
+      if (e.key === 'p' || e.key === 'n') { togglePencil(); return; }
+
+      if (selectedCell >= 0) {
+        var r = Math.floor(selectedCell / 9), c = selectedCell % 9;
+        var nr = r, nc = c;
+        if (e.key === 'ArrowUp') nr = Math.max(0, r - 1);
+        else if (e.key === 'ArrowDown') nr = Math.min(8, r + 1);
+        else if (e.key === 'ArrowLeft') nc = Math.max(0, c - 1);
+        else if (e.key === 'ArrowRight') nc = Math.min(8, c + 1);
+        else return;
+        e.preventDefault();
+        selectCell(nr * 9 + nc);
+      }
+    });
+
+    // ── Save/Load ──
+    function saveState() {
+      try {
+        localStorage.setItem('sudoku_state', JSON.stringify({
+          board: board, solution: solution, given: given, difficulty: difficulty,
+          mistakes: mistakes, timerSeconds: timerSeconds, usedNotesThisGame: usedNotesThisGame,
+          pencilMarks: pencilMarks.map(function(s) { return Array.from(s); }),
+          history: historyStack.map(function(h) { return { idx: h.idx, prevVal: h.prevVal, prevPencil: Array.from(h.prevPencil) }; })
+        }));
+      } catch(e) {}
+    }
+
+    function loadState() {
+      try {
+        var raw = localStorage.getItem('sudoku_state');
+        if (!raw) return false;
+        var s = JSON.parse(raw);
+        board = s.board;
+        solution = s.solution;
+        given = s.given;
+        difficulty = s.difficulty;
+        mistakes = s.mistakes;
+        timerSeconds = s.timerSeconds;
+        usedNotesThisGame = !!s.usedNotesThisGame;
+        pencilMarks = s.pencilMarks.map(function(a) { return new Set(a); });
+        historyStack = s.history.map(function(h) { return { idx: h.idx, prevVal: h.prevVal, prevPencil: new Set(h.prevPencil) }; });
+
+        diffLabel.textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+        mistakeEl.textContent = mistakes;
+        timerEl.textContent = formatTime(timerSeconds);
+        gameActive = true;
+        pencilMode = false;
+        selectedCell = -1;
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(function() {
+          if (!gameActive) return;
+          timerSeconds++;
+          timerEl.textContent = formatTime(timerSeconds);
+        }, 1000);
+
+        renderGrid();
+        renderNumpad();
+        diffOverlay.classList.add('hidden');
+        return true;
+      } catch(e) { return false; }
+    }
+
+    function clearSavedState() {
+      localStorage.removeItem('sudoku_state');
+    }
+
+    // ── Expose ──
+    window.startGame = startGame;
+    window.showDifficultySelect = showDifficultySelect;
+    window.undo = undo;
+    window.togglePencil = togglePencil;
+    window.erase = erase;
+
+    // ── Init ──
+    if (!loadState()) {
+      // Show difficulty select
+    }
+
+    // Hide SEO content in iframe
+    if (window.parent !== window) {
+      var seo = document.getElementById('seo-content');
+      if (seo) seo.style.display = 'none';
+    }
+
+  })();
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Sudoku",
+    "description": "Classic Sudoku puzzle with three difficulty levels, trophies, and global leaderboards. Play free online!",
+    "url": "https://gamevolt.io/sudoku/",
+    "image": "https://gamevolt.io/assets/thumbnails/sudoku.webp",
+    "genre": ["Puzzle", "Brain"],
+    "gamePlatform": "Web Browser",
+    "applicationCategory": "Game",
+    "operatingSystem": "Any",
+    "playMode": "SinglePlayer",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Organization", "name": "GameVolt", "url": "https://gamevolt.io" }
+  }
+  </script>
+</body>
+</html>
