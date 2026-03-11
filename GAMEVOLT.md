@@ -352,28 +352,18 @@ CREATE INDEX idx_achievements_user ON user_achievements(user_id);
 
 ## Rollout Phases
 
-### Phase 1 — Foundation (MVP)
-- [x] Write this specification
-- [x] Rebrand PulseGames → GameVolt (see Migration Checklist below)
-- [x] Set up Supabase project + run schema SQL
-- [x] Build GameVolt SDK v1 (auth + cloud save)
-- [x] Integrate SDK in HoverDash (pilot game)
-- [x] Test full flow: guest play → create account → progress migrated
+### Phase 1 — Foundation (MVP) ✅
+Spec, rebranding, Supabase, SDK v1, HoverDash pilot — all done.
 - [ ] Upload Golden Glyphs to portal
-- [x] Upload HoverDash to portal
 
-### Phase 2 — Engagement
-- [x] Add leaderboard API to SDK
-- [x] Add leaderboards to HoverDash
-- [x] Build profile page (`/profile/`)
-- [ ] Roll out SDK to remaining games (one by one) — done: Breakout, Connect 4
+### Phase 2 — Engagement (in progress)
+SDK + leaderboards + profile page done. Breakout & Connect 4 integrated.
+- [ ] Roll out SDK to remaining games (TapRush, BlockStorm, Solitaire, Snake, Axeluga)
 - [ ] Submit HoverDash to Poki (clean version without SDK)
 - [ ] Submit HoverDash to CrazyGames (clean version without SDK)
 
-### Phase 3 — Retention
-- [x] Add achievements API to SDK
-- [x] Define achievements per game — done: HoverDash, Breakout, Connect 4
-- [x] Build achievement panel on profile (trophy catalog with per-game breakdown)
+### Phase 3 — Retention (partially done)
+Achievements API + trophy catalog + per-game definitions done (HoverDash, Breakout, Connect 4).
 - [ ] Add daily challenges system
 - [ ] Add streak tracking
 
@@ -382,7 +372,7 @@ CREATE INDEX idx_achievements_user ON user_achievements(user_id);
 - [ ] Trending/most played sorting on portal
 - [ ] Ad integration (non-intrusive, opt-in rewarded ads)
 
----https://www.ammunitiondepot.com/blog/how-to-shoot-an-ar-15-faster-and-more-accurately
+---
 
 ## Multi-Platform Strategy
 
@@ -402,64 +392,20 @@ HoverDash (and future games) target multiple platforms from one codebase:
 
 ---
 
-## Migration Checklist — Step by Step
+## Migration Checklist
 
-### Step 1: Rebrand PulseGames → GameVolt ✅
+### Completed ✅
+- Rebrand PulseGames → GameVolt (repo, branding, code, domain, HTTPS, CNAME)
+- Supabase set up (auth, schema, RLS, magic link)
+- SDK built & integrated in HoverDash (pilot), Breakout, Connect 4
+- All games live on gamevolt.io, auth/cloud save/guest mode verified
+- OG images updated (portal + Axeluga)
 
-**GitHub Repo:**
-- [x] Created new repo `GameVolt` on GitHub
-
-**Branding:**
-- [x] Design GameVolt logo (favicon, header, og-image)
-- [x] Create og:image for social sharing (1200x630px) — portal + Axeluga done
-
-**Code changes:**
-- [x] Search entire codebase for "pulsegames" (case-insensitive) and replace with "gamevolt"
-- [x] Update `<title>`, `<meta>` tags, og:tags in index.html
-- [x] Update header/footer/nav with new branding
-- [x] Update favicon
-- [x] Update `manifest.json` / `site.webmanifest` if present
-- [x] Update `robots.txt` and `sitemap.xml` with new domain
-- [x] Verify all games load correctly after changes
-
-**External references:**
-- [ ] Update GameMonetize developer profile
-- [ ] Update portal submissions with new URL
-- [ ] Update social media / Reddit if possible
-
-### Step 2: Configure Domain ✅
-
-- [x] Domain gamevolt.io configured with GitHub Pages
-- [x] HTTPS enforced
-- [x] CNAME file in repo
-- [x] pulsegames.eu still active (redirect or keep)
-
-### Step 3: PulseGames.eu redirect
+### Remaining
 - [ ] Decide: redirect pulsegames.eu → gamevolt.io, or let it expire
-
-### Step 4: Set up Supabase ✅
-- [x] Create account at supabase.com
-- [x] Create project (URL: `nwkjayseuhvvpkdgpivm.supabase.co`)
-- [x] Auth: magic link (passwordless email), callback → `/auth/callback/`
-- [x] Run database schema SQL (`/sql/schema.sql` — idempotent)
-- [x] Enable RLS on all tables
-- [x] Test auth flow
-
-### Step 5: Build & Integrate SDK ✅
-- [x] Create `/sdk/gamevolt.js`
-- [x] Implement auth + cloud save + leaderboards + achievements
-- [x] Integrate in HoverDash (pilot), Breakout, Connect 4
-- [x] Auth modal, save migration, leaderboard submit, achievement sync all working
 - [ ] Roll out SDK to remaining games (TapRush, BlockStorm, Solitaire, Snake, Axeluga)
-
-### Step 6: Verify ✅
-- [x] All games load on gamevolt.io
-- [x] Auth works (magic link login/logout)
-- [x] Cloud save works
-- [x] Guest mode works (localStorage fallback)
-- [x] Migration works (guest → account)
-- [x] HTTPS works
-- [x] Open Graph tags show correctly (portal + Axeluga updated)
+- [ ] Update GameMonetize developer profile with new URL
+- [ ] Update portal submissions / social media with new URL
 
 ---
 
