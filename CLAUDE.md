@@ -18,10 +18,10 @@ This is **GameVolt.io** (rebranded from PulseGames.eu) — a curated HTML5 game 
 
 ## Current Priority
 
-1. Finish HoverDash (pilot game for SDK integration)
-2. Build GameVolt SDK v1 (auth + cloud save)
-3. Integrate SDK in HoverDash first, then roll out to other games
-4. Rebrand portal from PulseGames to GameVolt
+1. Roll out SDK to remaining games (TapRush, BlockStorm, Solitaire, Snake, Axeluga)
+2. Submit HoverDash to Poki / CrazyGames
+3. Daily challenges & streak tracking
+4. Ratings, favorites, community features
 
 ## File Structure
 
