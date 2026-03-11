@@ -151,6 +151,15 @@
                 "url": "https://gamevolt.io/gravitywell/",
                 "genre": ["Arcade", "Space"],
                 "gamePlatform": "Web Browser"
+            },
+            {
+                "@type": "VideoGame",
+                "position": 10,
+                "name": "Sudoku",
+                "description": "Classic number puzzle with three difficulty levels",
+                "url": "https://gamevolt.io/sudoku/",
+                "genre": ["Puzzle", "Brain"],
+                "gamePlatform": "Web Browser"
             }
         ]
     }
@@ -494,6 +503,76 @@
             background: var(--bg-gradient);
             border-radius: 2px;
             box-shadow: 0 0 12px rgba(124, 92, 252, 0.5);
+        }
+
+        /* Category Filter */
+        .category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .category-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-subtle);
+            border-radius: 50px;
+            color: var(--text-medium);
+            font-family: 'Fredoka', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            user-select: none;
+        }
+
+        .category-pill:hover {
+            border-color: var(--primary-light);
+            color: var(--text-bright);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(124, 92, 252, 0.2);
+        }
+
+        .category-pill.active {
+            background: var(--bg-gradient);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(124, 92, 252, 0.4);
+        }
+
+        .category-pill .pill-icon {
+            font-size: 1.2rem;
+        }
+
+        .category-pill .pill-count {
+            background: rgba(255,255,255,0.15);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .category-pill.active .pill-count {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .game-card.hidden-by-filter {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .category-filters {
+                gap: 8px;
+            }
+            .category-pill {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+            }
         }
 
         /* Games Grid */
@@ -1551,13 +1630,36 @@
             </div>
         </div>
 
+        <div class="category-filters" id="categoryFilters">
+            <button class="category-pill active" data-filter="all">
+                <span class="pill-icon">🎮</span>
+                <span>All Games</span>
+                <span class="pill-count">10</span>
+            </button>
+            <button class="category-pill" data-filter="coffee-break">
+                <span class="pill-icon">☕</span>
+                <span>Coffee Break</span>
+                <span class="pill-count">6</span>
+            </button>
+            <button class="category-pill" data-filter="brain-challenge">
+                <span class="pill-icon">🧠</span>
+                <span>Brain Challenge</span>
+                <span class="pill-count">4</span>
+            </button>
+            <button class="category-pill" data-filter="action">
+                <span class="pill-icon">🔥</span>
+                <span>Action</span>
+                <span class="pill-count">5</span>
+            </button>
+        </div>
+
         <div class="section-header">
             <h2 class="section-title" id="games">All Games</h2>
         </div>
-        
+
         <div class="games-grid">
             <!-- HoverDash -->
-            <a href="/play/?game=hoverdash" class="game-card" data-preview="/hoverdash/preview.mp4">
+            <a href="/play/?game=hoverdash" class="game-card" data-category="coffee-break action" data-preview="/hoverdash/preview.mp4">
                 <div class="game-thumbnail">
                     <img src="/hoverdash/og-image.png" alt="HoverDash Lane Runner" fetchpriority="high">
                     <video class="preview-video" muted loop playsinline preload="none"></video>
@@ -1577,7 +1679,7 @@
             </a>
 
             <!-- Snake -->
-            <a href="/play/?game=snake" class="game-card">
+            <a href="/play/?game=snake" class="game-card" data-category="coffee-break">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/snake.webp" alt="Snake Neo" fetchpriority="high">
                 </div>
@@ -1594,7 +1696,7 @@
             </a>
             
             <!-- Breakout -->
-            <a href="/play/?game=breakout" class="game-card" data-preview="/breakout/preview.mp4">
+            <a href="/play/?game=breakout" class="game-card" data-category="coffee-break action" data-preview="/breakout/preview.mp4">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/breakout.webp" alt="Breakout Neon Drift" fetchpriority="high">
                     <video class="preview-video" muted loop playsinline preload="none"></video>
@@ -1613,7 +1715,7 @@
             </a>
             
             <!-- Tap Rush -->
-            <a href="/play/?game=taprush" class="game-card">
+            <a href="/play/?game=taprush" class="game-card" data-category="coffee-break action">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/taprush.webp" alt="Tap Rush Reflex" loading="lazy">
                 </div>
@@ -1630,7 +1732,7 @@
             </a>
             
             <!-- Solitaire Collection -->
-            <a href="/play/?game=solitaire" class="game-card">
+            <a href="/play/?game=solitaire" class="game-card" data-category="brain-challenge coffee-break">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/solitaire.webp" alt="Solitaire Collection" loading="lazy">
                     <span class="game-badge new">6 Games</span>
@@ -1648,7 +1750,7 @@
             </a>
             
             <!-- BlockStorm -->
-            <a href="/play/?game=blockstorm" class="game-card">
+            <a href="/play/?game=blockstorm" class="game-card" data-category="brain-challenge">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/blockstorm.webp" alt="BlockStorm" loading="lazy">
                     <span class="game-bolt">⚡</span>
@@ -1666,7 +1768,7 @@
             </a>
             
             <!-- Connect 4 -->
-            <a href="/play/?game=connect4" class="game-card">
+            <a href="/play/?game=connect4" class="game-card" data-category="brain-challenge">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/connect4-thumbnail.webp" alt="Connect 4" loading="lazy">
                     <span class="game-bolt">⚡</span>
@@ -1684,7 +1786,7 @@
             </a>
 
             <!-- Axeluga -->
-            <a href="/play/?game=axeluga" class="game-card">
+            <a href="/play/?game=axeluga" class="game-card" data-category="action">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/axeluga.webp" alt="Axeluga Space Shooter" loading="lazy">
                 </div>
@@ -1701,7 +1803,7 @@
             </a>
 
             <!-- Gravity Well -->
-            <a href="/play/?game=gravitywell" class="game-card" data-preview="/gravitywell/preview.mp4">
+            <a href="/play/?game=gravitywell" class="game-card" data-category="coffee-break action" data-preview="/gravitywell/preview.mp4">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/gravitywell.webp" alt="Gravity Well" loading="lazy">
                     <video class="preview-video" muted loop playsinline preload="none"></video>
@@ -1720,7 +1822,7 @@
                 </div>
             </a>
             <!-- Sudoku -->
-            <a href="/play/?game=sudoku" class="game-card">
+            <a href="/play/?game=sudoku" class="game-card" data-category="brain-challenge">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/sudoku.webp" alt="Sudoku Puzzle" loading="lazy">
                     <span class="game-badge new">NEW</span>
@@ -1788,6 +1890,7 @@
                         <a href="/play/?game=connect4">Connect 4</a>
                         <a href="/play/?game=axeluga">Axeluga</a>
                         <a href="/play/?game=gravitywell">Gravity Well</a>
+                        <a href="/play/?game=sudoku">Sudoku</a>
                     </div>
                     <div class="footer-column">
                         <h4>Categories</h4>
@@ -1856,6 +1959,48 @@
         });
     }
     initVideoPreview();
+
+    // Category filter
+    (function() {
+        var filters = document.getElementById('categoryFilters');
+        var titleEl = document.querySelector('.section-header .section-title');
+        if (!filters) return;
+
+        var categoryLabels = {
+            'all': 'All Games',
+            'coffee-break': 'Coffee Break',
+            'brain-challenge': 'Brain Challenge',
+            'action': 'Action'
+        };
+
+        filters.addEventListener('click', function(e) {
+            var pill = e.target.closest('.category-pill');
+            if (!pill) return;
+
+            filters.querySelectorAll('.category-pill').forEach(function(p) { p.classList.remove('active'); });
+            pill.classList.add('active');
+
+            var filter = pill.dataset.filter;
+            var cards = document.querySelectorAll('.game-card');
+
+            cards.forEach(function(card) {
+                if (filter === 'all') {
+                    card.classList.remove('hidden-by-filter');
+                } else {
+                    var cats = (card.dataset.category || '').split(' ');
+                    if (cats.indexOf(filter) !== -1) {
+                        card.classList.remove('hidden-by-filter');
+                    } else {
+                        card.classList.add('hidden-by-filter');
+                    }
+                }
+            });
+
+            if (titleEl) {
+                titleEl.textContent = categoryLabels[filter] || 'All Games';
+            }
+        });
+    })();
 
     // Continue Playing section
     (function() {
