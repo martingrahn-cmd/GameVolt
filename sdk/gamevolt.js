@@ -51,13 +51,23 @@
       '<div class="gv-dialog">' +
         '<button class="gv-close" aria-label="Close">&times;</button>' +
         '<div class="gv-logo">GAMEVOLT</div>' +
-        '<p class="gv-sub">Sign in with a magic link</p>' +
+        '<p class="gv-sub">Sign in to save your progress</p>' +
+        '<button class="gv-google-btn" type="button">' +
+          '<svg class="gv-google-icon" viewBox="0 0 24 24" width="20" height="20">' +
+            '<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/>' +
+            '<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>' +
+            '<path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>' +
+            '<path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>' +
+          '</svg>' +
+          'Sign in with Google' +
+        '</button>' +
+        '<div class="gv-divider"><span>or</span></div>' +
         '<form class="gv-form">' +
           '<input type="email" class="gv-email" placeholder="your@email.com" required autocomplete="email">' +
           '<button type="submit" class="gv-btn">SEND MAGIC LINK</button>' +
         '</form>' +
         '<p class="gv-msg"></p>' +
-        '<p class="gv-note">No password needed. We\'ll email you a sign-in link.</p>' +
+        '<p class="gv-note">No password needed. Sign in with Google or a magic link.</p>' +
       '</div>';
 
     var css = document.createElement('style');
@@ -76,6 +86,11 @@
       '.gv-btn{padding:12px;border-radius:8px;border:none;background:#00e5ff;color:#000;font-weight:bold;font-size:14px;cursor:pointer;letter-spacing:1px;text-transform:uppercase}' +
       '.gv-btn:hover{background:#33ecff}' +
       '.gv-btn:disabled{opacity:0.5;cursor:default}' +
+      '.gv-google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border-radius:8px;border:1px solid #444;background:#fff;color:#333;font-weight:600;font-size:14px;cursor:pointer;transition:background 0.2s}' +
+      '.gv-google-btn:hover{background:#f0f0f0}' +
+      '.gv-google-icon{flex-shrink:0}' +
+      '.gv-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:#666;font-size:12px}' +
+      '.gv-divider::before,.gv-divider::after{content:"";flex:1;height:1px;background:#333}' +
       '.gv-msg{color:#4caf50;font-size:13px;margin:12px 0 0;min-height:20px}' +
       '.gv-msg.error{color:#f44336}' +
       '.gv-note{color:#666;font-size:12px;margin:12px 0 0}';
@@ -85,6 +100,7 @@
     // Events
     modal.querySelector('.gv-backdrop').onclick = closeModal;
     modal.querySelector('.gv-close').onclick = closeModal;
+    modal.querySelector('.gv-google-btn').onclick = signInWithGoogle;
     modal.querySelector('.gv-form').onsubmit = function(e) {
       e.preventDefault();
       var email = modal.querySelector('.gv-email').value.trim();
@@ -105,6 +121,17 @@
 
   function closeModal() {
     if (modal) modal.classList.remove('open');
+  }
+
+  function signInWithGoogle() {
+    if (!sb) return;
+    // Save current page so callback can redirect back
+    sessionStorage.setItem('gv_return_to', window.location.href);
+    var redirectTo = window.location.origin + '/auth/callback/';
+    sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: redirectTo }
+    });
   }
 
   function sendMagicLink(email) {
