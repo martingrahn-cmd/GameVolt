@@ -780,6 +780,13 @@
       }
     });
 
+    // Forward GA4 events from games in iframe
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'gamevolt_ga4' && typeof gtag === 'function') {
+        gtag('event', event.data.event, event.data.params || {});
+      }
+    });
+
     // PostMessage listener for game events
     window.addEventListener('message', function(event) {
       if (!event.data || event.data.type !== 'gamevolt') return;

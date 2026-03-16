@@ -1228,7 +1228,15 @@
             els.seedNumber.textContent = '#' + game.seed.toString().padStart(4, '0');
         }
 
+        // GA4 Game Event Tracker
+        var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
+        start:function(n){this.gameName=n;this.startTime=Date.now();this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',{game_name:n});if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
+        end:function(o){o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'});if(this.timerInterval)clearInterval(this.timerInterval);},
+        _checkMilestones:function(){if(!this.startTime)return;var t=(Date.now()-this.startTime)/1000;if(t>=30&&!this.hasTracked30s){this.hasTracked30s=true;this._send('game_play_30s',{game_name:this.gameName});}if(t>=60&&!this.hasTracked60s){this.hasTracked60s=true;this._send('game_play_60s',{game_name:this.gameName});}},
+        _send:function(n,p){if(typeof gtag==='function'){gtag('event',n,p);return;}if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}}};
+
         function newGame(seed = null) {
+            GameVoltTracker.start('Solitaire-Klondike');
             game.seed = seed !== null ? seed : Math.floor(Math.random() * 10000);
             const rng = new SeededRandom(game.seed);
 
@@ -1472,6 +1480,7 @@
             const total = game.foundations.reduce((s, f) => s + f.length, 0);
             if (total === 52) {
                 game.gameWon = true;
+                GameVoltTracker.end({score: game.score, outcome: 'win'});
                 clearInterval(game.timerInterval);
 
                 // Calculate time bonus: 700 - (time × 2), minimum 0
