@@ -1,6 +1,7 @@
 import { Game } from './game.js';
 
 const game = new Game();
+window.__axelugaGame = game;
 game.init();
 
 // Handle gameover → menu transition on Space

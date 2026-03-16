@@ -139,6 +139,7 @@ export default class UIManager {
 
     // postMessage
     gvPost('game_over', { score: g.score, level: g.level, mode: 'default' });
+    GameVoltTracker.end({score: g.score, level: g.level, outcome: 'lose'});
     if (g.score >= this.boData.bestScore) {
       gvPost('high_score', { score: g.score, mode: 'default' });
     }
@@ -175,6 +176,7 @@ export default class UIManager {
     this.game.start();
     this.hideOverlay();
     gvPost('game_start', { mode: 'default' });
+    GameVoltTracker.start('Breakout');
   }
 
   onContinueClick() {
@@ -538,3 +540,10 @@ function gvPost(action, payload) {
   }
 }
 window.gvPost = gvPost;
+
+// GA4 Game Event Tracker
+var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
+start:function(n){this.gameName=n;this.startTime=Date.now();this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',{game_name:n});if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
+end:function(o){o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'});if(this.timerInterval)clearInterval(this.timerInterval);},
+_checkMilestones:function(){if(!this.startTime)return;var t=(Date.now()-this.startTime)/1000;if(t>=30&&!this.hasTracked30s){this.hasTracked30s=true;this._send('game_play_30s',{game_name:this.gameName});}if(t>=60&&!this.hasTracked60s){this.hasTracked60s=true;this._send('game_play_60s',{game_name:this.gameName});}},
+_send:function(n,p){if(typeof gtag==='function'){gtag('event',n,p);return;}if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}}};
