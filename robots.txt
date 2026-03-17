@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /game/
+Disallow: /tag/
+Disallow: /rest/
 
 Sitemap: https://gamevolt.io/sitemap.xml
 Sitemap: https://gamevolt.io/sitemap-v2.xml
