@@ -371,6 +371,7 @@
         <div>Tryck <strong style="color:#0ff">⎋ Dela</strong> → <strong style="color:#0ff">Lägg till på hemskärmen</strong> för fullskärm!</div>
     </div>
 
+    <script src="/sdk/gamevolt.js"></script>
     <script type="module" src="js/main.js?v=20260215b"></script>
     <script>
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -521,6 +522,30 @@
     </div>
   </footer>
     </div>
+    <script>
+    // GameVolt SDK init
+    if(window.GameVolt){
+      GameVolt.init('axeluga');
+      GameVolt.save.registerMigration({
+        keys:['axeluga_hi','axeluga_settings'],
+        merge:function(local,cloud){
+          var c=cloud||{};
+          var hi=parseInt(local['axeluga_hi'])||0;
+          var settings={};
+          try{settings=JSON.parse(local['axeluga_settings']||'{}');}catch(e){}
+          return{
+            highScore:Math.max(hi,c.highScore||0),
+            settings:Object.assign({},c.settings||{},settings)
+          };
+        },
+        getScores:function(local){
+          var hi=parseInt(local['axeluga_hi'])||0;
+          if(!hi)return[];
+          return[{score:hi,mode:'default'}];
+        }
+      });
+    }
+    </script>
     <script>if(window.parent!==window){document.getElementById('seo-content').style.display='none';}</script>
     <script>
     // GA4 Game Event Tracker

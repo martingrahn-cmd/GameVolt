@@ -2061,10 +2061,19 @@ export class Game {
         // Score with combo
         this.combo++;
         this.comboTimer = 90;
+        if (this.combo >= 10 && window.GameVolt) GameVolt.achievements.unlock('axeluga-combo-master');
         const multi = this.player.scoreMulti > 0 ? 2 : 1;
         const comboBonus = Math.min(this.combo, 10);
         const points = e.score * comboBonus * multi;
+        const prevScore = this.score;
         this.score += points;
+
+        // Score milestone achievements
+        if (window.GameVolt) {
+            if (prevScore < 50000 && this.score >= 50000) GameVolt.achievements.unlock('axeluga-50k');
+            if (prevScore < 100000 && this.score >= 100000) GameVolt.achievements.unlock('axeluga-100k');
+            if (prevScore < 250000 && this.score >= 250000) GameVolt.achievements.unlock('axeluga-250k');
+        }
 
         // Charge bomb meter from kills (NOT during active bomb or cooldown)
         if (this.bombActive <= 0 && (this._bombChargeCooldown || 0) <= 0) {
@@ -2303,6 +2312,7 @@ export class Game {
             this.highScore = this.score;
             localStorage.setItem('axeluga_hi', this.highScore.toString());
         }
+        if (window.GameVolt) GameVolt.leaderboard.submit(this.score, { mode: 'default' });
 
         setTimeout(() => {
             this.state = 'gameover';
@@ -2361,6 +2371,10 @@ export class Game {
                 const bonus = (this.world + 1) * 10000;
                 this.score += bonus;
                 this.spawnFloatingText(GAME_W / 2, GAME_H / 2, `+${bonus}`);
+                if (window.GameVolt) {
+                    GameVolt.leaderboard.submit(this.score, { mode: 'default' });
+                    GameVolt.achievements.unlock('axeluga-galaxy-savior');
+                }
                 this.state = 'victory';
                 this.frame = 0;
                 this._playTransitionSound();
@@ -2373,6 +2387,17 @@ export class Game {
                 this.score += bonus;
                 this.spawnFloatingText(GAME_W / 2, GAME_H / 2, `+${bonus}`);
                 this._playTransitionSound();
+                if (window.GameVolt) {
+                    const worldAchievements = [
+                        'axeluga-world1-clear',
+                        'axeluga-world2-clear',
+                        'axeluga-world3-clear',
+                        'axeluga-world4-clear'
+                    ];
+                    if (worldAchievements[this.world]) {
+                        GameVolt.achievements.unlock(worldAchievements[this.world]);
+                    }
+                }
                 this.stageClearWorld = this.world;
                 this.state = 'stageclear';
                 this.frame = 0;
