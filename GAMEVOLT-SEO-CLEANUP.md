@@ -1,6 +1,7 @@
 # GameVolt SEO Cleanup Checklist
 
-> Generated 2026-03-17. Audit of all game pages vs the "gold standard" (Sudoku).
+> Generated 2026-03-17. All games now match the "gold standard" (Sudoku).
+> Status: ALL COMPLETE
 
 ## Required SEO Elements Per Game
 
@@ -34,173 +35,46 @@
 ### Sudoku `/sudoku/index.html` — COMPLETE
 All 20 elements present. This is the reference implementation.
 
----
+### HoverDash `/hoverdash/index.html` — COMPLETE
+All elements present (og:image dims and og:site_name were already in file).
 
-### HoverDash `/hoverdash/index.html`
-- [x] GA4
-- [x] meta description
-- [x] meta keywords
-- [x] meta author
-- [x] meta theme-color
-- [x] link canonical
-- [x] og:type, og:title, og:description, og:image, og:url
-- [ ] **og:image:width** — MISSING
-- [ ] **og:image:height** — MISSING
-- [ ] **og:site_name** — MISSING
-- [x] twitter:card, twitter:title, twitter:description, twitter:image
-- [x] JSON-LD
-- [x] SEO content
+### Snake `/snake/index.html` — COMPLETE
+Added: theme-color. og:site_name was already present.
 
----
+### Solitaire `/solitaire/index.html` — COMPLETE
+Added: og:image:width, og:image:height, og:site_name. Author and theme-color were already present.
 
-### Snake `/snake/index.html`
-- [x] GA4
-- [x] meta description
-- [x] meta keywords
-- [x] meta author
-- [x] meta theme-color (via meta robots — verify)
-- [x] link canonical
-- [x] og:type, og:title, og:description, og:image, og:url
-- [x] og:image:width, og:image:height
-- [ ] **og:site_name** — MISSING
-- [x] twitter:card, twitter:title, twitter:description, twitter:image
-- [x] JSON-LD
-- [x] SEO content
+### BlockStorm `/blockstorm/index.html` — COMPLETE
+Added: Google Analytics, og:site_name.
 
----
+### TapRush `/taprush/index.html` — COMPLETE
+Added: og:image:width, og:image:height, theme-color.
 
-### Solitaire `/solitaire/index.html`
-- [x] GA4
-- [x] meta description
-- [x] meta keywords
-- [ ] **meta author** — MISSING
-- [x] meta theme-color
-- [x] link canonical
-- [x] og:type, og:title, og:description, og:image, og:url
-- [x] og:image:width, og:image:height
-- [ ] **og:site_name** — MISSING
-- [x] twitter:card, twitter:title, twitter:description, twitter:image
-- [x] JSON-LD
-- [x] SEO content
+### Axeluga `/axeluga/index.html` — COMPLETE
+All elements were already present (og:site_name was already in file).
 
----
+### Breakout `/breakout/index.html` — COMPLETE
+Added: og:image:width, og:image:height, og:site_name, theme-color.
 
-### BlockStorm `/blockstorm/index.html`
-- [x] GA4
-- [x] meta description
-- [x] meta keywords
-- [x] meta author
-- [x] meta theme-color
-- [x] link canonical
-- [x] og:type, og:title, og:description, og:image, og:url
-- [x] og:image:width, og:image:height
-- [ ] **og:site_name** — MISSING
-- [x] twitter:card, twitter:title, twitter:description, twitter:image
-- [x] JSON-LD
-- [x] SEO content
+### Connect 4 `/connect4/index.html` — COMPLETE
+Added: meta author, og:site_name.
 
----
-
-### TapRush `/taprush/index.html`
-- [x] GA4
-- [x] meta description
-- [x] meta keywords
-- [x] meta author
-- [x] meta theme-color (via meta robots — verify)
-- [x] link canonical
-- [x] og:type, og:title, og:description, og:image, og:url
-- [ ] **og:image:width** — MISSING
-- [ ] **og:image:height** — MISSING
-- [x] og:site_name
-- [x] twitter:card, twitter:title, twitter:description, twitter:image
-- [x] JSON-LD
-- [x] SEO content
-
----
-
-### Axeluga `/axeluga/index.html`
-- [x] GA4
-- [x] meta description
-- [x] meta keywords
-- [x] meta author
-- [x] meta theme-color
-- [x] link canonical
-- [x] og:type, og:title, og:description, og:image, og:url
-- [x] og:image:width, og:image:height
-- [ ] **og:site_name** — MISSING
-- [x] twitter:card, twitter:title, twitter:description, twitter:image
-- [x] JSON-LD
-- [x] SEO content
-
----
-
-### Breakout `/breakout/index.html`
-- [x] GA4
-- [x] meta description
-- [x] meta keywords
-- [x] meta author
-- [x] meta theme-color (verify)
-- [x] link canonical
-- [x] og:type, og:title, og:description, og:image, og:url
-- [x] og:image:width, og:image:height
-- [ ] **og:site_name** — MISSING
-- [x] twitter:card, twitter:title, twitter:description, twitter:image
-- [x] JSON-LD
-- [x] SEO content
-
----
-
-### Connect 4 `/connect4/index.html`
-- [x] GA4
-- [x] meta description
-- [x] meta keywords
-- [ ] **meta author** — MISSING
-- [x] meta theme-color
-- [x] link canonical
-- [x] og:type, og:title, og:description, og:image, og:url
-- [x] og:image:width, og:image:height
-- [ ] **og:site_name** — MISSING
-- [x] twitter:card, twitter:title, twitter:description, twitter:image
-- [x] JSON-LD
-- [x] SEO content
-
----
-
-### Gravity Well `/gravitywell/index.html` — MOST ISSUES
-- [ ] **GA4** — MISSING (critical)
-- [x] meta description
-- [x] meta keywords (verify)
-- [x] meta author (verify)
-- [ ] **meta theme-color** — MISSING
-- [x] link canonical
-- [x] og:type, og:title, og:description, og:image, og:url
-- [ ] **og:image:width** — MISSING
-- [ ] **og:image:height** — MISSING
-- [ ] **og:site_name** — MISSING
-- [x] twitter:card, twitter:title, twitter:description, twitter:image
-- [x] JSON-LD
-- [x] SEO content
+### Gravity Well `/gravitywell/index.html` — COMPLETE
+Added: Google Analytics, meta keywords, meta author, theme-color, og:image:width, og:image:height, og:site_name.
 
 ---
 
 ## Summary Table
 
-| Game | Missing elements |
-|------|-----------------|
-| Sudoku | 0 (reference) |
-| Snake | 1 (og:site_name) |
-| BlockStorm | 1 (og:site_name) |
-| Axeluga | 1 (og:site_name) |
-| Breakout | 1 (og:site_name) |
-| Solitaire | 2 (author, og:site_name) |
-| Connect 4 | 2 (author, og:site_name) |
-| HoverDash | 3 (og:image dimensions, og:site_name) |
-| TapRush | 2 (og:image dimensions) |
-| Gravity Well | 5 (GA4, theme-color, og:image dimensions, og:site_name) |
-
-## Priority
-
-1. **Gravity Well** — Add GA4 + all missing meta tags
-2. **og:site_name** — Add to all 8 games missing it (one-liner each)
-3. **og:image dimensions** — Add to HoverDash, TapRush, Gravity Well
-4. **meta author** — Add to Solitaire, Connect 4
+| Game | Status | Fixed |
+|------|--------|-------|
+| Sudoku | COMPLETE | Reference |
+| HoverDash | COMPLETE | Already OK |
+| Snake | COMPLETE | +theme-color |
+| Solitaire | COMPLETE | +og:image dims, og:site_name |
+| BlockStorm | COMPLETE | +GA4, og:site_name |
+| TapRush | COMPLETE | +og:image dims, theme-color |
+| Axeluga | COMPLETE | Already OK |
+| Breakout | COMPLETE | +og:image dims, og:site_name, theme-color |
+| Connect 4 | COMPLETE | +author, og:site_name |
+| Gravity Well | COMPLETE | +GA4, keywords, author, theme-color, og:image dims, og:site_name |
