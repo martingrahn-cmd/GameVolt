@@ -1,7 +1,15 @@
-const CACHE='hoverdash-v2';
+const CACHE='hoverdash-v3';
 const ASSETS=[
-  '/','/index.html','/favicon.svg','/apple-touch-icon.png',
-  '/Distant Cosmos.mp3','/boost_smash.mp3','/go.mp3','/wave_clear.mp3','/wave_start.mp3','/select_001.mp3'
+  './',
+  './index.html',
+  './favicon.svg',
+  './apple-touch-icon.png',
+  './Distant Cosmos.mp3',
+  './boost_smash.mp3',
+  './go.mp3',
+  './wave_clear.mp3',
+  './wave_start.mp3',
+  './select_001.mp3'
 ];
 
 self.addEventListener('install',e=>{
