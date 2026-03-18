@@ -8,6 +8,68 @@ import {
 import { Input } from './input.js';
 import { Audio } from './audio.js';
 
+// ─── Trophy Definitions ───
+const TROPHIES = [
+    // BRONZE (15) — easy, earned naturally through play
+    { id: 'first-blood',       name: 'First Blood',       desc: 'Defeat your first enemy',              tier: 'bronze', icon: '💥' },
+    { id: 'deep-space-clear',  name: 'Deep Space Explorer',desc: 'Clear World 1',                        tier: 'bronze', icon: '🌌' },
+    { id: 'station-clear',     name: 'Station Breacher',   desc: 'Clear World 2',                        tier: 'bronze', icon: '🛸' },
+    { id: 'core-clear',        name: 'Core Runner',        desc: 'Clear World 3',                        tier: 'bronze', icon: '⚡' },
+    { id: 'atmosphere-clear',  name: 'Sky Piercer',        desc: 'Clear World 4',                        tier: 'bronze', icon: '☁️' },
+    { id: 'city-clear',        name: 'City Liberator',     desc: 'Clear World 5',                        tier: 'bronze', icon: '🏙️' },
+    { id: 'score-50k',         name: 'Getting Started',    desc: 'Reach 50,000 points',                  tier: 'bronze', icon: '⭐' },
+    { id: 'score-100k',        name: 'Six Figures',        desc: 'Reach 100,000 points',                 tier: 'bronze', icon: '🔥' },
+    { id: 'combo-5',           name: 'Combo Starter',      desc: 'Achieve a 5x combo',                   tier: 'bronze', icon: '🔗' },
+    { id: 'first-bomb',        name: 'Bomb Away!',         desc: 'Use your first bomb',                  tier: 'bronze', icon: '💣' },
+    { id: 'first-boss',        name: 'Boss Encounter',     desc: 'Defeat your first boss',               tier: 'bronze', icon: '👾' },
+    { id: 'power-up-collect',  name: 'Armed Up',           desc: 'Collect 10 power-ups in one run',      tier: 'bronze', icon: '🎁' },
+    { id: 'weapon-max',        name: 'Fully Loaded',       desc: 'Reach weapon level 5',                 tier: 'bronze', icon: '🔫' },
+    { id: 'shield-save',       name: 'Shield Hero',        desc: 'Absorb a hit with shield',             tier: 'bronze', icon: '🛡️' },
+    { id: 'asteroid-hunter',   name: 'Space Debris',       desc: 'Destroy 20 asteroids in one run',      tier: 'bronze', icon: '☄️' },
+    // SILVER (10) — requires dedication
+    { id: 'galaxy-savior',     name: 'Galaxy Savior',      desc: 'Clear all 5 worlds',                   tier: 'silver', icon: '🌟' },
+    { id: 'score-250k',        name: 'Quarter Million',    desc: 'Reach 250,000 points',                 tier: 'silver', icon: '💎' },
+    { id: 'combo-master',      name: 'Combo Master',       desc: 'Achieve a 10x combo',                  tier: 'silver', icon: '⚡' },
+    { id: 'medium-clear',      name: 'Trained Pilot',      desc: 'Clear all worlds on Medium',           tier: 'silver', icon: '🎖️' },
+    { id: 'mine-sweeper',      name: 'Mine Sweeper',       desc: 'Destroy 15 mines in one run',          tier: 'silver', icon: '💀' },
+    { id: 'bomb-efficiency',   name: 'Carpet Bomber',      desc: 'Kill 5+ enemies with one bomb',        tier: 'silver', icon: '🎯' },
+    { id: 'no-death-world',    name: 'Untouchable I',      desc: 'Clear a world without taking damage',  tier: 'silver', icon: '✨' },
+    { id: 'boss-no-hit',       name: 'Dodge Master',       desc: 'Defeat a boss without taking damage',  tier: 'silver', icon: '🎪' },
+    { id: 'score-500k',        name: 'Half Million Club',  desc: 'Reach 500,000 points',                 tier: 'silver', icon: '💰' },
+    { id: 'speed-max',         name: 'Lightspeed',         desc: 'Reach max speed level',                tier: 'silver', icon: '🚀' },
+    // GOLD (5) — requires real effort
+    { id: 'hard-clear',        name: 'Ace Pilot',          desc: 'Clear all worlds on Hard',             tier: 'gold', icon: '🏆' },
+    { id: 'score-1m',          name: 'Millionaire',        desc: 'Reach 1,000,000 points',               tier: 'gold', icon: '👑' },
+    { id: 'no-death-run',      name: 'Untouchable II',     desc: 'Clear all worlds without losing HP',   tier: 'gold', icon: '💫' },
+    { id: 'hard-no-death-world', name: 'Iron Will',        desc: 'Clear a world on Hard without damage', tier: 'gold', icon: '🔱' },
+    { id: 'boss-rage-survivor', name: 'Rage Tamer',        desc: 'Beat all 5 bosses in rage without damage', tier: 'gold', icon: '🐉' },
+    // PLATINUM (1)
+    { id: 'platinum',          name: 'Axeluga Platinum',   desc: 'Unlock all 30 other trophies',         tier: 'platinum', icon: '⚜️' },
+];
+
+const AX_TROPHY_KEY = 'axeluga_trophies';
+
+function loadTrophyData() {
+    try {
+        const raw = localStorage.getItem(AX_TROPHY_KEY);
+        if (raw) {
+            const d = JSON.parse(raw);
+            // Ensure all trophy IDs exist
+            for (const t of TROPHIES) {
+                if (!(t.id in d)) d[t.id] = 0;
+            }
+            return d;
+        }
+    } catch (e) {}
+    const d = {};
+    for (const t of TROPHIES) d[t.id] = 0;
+    return d;
+}
+
+function saveTrophyData(data) {
+    try { localStorage.setItem(AX_TROPHY_KEY, JSON.stringify(data)); } catch (e) {}
+}
+
 // ─── Asset Loader ───
 class Assets {
     constructor() {
@@ -762,6 +824,12 @@ export class Game {
         this.mines = [];
         this.bigExplosions = [];
         this.bulletHits = [];
+
+        // Trophy system
+        this.trophyData = loadTrophyData();
+        this._trophyToastQueue = [];
+        this._trophyToastActive = false;
+        this.trophyScrollY = 0;
     }
 
     async init() {
@@ -845,7 +913,7 @@ export class Game {
             }
             if (this.state === 'menu') {
                 // Tap on menu items
-                const menuOpts = [{y: 360, action: 0}, {y: 396, action: 1}, {y: 432, action: 2}];
+                const menuOpts = [{y: 340, action: 0}, {y: 374, action: 1}, {y: 408, action: 2}, {y: 442, action: 3}];
                 for (const opt of menuOpts) {
                     if (y > opt.y - 18 && y < opt.y + 18) {
                         this.audio.menuClick();
@@ -856,10 +924,14 @@ export class Game {
                             this._levelSelectInit = true;
                             this.frame = 0;
                         } else if (opt.action === 1) {
+                            this.state = 'trophies';
+                            this.trophyScrollY = 0;
+                            this.frame = 0;
+                        } else if (opt.action === 2) {
                             this.state = 'options';
                             this.optionsCursor = 0;
                             this.frame = 0;
-                        } else if (opt.action === 2) {
+                        } else if (opt.action === 3) {
                             this.state = 'credits';
                             this.frame = 0;
                         }
@@ -895,15 +967,31 @@ export class Game {
                 if (y > backY - 15 && y < backY + 25) {
                     this._saveSettings();
                     this.state = 'menu';
+                    this.menuCursor = 2;
+                    this.frame = 0;
+                }
+            } else if (this.state === 'trophies') {
+                // BACK button at bottom
+                if (y > GAME_H - 50) {
+                    this.state = 'menu';
                     this.menuCursor = 1;
                     this.frame = 0;
+                }
+                // Touch scrolling for trophy grid
+                if (y > 90 && y < GAME_H - 40) {
+                    // Scroll based on tap position relative to center
+                    if (y < GAME_H / 2) {
+                        this.trophyScrollY = Math.max(0, this.trophyScrollY - 80);
+                    } else {
+                        this.trophyScrollY = Math.min(this._trophyMaxScroll || 999, this.trophyScrollY + 80);
+                    }
                 }
             } else if (this.state === 'credits') {
                 // BACK button at bottom
                 const backY = GAME_H - 55;
                 if (y > backY - 18 && y < backY + 18) {
                     this.state = 'menu';
-                    this.menuCursor = 2;
+                    this.menuCursor = 3;
                     this.frame = 0;
                 }
             } else if (this.state === 'levelselect') {
@@ -1091,6 +1179,26 @@ export class Game {
         this.bigExplosions = [];
         this.bulletHits = [];
 
+        // Per-run trophy tracking
+        this._runStats = {
+            totalKills: 0,
+            bossKills: 0,
+            miniBossKills: 0,
+            powerupsCollected: 0,
+            asteroidsDestroyed: 0,
+            minesDestroyed: 0,
+            bombsUsed: 0,
+            bombKills: 0,         // kills during current bomb
+            damageTaken: 0,       // total HP lost this run
+            worldDamageTaken: 0,  // HP lost in current world
+            bossDamageTaken: 0,   // HP lost during current boss fight
+            bossRageDamageTaken: 0, // HP lost during boss rage phases
+            bossRageCleanKills: 0,  // bosses killed in rage without taking damage
+            shieldAbsorbs: 0,
+            maxCombo: 0,
+            difficulty: this.settings.difficulty,
+        };
+
         this.player = {
             x: GAME_W / 2,
             y: GAME_H - 80,
@@ -1193,7 +1301,7 @@ export class Game {
                 this._titleMusicResumed = !!(this.audio.ctx && this.audio.ctx.state === 'running');
                 if (this._titleMusicResumed) this._audioActivated = true;
             }
-            const menuItems = 3; // START, OPTIONS, CREDITS
+            const menuItems = 4; // START, TROPHIES, OPTIONS, CREDITS
             if (navUp) { this.menuCursor = (this.menuCursor - 1 + menuItems) % menuItems; this.audio.menuClick(); }
             if (navDown) { this.menuCursor = (this.menuCursor + 1) % menuItems; this.audio.menuClick(); }
             if (confirm) {
@@ -1205,11 +1313,16 @@ export class Game {
                     this._levelSelectInit = true;
                     this.frame = 0;
                 } else if (this.menuCursor === 1) {
+                    // TROPHIES
+                    this.state = 'trophies';
+                    this.trophyScrollY = 0;
+                    this.frame = 0;
+                } else if (this.menuCursor === 2) {
                     // OPTIONS
                     this.state = 'options';
                     this.optionsCursor = 0;
                     this.frame = 0;
-                } else if (this.menuCursor === 2) {
+                } else if (this.menuCursor === 3) {
                     // CREDITS
                     this.state = 'credits';
                     this.frame = 0;
@@ -1245,14 +1358,14 @@ export class Game {
             if (this.input.keys['Escape'] && !this._escPrev) {
                 this._saveSettings();
                 this.state = 'menu';
-                this.menuCursor = 1;
+                this.menuCursor = 2;
                 this.frame = 0;
             }
             if (confirm && this.optionsCursor === 3) {
                 // "BACK" option
                 this._saveSettings();
                 this.state = 'menu';
-                this.menuCursor = 1;
+                this.menuCursor = 2;
                 this.frame = 0;
             }
             this._kLeftPrev = kLeft;
@@ -1262,7 +1375,21 @@ export class Game {
         } else if (this.state === 'credits') {
             if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
                 this.state = 'menu';
-                this.menuCursor = 2;
+                this.menuCursor = 3;
+                this.frame = 0;
+            }
+        } else if (this.state === 'trophies') {
+            // Scroll with up/down (held, not edge-detected)
+            const scrollSpeed = 6;
+            if (this.input.keys['ArrowDown'] || this.input.keys['KeyS'] || this.input.gpAxes.y > 0.5) {
+                this.trophyScrollY = Math.min(this._trophyMaxScroll || 999, this.trophyScrollY + scrollSpeed);
+            }
+            if (this.input.keys['ArrowUp'] || this.input.keys['KeyW'] || this.input.gpAxes.y < -0.5) {
+                this.trophyScrollY = Math.max(0, this.trophyScrollY - scrollSpeed);
+            }
+            if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
+                this.state = 'menu';
+                this.menuCursor = 1;
                 this.frame = 0;
             }
         } else if (this.state === 'levelselect') {
@@ -2061,10 +2188,19 @@ export class Game {
         // Score with combo
         this.combo++;
         this.comboTimer = 90;
+        if (this._runStats) {
+            this._runStats.totalKills++;
+            if (this.combo > this._runStats.maxCombo) this._runStats.maxCombo = this.combo;
+        }
         const multi = this.player.scoreMulti > 0 ? 2 : 1;
         const comboBonus = Math.min(this.combo, 10);
         const points = e.score * comboBonus * multi;
+        const prevScore = this.score;
         this.score += points;
+
+        // Trophy checks
+        this.checkScoreTrophies(prevScore);
+        this.checkInstantTrophies();
 
         // Charge bomb meter from kills (NOT during active bomb or cooldown)
         if (this.bombActive <= 0 && (this._bombChargeCooldown || 0) <= 0) {
@@ -2084,6 +2220,16 @@ export class Game {
             this.bossActive = false;
             this.flashAlpha = 1;
             this.audio.bossExplode(); // Big crunch!
+            if (this._runStats) {
+                this._runStats.bossKills++;
+                this.tryUnlockTrophy('first-boss');
+                // Boss no-hit check
+                if (this._runStats.bossDamageTaken === 0) this.tryUnlockTrophy('boss-no-hit');
+                // Boss rage clean kill check
+                if (this._runStats.bossRageDamageTaken === 0) this._runStats.bossRageCleanKills++;
+                this._runStats.bossDamageTaken = 0;
+                this._runStats.bossRageDamageTaken = 0;
+            }
             // Massive staggered big explosions
             for (let i = 0; i < 12; i++) {
                 const ox = (Math.random() - 0.5) * 100;
@@ -2100,6 +2246,7 @@ export class Game {
         if (e.isMiniBoss) {
             this.flashAlpha = 0.6;
             this.audio.bossExplode(); // Crunch!
+            if (this._runStats) this._runStats.miniBossKills++;
             this.input.vibrate(200, 0.5, 0.7);
             // Medium staggered big explosions
             for (let i = 0; i < 7; i++) {
@@ -2153,6 +2300,11 @@ export class Game {
         this.audio.bombSfx();
         this.shake.add(10);
         this.input.vibrate(300, 0.8, 1.0);
+        if (this._runStats) {
+            this._runStats.bombsUsed++;
+            this._runStats.bombKills = 0; // reset for this bomb
+            this.tryUnlockTrophy('first-bomb');
+        }
     }
 
     executeBomb() {
@@ -2161,6 +2313,9 @@ export class Game {
             this.particles.emit(b.x, b.y, 3, '#ff0', 2, 10);
         }
         this.enemyBullets = [];
+
+        // Track bomb kills for carpet bomber trophy
+        const killsBefore = this._runStats ? this._runStats.totalKills : 0;
 
         // Damage all enemies on screen
         for (let i = this.enemies.length - 1; i >= 0; i--) {
@@ -2189,6 +2344,12 @@ export class Game {
         this.mines = [];
 
         this.flashAlpha = 0.8;
+
+        // Check carpet bomber trophy
+        if (this._runStats) {
+            const bombKills = this._runStats.totalKills - killsBefore;
+            if (bombKills >= 5) this.tryUnlockTrophy('bomb-efficiency');
+        }
     }
 
     // ─── Floating Score Text ───
@@ -2229,11 +2390,25 @@ export class Game {
             this.particles.emit(p.x, p.y, 10, '#0ff', 3, 20);
             p.invuln = 30;
             this.input.vibrate(80, 0.2, 0.3);
+            if (this._runStats) {
+                this._runStats.shieldAbsorbs++;
+                this.tryUnlockTrophy('shield-save');
+            }
             return;
         }
 
         p.hp--;
         p.invuln = PLAYER_INVULN_TIME;
+        if (this._runStats) {
+            this._runStats.damageTaken++;
+            this._runStats.worldDamageTaken++;
+            this._runStats.bossDamageTaken++;
+            // Check if boss is in rage mode
+            const boss = this.enemies.find(e => e.isBoss);
+            if (boss && boss.hp / boss.maxHp <= 0.25) {
+                this._runStats.bossRageDamageTaken++;
+            }
+        }
         this.shake.add(5);
         this.flashAlpha = 0.5;
         this.audio.playerHit();
@@ -2303,6 +2478,8 @@ export class Game {
             this.highScore = this.score;
             localStorage.setItem('axeluga_hi', this.highScore.toString());
         }
+        if (window.GameVolt) GameVolt.leaderboard.submit(this.score, { mode: 'default' });
+        this.checkEndgameTrophies();
 
         setTimeout(() => {
             this.state = 'gameover';
@@ -2361,6 +2538,13 @@ export class Game {
                 const bonus = (this.world + 1) * 10000;
                 this.score += bonus;
                 this.spawnFloatingText(GAME_W / 2, GAME_H / 2, `+${bonus}`);
+                if (window.GameVolt) {
+                    GameVolt.leaderboard.submit(this.score, { mode: 'default' });
+                }
+                // Trophy checks for world 5 clear + victory
+                this.checkWorldClearTrophies(this.world);
+                this.checkVictoryTrophies();
+                this.checkEndgameTrophies();
                 this.state = 'victory';
                 this.frame = 0;
                 this._playTransitionSound();
@@ -2373,6 +2557,7 @@ export class Game {
                 this.score += bonus;
                 this.spawnFloatingText(GAME_W / 2, GAME_H / 2, `+${bonus}`);
                 this._playTransitionSound();
+                this.checkWorldClearTrophies(this.world);
                 this.stageClearWorld = this.world;
                 this.state = 'stageclear';
                 this.frame = 0;
@@ -2666,6 +2851,11 @@ export class Game {
     spawnBoss() {
         this.bossActive = true;
         this.audio.bossAlert();
+        // Reset boss damage tracking for boss-no-hit trophy
+        if (this._runStats) {
+            this._runStats.bossDamageTaken = 0;
+            this._runStats.bossRageDamageTaken = 0;
+        }
 
         const bossNum = Math.floor(this.wave / WAVE_CONFIG.bossEvery);
         const w = this.world;
@@ -2851,6 +3041,10 @@ export class Game {
         this.audio.powerup();
         this.particles.emit(pu.x, pu.y, 10, '#0f0', 3, 20);
         this.spawnFloatingText(pu.x, pu.y - 10, type.toUpperCase());
+        if (this._runStats) {
+            this._runStats.powerupsCollected++;
+            this.checkInstantTrophies();
+        }
     }
 
     updateAsteroids() {
@@ -2877,6 +3071,7 @@ export class Game {
                         this.particles.emit(a.x, a.y, 8, '#a84', 3, 20);
                         this.asteroids.splice(i, 1);
                         this.audio.explosion(false);
+                        if (this._runStats) this._runStats.asteroidsDestroyed++;
                     }
                     break;
                 }
@@ -2923,6 +3118,7 @@ export class Game {
                         this.mines.splice(i, 1);
                         this.audio.explosion(false);
                         this.shake.add(3);
+                        if (this._runStats) this._runStats.minesDestroyed++;
                     }
                     break;
                 }
@@ -3017,6 +3213,8 @@ export class Game {
 
         if (this.state === 'menu') {
             this.drawMenu(ctx);
+        } else if (this.state === 'trophies') {
+            this.drawTrophies(ctx);
         } else if (this.state === 'options') {
             this.drawOptions(ctx);
         } else if (this.state === 'credits') {
@@ -3243,9 +3441,9 @@ export class Game {
         }
 
         // ── Menu items ──
-        const menuItems = ['START', 'OPTIONS', 'CREDITS'];
-        const menuY = 360;
-        const spacing = 36;
+        const menuItems = ['START', 'TROPHIES', 'OPTIONS', 'CREDITS'];
+        const menuY = 340;
+        const spacing = 34;
 
         for (let i = 0; i < menuItems.length; i++) {
             const y = menuY + i * spacing;
@@ -3271,6 +3469,14 @@ export class Game {
                 ctx.fillStyle = '#667';
                 ctx.font = '16px "Courier New", monospace';
                 ctx.fillText(menuItems[i], cx, y + 4);
+            }
+
+            // Trophy count badge next to TROPHIES
+            if (i === 1) {
+                const tc = this.getTrophyCount();
+                ctx.fillStyle = tc >= 31 ? '#b4ffff' : tc > 0 ? '#ffd700' : '#556';
+                ctx.font = '9px "Courier New", monospace';
+                ctx.fillText(`${tc}/${TROPHIES.length}`, cx + 60, y - 6);
             }
         }
 
@@ -4812,5 +5018,319 @@ export class Game {
         }
 
         ctx.globalAlpha = 1;
+    }
+
+    // ─── Trophy System ───
+    tryUnlockTrophy(id) {
+        if (this.trophyData[id]) return false;
+        const trophy = TROPHIES.find(t => t.id === id);
+        if (!trophy) return false;
+
+        this.trophyData[id] = Date.now();
+        saveTrophyData(this.trophyData);
+
+        // Show toast
+        this._trophyToastQueue.push(trophy);
+        if (!this._trophyToastActive) this._popTrophyToast();
+
+        // Play SFX
+        this._playTrophySfx(trophy.tier);
+
+        // GameVolt SDK
+        if (window.GameVolt) GameVolt.achievements.unlock(id);
+
+        // Check for platinum
+        if (id !== 'platinum') {
+            let count = 0;
+            for (const t of TROPHIES) {
+                if (t.id !== 'platinum' && this.trophyData[t.id]) count++;
+            }
+            if (count >= 30) this.tryUnlockTrophy('platinum');
+        }
+        return true;
+    }
+
+    _popTrophyToast() {
+        if (!this._trophyToastQueue.length) {
+            this._trophyToastActive = false;
+            return;
+        }
+        this._trophyToastActive = true;
+        const trophy = this._trophyToastQueue.shift();
+        const el = document.getElementById('trophy-toast');
+        if (!el) return;
+        document.getElementById('trophy-toast-icon').textContent = trophy.icon;
+        document.getElementById('trophy-toast-name').textContent = trophy.name;
+        const tierEl = document.getElementById('trophy-toast-tier');
+        tierEl.textContent = trophy.tier.toUpperCase();
+        tierEl.className = trophy.tier;
+        el.classList.add('show');
+        setTimeout(() => {
+            el.classList.remove('show');
+            setTimeout(() => this._popTrophyToast(), 400);
+        }, 2800);
+    }
+
+    _playTrophySfx(tier) {
+        this.audio._play(() => {
+            const ctx = this.audio.ctx;
+            const t = ctx.currentTime;
+            const dest = this.audio.masterGain;
+            const notes = tier === 'gold' || tier === 'platinum'
+                ? [784, 988, 1318] : [784, 1047];
+            for (let i = 0; i < notes.length; i++) {
+                const o = ctx.createOscillator();
+                o.type = 'sine';
+                o.frequency.value = notes[i];
+                const g = ctx.createGain();
+                const on = t + i * 0.08;
+                g.gain.setValueAtTime(0.001, on);
+                g.gain.linearRampToValueAtTime(0.25, on + 0.015);
+                g.gain.exponentialRampToValueAtTime(0.001, on + 0.4);
+                o.connect(g).connect(dest);
+                o.start(on);
+                o.stop(on + 0.45);
+            }
+        });
+    }
+
+    checkInstantTrophies() {
+        const s = this._runStats;
+        if (s.totalKills === 1) this.tryUnlockTrophy('first-blood');
+        if (s.maxCombo >= 5) this.tryUnlockTrophy('combo-5');
+        if (s.maxCombo >= 10) this.tryUnlockTrophy('combo-master');
+        if (this.player.weaponLevel >= 5) this.tryUnlockTrophy('weapon-max');
+        if (this.player.speedLevel >= 3) this.tryUnlockTrophy('speed-max');
+    }
+
+    checkScoreTrophies(prevScore) {
+        if (prevScore < 50000 && this.score >= 50000) this.tryUnlockTrophy('score-50k');
+        if (prevScore < 100000 && this.score >= 100000) this.tryUnlockTrophy('score-100k');
+        if (prevScore < 250000 && this.score >= 250000) this.tryUnlockTrophy('score-250k');
+        if (prevScore < 500000 && this.score >= 500000) this.tryUnlockTrophy('score-500k');
+        if (prevScore < 1000000 && this.score >= 1000000) this.tryUnlockTrophy('score-1m');
+    }
+
+    checkWorldClearTrophies(worldIdx) {
+        const worldTrophies = ['deep-space-clear', 'station-clear', 'core-clear', 'atmosphere-clear', 'city-clear'];
+        if (worldTrophies[worldIdx]) this.tryUnlockTrophy(worldTrophies[worldIdx]);
+
+        // No-death world check
+        if (this._runStats.worldDamageTaken === 0) {
+            this.tryUnlockTrophy('no-death-world');
+            if (this._runStats.difficulty === 2) this.tryUnlockTrophy('hard-no-death-world');
+        }
+        // Reset world damage counter for next world
+        this._runStats.worldDamageTaken = 0;
+    }
+
+    checkVictoryTrophies() {
+        this.tryUnlockTrophy('galaxy-savior');
+        if (this._runStats.difficulty >= 1) this.tryUnlockTrophy('medium-clear');
+        if (this._runStats.difficulty === 2) this.tryUnlockTrophy('hard-clear');
+        if (this._runStats.damageTaken === 0) this.tryUnlockTrophy('no-death-run');
+        if (this._runStats.bossRageCleanKills >= 5) this.tryUnlockTrophy('boss-rage-survivor');
+    }
+
+    checkEndgameTrophies() {
+        const s = this._runStats;
+        if (s.powerupsCollected >= 10) this.tryUnlockTrophy('power-up-collect');
+        if (s.asteroidsDestroyed >= 20) this.tryUnlockTrophy('asteroid-hunter');
+        if (s.minesDestroyed >= 15) this.tryUnlockTrophy('mine-sweeper');
+    }
+
+    getTrophyCount() {
+        let n = 0;
+        for (const t of TROPHIES) {
+            if (this.trophyData[t.id]) n++;
+        }
+        return n;
+    }
+
+    drawTrophies(ctx) {
+        // Full-screen dark overlay
+        ctx.fillStyle = 'rgba(0,0,0,0.85)';
+        ctx.fillRect(0, 0, GAME_W, GAME_H);
+
+        ctx.textAlign = 'center';
+        const cx = GAME_W / 2;
+
+        // Header
+        ctx.fillStyle = '#0ff';
+        ctx.font = 'bold 26px "Courier New", monospace';
+        ctx.fillText('TROPHIES', cx, 50);
+
+        // Count
+        const count = this.getTrophyCount();
+        ctx.fillStyle = '#0ff';
+        ctx.globalAlpha = 0.5;
+        ctx.font = '12px "Courier New", monospace';
+        ctx.fillText(`${count} / ${TROPHIES.length}`, cx, 70);
+        ctx.globalAlpha = 1;
+
+        // Decorative line
+        ctx.strokeStyle = '#0ff';
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath();
+        ctx.moveTo(cx - 80, 78); ctx.lineTo(cx + 80, 78);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // Trophy grid - scrollable area
+        const startY = 90;
+        const cardW = 160;
+        const cardH = 72;
+        const gap = 8;
+        const cols = 2;
+        const gridX = (GAME_W - cols * cardW - (cols - 1) * gap) / 2;
+
+        // Clip to scrollable area
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, startY, GAME_W, GAME_H - startY - 40);
+        ctx.clip();
+
+        const tierOrder = ['bronze', 'silver', 'gold', 'platinum'];
+        const tierColors = { bronze: '#cd7f32', silver: '#c0c0c0', gold: '#ffd700', platinum: '#b4ffff' };
+        let row = 0;
+
+        for (const tier of tierOrder) {
+            const tierTrophies = TROPHIES.filter(t => t.tier === tier);
+            if (tierTrophies.length === 0) continue;
+
+            // Tier header
+            const headerY = startY + row * (cardH + gap) - this.trophyScrollY;
+            if (headerY > -30 && headerY < GAME_H) {
+                ctx.fillStyle = tierColors[tier];
+                ctx.font = 'bold 10px "Courier New", monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText(tier.toUpperCase(), gridX, headerY + 14);
+                ctx.strokeStyle = tierColors[tier] + '44';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(gridX, headerY + 18);
+                ctx.lineTo(gridX + cols * cardW + (cols - 1) * gap, headerY + 18);
+                ctx.stroke();
+                ctx.textAlign = 'center';
+            }
+            row++;
+
+            // Trophy cards in 2 columns
+            for (let i = 0; i < tierTrophies.length; i++) {
+                const t = tierTrophies[i];
+                const col = i % cols;
+                const r = Math.floor(i / cols);
+                const cardX = gridX + col * (cardW + gap);
+                const cardY = startY + (row + r) * (cardH + gap) - this.trophyScrollY;
+
+                if (cardY > GAME_H || cardY + cardH < startY) continue;
+
+                const unlocked = !!this.trophyData[t.id];
+
+                // Card background
+                if (unlocked) {
+                    ctx.fillStyle = tierColors[tier] + '18';
+                    ctx.strokeStyle = tierColors[tier] + '66';
+                } else {
+                    ctx.fillStyle = 'rgba(10,10,24,0.6)';
+                    ctx.strokeStyle = '#ffffff11';
+                }
+                ctx.lineWidth = 1;
+                // Rounded rect
+                const cr = 6;
+                ctx.beginPath();
+                ctx.moveTo(cardX + cr, cardY);
+                ctx.lineTo(cardX + cardW - cr, cardY);
+                ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + cr);
+                ctx.lineTo(cardX + cardW, cardY + cardH - cr);
+                ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - cr, cardY + cardH);
+                ctx.lineTo(cardX + cr, cardY + cardH);
+                ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - cr);
+                ctx.lineTo(cardX, cardY + cr);
+                ctx.quadraticCurveTo(cardX, cardY, cardX + cr, cardY);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                if (!unlocked) ctx.globalAlpha = 0.45;
+
+                // Icon
+                ctx.font = '22px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#fff';
+                ctx.fillText(unlocked ? t.icon : '🔒', cardX + 24, cardY + 32);
+
+                // Name
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 9px "Courier New", monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText(t.name, cardX + 44, cardY + 22);
+
+                // Description
+                ctx.fillStyle = '#889';
+                ctx.font = '8px "Courier New", monospace';
+                // Word wrap description
+                const words = t.desc.split(' ');
+                let line = '';
+                let lineY = cardY + 34;
+                for (const word of words) {
+                    const test = line ? line + ' ' + word : word;
+                    if (ctx.measureText(test).width > cardW - 50) {
+                        ctx.fillText(line, cardX + 44, lineY);
+                        line = word;
+                        lineY += 11;
+                    } else {
+                        line = test;
+                    }
+                }
+                if (line) ctx.fillText(line, cardX + 44, lineY);
+
+                // Tier label
+                ctx.fillStyle = tierColors[tier];
+                ctx.font = 'bold 7px "Courier New", monospace';
+                ctx.fillText(tier.toUpperCase(), cardX + 44, cardY + cardH - 8);
+
+                // Checkmark for unlocked
+                if (unlocked) {
+                    ctx.fillStyle = '#44ff88';
+                    ctx.font = '12px sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText('✓', cardX + cardW - 6, cardY + 14);
+                }
+
+                ctx.globalAlpha = 1;
+                ctx.textAlign = 'center';
+            }
+            row += Math.ceil(tierTrophies.length / cols);
+        }
+
+        ctx.restore();
+
+        // Calculate max scroll
+        const totalRows = Math.ceil(TROPHIES.length / cols) + tierOrder.length + 2;
+        this._trophyMaxScroll = Math.max(0, totalRows * (cardH + gap) - (GAME_H - startY - 40));
+
+        // Scroll indicator
+        if (this._trophyMaxScroll > 0) {
+            const scrollPct = this.trophyScrollY / this._trophyMaxScroll;
+            const barH = GAME_H - startY - 40;
+            const thumbH = Math.max(30, barH * barH / (totalRows * (cardH + gap)));
+            const thumbY = startY + scrollPct * (barH - thumbH);
+            ctx.fillStyle = 'rgba(0,255,255,0.2)';
+            ctx.fillRect(GAME_W - 4, thumbY, 3, thumbH);
+        }
+
+        // BACK button
+        const backY = GAME_H - 28;
+        ctx.fillStyle = '#667';
+        ctx.font = '14px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('◂ BACK', cx, backY);
+
+        // Controls hint
+        ctx.fillStyle = '#445';
+        ctx.font = '9px "Courier New", monospace';
+        ctx.fillText('↑↓ SCROLL · ESC BACK', cx, GAME_H - 10);
     }
 }
