@@ -830,6 +830,15 @@ export class Game {
         this._trophyToastQueue = [];
         this._trophyToastActive = false;
         this.trophyScrollY = 0;
+
+        // Scores/leaderboard state
+        this.scoresScrollY = 0;
+        this._scoresLoaded = false;
+        this._scoresData = null;
+        this._localScores = [];
+        this._leaderboardData = null;
+        this._leaderboardLoading = false;
+        this._scoresMaxScroll = 0;
     }
 
     async init() {
@@ -912,26 +921,36 @@ export class Game {
                 this._titleMusicResumed = true;
             }
             if (this.state === 'menu') {
-                // Tap on menu items
-                const menuOpts = [{y: 340, action: 0}, {y: 374, action: 1}, {y: 408, action: 2}, {y: 442, action: 3}];
-                for (const opt of menuOpts) {
-                    if (y > opt.y - 18 && y < opt.y + 18) {
+                // Tap on menu buttons (5 items, spacing=46, start=330)
+                const menuY = 330;
+                const spacing = 46;
+                const btnH = 38;
+                for (let i = 0; i < 5; i++) {
+                    const by = menuY + i * spacing - btnH / 2;
+                    if (y > by && y < by + btnH) {
                         this.audio.menuClick();
-                        this.menuCursor = opt.action;
-                        if (opt.action === 0) {
+                        this.menuCursor = i;
+                        if (i === 0) {
                             this.state = 'levelselect';
                             this.menuCursor = 0;
                             this._levelSelectInit = true;
                             this.frame = 0;
-                        } else if (opt.action === 1) {
+                        } else if (i === 1) {
+                            this.state = 'scores';
+                            this.scoresScrollY = 0;
+                            this._scoresLoaded = false;
+                            this._scoresData = null;
+                            this._loadScores();
+                            this.frame = 0;
+                        } else if (i === 2) {
                             this.state = 'trophies';
                             this.trophyScrollY = 0;
                             this.frame = 0;
-                        } else if (opt.action === 2) {
+                        } else if (i === 3) {
                             this.state = 'options';
                             this.optionsCursor = 0;
                             this.frame = 0;
-                        } else if (opt.action === 3) {
+                        } else if (i === 4) {
                             this.state = 'credits';
                             this.frame = 0;
                         }
@@ -967,31 +986,31 @@ export class Game {
                 if (y > backY - 15 && y < backY + 25) {
                     this._saveSettings();
                     this.state = 'menu';
-                    this.menuCursor = 2;
+                    this.menuCursor = 3;
                     this.frame = 0;
                 }
             } else if (this.state === 'trophies') {
+                // BACK button at bottom (only on tap, not drag)
+                if (y > GAME_H - 50) {
+                    this.input.setScrollMode(false);
+                    this.state = 'menu';
+                    this.menuCursor = 2;
+                    this.frame = 0;
+                }
+            } else if (this.state === 'scores') {
                 // BACK button at bottom
                 if (y > GAME_H - 50) {
+                    this.input.setScrollMode(false);
                     this.state = 'menu';
                     this.menuCursor = 1;
                     this.frame = 0;
-                }
-                // Touch scrolling for trophy grid
-                if (y > 90 && y < GAME_H - 40) {
-                    // Scroll based on tap position relative to center
-                    if (y < GAME_H / 2) {
-                        this.trophyScrollY = Math.max(0, this.trophyScrollY - 80);
-                    } else {
-                        this.trophyScrollY = Math.min(this._trophyMaxScroll || 999, this.trophyScrollY + 80);
-                    }
                 }
             } else if (this.state === 'credits') {
                 // BACK button at bottom
                 const backY = GAME_H - 55;
                 if (y > backY - 18 && y < backY + 18) {
                     this.state = 'menu';
-                    this.menuCursor = 3;
+                    this.menuCursor = 4;
                     this.frame = 0;
                 }
             } else if (this.state === 'levelselect') {
@@ -1301,7 +1320,7 @@ export class Game {
                 this._titleMusicResumed = !!(this.audio.ctx && this.audio.ctx.state === 'running');
                 if (this._titleMusicResumed) this._audioActivated = true;
             }
-            const menuItems = 4; // START, TROPHIES, OPTIONS, CREDITS
+            const menuItems = 5; // START, SCORES, TROPHIES, OPTIONS, CREDITS
             if (navUp) { this.menuCursor = (this.menuCursor - 1 + menuItems) % menuItems; this.audio.menuClick(); }
             if (navDown) { this.menuCursor = (this.menuCursor + 1) % menuItems; this.audio.menuClick(); }
             if (confirm) {
@@ -1313,16 +1332,24 @@ export class Game {
                     this._levelSelectInit = true;
                     this.frame = 0;
                 } else if (this.menuCursor === 1) {
+                    // SCORES
+                    this.state = 'scores';
+                    this.scoresScrollY = 0;
+                    this._scoresLoaded = false;
+                    this._scoresData = null;
+                    this._loadScores();
+                    this.frame = 0;
+                } else if (this.menuCursor === 2) {
                     // TROPHIES
                     this.state = 'trophies';
                     this.trophyScrollY = 0;
                     this.frame = 0;
-                } else if (this.menuCursor === 2) {
+                } else if (this.menuCursor === 3) {
                     // OPTIONS
                     this.state = 'options';
                     this.optionsCursor = 0;
                     this.frame = 0;
-                } else if (this.menuCursor === 3) {
+                } else if (this.menuCursor === 4) {
                     // CREDITS
                     this.state = 'credits';
                     this.frame = 0;
@@ -1358,14 +1385,14 @@ export class Game {
             if (this.input.keys['Escape'] && !this._escPrev) {
                 this._saveSettings();
                 this.state = 'menu';
-                this.menuCursor = 2;
+                this.menuCursor = 3;
                 this.frame = 0;
             }
             if (confirm && this.optionsCursor === 3) {
                 // "BACK" option
                 this._saveSettings();
                 this.state = 'menu';
-                this.menuCursor = 2;
+                this.menuCursor = 3;
                 this.frame = 0;
             }
             this._kLeftPrev = kLeft;
@@ -1375,19 +1402,63 @@ export class Game {
         } else if (this.state === 'credits') {
             if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
                 this.state = 'menu';
-                this.menuCursor = 3;
+                this.menuCursor = 4;
                 this.frame = 0;
             }
         } else if (this.state === 'trophies') {
-            // Scroll with up/down (held, not edge-detected)
+            // Enable scroll drag mode
+            this.input.setScrollMode(true);
+            this.input.updateScrollMomentum();
+
+            // Touch drag scrolling
+            if (this.input.scrollDelta !== 0) {
+                this.trophyScrollY += this.input.scrollDelta;
+            }
+            // Momentum
+            if (Math.abs(this.input.scrollVelocity) > 0.3) {
+                this.trophyScrollY += this.input.scrollVelocity;
+            }
+            // Keyboard/gamepad scroll
             const scrollSpeed = 6;
             if (this.input.keys['ArrowDown'] || this.input.keys['KeyS'] || this.input.gpAxes.y > 0.5) {
-                this.trophyScrollY = Math.min(this._trophyMaxScroll || 999, this.trophyScrollY + scrollSpeed);
+                this.trophyScrollY += scrollSpeed;
             }
             if (this.input.keys['ArrowUp'] || this.input.keys['KeyW'] || this.input.gpAxes.y < -0.5) {
-                this.trophyScrollY = Math.max(0, this.trophyScrollY - scrollSpeed);
+                this.trophyScrollY -= scrollSpeed;
             }
+            // Clamp
+            this.trophyScrollY = Math.max(0, Math.min(this._trophyMaxScroll || 999, this.trophyScrollY));
             if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
+                this.input.setScrollMode(false);
+                this.state = 'menu';
+                this.menuCursor = 2;
+                this.frame = 0;
+            }
+        } else if (this.state === 'scores') {
+            // Enable scroll drag mode
+            this.input.setScrollMode(true);
+            this.input.updateScrollMomentum();
+
+            // Touch drag scrolling
+            if (this.input.scrollDelta !== 0) {
+                this.scoresScrollY += this.input.scrollDelta;
+            }
+            // Momentum
+            if (Math.abs(this.input.scrollVelocity) > 0.3) {
+                this.scoresScrollY += this.input.scrollVelocity;
+            }
+            // Keyboard/gamepad scroll
+            const scScrollSpeed = 6;
+            if (this.input.keys['ArrowDown'] || this.input.keys['KeyS'] || this.input.gpAxes.y > 0.5) {
+                this.scoresScrollY += scScrollSpeed;
+            }
+            if (this.input.keys['ArrowUp'] || this.input.keys['KeyW'] || this.input.gpAxes.y < -0.5) {
+                this.scoresScrollY -= scScrollSpeed;
+            }
+            // Clamp
+            this.scoresScrollY = Math.max(0, Math.min(this._scoresMaxScroll || 0, this.scoresScrollY));
+            if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
+                this.input.setScrollMode(false);
                 this.state = 'menu';
                 this.menuCursor = 1;
                 this.frame = 0;
@@ -2478,6 +2549,8 @@ export class Game {
             this.highScore = this.score;
             localStorage.setItem('axeluga_hi', this.highScore.toString());
         }
+        // Save score to local history
+        this._saveScoreHistory(this.score, this.world, this.wave);
         if (window.GameVolt) GameVolt.leaderboard.submit(this.score, { mode: 'default' });
         this.checkEndgameTrophies();
 
@@ -2537,6 +2610,7 @@ export class Game {
                 // Bonus for final world
                 const bonus = (this.world + 1) * 10000;
                 this.score += bonus;
+                this._saveScoreHistory(this.score, this.world, this.wave);
                 this.spawnFloatingText(GAME_W / 2, GAME_H / 2, `+${bonus}`);
                 if (window.GameVolt) {
                     GameVolt.leaderboard.submit(this.score, { mode: 'default' });
@@ -3215,6 +3289,8 @@ export class Game {
             this.drawMenu(ctx);
         } else if (this.state === 'trophies') {
             this.drawTrophies(ctx);
+        } else if (this.state === 'scores') {
+            this.drawScores(ctx);
         } else if (this.state === 'options') {
             this.drawOptions(ctx);
         } else if (this.state === 'credits') {
@@ -3369,10 +3445,10 @@ export class Game {
     drawMenu(ctx) {
         // ── Dark overlay with gradient ──
         const grad = ctx.createLinearGradient(0, 0, 0, GAME_H);
-        grad.addColorStop(0, 'rgba(0,0,0,0.7)');
-        grad.addColorStop(0.4, 'rgba(0,0,0,0.3)');
-        grad.addColorStop(0.7, 'rgba(0,0,0,0.4)');
-        grad.addColorStop(1, 'rgba(0,0,0,0.8)');
+        grad.addColorStop(0, 'rgba(0,0,0,0.75)');
+        grad.addColorStop(0.35, 'rgba(0,0,0,0.35)');
+        grad.addColorStop(0.65, 'rgba(0,0,0,0.45)');
+        grad.addColorStop(1, 'rgba(0,0,0,0.85)');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, GAME_W, GAME_H);
 
@@ -3393,32 +3469,29 @@ export class Game {
             const logoW = 320;
             const logoH = logoW * (logoImg.naturalHeight / logoImg.naturalWidth);
             const logoX = (GAME_W - logoW) / 2;
-            const logoY = 60;
+            const logoY = 50;
 
             ctx.save();
-            // Subtle pulse glow behind
             const glowAlpha = 0.15 + Math.sin(this.frame * 0.04) * 0.08;
             ctx.globalAlpha = glowAlpha;
             ctx.filter = 'blur(12px) brightness(2)';
             ctx.drawImage(logoImg, logoX - 5, logoY - 3, logoW + 10, logoH + 6);
             ctx.filter = 'none';
-
-            // Main logo
             ctx.globalAlpha = 1;
             ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
             ctx.restore();
         }
 
         // Decorative line under logo
-        const lineY = 260;
-        const lineW = 120;
+        const lineY = 250;
+        const lineW = 130;
         ctx.strokeStyle = '#0ff';
         ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.4;
+        ctx.globalAlpha = 0.5;
         ctx.beginPath();
         ctx.moveTo(cx - lineW, lineY); ctx.lineTo(cx + lineW, lineY);
         ctx.stroke();
-        ctx.globalAlpha = 0.2;
+        ctx.globalAlpha = 0.25;
         ctx.beginPath();
         ctx.moveTo(cx - lineW + 15, lineY + 4); ctx.lineTo(cx + lineW - 15, lineY + 4);
         ctx.stroke();
@@ -3428,74 +3501,119 @@ export class Game {
         const subText = 'V E R T I C A L   S H O O T E R';
         const chars = Math.min(subText.length, Math.floor(this.frame / 2));
         ctx.fillStyle = '#68a';
-        ctx.font = '10px "Courier New", monospace';
-        ctx.fillText(subText.substring(0, chars), cx, lineY + 18);
+        ctx.font = '12px "Courier New", monospace';
+        ctx.fillText(subText.substring(0, chars), cx, lineY + 20);
 
         // ── High score ──
         if (this.highScore > 0) {
             ctx.fillStyle = '#ff8';
-            ctx.font = '11px "Courier New", monospace';
-            ctx.globalAlpha = 0.8;
-            ctx.fillText(`★ HIGH SCORE: ${this.highScore.toLocaleString()} ★`, cx, 300);
+            ctx.font = 'bold 13px "Courier New", monospace';
+            ctx.globalAlpha = 0.85;
+            ctx.fillText(`★ HIGH SCORE: ${this.highScore.toLocaleString()} ★`, cx, 295);
             ctx.globalAlpha = 1;
         }
 
-        // ── Menu items ──
-        const menuItems = ['START', 'TROPHIES', 'OPTIONS', 'CREDITS'];
-        const menuY = 340;
-        const spacing = 34;
+        // ── Menu items (styled buttons) ──
+        const menuItems = ['START', 'SCORES', 'TROPHIES', 'OPTIONS', 'CREDITS'];
+        const menuIcons = ['▶', '🏆', '★', '⚙', '✦'];
+        const menuY = 330;
+        const spacing = 46;
+        const btnW = 220;
+        const btnH = 38;
 
         for (let i = 0; i < menuItems.length; i++) {
             const y = menuY + i * spacing;
             const sel = this.menuCursor === i;
-            const hover = sel ? Math.sin(this.frame * 0.1) * 0.15 + 0.85 : 0;
+            const pulse = sel ? Math.sin(this.frame * 0.1) * 0.12 + 0.88 : 0;
+
+            // Button shape (rounded rect)
+            const bx = cx - btnW / 2;
+            const by = y - btnH / 2;
+            const r = 8;
+            ctx.beginPath();
+            ctx.moveTo(bx + r, by);
+            ctx.lineTo(bx + btnW - r, by);
+            ctx.quadraticCurveTo(bx + btnW, by, bx + btnW, by + r);
+            ctx.lineTo(bx + btnW, by + btnH - r);
+            ctx.quadraticCurveTo(bx + btnW, by + btnH, bx + btnW - r, by + btnH);
+            ctx.lineTo(bx + r, by + btnH);
+            ctx.quadraticCurveTo(bx, by + btnH, bx, by + btnH - r);
+            ctx.lineTo(bx, by + r);
+            ctx.quadraticCurveTo(bx, by, bx + r, by);
+            ctx.closePath();
 
             if (sel) {
-                // Selected item background
-                ctx.fillStyle = `rgba(0, 200, 255, ${0.08 + hover * 0.05})`;
-                ctx.fillRect(cx - 90, y - 14, 180, 24);
+                // Selected: filled gradient button
+                const btnGrad = ctx.createLinearGradient(bx, by, bx, by + btnH);
+                btnGrad.addColorStop(0, `rgba(0, 200, 255, ${0.25 * pulse})`);
+                btnGrad.addColorStop(1, `rgba(0, 120, 200, ${0.15 * pulse})`);
+                ctx.fillStyle = btnGrad;
+                ctx.fill();
+                ctx.strokeStyle = `rgba(0, 220, 255, ${0.6 * pulse})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
 
-                // Left/right arrows
+                // Glow effect
+                ctx.save();
+                ctx.shadowColor = '#0cf';
+                ctx.shadowBlur = 12;
+                ctx.strokeStyle = `rgba(0, 200, 255, ${0.3 * pulse})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.restore();
+
+                // Icon
                 ctx.fillStyle = '#0ff';
-                ctx.font = '14px "Courier New", monospace';
-                ctx.fillText('▸', cx - 80, y + 1);
-                ctx.fillText('◂', cx + 80, y + 1);
+                ctx.font = '16px "Courier New", monospace';
+                ctx.fillText(menuIcons[i], cx - btnW / 2 + 26, y + 5);
 
                 // Text
                 ctx.fillStyle = '#fff';
-                ctx.font = 'bold 18px "Courier New", monospace';
-                ctx.fillText(menuItems[i], cx, y + 4);
+                ctx.font = 'bold 20px "Courier New", monospace';
+                ctx.fillText(menuItems[i], cx + 8, y + 6);
             } else {
-                ctx.fillStyle = '#667';
-                ctx.font = '16px "Courier New", monospace';
-                ctx.fillText(menuItems[i], cx, y + 4);
+                // Unselected: subtle outline
+                ctx.fillStyle = 'rgba(10, 15, 30, 0.4)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(100, 120, 160, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Icon
+                ctx.fillStyle = '#556';
+                ctx.font = '14px "Courier New", monospace';
+                ctx.fillText(menuIcons[i], cx - btnW / 2 + 26, y + 4);
+
+                // Text
+                ctx.fillStyle = '#778';
+                ctx.font = '18px "Courier New", monospace';
+                ctx.fillText(menuItems[i], cx + 8, y + 5);
             }
 
             // Trophy count badge next to TROPHIES
-            if (i === 1) {
+            if (i === 2) {
                 const tc = this.getTrophyCount();
                 ctx.fillStyle = tc >= 31 ? '#b4ffff' : tc > 0 ? '#ffd700' : '#556';
-                ctx.font = '9px "Courier New", monospace';
-                ctx.fillText(`${tc}/${TROPHIES.length}`, cx + 60, y - 6);
+                ctx.font = '11px "Courier New", monospace';
+                ctx.fillText(`${tc}/${TROPHIES.length}`, cx + btnW / 2 - 30, y - 10);
             }
         }
 
         // ── Bottom info ──
-        // Gamepad indicator
         if (this.input.gpConnected) {
             ctx.fillStyle = '#0a0';
-            ctx.font = '9px "Courier New", monospace';
-            ctx.fillText('🎮 GAMEPAD CONNECTED', cx, 540);
+            ctx.font = '11px "Courier New", monospace';
+            ctx.fillText('🎮 GAMEPAD CONNECTED', cx, GAME_H - 50);
         }
 
         // Controls hint
         ctx.fillStyle = '#445';
-        ctx.font = '9px "Courier New", monospace';
-        ctx.fillText('↑↓ SELECT · ENTER TO CONFIRM', cx, GAME_H - 30);
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillText('TAP TO SELECT', cx, GAME_H - 28);
 
         // Version / branding
         ctx.fillStyle = '#334';
-        ctx.font = '8px "Courier New", monospace';
+        ctx.font = '9px "Courier New", monospace';
         ctx.fillText('GAMEVOLT.IO', cx, GAME_H - 12);
     }
 
@@ -3509,7 +3627,7 @@ export class Game {
 
         // Header
         ctx.fillStyle = '#0ff';
-        ctx.font = 'bold 26px "Courier New", monospace';
+        ctx.font = 'bold 24px "Courier New", monospace';
         ctx.fillText('OPTIONS', cx, 120);
 
         // Decorative line
@@ -3540,7 +3658,7 @@ export class Game {
             if (item.type === 'slider') {
                 // Label
                 ctx.fillStyle = sel ? '#fff' : '#888';
-                ctx.font = `${sel ? 'bold ' : ''}14px "Courier New", monospace`;
+                ctx.font = `${sel ? 'bold ' : ''}16px "Courier New", monospace`;
                 ctx.fillText(item.label, cx, y);
 
                 // Volume bar
@@ -3574,7 +3692,7 @@ export class Game {
 
                 // Percentage
                 ctx.fillStyle = sel ? '#fff' : '#666';
-                ctx.font = '11px "Courier New", monospace';
+                ctx.font = '13px "Courier New", monospace';
                 ctx.fillText(`${Math.round(item.value * 100)}%`, cx, barY + barH + 16);
 
                 // Arrows if selected
@@ -3587,7 +3705,7 @@ export class Game {
             } else if (item.type === 'toggle') {
                 // Label
                 ctx.fillStyle = sel ? '#fff' : '#888';
-                ctx.font = `${sel ? 'bold ' : ''}14px "Courier New", monospace`;
+                ctx.font = `${sel ? 'bold ' : ''}16px "Courier New", monospace`;
                 ctx.fillText(item.label, cx, y);
 
                 // ON/OFF toggle
@@ -3608,7 +3726,7 @@ export class Game {
 
                 // Hint text
                 ctx.fillStyle = sel ? '#666' : '#444';
-                ctx.font = '9px "Courier New", monospace';
+                ctx.font = '11px "Courier New", monospace';
                 ctx.fillText('fire when touching (mobile)', cx, toggleY + 18);
             } else {
                 // BACK button
@@ -5151,9 +5269,54 @@ export class Game {
         return n;
     }
 
-    drawTrophies(ctx) {
+    // ─── Score History & Leaderboard ───
+    _saveScoreHistory(score, world, wave) {
+        if (score <= 0) return;
+        try {
+            const history = JSON.parse(localStorage.getItem('axeluga_scores') || '[]');
+            history.push({
+                score,
+                world: world + 1,
+                wave,
+                date: Date.now()
+            });
+            // Keep top 20 sorted by score
+            history.sort((a, b) => b.score - a.score);
+            if (history.length > 20) history.length = 20;
+            localStorage.setItem('axeluga_scores', JSON.stringify(history));
+        } catch (e) {}
+    }
+
+    _loadScores() {
+        // Load local history
+        try {
+            this._localScores = JSON.parse(localStorage.getItem('axeluga_scores') || '[]');
+        } catch (e) {
+            this._localScores = [];
+        }
+
+        // Load GameVolt leaderboard if available
+        this._leaderboardData = null;
+        this._leaderboardLoading = false;
+        if (window.GameVolt) {
+            this._leaderboardLoading = true;
+            GameVolt.leaderboard.get({ mode: 'default', limit: 20 }).then(rows => {
+                this._leaderboardData = rows || [];
+                this._leaderboardLoading = false;
+                this._scoresLoaded = true;
+            }).catch(() => {
+                this._leaderboardData = [];
+                this._leaderboardLoading = false;
+                this._scoresLoaded = true;
+            });
+        } else {
+            this._scoresLoaded = true;
+        }
+    }
+
+    drawScores(ctx) {
         // Full-screen dark overlay
-        ctx.fillStyle = 'rgba(0,0,0,0.85)';
+        ctx.fillStyle = 'rgba(0,0,0,0.88)';
         ctx.fillRect(0, 0, GAME_W, GAME_H);
 
         ctx.textAlign = 'center';
@@ -5161,15 +5324,226 @@ export class Game {
 
         // Header
         ctx.fillStyle = '#0ff';
-        ctx.font = 'bold 26px "Courier New", monospace';
-        ctx.fillText('TROPHIES', cx, 50);
+        ctx.font = 'bold 24px "Courier New", monospace';
+        ctx.fillText('SCORES', cx, 42);
+
+        // Tabs: show which section is active
+        const hasLeaderboard = window.GameVolt && this._leaderboardData && this._leaderboardData.length > 0;
+
+        // Scrollable content area
+        const startY = 60;
+        const contentBottom = GAME_H - 45;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, startY, GAME_W, contentBottom - startY);
+        ctx.clip();
+
+        const scrollY = this.scoresScrollY || 0;
+        let curY = startY + 10 - scrollY;
+
+        // ── YOUR BEST RUNS ──
+        ctx.fillStyle = '#ff8';
+        ctx.font = 'bold 14px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('YOUR BEST RUNS', cx, curY + 14);
+        curY += 30;
+
+        // Decorative line
+        ctx.strokeStyle = '#ff8';
+        ctx.globalAlpha = 0.3;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(30, curY); ctx.lineTo(GAME_W - 30, curY);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        curY += 10;
+
+        const localScores = this._localScores || [];
+        if (localScores.length === 0) {
+            ctx.fillStyle = '#667';
+            ctx.font = '13px "Courier New", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('No scores yet.', cx, curY + 20);
+            ctx.fillText('Play to set your record!', cx, curY + 40);
+            curY += 60;
+        } else {
+            for (let i = 0; i < localScores.length; i++) {
+                const s = localScores[i];
+                const rowY = curY + i * 36;
+                if (rowY > contentBottom + scrollY || rowY + 36 < startY + scrollY) continue;
+
+                // Row background
+                const isTop = i < 3;
+                ctx.fillStyle = isTop ? 'rgba(255, 220, 50, 0.06)' : 'rgba(40, 50, 80, 0.3)';
+                const rowX = 14;
+                const rowW = GAME_W - 28;
+                const rr = 6;
+                ctx.beginPath();
+                ctx.moveTo(rowX + rr, rowY);
+                ctx.lineTo(rowX + rowW - rr, rowY);
+                ctx.quadraticCurveTo(rowX + rowW, rowY, rowX + rowW, rowY + rr);
+                ctx.lineTo(rowX + rowW, rowY + 30 - rr);
+                ctx.quadraticCurveTo(rowX + rowW, rowY + 30, rowX + rowW - rr, rowY + 30);
+                ctx.lineTo(rowX + rr, rowY + 30);
+                ctx.quadraticCurveTo(rowX, rowY + 30, rowX, rowY + 30 - rr);
+                ctx.lineTo(rowX, rowY + rr);
+                ctx.quadraticCurveTo(rowX, rowY, rowX + rr, rowY);
+                ctx.closePath();
+                ctx.fill();
+
+                // Rank
+                ctx.textAlign = 'left';
+                ctx.fillStyle = i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#889';
+                ctx.font = 'bold 14px "Courier New", monospace';
+                ctx.fillText(`#${i + 1}`, rowX + 8, rowY + 20);
+
+                // Score
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px "Courier New", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(s.score.toLocaleString(), cx, rowY + 20);
+
+                // World/date info
+                ctx.fillStyle = '#667';
+                ctx.font = '10px "Courier New", monospace';
+                ctx.textAlign = 'right';
+                const dateStr = s.date ? new Date(s.date).toLocaleDateString() : '';
+                ctx.fillText(`W${s.world || '?'} ${dateStr}`, rowX + rowW - 8, rowY + 20);
+            }
+            curY += localScores.length * 36 + 10;
+        }
+
+        // ── LEADERBOARD (GameVolt) ──
+        curY += 10;
+        if (window.GameVolt) {
+            ctx.fillStyle = '#0ff';
+            ctx.font = 'bold 14px "Courier New", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('GLOBAL LEADERBOARD', cx, curY + 14);
+            curY += 30;
+
+            ctx.strokeStyle = '#0ff';
+            ctx.globalAlpha = 0.3;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(30, curY); ctx.lineTo(GAME_W - 30, curY);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            curY += 10;
+
+            if (this._leaderboardLoading) {
+                ctx.fillStyle = '#889';
+                ctx.font = '13px "Courier New", monospace';
+                const dots = '.'.repeat(1 + (Math.floor(this.frame / 20) % 3));
+                ctx.fillText('Loading' + dots, cx, curY + 20);
+                curY += 40;
+            } else if (!this._leaderboardData || this._leaderboardData.length === 0) {
+                ctx.fillStyle = '#667';
+                ctx.font = '13px "Courier New", monospace';
+                ctx.fillText('No entries yet.', cx, curY + 20);
+                ctx.fillText('Log in to compete!', cx, curY + 40);
+                curY += 60;
+            } else {
+                for (let i = 0; i < this._leaderboardData.length; i++) {
+                    const entry = this._leaderboardData[i];
+                    const rowY = curY + i * 36;
+                    if (rowY > contentBottom + scrollY || rowY + 36 < startY + scrollY) continue;
+
+                    // Row background
+                    const isTop = i < 3;
+                    ctx.fillStyle = isTop ? 'rgba(0, 200, 255, 0.06)' : 'rgba(40, 50, 80, 0.25)';
+                    const rowX = 14;
+                    const rowW = GAME_W - 28;
+                    const rr = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(rowX + rr, rowY);
+                    ctx.lineTo(rowX + rowW - rr, rowY);
+                    ctx.quadraticCurveTo(rowX + rowW, rowY, rowX + rowW, rowY + rr);
+                    ctx.lineTo(rowX + rowW, rowY + 30 - rr);
+                    ctx.quadraticCurveTo(rowX + rowW, rowY + 30, rowX + rowW - rr, rowY + 30);
+                    ctx.lineTo(rowX + rr, rowY + 30);
+                    ctx.quadraticCurveTo(rowX, rowY + 30, rowX, rowY + 30 - rr);
+                    ctx.lineTo(rowX, rowY + rr);
+                    ctx.quadraticCurveTo(rowX, rowY, rowX + rr, rowY);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Rank
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#889';
+                    ctx.font = 'bold 14px "Courier New", monospace';
+                    ctx.fillText(`#${entry.rank || i + 1}`, rowX + 8, rowY + 20);
+
+                    // Username
+                    ctx.fillStyle = '#cde';
+                    ctx.font = '12px "Courier New", monospace';
+                    ctx.textAlign = 'left';
+                    const name = entry.username || 'Player';
+                    ctx.fillText(name.length > 12 ? name.substring(0, 11) + '…' : name, rowX + 50, rowY + 20);
+
+                    // Score
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 14px "Courier New", monospace';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(entry.score.toLocaleString(), rowX + rowW - 8, rowY + 20);
+                }
+                curY += this._leaderboardData.length * 36 + 10;
+            }
+        } else {
+            ctx.fillStyle = '#556';
+            ctx.font = '12px "Courier New", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('Log in on GameVolt.io', cx, curY + 20);
+            ctx.fillText('to see global leaderboard', cx, curY + 38);
+            curY += 60;
+        }
+
+        ctx.restore();
+
+        // Calculate max scroll
+        this._scoresMaxScroll = Math.max(0, curY + scrollY - contentBottom + 20);
+
+        // Scroll indicator
+        if (this._scoresMaxScroll > 0) {
+            const scrollPct = scrollY / this._scoresMaxScroll;
+            const barH = contentBottom - startY;
+            const thumbH = Math.max(30, barH * barH / (curY + scrollY - startY));
+            const thumbY = startY + scrollPct * (barH - thumbH);
+            ctx.fillStyle = 'rgba(0,255,255,0.2)';
+            ctx.fillRect(GAME_W - 4, thumbY, 3, thumbH);
+        }
+
+        // BACK button
+        ctx.fillStyle = '#889';
+        ctx.font = 'bold 16px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('◂ BACK', cx, GAME_H - 22);
+
+        // Controls hint
+        ctx.fillStyle = '#445';
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillText('SWIPE TO SCROLL', cx, GAME_H - 6);
+    }
+
+    drawTrophies(ctx) {
+        // Full-screen dark overlay
+        ctx.fillStyle = 'rgba(0,0,0,0.88)';
+        ctx.fillRect(0, 0, GAME_W, GAME_H);
+
+        ctx.textAlign = 'center';
+        const cx = GAME_W / 2;
+
+        // Header
+        ctx.fillStyle = '#0ff';
+        ctx.font = 'bold 24px "Courier New", monospace';
+        ctx.fillText('TROPHIES', cx, 42);
 
         // Count
         const count = this.getTrophyCount();
         ctx.fillStyle = '#0ff';
-        ctx.globalAlpha = 0.5;
-        ctx.font = '12px "Courier New", monospace';
-        ctx.fillText(`${count} / ${TROPHIES.length}`, cx, 70);
+        ctx.globalAlpha = 0.6;
+        ctx.font = '14px "Courier New", monospace';
+        ctx.fillText(`${count} / ${TROPHIES.length}`, cx, 62);
         ctx.globalAlpha = 1;
 
         // Decorative line
@@ -5177,17 +5551,17 @@ export class Game {
         ctx.lineWidth = 1;
         ctx.globalAlpha = 0.3;
         ctx.beginPath();
-        ctx.moveTo(cx - 80, 78); ctx.lineTo(cx + 80, 78);
+        ctx.moveTo(cx - 80, 72); ctx.lineTo(cx + 80, 72);
         ctx.stroke();
         ctx.globalAlpha = 1;
 
-        // Trophy grid - scrollable area
-        const startY = 90;
-        const cardW = 160;
-        const cardH = 72;
+        // Trophy grid - scrollable area (single column for bigger cards)
+        const startY = 82;
+        const cardW = GAME_W - 28;
+        const cardH = 68;
         const gap = 8;
-        const cols = 2;
-        const gridX = (GAME_W - cols * cardW - (cols - 1) * gap) / 2;
+        const cols = 1;
+        const gridX = 14;
 
         // Clip to scrollable area
         ctx.save();
@@ -5207,20 +5581,20 @@ export class Game {
             const headerY = startY + row * (cardH + gap) - this.trophyScrollY;
             if (headerY > -30 && headerY < GAME_H) {
                 ctx.fillStyle = tierColors[tier];
-                ctx.font = 'bold 10px "Courier New", monospace';
+                ctx.font = 'bold 13px "Courier New", monospace';
                 ctx.textAlign = 'left';
                 ctx.fillText(tier.toUpperCase(), gridX, headerY + 14);
                 ctx.strokeStyle = tierColors[tier] + '44';
                 ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.moveTo(gridX, headerY + 18);
-                ctx.lineTo(gridX + cols * cardW + (cols - 1) * gap, headerY + 18);
+                ctx.moveTo(gridX, headerY + 20);
+                ctx.lineTo(gridX + cardW, headerY + 20);
                 ctx.stroke();
                 ctx.textAlign = 'center';
             }
             row++;
 
-            // Trophy cards in 2 columns
+            // Trophy cards (single column, full width)
             for (let i = 0; i < tierTrophies.length; i++) {
                 const t = tierTrophies[i];
                 const col = i % cols;
@@ -5241,8 +5615,7 @@ export class Game {
                     ctx.strokeStyle = '#ffffff11';
                 }
                 ctx.lineWidth = 1;
-                // Rounded rect
-                const cr = 6;
+                const cr = 8;
                 ctx.beginPath();
                 ctx.moveTo(cardX + cr, cardY);
                 ctx.lineTo(cardX + cardW - cr, cardY);
@@ -5260,40 +5633,39 @@ export class Game {
                 if (!unlocked) ctx.globalAlpha = 0.45;
 
                 // Icon
-                ctx.font = '22px sans-serif';
+                ctx.font = '26px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#fff';
-                ctx.fillText(unlocked ? t.icon : '🔒', cardX + 24, cardY + 32);
+                ctx.fillText(unlocked ? t.icon : '🔒', cardX + 28, cardY + 38);
 
                 // Name
                 ctx.fillStyle = '#fff';
-                ctx.font = 'bold 9px "Courier New", monospace';
+                ctx.font = 'bold 12px "Courier New", monospace';
                 ctx.textAlign = 'left';
-                ctx.fillText(t.name, cardX + 44, cardY + 22);
+                ctx.fillText(t.name, cardX + 54, cardY + 22);
 
                 // Description
-                ctx.fillStyle = '#889';
-                ctx.font = '8px "Courier New", monospace';
-                // Word wrap description
+                ctx.fillStyle = '#99a';
+                ctx.font = '10px "Courier New", monospace';
                 const words = t.desc.split(' ');
                 let line = '';
-                let lineY = cardY + 34;
+                let lineY = cardY + 38;
                 for (const word of words) {
                     const test = line ? line + ' ' + word : word;
-                    if (ctx.measureText(test).width > cardW - 50) {
-                        ctx.fillText(line, cardX + 44, lineY);
+                    if (ctx.measureText(test).width > cardW - 65) {
+                        ctx.fillText(line, cardX + 54, lineY);
                         line = word;
-                        lineY += 11;
+                        lineY += 14;
                     } else {
                         line = test;
                     }
                 }
-                if (line) ctx.fillText(line, cardX + 44, lineY);
+                if (line) ctx.fillText(line, cardX + 54, lineY);
 
                 // Tier label
                 ctx.fillStyle = tierColors[tier];
-                ctx.font = 'bold 7px "Courier New", monospace';
-                ctx.fillText(tier.toUpperCase(), cardX + 44, cardY + cardH - 8);
+                ctx.font = 'bold 9px "Courier New", monospace';
+                ctx.fillText(tier.toUpperCase(), cardX + 54, cardY + cardH - 8);
 
                 // Checkmark for unlocked
                 if (unlocked) {
@@ -5326,15 +5698,14 @@ export class Game {
         }
 
         // BACK button
-        const backY = GAME_H - 28;
-        ctx.fillStyle = '#667';
-        ctx.font = '14px "Courier New", monospace';
+        ctx.fillStyle = '#889';
+        ctx.font = 'bold 16px "Courier New", monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('◂ BACK', cx, backY);
+        ctx.fillText('◂ BACK', cx, GAME_H - 22);
 
         // Controls hint
         ctx.fillStyle = '#445';
-        ctx.font = '9px "Courier New", monospace';
-        ctx.fillText('↑↓ SCROLL · ESC BACK', cx, GAME_H - 10);
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillText('SWIPE TO SCROLL', cx, GAME_H - 6);
     }
 }

@@ -14,6 +14,13 @@ export class Input {
         this.moveTouch = null;
         this.fireTouch = false;
 
+        // Menu scroll drag state (for trophies, leaderboard etc.)
+        this._scrollDrag = null;   // { id, startY, lastY, lastTime }
+        this.scrollDelta = 0;      // pixels dragged this frame
+        this.scrollVelocity = 0;   // momentum velocity (px/frame)
+        this._scrollDragging = false;
+        this._scrollMode = false;
+
         // Mouse state
         this._mouseDown = false;
         this._mousePos = { x: 0, y: 0 };
@@ -86,6 +93,23 @@ export class Input {
 
     onTap(cb) { this._tapCallback = cb; }
 
+    // Enable scroll drag mode (call from game when in scrollable state)
+    setScrollMode(enabled) { this._scrollMode = enabled; }
+
+    // Call each frame to apply momentum decay
+    updateScrollMomentum() {
+        if (!this._scrollDragging) {
+            this.scrollDelta = 0;
+            if (Math.abs(this.scrollVelocity) > 0.3) {
+                this.scrollVelocity *= 0.92; // friction
+            } else {
+                this.scrollVelocity = 0;
+            }
+        } else {
+            this.scrollVelocity = 0; // active drag overrides momentum
+        }
+    }
+
     _gameCoords(clientX, clientY) {
         const rect = this.canvas.getBoundingClientRect();
         return {
@@ -109,6 +133,20 @@ export class Input {
         e.preventDefault();
         for (const t of e.changedTouches) {
             const pos = this._gameCoords(t.clientX, t.clientY);
+
+            // Scroll drag mode: capture touch for scrolling
+            if (this._scrollMode && !this._scrollDrag) {
+                this._scrollDrag = {
+                    id: t.identifier,
+                    startY: pos.y,
+                    lastY: pos.y,
+                    lastTime: performance.now(),
+                    moved: false
+                };
+                this.scrollVelocity = 0; // stop momentum on new touch
+                continue; // don't fire tap yet - wait for release
+            }
+
             if (this._tapCallback) this._tapCallback(pos.x, pos.y);
 
             if (this.autofire) {
@@ -141,6 +179,19 @@ export class Input {
     _onTouchMove(e) {
         e.preventDefault();
         for (const t of e.changedTouches) {
+            // Scroll drag
+            if (this._scrollDrag && t.identifier === this._scrollDrag.id) {
+                const pos = this._gameCoords(t.clientX, t.clientY);
+                const dy = this._scrollDrag.lastY - pos.y;
+                if (Math.abs(pos.y - this._scrollDrag.startY) > 5) {
+                    this._scrollDrag.moved = true;
+                    this._scrollDragging = true;
+                }
+                this.scrollDelta = dy;
+                this._scrollDrag.lastY = pos.y;
+                this._scrollDrag.lastTime = performance.now();
+                continue;
+            }
             if (this.moveTouch && t.identifier === this.moveTouch.id) {
                 const pos = this._gameCoords(t.clientX, t.clientY);
                 this.moveTouch.x = pos.x;
@@ -152,6 +203,21 @@ export class Input {
     _onTouchEnd(e) {
         e.preventDefault();
         for (const t of e.changedTouches) {
+            // Scroll drag release → compute momentum
+            if (this._scrollDrag && t.identifier === this._scrollDrag.id) {
+                if (!this._scrollDrag.moved) {
+                    // Was a tap, not a drag — fire tap callback
+                    const pos = this._gameCoords(t.clientX, t.clientY);
+                    if (this._tapCallback) this._tapCallback(pos.x, pos.y);
+                } else {
+                    // Compute flick velocity from last delta
+                    this.scrollVelocity = this.scrollDelta * 1.5;
+                }
+                this._scrollDrag = null;
+                this._scrollDragging = false;
+                this.scrollDelta = 0;
+                continue;
+            }
             if (this.moveTouch && t.identifier === this.moveTouch.id) {
                 this.moveTouch = null;
             }
