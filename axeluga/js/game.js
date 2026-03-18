@@ -5026,6 +5026,7 @@ export class Game {
         const trophy = TROPHIES.find(t => t.id === id);
         if (!trophy) return false;
 
+        console.log('[TROPHY] Unlocked:', trophy.name, '(' + trophy.tier + ')');
         this.trophyData[id] = Date.now();
         saveTrophyData(this.trophyData);
 
@@ -5058,7 +5059,10 @@ export class Game {
         this._trophyToastActive = true;
         const trophy = this._trophyToastQueue.shift();
         const el = document.getElementById('trophy-toast');
-        if (!el) return;
+        if (!el) {
+            this._trophyToastActive = false;
+            return;
+        }
         document.getElementById('trophy-toast-icon').textContent = trophy.icon;
         document.getElementById('trophy-toast-name').textContent = trophy.name;
         const tierEl = document.getElementById('trophy-toast-tier');
