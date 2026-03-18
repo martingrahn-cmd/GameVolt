@@ -3877,7 +3877,7 @@ export class Game {
         section('GAME', [
             'Martin Grahn',
             'SmartProc / GameVolt.io',
-        ], '#0ff');
+        ], '#00ffff');
 
         section('PIXEL ART', [
             'Timberlate007',
@@ -3885,18 +3885,18 @@ export class Game {
             'DyLEStorm',
             'Space Background Pack',
             'Player Bullets Pack',
-        ], '#f80');
+        ], '#ff8800');
 
         section('MUSIC', [
             'Abstraction / Tallbeard',
             'FREE Music Loop Bundle',
-        ], '#4af');
+        ], '#44aaff');
 
         section('BUILT WITH', [
             'HTML5 Canvas',
             'Vanilla JavaScript',
             'Web Audio API',
-        ], '#888');
+        ], '#888888');
 
         // ── BACK button ──
         const backY = GAME_H - 45;
@@ -3946,7 +3946,7 @@ export class Game {
         ctx.globalAlpha = 1;
 
         // World options — styled cards
-        const colors = ['#4af', '#c4f', '#f84', '#0cf', '#fa0'];
+        const colors = ['#44aaff', '#cc44ff', '#ff8844', '#00ccff', '#ffaa00'];
         const icons = ['✦', '▸', '⚙', '☁', '🏙'];
         const cardW = GAME_W - 40;
         const worldSpacing = 55;
@@ -4028,7 +4028,7 @@ export class Game {
         const diffRow = WORLDS.length;
         const diffSel = this.menuCursor === diffRow;
         const diff = DIFFICULTY[this.settings.difficulty];
-        const diffColors = ['#4f4', '#ff8', '#f44']; // green, yellow, red
+        const diffColors = ['#44ff44', '#ffff88', '#ff4444']; // green, yellow, red
         const diffColor = diffColors[this.settings.difficulty];
 
         // Difficulty card
