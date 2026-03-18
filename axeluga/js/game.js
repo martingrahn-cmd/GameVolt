@@ -794,6 +794,7 @@ export class Game {
         // Settings (persisted)
         this._loadSettings();
         this.input.autofire = this.settings.autofire;
+        this._applyHandedness();
         this.optionsCursor = 0;
         this._kLeftPrev = false;
         this._kRightPrev = false;
@@ -981,8 +982,16 @@ export class Game {
                     this.audio.menuClick();
                     return;
                 }
-                // BACK button area (item index 3)
-                const backY = optStartY + 3 * optSpacing;
+                // Left-handed toggle area (item index 3)
+                const lhY = optStartY + 3 * optSpacing;
+                if (y > lhY - 10 && y < lhY + 35) {
+                    this.settings.leftHanded = !this.settings.leftHanded;
+                    this._applyHandedness();
+                    this.audio.menuClick();
+                    return;
+                }
+                // BACK button area (item index 4)
+                const backY = optStartY + 4 * optSpacing;
                 if (y > backY - 15 && y < backY + 25) {
                     this._saveSettings();
                     this.state = 'menu';
@@ -1007,8 +1016,7 @@ export class Game {
                 }
             } else if (this.state === 'credits') {
                 // BACK button at bottom
-                const backY = GAME_H - 55;
-                if (y > backY - 18 && y < backY + 18) {
+                if (y > GAME_H - 70) {
                     this.state = 'menu';
                     this.menuCursor = 4;
                     this.frame = 0;
@@ -1024,9 +1032,9 @@ export class Game {
                         return;
                     }
                 }
-                // Difficulty selector at y~500
+                // Difficulty selector card at y~500
                 const diffY = 500;
-                if (y > diffY - 18 && y < diffY + 18) {
+                if (y > diffY - 28 && y < diffY + 30) {
                     // Left half = prev, right half = next
                     if (x < GAME_W / 2) {
                         this.settings.difficulty = (this.settings.difficulty - 1 + 3) % 3;
@@ -1036,8 +1044,8 @@ export class Game {
                     this._saveSettings();
                     return;
                 }
-                // BACK button at y~575
-                if (y > 555 && y < 595) {
+                // BACK button at y~590
+                if (y > 570 && y < 610) {
                     this.state = 'menu';
                     this.menuCursor = 0;
                     this.frame = 0;
@@ -1088,9 +1096,10 @@ export class Game {
                 sfxVol: s.sfxVol !== undefined ? s.sfxVol : 0.8,
                 difficulty: s.difficulty !== undefined ? s.difficulty : 1, // 0=easy, 1=medium, 2=hard
                 autofire: s.autofire !== undefined ? s.autofire : false,
+                leftHanded: s.leftHanded !== undefined ? s.leftHanded : false,
             };
         } catch (e) {
-            this.settings = { musicVol: 0.7, sfxVol: 0.8, difficulty: 1, autofire: false };
+            this.settings = { musicVol: 0.7, sfxVol: 0.8, difficulty: 1, autofire: false, leftHanded: false };
         }
     }
 
@@ -1098,6 +1107,18 @@ export class Game {
         try {
             localStorage.setItem('axeluga_settings', JSON.stringify(this.settings));
         } catch (e) {}
+    }
+
+    _applyHandedness() {
+        if (this.settings.leftHanded) {
+            // Left-handed: fire on left, bomb on right
+            this.input.fireZone = { x: 0, y: GAME_H - 90, w: 80, h: 80 };
+            this.input.bombZone = { x: GAME_W - 80, y: GAME_H - 105, w: 70, h: 70 };
+        } else {
+            // Right-handed (default): fire on right, bomb on left
+            this.input.fireZone = { x: GAME_W - 90, y: GAME_H - 90, w: 80, h: 80 };
+            this.input.bombZone = { x: 0, y: GAME_H - 105, w: 70, h: 70 };
+        }
     }
 
     _applyVolumes() {
@@ -1356,7 +1377,7 @@ export class Game {
                 }
             }
         } else if (this.state === 'options') {
-            const optItems = 4; // Music, SFX, Autofire, Back
+            const optItems = 5; // Music, SFX, Autofire, Left-handed, Back
             if (navUp) { this.optionsCursor = (this.optionsCursor - 1 + optItems) % optItems; this.audio.menuClick(); }
             if (navDown) { this.optionsCursor = (this.optionsCursor + 1) % optItems; this.audio.menuClick(); }
             // Left/right to adjust volumes
@@ -1380,6 +1401,12 @@ export class Game {
                     this.input.autofire = this.settings.autofire;
                     this.audio.menuClick();
                 }
+            } else if (this.optionsCursor === 3) { // Left-handed
+                if (left || right || confirm) {
+                    this.settings.leftHanded = !this.settings.leftHanded;
+                    this._applyHandedness();
+                    this.audio.menuClick();
+                }
             }
             // ESC / Confirm on back
             if (this.input.keys['Escape'] && !this._escPrev) {
@@ -1388,7 +1415,7 @@ export class Game {
                 this.menuCursor = 3;
                 this.frame = 0;
             }
-            if (confirm && this.optionsCursor === 3) {
+            if (confirm && this.optionsCursor === 4) {
                 // "BACK" option
                 this._saveSettings();
                 this.state = 'menu';
@@ -3643,12 +3670,13 @@ export class Game {
         const items = [
             { label: 'MUSIC', type: 'slider', value: this.settings.musicVol, color: '#4af' },
             { label: 'SFX', type: 'slider', value: this.settings.sfxVol, color: '#f80' },
-            { label: 'AUTOFIRE', type: 'toggle', value: this.settings.autofire, color: '#0f0' },
+            { label: 'AUTOFIRE', type: 'toggle', value: this.settings.autofire, color: '#0f0', hint: 'fire when touching (mobile)' },
+            { label: 'LEFT-HANDED', type: 'toggle', value: this.settings.leftHanded, color: '#f0f', hint: 'swap fire & bomb sides' },
             { label: 'BACK', type: 'back', color: '#888' },
         ];
 
-        const startY = 195;
-        const spacing = 70;
+        const startY = 175;
+        const spacing = 62;
 
         for (let i = 0; i < items.length; i++) {
             const y = startY + i * spacing;
@@ -3727,7 +3755,7 @@ export class Game {
                 // Hint text
                 ctx.fillStyle = sel ? '#666' : '#444';
                 ctx.font = '11px "Courier New", monospace';
-                ctx.fillText('fire when touching (mobile)', cx, toggleY + 18);
+                ctx.fillText(item.hint || '', cx, toggleY + 18);
             } else {
                 // BACK button
                 if (sel) {
@@ -3776,13 +3804,13 @@ export class Game {
 
         // Footer
         ctx.fillStyle = '#445';
-        ctx.font = '9px "Courier New", monospace';
-        ctx.fillText('←→ ADJUST · ↑↓ SELECT · ESC BACK', cx, GAME_H - 20);
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillText('TAP OR ←→ TO ADJUST', cx, GAME_H - 18);
     }
 
     drawCredits(ctx) {
         // ── Dark overlay ──
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
+        ctx.fillStyle = 'rgba(0,0,0,0.88)';
         ctx.fillRect(0, 0, GAME_W, GAME_H);
 
         ctx.textAlign = 'center';
@@ -3790,189 +3818,316 @@ export class Game {
 
         // Header
         ctx.fillStyle = '#0ff';
-        ctx.font = 'bold 26px "Courier New", monospace';
-        ctx.fillText('CREDITS', cx, 90);
+        ctx.font = 'bold 24px "Courier New", monospace';
+        ctx.fillText('CREDITS', cx, 55);
 
         ctx.strokeStyle = '#0ff';
         ctx.lineWidth = 1;
         ctx.globalAlpha = 0.3;
         ctx.beginPath();
-        ctx.moveTo(cx - 70, 100); ctx.lineTo(cx + 70, 100);
+        ctx.moveTo(cx - 80, 65); ctx.lineTo(cx + 80, 65);
         ctx.stroke();
         ctx.globalAlpha = 1;
 
-        // ── Sections ──
-        let y = 150;
+        // ── Credit sections with cards ──
+        const cardW = GAME_W - 36;
+        const cardX = 18;
+        let y = 85;
+
         const section = (title, lines, color) => {
+            // Section card
+            const cardH = 20 + lines.filter(l => l).length * 20 + 16;
+            const r = 8;
+
+            ctx.beginPath();
+            ctx.moveTo(cardX + r, y);
+            ctx.lineTo(cardX + cardW - r, y);
+            ctx.quadraticCurveTo(cardX + cardW, y, cardX + cardW, y + r);
+            ctx.lineTo(cardX + cardW, y + cardH - r);
+            ctx.quadraticCurveTo(cardX + cardW, y + cardH, cardX + cardW - r, y + cardH);
+            ctx.lineTo(cardX + r, y + cardH);
+            ctx.quadraticCurveTo(cardX, y + cardH, cardX, y + cardH - r);
+            ctx.lineTo(cardX, y + r);
+            ctx.quadraticCurveTo(cardX, y, cardX + r, y);
+            ctx.closePath();
+            ctx.fillStyle = color + '10';
+            ctx.fill();
+            ctx.strokeStyle = color + '40';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Title bar
             ctx.fillStyle = color;
-            ctx.font = 'bold 12px "Courier New", monospace';
+            ctx.font = 'bold 13px "Courier New", monospace';
+            y += 20;
             ctx.fillText(title, cx, y);
-            y += 4;
-            ctx.font = '10px "Courier New", monospace';
+            y += 6;
+
+            // Content lines
+            ctx.font = '12px "Courier New", monospace';
             for (const line of lines) {
-                y += 16;
-                ctx.fillStyle = '#ccc';
+                if (!line) continue;
+                y += 20;
+                ctx.fillStyle = '#ccd';
                 ctx.fillText(line, cx, y);
             }
-            y += 28;
+            y += 22;
         };
 
-        section('— GAME —', [
+        section('GAME', [
             'Martin Grahn',
             'SmartProc / GameVolt.io',
         ], '#0ff');
 
-        section('— PIXEL ART —', [
+        section('PIXEL ART', [
             'Timberlate007',
             'Space Background SHMUP Pack',
-            '',
             'DyLEStorm',
             'Space Background Pack',
             'Player Bullets Pack',
         ], '#f80');
 
-        section('— MUSIC —', [
-            'Abstraction / Tallbeard Studios',
+        section('MUSIC', [
+            'Abstraction / Tallbeard',
             'FREE Music Loop Bundle',
-            'tallbeard.itch.io/music-loop-bundle',
         ], '#4af');
 
-        section('— BUILT WITH —', [
-            'HTML5 Canvas · Vanilla JavaScript',
+        section('BUILT WITH', [
+            'HTML5 Canvas',
+            'Vanilla JavaScript',
             'Web Audio API',
         ], '#888');
 
         // ── BACK button ──
-        const backY = GAME_H - 55;
-        ctx.fillStyle = 'rgba(0, 200, 255, 0.1)';
-        ctx.fillRect(cx - 60, backY - 14, 120, 28);
-        const backPulse = 0.7 + Math.sin(this.frame * 0.06) * 0.3;
-        ctx.fillStyle = `rgba(0, 255, 255, ${backPulse})`;
-        ctx.font = 'bold 14px "Courier New", monospace';
-        ctx.fillText('▸ BACK ◂', cx, backY + 4);
+        const backY = GAME_H - 45;
+        const bbx = cx - 70;
+        const bby = backY - 16;
+        const bbr = 6;
+        ctx.beginPath();
+        ctx.moveTo(bbx + bbr, bby); ctx.lineTo(bbx + 140 - bbr, bby);
+        ctx.quadraticCurveTo(bbx + 140, bby, bbx + 140, bby + bbr);
+        ctx.lineTo(bbx + 140, bby + 32 - bbr);
+        ctx.quadraticCurveTo(bbx + 140, bby + 32, bbx + 140 - bbr, bby + 32);
+        ctx.lineTo(bbx + bbr, bby + 32);
+        ctx.quadraticCurveTo(bbx, bby + 32, bbx, bby + 32 - bbr);
+        ctx.lineTo(bbx, bby + bbr);
+        ctx.quadraticCurveTo(bbx, bby, bbx + bbr, bby);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(0, 200, 255, 0.08)';
+        ctx.fill();
+        ctx.fillStyle = '#0cf';
+        ctx.font = 'bold 16px "Courier New", monospace';
+        ctx.fillText('◂ BACK', cx, backY + 4);
 
-        ctx.fillStyle = '#334';
-        ctx.font = '8px "Courier New", monospace';
-        ctx.fillText('© 2026 GameVolt.io', cx, GAME_H - 15);
+        ctx.fillStyle = '#445';
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillText('© 2026 GameVolt.io', cx, GAME_H - 10);
     }
 
     drawLevelSelect(ctx) {
         // Background already shows selected world preview
-        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
         ctx.fillRect(0, 0, GAME_W, GAME_H);
 
         ctx.textAlign = 'center';
+        const cx = GAME_W / 2;
 
         // Header
         ctx.fillStyle = '#0ff';
-        ctx.font = 'bold 28px "Courier New", monospace';
-        ctx.fillText('SELECT WORLD', GAME_W / 2, 180);
+        ctx.font = 'bold 24px "Courier New", monospace';
+        ctx.fillText('SELECT WORLD', cx, 175);
 
         ctx.strokeStyle = '#0ff';
         ctx.lineWidth = 1;
         ctx.globalAlpha = 0.3;
         ctx.beginPath();
-        ctx.moveTo(GAME_W / 2 - 100, 190); ctx.lineTo(GAME_W / 2 + 100, 190);
+        ctx.moveTo(cx - 100, 185); ctx.lineTo(cx + 100, 185);
         ctx.stroke();
         ctx.globalAlpha = 1;
 
-        // World options
+        // World options — styled cards
         const colors = ['#4af', '#c4f', '#f84', '#0cf', '#fa0'];
         const icons = ['✦', '▸', '⚙', '☁', '🏙'];
+        const cardW = GAME_W - 40;
+        const worldSpacing = 55;
+
         for (let i = 0; i < WORLDS.length; i++) {
             const w = WORLDS[i];
-            const y = 220 + i * 55;
+            const y = 220 + i * worldSpacing;
             const sel = this.menuCursor === i;
             const pulse = sel ? 0.9 + Math.sin(this.frame * 0.08) * 0.1 : 1;
 
-            // Selection box
+            // Card background
+            const bx = 20;
+            const by = y - 24;
+            const bh = 46;
+            const r = 8;
+            ctx.beginPath();
+            ctx.moveTo(bx + r, by);
+            ctx.lineTo(bx + cardW - r, by);
+            ctx.quadraticCurveTo(bx + cardW, by, bx + cardW, by + r);
+            ctx.lineTo(bx + cardW, by + bh - r);
+            ctx.quadraticCurveTo(bx + cardW, by + bh, bx + cardW - r, by + bh);
+            ctx.lineTo(bx + r, by + bh);
+            ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - r);
+            ctx.lineTo(bx, by + r);
+            ctx.quadraticCurveTo(bx, by, bx + r, by);
+            ctx.closePath();
+
             if (sel) {
-                ctx.fillStyle = 'rgba(0,255,255,0.08)';
-                ctx.fillRect(30, y - 24, GAME_W - 60, 48);
-                ctx.strokeStyle = '#0ff';
-                ctx.lineWidth = 1.5;
-                ctx.strokeRect(30, y - 24, GAME_W - 60, 48);
+                const cGrad = ctx.createLinearGradient(bx, by, bx, by + bh);
+                cGrad.addColorStop(0, colors[i] + '25');
+                cGrad.addColorStop(1, colors[i] + '10');
+                ctx.fillStyle = cGrad;
+                ctx.fill();
+                ctx.strokeStyle = colors[i] + 'aa';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Glow
+                ctx.save();
+                ctx.shadowColor = colors[i];
+                ctx.shadowBlur = 10;
+                ctx.strokeStyle = colors[i] + '40';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.restore();
+            } else {
+                ctx.fillStyle = 'rgba(10, 15, 30, 0.4)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(100, 120, 160, 0.15)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
             }
 
-            // World number + icon
-            ctx.fillStyle = sel ? colors[i] : '#666';
-            ctx.font = `bold ${sel ? 20 : 16}px "Courier New", monospace`;
+            // World number badge
+            ctx.fillStyle = sel ? colors[i] : '#556';
+            ctx.font = `bold ${sel ? 14 : 12}px "Courier New", monospace`;
+            ctx.textAlign = 'left';
+            ctx.fillText(`${icons[i]} W${i + 1}`, bx + 12, y - 2);
+
+            // World name
+            ctx.fillStyle = sel ? '#fff' : '#778';
+            ctx.font = `${sel ? 'bold ' : ''}${sel ? 16 : 14}px "Courier New", monospace`;
+            ctx.textAlign = 'center';
             ctx.save();
-            ctx.translate(GAME_W / 2, y - 4);
+            ctx.translate(cx + 10, y - 4);
             ctx.scale(pulse, pulse);
-            ctx.fillText(`${icons[i]} ${w.name}`, 0, 0);
+            ctx.fillText(w.name, 0, 0);
             ctx.restore();
 
             // Subtitle
-            ctx.fillStyle = sel ? '#aaa' : '#555';
+            ctx.fillStyle = sel ? '#aab' : '#556';
             ctx.font = '11px "Courier New", monospace';
-            ctx.fillText(w.subtitle, GAME_W / 2, y + 16);
+            ctx.textAlign = 'center';
+            ctx.fillText(w.subtitle, cx + 10, y + 14);
         }
 
-        // Difficulty selector
+        // ── Difficulty selector (prominent) ──
         const diffY = 500;
         const diffRow = WORLDS.length;
         const diffSel = this.menuCursor === diffRow;
         const diff = DIFFICULTY[this.settings.difficulty];
         const diffColors = ['#4f4', '#ff8', '#f44']; // green, yellow, red
         const diffColor = diffColors[this.settings.difficulty];
-        
+
+        // Difficulty card
+        const diffBx = 30;
+        const diffBw = GAME_W - 60;
+        const diffBh = 56;
+        const diffBy = diffY - 26;
+        const dr = 8;
+        ctx.beginPath();
+        ctx.moveTo(diffBx + dr, diffBy);
+        ctx.lineTo(diffBx + diffBw - dr, diffBy);
+        ctx.quadraticCurveTo(diffBx + diffBw, diffBy, diffBx + diffBw, diffBy + dr);
+        ctx.lineTo(diffBx + diffBw, diffBy + diffBh - dr);
+        ctx.quadraticCurveTo(diffBx + diffBw, diffBy + diffBh, diffBx + diffBw - dr, diffBy + diffBh);
+        ctx.lineTo(diffBx + dr, diffBy + diffBh);
+        ctx.quadraticCurveTo(diffBx, diffBy + diffBh, diffBx, diffBy + diffBh - dr);
+        ctx.lineTo(diffBx, diffBy + dr);
+        ctx.quadraticCurveTo(diffBx, diffBy, diffBx + dr, diffBy);
+        ctx.closePath();
+
         if (diffSel) {
-            ctx.fillStyle = 'rgba(255,255,255,0.06)';
-            ctx.fillRect(30, diffY - 18, GAME_W - 60, 36);
-            ctx.strokeStyle = diffColor;
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(30, diffY - 18, GAME_W - 60, 36);
+            ctx.fillStyle = diffColor + '18';
+            ctx.fill();
+            ctx.strokeStyle = diffColor + '88';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        } else {
+            ctx.fillStyle = 'rgba(10, 15, 30, 0.4)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(100, 120, 160, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
         }
-        
-        ctx.fillStyle = diffSel ? '#fff' : '#888';
-        ctx.font = '10px "Courier New", monospace';
-        ctx.fillText('DIFFICULTY', GAME_W / 2, diffY - 5);
+
+        // Difficulty label
+        ctx.fillStyle = diffSel ? '#ddd' : '#778';
+        ctx.font = '12px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('DIFFICULTY', cx, diffY - 6);
+
+        // Difficulty value with arrows
         ctx.fillStyle = diffColor;
-        ctx.font = `bold ${diffSel ? 16 : 13}px "Courier New", monospace`;
-        const arrows = diffSel ? `◄  ${diff.name}  ►` : diff.name;
-        ctx.fillText(arrows, GAME_W / 2, diffY + 12);
+        ctx.font = `bold ${diffSel ? 18 : 15}px "Courier New", monospace`;
+        const diffArrows = diffSel ? `◄  ${diff.name}  ►` : diff.name;
+        ctx.fillText(diffArrows, cx, diffY + 15);
+
+        // Difficulty hint
+        if (diffSel) {
+            ctx.fillStyle = '#667';
+            ctx.font = '10px "Courier New", monospace';
+            ctx.fillText('TAP OR ◄► TO CHANGE', cx, diffY + 30);
+        }
 
         // High score
         if (this.highScore > 0) {
             ctx.fillStyle = '#ff8';
-            ctx.font = '11px "Courier New", monospace';
-            ctx.fillText(`HIGH SCORE: ${this.highScore.toLocaleString()}`, GAME_W / 2, 540);
+            ctx.font = 'bold 13px "Courier New", monospace';
+            ctx.fillText(`★ HIGH SCORE: ${this.highScore.toLocaleString()} ★`, cx, 555);
         }
 
         // Debug mode hint
         if (this.menuCursor > 0 && this.menuCursor < WORLDS.length) {
             ctx.fillStyle = '#0f8';
-            ctx.font = '9px "Courier New", monospace';
-            ctx.fillText('⚡ DEBUG: MAX POWER START', GAME_W / 2, 555);
+            ctx.font = '10px "Courier New", monospace';
+            ctx.fillText('⚡ DEBUG: MAX POWER START', cx, 570);
         }
 
         // BACK button
-        const backY = 575;
+        const backY = 590;
         const backSel = this.menuCursor === WORLDS.length + 1;
         if (backSel) {
             ctx.fillStyle = 'rgba(0, 200, 255, 0.1)';
-            ctx.fillRect(GAME_W / 2 - 60, backY - 14, 120, 28);
+            const bbr = 6;
+            const bbx = cx - 70;
+            const bby = backY - 16;
+            ctx.beginPath();
+            ctx.moveTo(bbx + bbr, bby); ctx.lineTo(bbx + 140 - bbr, bby);
+            ctx.quadraticCurveTo(bbx + 140, bby, bbx + 140, bby + bbr);
+            ctx.lineTo(bbx + 140, bby + 32 - bbr);
+            ctx.quadraticCurveTo(bbx + 140, bby + 32, bbx + 140 - bbr, bby + 32);
+            ctx.lineTo(bbx + bbr, bby + 32);
+            ctx.quadraticCurveTo(bbx, bby + 32, bbx, bby + 32 - bbr);
+            ctx.lineTo(bbx, bby + bbr);
+            ctx.quadraticCurveTo(bbx, bby, bbx + bbr, bby);
+            ctx.closePath();
+            ctx.fill();
             ctx.fillStyle = '#0ff';
-            ctx.font = 'bold 14px "Courier New", monospace';
-            ctx.fillText('▸ BACK ◂', GAME_W / 2, backY + 4);
+            ctx.font = 'bold 16px "Courier New", monospace';
+            ctx.fillText('◂ BACK', cx, backY + 4);
         } else {
-            ctx.fillStyle = '#667';
-            ctx.font = '12px "Courier New", monospace';
-            ctx.fillText('BACK', GAME_W / 2, backY + 4);
-        }
-
-        // Gamepad indicator
-        if (this.input.gpConnected) {
-            ctx.fillStyle = '#0f0';
-            ctx.font = '9px "Courier New", monospace';
-            ctx.fillText('🎮 GAMEPAD CONNECTED', GAME_W / 2, 610);
+            ctx.fillStyle = '#778';
+            ctx.font = '14px "Courier New", monospace';
+            ctx.fillText('◂ BACK', cx, backY + 4);
         }
 
         // Footer hint
         ctx.fillStyle = '#445';
-        ctx.font = '9px "Courier New", monospace';
-        ctx.fillText('↑↓ SELECT · ENTER TO CONFIRM', GAME_W / 2, GAME_H - 15);
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillText('TAP WORLD TO PLAY', cx, GAME_H - 12);
     }
 
     drawPaused(ctx) {
@@ -4693,17 +4848,19 @@ export class Game {
             }
 
             if (this.bombs > 0) {
-                const bx = 15, by = GAME_H - 90;
+                const bz = this.input.bombZone;
+                const bcx = bz.x + bz.w / 2;
+                const bcy = bz.y + bz.h / 2;
                 ctx.globalAlpha = 0.4;
                 ctx.fillStyle = '#f80';
                 ctx.beginPath();
-                ctx.arc(bx + 28, by + 28, 26, 0, Math.PI * 2);
+                ctx.arc(bcx, bcy, 26, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.globalAlpha = 0.7;
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 11px "Courier New", monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText('BOMB', bx + 28, by + 31);
+                ctx.fillText('BOMB', bcx, bcy + 4);
                 ctx.globalAlpha = 1;
             }
         }
