@@ -912,6 +912,9 @@ export class Game {
         this.resize();
         window.addEventListener('resize', () => this.resize());
 
+        // Sync high score with cloud (GameVolt leaderboard may have a higher score)
+        this._syncHighScore();
+
         this.input.onTap((x, y) => {
             this.audio.init();
             this.audio.resume();
@@ -1150,6 +1153,22 @@ export class Game {
                 this.settings.musicVol * 0.5, this.audio.ctx.currentTime
             );
         }
+    }
+
+    _syncHighScore() {
+        // If GameVolt is available, check if cloud has a higher score
+        if (!window.GameVolt) return;
+        try {
+            GameVolt.leaderboard.get({ mode: 'default', limit: 1, player: true }).then(rows => {
+                if (rows && rows.length > 0) {
+                    const cloudScore = rows[0].score || 0;
+                    if (cloudScore > this.highScore) {
+                        this.highScore = cloudScore;
+                        localStorage.setItem('axeluga_hi', this.highScore.toString());
+                    }
+                }
+            }).catch(() => {});
+        } catch (e) {}
     }
 
     resize() {
@@ -3914,40 +3933,12 @@ export class Game {
             }
         }
 
-        // ── Gamepad debug info ──
-        const gpY = 470;
-        if (this.input.gpConnected && this.input.gpDebug) {
-            const dbg = this.input.gpDebug;
-            ctx.fillStyle = '#0f0';
-            ctx.font = '10px "Courier New", monospace';
-            ctx.fillText('🎮 GAMEPAD CONNECTED', cx, gpY);
+        // Gamepad status (compact, only when connected)
+        if (this.input.gpConnected) {
             ctx.fillStyle = '#0a0';
-            ctx.font = '8px "Courier New", monospace';
-            const name = dbg.id.length > 38 ? dbg.id.substring(0, 38) + '…' : dbg.id;
-            ctx.fillText(name, cx, gpY + 14);
-            ctx.fillText(`mapping: ${dbg.mapping} | ${dbg.numButtons}btn ${dbg.numAxes}axes`, cx, gpY + 26);
-            const axStr = `stick: ${dbg.axes[0]},${dbg.axes[1]}`;
-            const btnStr = dbg.buttons.length > 0 ? `BTN: ${dbg.buttons.join(',')}` : '';
-            ctx.fillStyle = '#ff0';
-            ctx.font = '8px "Courier New", monospace';
-            ctx.fillText(`${axStr} ${btnStr}`, cx, gpY + 38);
-            if (dbg.mapping !== 'standard') {
-                ctx.fillStyle = '#f80';
-                ctx.fillText('TIP: Use X-input mode for best support', cx, gpY + 52);
-            }
-        } else {
-            ctx.fillStyle = '#555';
             ctx.font = '10px "Courier New", monospace';
-            ctx.fillText('No gamepad detected', cx, gpY);
-            ctx.fillStyle = '#444';
-            ctx.font = '8px "Courier New", monospace';
-            ctx.fillText('Press a button on your controller', cx, gpY + 16);
+            ctx.fillText('🎮 GAMEPAD CONNECTED', cx, GAME_H - 18);
         }
-
-        // Footer
-        ctx.fillStyle = '#667';
-        ctx.font = '10px "Courier New", monospace';
-        ctx.fillText('TAP OR ←→ TO ADJUST', cx, GAME_H - 18);
     }
 
     drawCredits(ctx) {
@@ -5865,7 +5856,8 @@ export class Game {
                 ctx.font = '10px "Courier New", monospace';
                 ctx.textAlign = 'right';
                 const dateStr = s.date ? new Date(s.date).toLocaleDateString() : '';
-                ctx.fillText(`W${s.world || '?'} ${dateStr}`, rowX + rowW - 8, rowY + 20);
+                const worldName = s.world ? (WORLDS[s.world - 1] ? WORLDS[s.world - 1].name : 'W' + s.world) : '?';
+                ctx.fillText(`${worldName}  ${dateStr}`, rowX + rowW - 8, rowY + 20);
             }
             curY += localScores.length * 36 + 10;
         }
