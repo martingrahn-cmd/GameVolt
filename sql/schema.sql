@@ -581,5 +581,41 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   ('sudoku-streak_10',        'sudoku', 'Unstoppable',      'Win 10 games in a row',                  '🌟', 'gold', 29),
   ('sudoku-speed_3_easy',     'sudoku', 'Lightning',        'Complete Easy under 3 minutes',          '⚡', 'gold', 30),
   -- Sudoku: Platinum (1)
-  ('sudoku-sudoku_master',    'sudoku', 'Sudoku Master',    'Unlock all 30 other trophies',           '👑', 'platinum', 31)
+  ('sudoku-sudoku_master',    'sudoku', 'Sudoku Master',    'Unlock all 30 other trophies',           '👑', 'platinum', 31),
+
+  -- Axeluga: Bronze (15)
+  ('axeluga-first-blood',        'axeluga', 'First Blood',         'Defeat your first enemy',                 '💥', 'bronze', 1),
+  ('axeluga-deep-space-clear',   'axeluga', 'Deep Space Explorer', 'Clear World 1',                           '🌌', 'bronze', 2),
+  ('axeluga-station-clear',      'axeluga', 'Station Breacher',    'Clear World 2',                           '🛸', 'bronze', 3),
+  ('axeluga-core-clear',         'axeluga', 'Core Runner',         'Clear World 3',                           '⚡', 'bronze', 4),
+  ('axeluga-atmosphere-clear',   'axeluga', 'Sky Piercer',         'Clear World 4',                           '☁️', 'bronze', 5),
+  ('axeluga-city-clear',         'axeluga', 'City Liberator',      'Clear World 5',                           '🏙️', 'bronze', 6),
+  ('axeluga-score-50k',          'axeluga', 'Getting Started',     'Reach 50,000 points',                     '⭐', 'bronze', 7),
+  ('axeluga-score-100k',         'axeluga', 'Six Figures',         'Reach 100,000 points',                    '🔥', 'bronze', 8),
+  ('axeluga-combo-5',            'axeluga', 'Combo Starter',       'Achieve a 5x combo',                      '🔗', 'bronze', 9),
+  ('axeluga-first-bomb',         'axeluga', 'Bomb Away!',          'Use your first bomb',                     '💣', 'bronze', 10),
+  ('axeluga-first-boss',         'axeluga', 'Boss Encounter',      'Defeat your first boss',                  '👾', 'bronze', 11),
+  ('axeluga-power-up-collect',   'axeluga', 'Armed Up',            'Collect 10 power-ups in one run',         '🎁', 'bronze', 12),
+  ('axeluga-weapon-max',         'axeluga', 'Fully Loaded',        'Reach weapon level 5',                    '🔫', 'bronze', 13),
+  ('axeluga-shield-save',        'axeluga', 'Shield Hero',         'Absorb a hit with shield',                '🛡️', 'bronze', 14),
+  ('axeluga-asteroid-hunter',    'axeluga', 'Space Debris',        'Destroy 20 asteroids in one run',         '☄️', 'bronze', 15),
+  -- Axeluga: Silver (10)
+  ('axeluga-galaxy-savior',      'axeluga', 'Galaxy Savior',       'Clear all 5 worlds',                      '🌟', 'silver', 16),
+  ('axeluga-score-250k',         'axeluga', 'Quarter Million',     'Reach 250,000 points',                    '💎', 'silver', 17),
+  ('axeluga-combo-master',       'axeluga', 'Combo Master',        'Achieve a 10x combo',                     '⚡', 'silver', 18),
+  ('axeluga-medium-clear',       'axeluga', 'Trained Pilot',       'Clear all worlds on Medium',              '🎖️', 'silver', 19),
+  ('axeluga-mine-sweeper',       'axeluga', 'Mine Sweeper',        'Destroy 15 mines in one run',             '💀', 'silver', 20),
+  ('axeluga-bomb-efficiency',    'axeluga', 'Carpet Bomber',       'Kill 5+ enemies with one bomb',           '🎯', 'silver', 21),
+  ('axeluga-no-death-world',     'axeluga', 'Untouchable I',       'Clear a world without taking damage',     '✨', 'silver', 22),
+  ('axeluga-boss-no-hit',        'axeluga', 'Dodge Master',        'Defeat a boss without taking damage',     '🎪', 'silver', 23),
+  ('axeluga-score-500k',         'axeluga', 'Half Million Club',   'Reach 500,000 points',                    '💰', 'silver', 24),
+  ('axeluga-speed-max',          'axeluga', 'Lightspeed',          'Reach max speed level',                   '🚀', 'silver', 25),
+  -- Axeluga: Gold (5)
+  ('axeluga-hard-clear',         'axeluga', 'Ace Pilot',           'Clear all worlds on Hard',                '🏆', 'gold', 26),
+  ('axeluga-score-1m',           'axeluga', 'Millionaire',         'Reach 1,000,000 points',                  '👑', 'gold', 27),
+  ('axeluga-no-death-run',       'axeluga', 'Untouchable II',      'Clear all worlds without losing HP',      '💫', 'gold', 28),
+  ('axeluga-hard-no-death-world','axeluga', 'Iron Will',           'Clear a world on Hard without damage',    '🔱', 'gold', 29),
+  ('axeluga-boss-rage-survivor', 'axeluga', 'Rage Tamer',          'Beat all 5 bosses in rage without damage','🐉', 'gold', 30),
+  -- Axeluga: Platinum (1)
+  ('axeluga-platinum',           'axeluga', 'Axeluga Platinum',    'Unlock all 30 other trophies',            '⚜️', 'platinum', 31)
 ON CONFLICT (id) DO NOTHING;
