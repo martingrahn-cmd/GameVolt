@@ -962,40 +962,36 @@ export class Game {
                     }
                 }
             } else if (this.state === 'options') {
-                // Touch areas match drawOptions layout
-                const optStartY = 140;
-                const optSpacing = 80;
-                // Slider bars: inside cards at y+32, height 14
-                for (let oi = 0; oi < 2; oi++) {
-                    const cardY = optStartY + oi * optSpacing;
-                    if (y > cardY && y < cardY + 68) {
-                        const barX = 18 + 15;
-                        const barW = GAME_W - 36 - 30;
-                        const pct = Math.max(0, Math.min(1, (x - barX) / barW));
-                        if (oi === 0) this.settings.musicVol = Math.round(pct * 10) / 10;
-                        else this.settings.sfxVol = Math.round(pct * 10) / 10;
-                        this._applyVolumes();
+                // Touch areas match drawOptions card layout
+                // Cards: slider=76h, toggle=70h, gap=10
+                const cardHeights = [76, 76, 70, 70]; // music, sfx, autofire, lefthanded
+                let cardTop = 110;
+                for (let oi = 0; oi < 4; oi++) {
+                    const ch = cardHeights[oi];
+                    if (y > cardTop && y < cardTop + ch) {
+                        if (oi < 2) {
+                            // Slider: adjust volume based on x position
+                            const barX = 20 + 14;
+                            const barW = GAME_W - 40 - 28;
+                            const pct = Math.max(0, Math.min(1, (x - barX) / barW));
+                            if (oi === 0) this.settings.musicVol = Math.round(pct * 10) / 10;
+                            else this.settings.sfxVol = Math.round(pct * 10) / 10;
+                            this._applyVolumes();
+                        } else if (oi === 2) {
+                            this.settings.autofire = !this.settings.autofire;
+                            this.input.autofire = this.settings.autofire;
+                            this.audio.menuClick();
+                        } else if (oi === 3) {
+                            this.settings.leftHanded = !this.settings.leftHanded;
+                            this._applyHandedness();
+                            this.audio.menuClick();
+                        }
                         return;
                     }
+                    cardTop += ch + 10;
                 }
-                // Autofire toggle area (item index 2)
-                const afY = optStartY + 2 * optSpacing;
-                if (y > afY && y < afY + 62) {
-                    this.settings.autofire = !this.settings.autofire;
-                    this.input.autofire = this.settings.autofire;
-                    this.audio.menuClick();
-                    return;
-                }
-                // Left-handed toggle area (item index 3)
-                const lhY = optStartY + 3 * optSpacing;
-                if (y > lhY && y < lhY + 62) {
-                    this.settings.leftHanded = !this.settings.leftHanded;
-                    this._applyHandedness();
-                    this.audio.menuClick();
-                    return;
-                }
-                // BACK button area (item index 4)
-                const backBtnY = optStartY + 4 * optSpacing + 4;
+                // BACK button
+                const backBtnY = cardTop + 10;
                 if (y > backBtnY && y < backBtnY + 36) {
                     this._saveSettings();
                     this.state = 'menu';
@@ -3701,146 +3697,108 @@ export class Game {
 
         // Header
         ctx.fillStyle = '#0ff';
-        ctx.font = 'bold 24px "Courier New", monospace';
-        ctx.fillText('OPTIONS', cx, 100);
+        ctx.font = 'bold 26px "Courier New", monospace';
+        ctx.fillText('OPTIONS', cx, 80);
 
         // Decorative line
         ctx.strokeStyle = '#0ff';
         ctx.lineWidth = 1;
         ctx.globalAlpha = 0.3;
         ctx.beginPath();
-        ctx.moveTo(cx - 80, 110); ctx.lineTo(cx + 80, 110);
+        ctx.moveTo(cx - 90, 92); ctx.lineTo(cx + 90, 92);
         ctx.stroke();
         ctx.globalAlpha = 1;
 
-        // ── Option items in cards ──
+        // ── Helper: draw rounded rect ──
+        const roundRect = (x, y, w, h, r) => {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        };
+
+        // ── Items ──
         const items = [
             { label: 'MUSIC', type: 'slider', value: this.settings.musicVol, color: '#44aaff', icon: '♫' },
             { label: 'SFX', type: 'slider', value: this.settings.sfxVol, color: '#ff8800', icon: '🔊' },
-            { label: 'AUTOFIRE', type: 'toggle', value: this.settings.autofire, color: '#00ff00', hint: 'fire when touching (mobile)', icon: '⚡' },
-            { label: 'LEFT-HANDED', type: 'toggle', value: this.settings.leftHanded, color: '#ff00ff', hint: 'swap fire & bomb sides', icon: '🔄' },
-            { label: 'BACK', type: 'back', color: '#888888', icon: '◂' },
+            { label: 'AUTOFIRE', type: 'toggle', value: this.settings.autofire, color: '#00ff00', hint: 'fire when touching', icon: '⚡' },
+            { label: 'LEFT-HANDED', type: 'toggle', value: this.settings.leftHanded, color: '#ff00ff', hint: 'swap fire & bomb', icon: '🔄' },
         ];
 
-        const startY = 140;
-        const spacing = 80;
-        const cardW = GAME_W - 36;
-        const cardX = 18;
+        const cardW = GAME_W - 40;
+        const cardX = 20;
+        let curY = 110;
 
         for (let i = 0; i < items.length; i++) {
-            const y = startY + i * spacing;
             const sel = this.optionsCursor === i;
             const item = items[i];
-
-            if (item.type === 'back') {
-                // BACK button — styled like other menus
-                const backY = y + 20;
-                const bbx = cx - 70;
-                const bby = backY - 16;
-                const bbr = 6;
-                ctx.beginPath();
-                ctx.moveTo(bbx + bbr, bby); ctx.lineTo(bbx + 140 - bbr, bby);
-                ctx.quadraticCurveTo(bbx + 140, bby, bbx + 140, bby + bbr);
-                ctx.lineTo(bbx + 140, bby + 32 - bbr);
-                ctx.quadraticCurveTo(bbx + 140, bby + 32, bbx + 140 - bbr, bby + 32);
-                ctx.lineTo(bbx + bbr, bby + 32);
-                ctx.quadraticCurveTo(bbx, bby + 32, bbx, bby + 32 - bbr);
-                ctx.lineTo(bbx, bby + bbr);
-                ctx.quadraticCurveTo(bbx, bby, bbx + bbr, bby);
-                ctx.closePath();
-                if (sel) {
-                    ctx.fillStyle = 'rgba(0, 200, 255, 0.12)';
-                    ctx.fill();
-                    ctx.strokeStyle = '#0ff';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                    ctx.fillStyle = '#0ff';
-                    ctx.font = 'bold 16px "Courier New", monospace';
-                } else {
-                    ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
-                    ctx.fill();
-                    ctx.strokeStyle = 'rgba(100, 140, 200, 0.3)';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                    ctx.fillStyle = '#99aacc';
-                    ctx.font = '14px "Courier New", monospace';
-                }
-                ctx.fillText('◂ BACK', cx, backY + 4);
-                continue;
-            }
+            const cardH = item.type === 'slider' ? 76 : 70;
 
             // Card background
-            const cardH = item.type === 'slider' ? 68 : 62;
-            const r = 8;
-            ctx.beginPath();
-            ctx.moveTo(cardX + r, y);
-            ctx.lineTo(cardX + cardW - r, y);
-            ctx.quadraticCurveTo(cardX + cardW, y, cardX + cardW, y + r);
-            ctx.lineTo(cardX + cardW, y + cardH - r);
-            ctx.quadraticCurveTo(cardX + cardW, y + cardH, cardX + cardW - r, y + cardH);
-            ctx.lineTo(cardX + r, y + cardH);
-            ctx.quadraticCurveTo(cardX, y + cardH, cardX, y + cardH - r);
-            ctx.lineTo(cardX, y + r);
-            ctx.quadraticCurveTo(cardX, y, cardX + r, y);
-            ctx.closePath();
-
+            roundRect(cardX, curY, cardW, cardH, 10);
             if (sel) {
-                ctx.fillStyle = item.color + '18';
+                ctx.fillStyle = item.color + '15';
                 ctx.fill();
-                ctx.strokeStyle = item.color + '88';
+                ctx.strokeStyle = item.color + '77';
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 ctx.save();
                 ctx.shadowColor = item.color;
-                ctx.shadowBlur = 8;
+                ctx.shadowBlur = 10;
                 ctx.strokeStyle = item.color + '30';
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 ctx.restore();
             } else {
-                ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
+                ctx.fillStyle = 'rgba(10, 18, 35, 0.6)';
                 ctx.fill();
                 ctx.strokeStyle = 'rgba(100, 140, 200, 0.25)';
                 ctx.lineWidth = 1;
                 ctx.stroke();
             }
 
-            // Icon + Label row
+            // Icon
             ctx.fillStyle = sel ? item.color : '#7899bb';
-            ctx.font = '14px "Courier New", monospace';
+            ctx.font = '18px "Courier New", monospace';
             ctx.textAlign = 'left';
-            ctx.fillText(item.icon, cardX + 12, y + 20);
-            ctx.fillStyle = sel ? '#fff' : '#99aacc';
-            ctx.font = `${sel ? 'bold ' : ''}14px "Courier New", monospace`;
-            ctx.fillText(item.label, cardX + 34, y + 20);
+            ctx.fillText(item.icon, cardX + 14, curY + 26);
+
+            // Label
+            ctx.fillStyle = sel ? '#fff' : '#aabbdd';
+            ctx.font = `${sel ? 'bold ' : ''}16px "Courier New", monospace`;
+            ctx.fillText(item.label, cardX + 40, curY + 26);
             ctx.textAlign = 'center';
 
             if (item.type === 'slider') {
-                // Volume bar
-                const barW = cardW - 30;
-                const barH = 14;
-                const barX = cardX + 15;
-                const barY = y + 32;
+                // Percentage on the right of the label
+                ctx.fillStyle = sel ? '#fff' : '#7788aa';
+                ctx.font = 'bold 16px "Courier New", monospace';
+                ctx.textAlign = 'right';
+                ctx.fillText(`${Math.round(item.value * 100)}%`, cardX + cardW - 14, curY + 26);
+                ctx.textAlign = 'center';
+
+                // Volume bar (rounded)
+                const barW = cardW - 28;
+                const barH = 18;
+                const barX = cardX + 14;
+                const barY = curY + 38;
+                const br = 6;
 
                 // Track
+                roundRect(barX, barY, barW, barH, br);
                 ctx.fillStyle = '#0a0e1a';
-                const br = 4;
-                ctx.beginPath();
-                ctx.moveTo(barX + br, barY);
-                ctx.lineTo(barX + barW - br, barY);
-                ctx.quadraticCurveTo(barX + barW, barY, barX + barW, barY + br);
-                ctx.lineTo(barX + barW, barY + barH - br);
-                ctx.quadraticCurveTo(barX + barW, barY + barH, barX + barW - br, barY + barH);
-                ctx.lineTo(barX + br, barY + barH);
-                ctx.quadraticCurveTo(barX, barY + barH, barX, barY + barH - br);
-                ctx.lineTo(barX, barY + br);
-                ctx.quadraticCurveTo(barX, barY, barX + br, barY);
-                ctx.closePath();
                 ctx.fill();
 
                 // Fill
                 const fillW = barW * item.value;
-                if (fillW > 0) {
+                if (fillW > br) {
                     ctx.save();
                     ctx.beginPath();
                     ctx.moveTo(barX + br, barY);
@@ -3857,81 +3815,91 @@ export class Game {
                 }
 
                 // Border
-                ctx.strokeStyle = sel ? item.color + '66' : '#334';
+                roundRect(barX, barY, barW, barH, br);
+                ctx.strokeStyle = sel ? item.color + '55' : '#334';
                 ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(barX + br, barY);
-                ctx.lineTo(barX + barW - br, barY);
-                ctx.quadraticCurveTo(barX + barW, barY, barX + barW, barY + br);
-                ctx.lineTo(barX + barW, barY + barH - br);
-                ctx.quadraticCurveTo(barX + barW, barY + barH, barX + barW - br, barY + barH);
-                ctx.lineTo(barX + br, barY + barH);
-                ctx.quadraticCurveTo(barX, barY + barH, barX, barY + barH - br);
-                ctx.lineTo(barX, barY + br);
-                ctx.quadraticCurveTo(barX, barY, barX + br, barY);
-                ctx.closePath();
                 ctx.stroke();
 
-                // Percentage on the right
-                ctx.fillStyle = sel ? '#fff' : '#7788aa';
-                ctx.font = 'bold 12px "Courier New", monospace';
-                ctx.textAlign = 'right';
-                ctx.fillText(`${Math.round(item.value * 100)}%`, cardX + cardW - 12, y + 20);
-                ctx.textAlign = 'center';
-
-                // Hint when selected
+                // Adjust hint
                 if (sel) {
                     ctx.fillStyle = '#556';
                     ctx.font = '10px "Courier New", monospace';
-                    ctx.fillText('TAP BAR OR ◄► TO ADJUST', cx, y + cardH - 6);
+                    ctx.fillText('TAP BAR OR ◄► TO ADJUST', cx, curY + cardH - 4);
                 }
             } else if (item.type === 'toggle') {
-                // Toggle pill
-                const toggleY = y + 34;
-                const pillW = 54;
-                const pillH = 22;
-                const pillX = cx - pillW / 2;
+                // Toggle switch on the right side of the card
+                const toggleCx = cardX + cardW - 50;
+                const toggleCy = curY + 20;
+                const pillW = 48;
+                const pillH = 24;
+                const pillX = toggleCx - pillW / 2;
                 const pillR = pillH / 2;
 
-                // Pill background
+                // Pill shape
                 ctx.beginPath();
-                ctx.moveTo(pillX + pillR, toggleY);
-                ctx.lineTo(pillX + pillW - pillR, toggleY);
-                ctx.arc(pillX + pillW - pillR, toggleY + pillR, pillR, -Math.PI / 2, Math.PI / 2);
-                ctx.lineTo(pillX + pillR, toggleY + pillH);
-                ctx.arc(pillX + pillR, toggleY + pillR, pillR, Math.PI / 2, -Math.PI / 2);
+                ctx.moveTo(pillX + pillR, toggleCy);
+                ctx.lineTo(pillX + pillW - pillR, toggleCy);
+                ctx.arc(pillX + pillW - pillR, toggleCy + pillR, pillR, -Math.PI / 2, Math.PI / 2);
+                ctx.lineTo(pillX + pillR, toggleCy + pillH);
+                ctx.arc(pillX + pillR, toggleCy + pillR, pillR, Math.PI / 2, -Math.PI / 2);
                 ctx.closePath();
 
                 if (item.value) {
-                    ctx.fillStyle = sel ? item.color + '44' : '#1a3322';
+                    ctx.fillStyle = sel ? item.color + '55' : '#1a3322';
                     ctx.fill();
                     ctx.strokeStyle = sel ? item.color : '#336644';
                 } else {
-                    ctx.fillStyle = sel ? '#331a1a' : '#1a1a22';
+                    ctx.fillStyle = '#1a1520';
                     ctx.fill();
-                    ctx.strokeStyle = sel ? '#664433' : '#333344';
+                    ctx.strokeStyle = sel ? '#885544' : '#333344';
                 }
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Pill knob
+                // Knob
                 const knobX = item.value ? pillX + pillW - pillR : pillX + pillR;
                 ctx.beginPath();
-                ctx.arc(knobX, toggleY + pillR, pillR - 4, 0, Math.PI * 2);
+                ctx.arc(knobX, toggleCy + pillR, pillR - 4, 0, Math.PI * 2);
                 ctx.fillStyle = item.value ? (sel ? item.color : '#5a8a5a') : (sel ? '#aa5544' : '#555566');
                 ctx.fill();
 
-                // ON/OFF text
-                ctx.fillStyle = sel ? '#fff' : '#7788aa';
-                ctx.font = 'bold 11px "Courier New", monospace';
-                ctx.fillText(item.value ? 'ON' : 'OFF', cx + (item.value ? -30 : 30), toggleY + 15);
-
-                // Hint text
-                ctx.fillStyle = sel ? '#667' : '#445';
-                ctx.font = '10px "Courier New", monospace';
-                ctx.fillText(item.hint || '', cx, y + cardH - 4);
+                // Hint text under label
+                ctx.fillStyle = sel ? '#778' : '#556';
+                ctx.font = '11px "Courier New", monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText(item.hint || '', cardX + 40, curY + 46);
+                ctx.textAlign = 'center';
             }
+
+            curY += cardH + 10;
         }
+
+        // ── BACK button ──
+        const backY = curY + 10;
+        const backSel = this.optionsCursor === items.length;
+        const bbx = cx - 80;
+        const bby = backY;
+        const bbw = 160;
+        const bbh = 36;
+        roundRect(bbx, bby, bbw, bbh, 8);
+        if (backSel) {
+            ctx.fillStyle = 'rgba(0, 200, 255, 0.15)';
+            ctx.fill();
+            ctx.strokeStyle = '#0ff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#0ff';
+            ctx.font = 'bold 18px "Courier New", monospace';
+        } else {
+            ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(100, 140, 200, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillStyle = '#99aacc';
+            ctx.font = '16px "Courier New", monospace';
+        }
+        ctx.fillText('◂ BACK', cx, backY + 24);
 
         // Gamepad status (compact, only when connected)
         if (this.input.gpConnected) {
