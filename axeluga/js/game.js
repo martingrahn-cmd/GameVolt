@@ -959,15 +959,16 @@ export class Game {
                     }
                 }
             } else if (this.state === 'options') {
-                // Touch volume sliders, autofire toggle, or BACK
-                const optStartY = 175;
-                const optSpacing = 62;
-                // Music slider: y~207-219, SFX slider: y~277-289
+                // Touch areas match drawOptions layout
+                const optStartY = 140;
+                const optSpacing = 80;
+                // Slider bars: inside cards at y+32, height 14
                 for (let oi = 0; oi < 2; oi++) {
-                    const barY = optStartY + oi * optSpacing + 12;
-                    if (y > barY - 5 && y < barY + 17) {
-                        const barX = GAME_W / 2 - 90;
-                        const pct = Math.max(0, Math.min(1, (x - barX) / 180));
+                    const cardY = optStartY + oi * optSpacing;
+                    if (y > cardY && y < cardY + 68) {
+                        const barX = 18 + 15;
+                        const barW = GAME_W - 36 - 30;
+                        const pct = Math.max(0, Math.min(1, (x - barX) / barW));
                         if (oi === 0) this.settings.musicVol = Math.round(pct * 10) / 10;
                         else this.settings.sfxVol = Math.round(pct * 10) / 10;
                         this._applyVolumes();
@@ -976,7 +977,7 @@ export class Game {
                 }
                 // Autofire toggle area (item index 2)
                 const afY = optStartY + 2 * optSpacing;
-                if (y > afY - 10 && y < afY + 35) {
+                if (y > afY && y < afY + 62) {
                     this.settings.autofire = !this.settings.autofire;
                     this.input.autofire = this.settings.autofire;
                     this.audio.menuClick();
@@ -984,15 +985,15 @@ export class Game {
                 }
                 // Left-handed toggle area (item index 3)
                 const lhY = optStartY + 3 * optSpacing;
-                if (y > lhY - 10 && y < lhY + 35) {
+                if (y > lhY && y < lhY + 62) {
                     this.settings.leftHanded = !this.settings.leftHanded;
                     this._applyHandedness();
                     this.audio.menuClick();
                     return;
                 }
                 // BACK button area (item index 4)
-                const backY = optStartY + 4 * optSpacing;
-                if (y > backY - 15 && y < backY + 25) {
+                const backBtnY = optStartY + 4 * optSpacing + 4;
+                if (y > backBtnY && y < backBtnY + 36) {
                     this._saveSettings();
                     this.state = 'menu';
                     this.menuCursor = 3;
@@ -1052,9 +1053,20 @@ export class Game {
                     return;
                 }
             } else if (this.state === 'gameover' && this.frame > 60) {
-                this.state = 'menu';
-                this.menuCursor = 0;
-                this.frame = 0;
+                const retryY = GAME_H / 2 + 100;
+                const menuBtnY = GAME_H / 2 + 150;
+                const btnH2 = 36;
+                if (y > retryY - btnH2 / 2 && y < retryY + btnH2 / 2) {
+                    // Retry
+                    this.audio.menuClick();
+                    this.startGame(this._gameOverWorld || 0);
+                } else if (y > menuBtnY - btnH2 / 2 && y < menuBtnY + btnH2 / 2) {
+                    // Menu
+                    this.audio.menuClick();
+                    this.state = 'menu';
+                    this.menuCursor = 0;
+                    this.frame = 0;
+                }
             } else if (this.state === 'stageclear' && this.frame > 90) {
                 // Simulate confirm for touch
                 this._touchConfirm = true;
@@ -1562,10 +1574,24 @@ export class Game {
                 }
             }
         } else if (this.state === 'gameover') {
-            if (this.frame > 60 && confirm) {
-                this.state = 'menu';
-                this.menuCursor = 0;
-                this.frame = 0;
+            if (this._gameOverCursor === undefined) this._gameOverCursor = 0;
+            if (this.frame > 60) {
+                if (navUp || navDown) {
+                    this._gameOverCursor = this._gameOverCursor === 0 ? 1 : 0;
+                    this.audio.menuClick();
+                }
+                if (confirm) {
+                    this.audio.menuClick();
+                    if (this._gameOverCursor === 0) {
+                        // Retry: restart same world, reset score
+                        this.startGame(this._gameOverWorld || 0);
+                    } else {
+                        // Back to menu
+                        this.state = 'menu';
+                        this.menuCursor = 0;
+                        this.frame = 0;
+                    }
+                }
             }
         } else if (this.state === 'stageclear') {
             // Stage clear: show results, wait for confirm to trigger transition
@@ -2584,6 +2610,8 @@ export class Game {
         setTimeout(() => {
             this.state = 'gameover';
             this.frame = 0;
+            this._gameOverCursor = 0; // 0=retry, 1=menu
+            this._gameOverWorld = this.world; // remember which world to retry
             this.audio.gameOverSfx();
         }, 1500);
     }
@@ -3646,7 +3674,7 @@ export class Game {
 
     drawOptions(ctx) {
         // ── Dark overlay ──
-        ctx.fillStyle = 'rgba(0,0,0,0.75)';
+        ctx.fillStyle = 'rgba(0,0,0,0.8)';
         ctx.fillRect(0, 0, GAME_W, GAME_H);
 
         ctx.textAlign = 'center';
@@ -3655,120 +3683,234 @@ export class Game {
         // Header
         ctx.fillStyle = '#0ff';
         ctx.font = 'bold 24px "Courier New", monospace';
-        ctx.fillText('OPTIONS', cx, 120);
+        ctx.fillText('OPTIONS', cx, 100);
 
         // Decorative line
         ctx.strokeStyle = '#0ff';
         ctx.lineWidth = 1;
         ctx.globalAlpha = 0.3;
         ctx.beginPath();
-        ctx.moveTo(cx - 80, 130); ctx.lineTo(cx + 80, 130);
+        ctx.moveTo(cx - 80, 110); ctx.lineTo(cx + 80, 110);
         ctx.stroke();
         ctx.globalAlpha = 1;
 
-        // ── Option items ──
+        // ── Option items in cards ──
         const items = [
-            { label: 'MUSIC', type: 'slider', value: this.settings.musicVol, color: '#4af' },
-            { label: 'SFX', type: 'slider', value: this.settings.sfxVol, color: '#f80' },
-            { label: 'AUTOFIRE', type: 'toggle', value: this.settings.autofire, color: '#0f0', hint: 'fire when touching (mobile)' },
-            { label: 'LEFT-HANDED', type: 'toggle', value: this.settings.leftHanded, color: '#f0f', hint: 'swap fire & bomb sides' },
-            { label: 'BACK', type: 'back', color: '#888' },
+            { label: 'MUSIC', type: 'slider', value: this.settings.musicVol, color: '#44aaff', icon: '♫' },
+            { label: 'SFX', type: 'slider', value: this.settings.sfxVol, color: '#ff8800', icon: '🔊' },
+            { label: 'AUTOFIRE', type: 'toggle', value: this.settings.autofire, color: '#00ff00', hint: 'fire when touching (mobile)', icon: '⚡' },
+            { label: 'LEFT-HANDED', type: 'toggle', value: this.settings.leftHanded, color: '#ff00ff', hint: 'swap fire & bomb sides', icon: '🔄' },
+            { label: 'BACK', type: 'back', color: '#888888', icon: '◂' },
         ];
 
-        const startY = 175;
-        const spacing = 62;
+        const startY = 140;
+        const spacing = 80;
+        const cardW = GAME_W - 36;
+        const cardX = 18;
 
         for (let i = 0; i < items.length; i++) {
             const y = startY + i * spacing;
             const sel = this.optionsCursor === i;
             const item = items[i];
 
+            if (item.type === 'back') {
+                // BACK button — styled like other menus
+                const backY = y + 20;
+                const bbx = cx - 70;
+                const bby = backY - 16;
+                const bbr = 6;
+                ctx.beginPath();
+                ctx.moveTo(bbx + bbr, bby); ctx.lineTo(bbx + 140 - bbr, bby);
+                ctx.quadraticCurveTo(bbx + 140, bby, bbx + 140, bby + bbr);
+                ctx.lineTo(bbx + 140, bby + 32 - bbr);
+                ctx.quadraticCurveTo(bbx + 140, bby + 32, bbx + 140 - bbr, bby + 32);
+                ctx.lineTo(bbx + bbr, bby + 32);
+                ctx.quadraticCurveTo(bbx, bby + 32, bbx, bby + 32 - bbr);
+                ctx.lineTo(bbx, bby + bbr);
+                ctx.quadraticCurveTo(bbx, bby, bbx + bbr, bby);
+                ctx.closePath();
+                if (sel) {
+                    ctx.fillStyle = 'rgba(0, 200, 255, 0.12)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#0ff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.fillStyle = '#0ff';
+                    ctx.font = 'bold 16px "Courier New", monospace';
+                } else {
+                    ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(100, 140, 200, 0.3)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.fillStyle = '#99aacc';
+                    ctx.font = '14px "Courier New", monospace';
+                }
+                ctx.fillText('◂ BACK', cx, backY + 4);
+                continue;
+            }
+
+            // Card background
+            const cardH = item.type === 'slider' ? 68 : 62;
+            const r = 8;
+            ctx.beginPath();
+            ctx.moveTo(cardX + r, y);
+            ctx.lineTo(cardX + cardW - r, y);
+            ctx.quadraticCurveTo(cardX + cardW, y, cardX + cardW, y + r);
+            ctx.lineTo(cardX + cardW, y + cardH - r);
+            ctx.quadraticCurveTo(cardX + cardW, y + cardH, cardX + cardW - r, y + cardH);
+            ctx.lineTo(cardX + r, y + cardH);
+            ctx.quadraticCurveTo(cardX, y + cardH, cardX, y + cardH - r);
+            ctx.lineTo(cardX, y + r);
+            ctx.quadraticCurveTo(cardX, y, cardX + r, y);
+            ctx.closePath();
+
+            if (sel) {
+                ctx.fillStyle = item.color + '18';
+                ctx.fill();
+                ctx.strokeStyle = item.color + '88';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.save();
+                ctx.shadowColor = item.color;
+                ctx.shadowBlur = 8;
+                ctx.strokeStyle = item.color + '30';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.restore();
+            } else {
+                ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(100, 140, 200, 0.25)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Icon + Label row
+            ctx.fillStyle = sel ? item.color : '#7899bb';
+            ctx.font = '14px "Courier New", monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText(item.icon, cardX + 12, y + 20);
+            ctx.fillStyle = sel ? '#fff' : '#99aacc';
+            ctx.font = `${sel ? 'bold ' : ''}14px "Courier New", monospace`;
+            ctx.fillText(item.label, cardX + 34, y + 20);
+            ctx.textAlign = 'center';
+
             if (item.type === 'slider') {
-                // Label
-                ctx.fillStyle = sel ? '#fff' : '#99aacc';
-                ctx.font = `${sel ? 'bold ' : ''}16px "Courier New", monospace`;
-                ctx.fillText(item.label, cx, y);
-
                 // Volume bar
-                const barW = 180;
-                const barH = 12;
-                const barX = cx - barW / 2;
-                const barY = y + 12;
+                const barW = cardW - 30;
+                const barH = 14;
+                const barX = cardX + 15;
+                const barY = y + 32;
 
-                // Background
-                ctx.fillStyle = '#1a1a2e';
-                ctx.fillRect(barX, barY, barW, barH);
+                // Track
+                ctx.fillStyle = '#0a0e1a';
+                const br = 4;
+                ctx.beginPath();
+                ctx.moveTo(barX + br, barY);
+                ctx.lineTo(barX + barW - br, barY);
+                ctx.quadraticCurveTo(barX + barW, barY, barX + barW, barY + br);
+                ctx.lineTo(barX + barW, barY + barH - br);
+                ctx.quadraticCurveTo(barX + barW, barY + barH, barX + barW - br, barY + barH);
+                ctx.lineTo(barX + br, barY + barH);
+                ctx.quadraticCurveTo(barX, barY + barH, barX, barY + barH - br);
+                ctx.lineTo(barX, barY + br);
+                ctx.quadraticCurveTo(barX, barY, barX + br, barY);
+                ctx.closePath();
+                ctx.fill();
 
                 // Fill
-                ctx.fillStyle = sel ? item.color : '#667';
-                ctx.fillRect(barX, barY, barW * item.value, barH);
-
-                // Segments
-                ctx.strokeStyle = '#111';
-                ctx.lineWidth = 1;
-                for (let s = 1; s < 10; s++) {
-                    const sx = barX + (barW / 10) * s;
+                const fillW = barW * item.value;
+                if (fillW > 0) {
+                    ctx.save();
                     ctx.beginPath();
-                    ctx.moveTo(sx, barY); ctx.lineTo(sx, barY + barH);
-                    ctx.stroke();
+                    ctx.moveTo(barX + br, barY);
+                    ctx.lineTo(barX + fillW, barY);
+                    ctx.lineTo(barX + fillW, barY + barH);
+                    ctx.lineTo(barX + br, barY + barH);
+                    ctx.quadraticCurveTo(barX, barY + barH, barX, barY + barH - br);
+                    ctx.lineTo(barX, barY + br);
+                    ctx.quadraticCurveTo(barX, barY, barX + br, barY);
+                    ctx.closePath();
+                    ctx.fillStyle = sel ? item.color : '#556688';
+                    ctx.fill();
+                    ctx.restore();
                 }
 
                 // Border
-                ctx.strokeStyle = sel ? item.color : '#556';
+                ctx.strokeStyle = sel ? item.color + '66' : '#334';
                 ctx.lineWidth = 1;
-                ctx.strokeRect(barX, barY, barW, barH);
+                ctx.beginPath();
+                ctx.moveTo(barX + br, barY);
+                ctx.lineTo(barX + barW - br, barY);
+                ctx.quadraticCurveTo(barX + barW, barY, barX + barW, barY + br);
+                ctx.lineTo(barX + barW, barY + barH - br);
+                ctx.quadraticCurveTo(barX + barW, barY + barH, barX + barW - br, barY + barH);
+                ctx.lineTo(barX + br, barY + barH);
+                ctx.quadraticCurveTo(barX, barY + barH, barX, barY + barH - br);
+                ctx.lineTo(barX, barY + br);
+                ctx.quadraticCurveTo(barX, barY, barX + br, barY);
+                ctx.closePath();
+                ctx.stroke();
 
-                // Percentage
+                // Percentage on the right
                 ctx.fillStyle = sel ? '#fff' : '#7788aa';
-                ctx.font = '13px "Courier New", monospace';
-                ctx.fillText(`${Math.round(item.value * 100)}%`, cx, barY + barH + 16);
+                ctx.font = 'bold 12px "Courier New", monospace';
+                ctx.textAlign = 'right';
+                ctx.fillText(`${Math.round(item.value * 100)}%`, cardX + cardW - 12, y + 20);
+                ctx.textAlign = 'center';
 
-                // Arrows if selected
+                // Hint when selected
                 if (sel) {
-                    ctx.fillStyle = '#0ff';
-                    ctx.font = '16px "Courier New", monospace';
-                    ctx.fillText('◂', barX - 16, barY + 10);
-                    ctx.fillText('▸', barX + barW + 16, barY + 10);
+                    ctx.fillStyle = '#556';
+                    ctx.font = '10px "Courier New", monospace';
+                    ctx.fillText('TAP BAR OR ◄► TO ADJUST', cx, y + cardH - 6);
                 }
             } else if (item.type === 'toggle') {
-                // Label
-                ctx.fillStyle = sel ? '#fff' : '#99aacc';
-                ctx.font = `${sel ? 'bold ' : ''}16px "Courier New", monospace`;
-                ctx.fillText(item.label, cx, y);
+                // Toggle pill
+                const toggleY = y + 34;
+                const pillW = 54;
+                const pillH = 22;
+                const pillX = cx - pillW / 2;
+                const pillR = pillH / 2;
 
-                // ON/OFF toggle
-                const toggleY = y + 14;
-                const onOff = item.value ? 'ON' : 'OFF';
-                const toggleColor = item.value ? item.color : '#f44';
-                ctx.fillStyle = sel ? toggleColor : '#7788aa';
-                ctx.font = `${sel ? 'bold ' : ''}16px "Courier New", monospace`;
-                ctx.fillText(onOff, cx, toggleY + 4);
+                // Pill background
+                ctx.beginPath();
+                ctx.moveTo(pillX + pillR, toggleY);
+                ctx.lineTo(pillX + pillW - pillR, toggleY);
+                ctx.arc(pillX + pillW - pillR, toggleY + pillR, pillR, -Math.PI / 2, Math.PI / 2);
+                ctx.lineTo(pillX + pillR, toggleY + pillH);
+                ctx.arc(pillX + pillR, toggleY + pillR, pillR, Math.PI / 2, -Math.PI / 2);
+                ctx.closePath();
 
-                // Arrows if selected
-                if (sel) {
-                    ctx.fillStyle = '#0ff';
-                    ctx.font = '16px "Courier New", monospace';
-                    ctx.fillText('◂', cx - 36, toggleY + 4);
-                    ctx.fillText('▸', cx + 36, toggleY + 4);
+                if (item.value) {
+                    ctx.fillStyle = sel ? item.color + '44' : '#1a3322';
+                    ctx.fill();
+                    ctx.strokeStyle = sel ? item.color : '#336644';
+                } else {
+                    ctx.fillStyle = sel ? '#331a1a' : '#1a1a22';
+                    ctx.fill();
+                    ctx.strokeStyle = sel ? '#664433' : '#333344';
                 }
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Pill knob
+                const knobX = item.value ? pillX + pillW - pillR : pillX + pillR;
+                ctx.beginPath();
+                ctx.arc(knobX, toggleY + pillR, pillR - 4, 0, Math.PI * 2);
+                ctx.fillStyle = item.value ? (sel ? item.color : '#5a8a5a') : (sel ? '#aa5544' : '#555566');
+                ctx.fill();
+
+                // ON/OFF text
+                ctx.fillStyle = sel ? '#fff' : '#7788aa';
+                ctx.font = 'bold 11px "Courier New", monospace';
+                ctx.fillText(item.value ? 'ON' : 'OFF', cx + (item.value ? -30 : 30), toggleY + 15);
 
                 // Hint text
-                ctx.fillStyle = sel ? '#778' : '#556';
-                ctx.font = '11px "Courier New", monospace';
-                ctx.fillText(item.hint || '', cx, toggleY + 18);
-            } else {
-                // BACK button
-                if (sel) {
-                    ctx.fillStyle = 'rgba(0, 200, 255, 0.1)';
-                    ctx.fillRect(cx - 60, y - 12, 120, 28);
-                    ctx.fillStyle = '#0ff';
-                    ctx.font = 'bold 16px "Courier New", monospace';
-                    ctx.fillText('▸ ' + item.label + ' ◂', cx, y + 6);
-                } else {
-                    ctx.fillStyle = '#99aacc';
-                    ctx.font = '14px "Courier New", monospace';
-                    ctx.fillText(item.label, cx, y + 6);
-                }
+                ctx.fillStyle = sel ? '#667' : '#445';
+                ctx.font = '10px "Courier New", monospace';
+                ctx.fillText(item.hint || '', cx, y + cardH - 4);
             }
         }
 
@@ -3947,18 +4089,18 @@ export class Game {
 
         // World options — styled cards
         const colors = ['#44aaff', '#cc44ff', '#ff8844', '#00ccff', '#ffaa00'];
-        const icons = ['✦', '▸', '⚙', '☁', '🏙'];
-        const cardW = GAME_W - 40;
+        const icons = ['✦', '◆', '⚙', '☁', '🏙'];
+        const cardW = GAME_W - 36;
         const worldSpacing = 55;
 
         for (let i = 0; i < WORLDS.length; i++) {
             const w = WORLDS[i];
             const y = 220 + i * worldSpacing;
             const sel = this.menuCursor === i;
-            const pulse = sel ? 0.9 + Math.sin(this.frame * 0.08) * 0.1 : 1;
+            const pulse = sel ? 0.95 + Math.sin(this.frame * 0.08) * 0.05 : 1;
 
             // Card background
-            const bx = 20;
+            const bx = 18;
             const by = y - 24;
             const bh = 46;
             const r = 8;
@@ -4000,27 +4142,47 @@ export class Game {
                 ctx.stroke();
             }
 
-            // World number badge
+            // World number circle badge
+            const badgeX = bx + 26;
+            const badgeY = y - 1;
+            const badgeR = 14;
+            ctx.beginPath();
+            ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
+            ctx.fillStyle = sel ? colors[i] + '30' : 'rgba(30, 40, 60, 0.6)';
+            ctx.fill();
+            ctx.strokeStyle = sel ? colors[i] : 'rgba(100, 140, 200, 0.3)';
+            ctx.lineWidth = sel ? 2 : 1;
+            ctx.stroke();
+
+            // Number in badge
             ctx.fillStyle = sel ? colors[i] : '#7899bb';
-            ctx.font = `bold ${sel ? 14 : 12}px "Courier New", monospace`;
-            ctx.textAlign = 'left';
-            ctx.fillText(`${icons[i]} W${i + 1}`, bx + 12, y - 2);
+            ctx.font = `bold 14px "Courier New", monospace`;
+            ctx.textAlign = 'center';
+            ctx.fillText(`${i + 1}`, badgeX, badgeY + 5);
 
             // World name
             ctx.fillStyle = sel ? '#fff' : '#99aacc';
             ctx.font = `${sel ? 'bold ' : ''}${sel ? 16 : 14}px "Courier New", monospace`;
-            ctx.textAlign = 'center';
+            ctx.textAlign = 'left';
             ctx.save();
-            ctx.translate(cx + 10, y - 4);
+            ctx.translate(bx + 48, y - 5);
             ctx.scale(pulse, pulse);
             ctx.fillText(w.name, 0, 0);
             ctx.restore();
 
             // Subtitle
             ctx.fillStyle = sel ? '#aab' : '#7788aa';
-            ctx.font = '11px "Courier New", monospace';
+            ctx.font = '10px "Courier New", monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText(w.subtitle, bx + 48, y + 12);
+
+            // Icon on the right
             ctx.textAlign = 'center';
-            ctx.fillText(w.subtitle, cx + 10, y + 14);
+            ctx.fillStyle = sel ? colors[i] : '#556677';
+            ctx.font = `${sel ? 18 : 14}px "Courier New", monospace`;
+            ctx.fillText(icons[i], bx + cardW - 24, y + 2);
+
+            ctx.textAlign = 'center';
         }
 
         // ── Difficulty selector (prominent) ──
@@ -5259,37 +5421,175 @@ export class Game {
     }
 
     drawGameOver(ctx) {
-        const alpha = Math.min(1, this.frame / 30);
-        ctx.fillStyle = `rgba(0,0,0,${alpha * 0.6})`;
+        const cx = GAME_W / 2;
+        const fadeIn = Math.min(1, this.frame / 40);
+        const slideIn = 1 - Math.pow(1 - Math.min(1, this.frame / 30), 3); // ease-out cubic
+
+        // Dark overlay with vignette
+        ctx.fillStyle = `rgba(0,0,0,${fadeIn * 0.7})`;
         ctx.fillRect(0, 0, GAME_W, GAME_H);
 
-        ctx.globalAlpha = alpha;
+        // Red scan lines effect
+        ctx.globalAlpha = fadeIn * 0.04;
+        ctx.fillStyle = '#f00';
+        for (let sy = 0; sy < GAME_H; sy += 4) {
+            ctx.fillRect(0, sy, GAME_W, 1);
+        }
+        ctx.globalAlpha = fadeIn;
+
         ctx.textAlign = 'center';
 
-        ctx.fillStyle = '#f44';
-        ctx.font = 'bold 36px "Courier New", monospace';
-        ctx.fillText('GAME OVER', GAME_W / 2, GAME_H / 2 - 70);
+        // "GAME OVER" with glitch effect
+        const titleY = GAME_H / 2 - 100 + (1 - slideIn) * -40;
+        const glitchX = this.frame < 20 ? (Math.random() - 0.5) * 6 : 0;
+        const glitchY = this.frame < 20 ? (Math.random() - 0.5) * 3 : 0;
 
-        ctx.fillStyle = '#fff';
-        ctx.font = '16px "Courier New", monospace';
-        ctx.fillText(`SCORE: ${this.score.toLocaleString()}`, GAME_W / 2, GAME_H / 2 - 20);
-
-        const worldDef = WORLDS[this.world % WORLDS.length];
-        ctx.fillStyle = '#ff8';
-        ctx.font = '14px "Courier New", monospace';
-        ctx.fillText(`WAVE ${this.wave} · ${worldDef.name}`, GAME_W / 2, GAME_H / 2 + 10);
-
-        if (this.score >= this.highScore && this.score > 0) {
-            ctx.fillStyle = '#f0f';
-            ctx.font = 'bold 14px "Courier New", monospace';
-            ctx.fillText('★ NEW HIGH SCORE! ★', GAME_W / 2, GAME_H / 2 + 45);
+        // Shadow layers
+        if (this.frame < 25) {
+            ctx.globalAlpha = fadeIn * 0.3;
+            ctx.fillStyle = '#f00';
+            ctx.font = 'bold 38px "Courier New", monospace';
+            ctx.fillText('GAME OVER', cx + glitchX + 2, titleY + glitchY);
+            ctx.fillStyle = '#00f';
+            ctx.fillText('GAME OVER', cx - glitchX - 2, titleY - glitchY);
         }
 
+        ctx.globalAlpha = fadeIn;
+        ctx.fillStyle = '#ff3333';
+        ctx.font = 'bold 38px "Courier New", monospace';
+        ctx.fillText('GAME OVER', cx, titleY);
+
+        // Decorative line
+        ctx.strokeStyle = '#ff333366';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx - 110, titleY + 12); ctx.lineTo(cx + 110, titleY + 12);
+        ctx.stroke();
+
+        // Stats card
+        const cardY = GAME_H / 2 - 40 + (1 - slideIn) * 30;
+        const cardH = 90;
+        const cardW = GAME_W - 50;
+        const cardX = 25;
+        const r = 8;
+
+        ctx.beginPath();
+        ctx.moveTo(cardX + r, cardY);
+        ctx.lineTo(cardX + cardW - r, cardY);
+        ctx.quadraticCurveTo(cardX + cardW, cardY, cardX + cardW, cardY + r);
+        ctx.lineTo(cardX + cardW, cardY + cardH - r);
+        ctx.quadraticCurveTo(cardX + cardW, cardY + cardH, cardX + cardW - r, cardY + cardH);
+        ctx.lineTo(cardX + r, cardY + cardH);
+        ctx.quadraticCurveTo(cardX, cardY + cardH, cardX, cardY + cardH - r);
+        ctx.lineTo(cardX, cardY + r);
+        ctx.quadraticCurveTo(cardX, cardY, cardX + r, cardY);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(8, 12, 25, 0.85)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 80, 80, 0.25)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Score
+        ctx.fillStyle = '#aabbcc';
+        ctx.font = '11px "Courier New", monospace';
+        ctx.fillText('FINAL SCORE', cx, cardY + 20);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 22px "Courier New", monospace';
+        ctx.fillText(this.score.toLocaleString(), cx, cardY + 46);
+
+        // World + Wave
+        const worldDef = WORLDS[this.world % WORLDS.length];
+        ctx.fillStyle = '#ff8';
+        ctx.font = '12px "Courier New", monospace';
+        ctx.fillText(`WAVE ${this.wave} · ${worldDef.name}`, cx, cardY + 68);
+
+        // New high score
+        if (this.score >= this.highScore && this.score > 0) {
+            ctx.fillStyle = '#ff44ff';
+            ctx.font = 'bold 14px "Courier New", monospace';
+            const hsAlpha = 0.6 + Math.sin(this.frame * 0.08) * 0.4;
+            ctx.globalAlpha = fadeIn * hsAlpha;
+            ctx.fillText('★ NEW HIGH SCORE! ★', cx, cardY + cardH + 24);
+            ctx.globalAlpha = fadeIn;
+        }
+
+        // Action buttons
         if (this.frame > 60) {
-            const pulse = 0.5 + Math.sin(this.frame * 0.05) * 0.5;
-            ctx.fillStyle = `rgba(255,255,255,${pulse})`;
-            ctx.font = '14px "Courier New", monospace';
-            ctx.fillText('TAP TO CONTINUE', GAME_W / 2, GAME_H / 2 + 100);
+            const btnAlpha = Math.min(1, (this.frame - 60) / 20);
+            ctx.globalAlpha = fadeIn * btnAlpha;
+
+            const retryY = GAME_H / 2 + 100;
+            const menuBtnY = GAME_H / 2 + 150;
+            const retrySel = this._gameOverCursor === 0;
+            const menuSel = this._gameOverCursor === 1;
+            const btnW2 = 200;
+            const btnH2 = 36;
+
+            // RETRY button
+            const rbx = cx - btnW2 / 2;
+            const rby = retryY - btnH2 / 2;
+            const rbr = 6;
+            ctx.beginPath();
+            ctx.moveTo(rbx + rbr, rby); ctx.lineTo(rbx + btnW2 - rbr, rby);
+            ctx.quadraticCurveTo(rbx + btnW2, rby, rbx + btnW2, rby + rbr);
+            ctx.lineTo(rbx + btnW2, rby + btnH2 - rbr);
+            ctx.quadraticCurveTo(rbx + btnW2, rby + btnH2, rbx + btnW2 - rbr, rby + btnH2);
+            ctx.lineTo(rbx + rbr, rby + btnH2);
+            ctx.quadraticCurveTo(rbx, rby + btnH2, rbx, rby + btnH2 - rbr);
+            ctx.lineTo(rbx, rby + rbr);
+            ctx.quadraticCurveTo(rbx, rby, rbx + rbr, rby);
+            ctx.closePath();
+            if (retrySel) {
+                ctx.fillStyle = 'rgba(0, 200, 255, 0.15)';
+                ctx.fill();
+                ctx.strokeStyle = '#0ff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = '#0ff';
+                ctx.font = 'bold 16px "Courier New", monospace';
+            } else {
+                ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(100, 140, 200, 0.35)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.fillStyle = '#99aacc';
+                ctx.font = '15px "Courier New", monospace';
+            }
+            ctx.fillText('↻ RETRY WORLD', cx, retryY + 5);
+
+            // MENU button
+            const mbx = cx - btnW2 / 2;
+            const mby = menuBtnY - btnH2 / 2;
+            ctx.beginPath();
+            ctx.moveTo(mbx + rbr, mby); ctx.lineTo(mbx + btnW2 - rbr, mby);
+            ctx.quadraticCurveTo(mbx + btnW2, mby, mbx + btnW2, mby + rbr);
+            ctx.lineTo(mbx + btnW2, mby + btnH2 - rbr);
+            ctx.quadraticCurveTo(mbx + btnW2, mby + btnH2, mbx + btnW2 - rbr, mby + btnH2);
+            ctx.lineTo(mbx + rbr, mby + btnH2);
+            ctx.quadraticCurveTo(mbx, mby + btnH2, mbx, mby + btnH2 - rbr);
+            ctx.lineTo(mbx, mby + rbr);
+            ctx.quadraticCurveTo(mbx, mby, mbx + rbr, mby);
+            ctx.closePath();
+            if (menuSel) {
+                ctx.fillStyle = 'rgba(0, 200, 255, 0.15)';
+                ctx.fill();
+                ctx.strokeStyle = '#0ff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = '#0ff';
+                ctx.font = 'bold 16px "Courier New", monospace';
+            } else {
+                ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(100, 140, 200, 0.35)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.fillStyle = '#99aacc';
+                ctx.font = '15px "Courier New", monospace';
+            }
+            ctx.fillText('◂ MENU', cx, menuBtnY + 5);
         }
 
         ctx.globalAlpha = 1;
