@@ -960,8 +960,8 @@ export class Game {
                 }
             } else if (this.state === 'options') {
                 // Touch volume sliders, autofire toggle, or BACK
-                const optStartY = 195;
-                const optSpacing = 70;
+                const optStartY = 175;
+                const optSpacing = 62;
                 // Music slider: y~207-219, SFX slider: y~277-289
                 for (let oi = 0; oi < 2; oi++) {
                     const barY = optStartY + oi * optSpacing + 12;
@@ -3527,7 +3527,7 @@ export class Game {
         // Subtitle with typing effect
         const subText = 'V E R T I C A L   S H O O T E R';
         const chars = Math.min(subText.length, Math.floor(this.frame / 2));
-        ctx.fillStyle = '#68a';
+        ctx.fillStyle = '#7899bb';
         ctx.font = '12px "Courier New", monospace';
         ctx.fillText(subText.substring(0, chars), cx, lineY + 20);
 
@@ -3599,20 +3599,20 @@ export class Game {
                 ctx.font = 'bold 20px "Courier New", monospace';
                 ctx.fillText(menuItems[i], cx + 8, y + 6);
             } else {
-                // Unselected: subtle outline
-                ctx.fillStyle = 'rgba(10, 15, 30, 0.4)';
+                // Unselected: visible outline
+                ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
                 ctx.fill();
-                ctx.strokeStyle = 'rgba(100, 120, 160, 0.2)';
+                ctx.strokeStyle = 'rgba(100, 140, 200, 0.35)';
                 ctx.lineWidth = 1;
                 ctx.stroke();
 
                 // Icon
-                ctx.fillStyle = '#556';
+                ctx.fillStyle = '#7899bb';
                 ctx.font = '14px "Courier New", monospace';
                 ctx.fillText(menuIcons[i], cx - btnW / 2 + 26, y + 4);
 
                 // Text
-                ctx.fillStyle = '#778';
+                ctx.fillStyle = '#99aacc';
                 ctx.font = '18px "Courier New", monospace';
                 ctx.fillText(menuItems[i], cx + 8, y + 5);
             }
@@ -3634,12 +3634,12 @@ export class Game {
         }
 
         // Controls hint
-        ctx.fillStyle = '#445';
+        ctx.fillStyle = '#667';
         ctx.font = '10px "Courier New", monospace';
         ctx.fillText('TAP TO SELECT', cx, GAME_H - 28);
 
         // Version / branding
-        ctx.fillStyle = '#334';
+        ctx.fillStyle = '#556';
         ctx.font = '9px "Courier New", monospace';
         ctx.fillText('GAMEVOLT.IO', cx, GAME_H - 12);
     }
@@ -3685,7 +3685,7 @@ export class Game {
 
             if (item.type === 'slider') {
                 // Label
-                ctx.fillStyle = sel ? '#fff' : '#888';
+                ctx.fillStyle = sel ? '#fff' : '#99aacc';
                 ctx.font = `${sel ? 'bold ' : ''}16px "Courier New", monospace`;
                 ctx.fillText(item.label, cx, y);
 
@@ -3696,11 +3696,11 @@ export class Game {
                 const barY = y + 12;
 
                 // Background
-                ctx.fillStyle = '#222';
+                ctx.fillStyle = '#1a1a2e';
                 ctx.fillRect(barX, barY, barW, barH);
 
                 // Fill
-                ctx.fillStyle = sel ? item.color : '#555';
+                ctx.fillStyle = sel ? item.color : '#667';
                 ctx.fillRect(barX, barY, barW * item.value, barH);
 
                 // Segments
@@ -3714,12 +3714,12 @@ export class Game {
                 }
 
                 // Border
-                ctx.strokeStyle = sel ? item.color : '#444';
+                ctx.strokeStyle = sel ? item.color : '#556';
                 ctx.lineWidth = 1;
                 ctx.strokeRect(barX, barY, barW, barH);
 
                 // Percentage
-                ctx.fillStyle = sel ? '#fff' : '#666';
+                ctx.fillStyle = sel ? '#fff' : '#7788aa';
                 ctx.font = '13px "Courier New", monospace';
                 ctx.fillText(`${Math.round(item.value * 100)}%`, cx, barY + barH + 16);
 
@@ -3732,7 +3732,7 @@ export class Game {
                 }
             } else if (item.type === 'toggle') {
                 // Label
-                ctx.fillStyle = sel ? '#fff' : '#888';
+                ctx.fillStyle = sel ? '#fff' : '#99aacc';
                 ctx.font = `${sel ? 'bold ' : ''}16px "Courier New", monospace`;
                 ctx.fillText(item.label, cx, y);
 
@@ -3740,7 +3740,7 @@ export class Game {
                 const toggleY = y + 14;
                 const onOff = item.value ? 'ON' : 'OFF';
                 const toggleColor = item.value ? item.color : '#f44';
-                ctx.fillStyle = sel ? toggleColor : '#555';
+                ctx.fillStyle = sel ? toggleColor : '#7788aa';
                 ctx.font = `${sel ? 'bold ' : ''}16px "Courier New", monospace`;
                 ctx.fillText(onOff, cx, toggleY + 4);
 
@@ -3753,7 +3753,7 @@ export class Game {
                 }
 
                 // Hint text
-                ctx.fillStyle = sel ? '#666' : '#444';
+                ctx.fillStyle = sel ? '#778' : '#556';
                 ctx.font = '11px "Courier New", monospace';
                 ctx.fillText(item.hint || '', cx, toggleY + 18);
             } else {
@@ -3765,7 +3765,7 @@ export class Game {
                     ctx.font = 'bold 16px "Courier New", monospace';
                     ctx.fillText('▸ ' + item.label + ' ◂', cx, y + 6);
                 } else {
-                    ctx.fillStyle = '#666';
+                    ctx.fillStyle = '#99aacc';
                     ctx.font = '14px "Courier New", monospace';
                     ctx.fillText(item.label, cx, y + 6);
                 }
@@ -3803,7 +3803,7 @@ export class Game {
         }
 
         // Footer
-        ctx.fillStyle = '#445';
+        ctx.fillStyle = '#667';
         ctx.font = '10px "Courier New", monospace';
         ctx.fillText('TAP OR ←→ TO ADJUST', cx, GAME_H - 18);
     }
@@ -3919,7 +3919,7 @@ export class Game {
         ctx.font = 'bold 16px "Courier New", monospace';
         ctx.fillText('◂ BACK', cx, backY + 4);
 
-        ctx.fillStyle = '#445';
+        ctx.fillStyle = '#667';
         ctx.font = '10px "Courier New", monospace';
         ctx.fillText('© 2026 GameVolt.io', cx, GAME_H - 10);
     }
@@ -3993,21 +3993,21 @@ export class Game {
                 ctx.stroke();
                 ctx.restore();
             } else {
-                ctx.fillStyle = 'rgba(10, 15, 30, 0.4)';
+                ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
                 ctx.fill();
-                ctx.strokeStyle = 'rgba(100, 120, 160, 0.15)';
+                ctx.strokeStyle = 'rgba(100, 140, 200, 0.3)';
                 ctx.lineWidth = 1;
                 ctx.stroke();
             }
 
             // World number badge
-            ctx.fillStyle = sel ? colors[i] : '#556';
+            ctx.fillStyle = sel ? colors[i] : '#7899bb';
             ctx.font = `bold ${sel ? 14 : 12}px "Courier New", monospace`;
             ctx.textAlign = 'left';
             ctx.fillText(`${icons[i]} W${i + 1}`, bx + 12, y - 2);
 
             // World name
-            ctx.fillStyle = sel ? '#fff' : '#778';
+            ctx.fillStyle = sel ? '#fff' : '#99aacc';
             ctx.font = `${sel ? 'bold ' : ''}${sel ? 16 : 14}px "Courier New", monospace`;
             ctx.textAlign = 'center';
             ctx.save();
@@ -4017,7 +4017,7 @@ export class Game {
             ctx.restore();
 
             // Subtitle
-            ctx.fillStyle = sel ? '#aab' : '#556';
+            ctx.fillStyle = sel ? '#aab' : '#7788aa';
             ctx.font = '11px "Courier New", monospace';
             ctx.textAlign = 'center';
             ctx.fillText(w.subtitle, cx + 10, y + 14);
@@ -4056,15 +4056,15 @@ export class Game {
             ctx.lineWidth = 2;
             ctx.stroke();
         } else {
-            ctx.fillStyle = 'rgba(10, 15, 30, 0.4)';
+            ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
             ctx.fill();
-            ctx.strokeStyle = 'rgba(100, 120, 160, 0.15)';
+            ctx.strokeStyle = 'rgba(100, 140, 200, 0.3)';
             ctx.lineWidth = 1;
             ctx.stroke();
         }
 
         // Difficulty label
-        ctx.fillStyle = diffSel ? '#ddd' : '#778';
+        ctx.fillStyle = diffSel ? '#ddd' : '#99aacc';
         ctx.font = '12px "Courier New", monospace';
         ctx.textAlign = 'center';
         ctx.fillText('DIFFICULTY', cx, diffY - 6);
@@ -4119,13 +4119,13 @@ export class Game {
             ctx.font = 'bold 16px "Courier New", monospace';
             ctx.fillText('◂ BACK', cx, backY + 4);
         } else {
-            ctx.fillStyle = '#778';
+            ctx.fillStyle = '#99aacc';
             ctx.font = '14px "Courier New", monospace';
             ctx.fillText('◂ BACK', cx, backY + 4);
         }
 
         // Footer hint
-        ctx.fillStyle = '#445';
+        ctx.fillStyle = '#667';
         ctx.font = '10px "Courier New", monospace';
         ctx.fillText('TAP WORLD TO PLAY', cx, GAME_H - 12);
     }
@@ -5677,7 +5677,7 @@ export class Game {
         ctx.fillText('◂ BACK', cx, GAME_H - 22);
 
         // Controls hint
-        ctx.fillStyle = '#445';
+        ctx.fillStyle = '#667';
         ctx.font = '10px "Courier New", monospace';
         ctx.fillText('SWIPE TO SCROLL', cx, GAME_H - 6);
     }
@@ -5861,7 +5861,7 @@ export class Game {
         ctx.fillText('◂ BACK', cx, GAME_H - 22);
 
         // Controls hint
-        ctx.fillStyle = '#445';
+        ctx.fillStyle = '#667';
         ctx.font = '10px "Courier New", monospace';
         ctx.fillText('SWIPE TO SCROLL', cx, GAME_H - 6);
     }
