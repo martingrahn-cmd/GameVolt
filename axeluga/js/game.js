@@ -1016,7 +1016,7 @@ export class Game {
                 }
             } else if (this.state === 'credits') {
                 // BACK button at bottom
-                if (y > GAME_H - 70) {
+                if (y > GAME_H - 65) {
                     this.state = 'menu';
                     this.menuCursor = 4;
                     this.frame = 0;
@@ -3512,6 +3512,40 @@ export class Game {
         }
     }
 
+    _drawBackButton(ctx, x, y, selected) {
+        const w = 160, h = 36, r = 8;
+        ctx.beginPath();
+        ctx.moveTo(x - w/2 + r, y);
+        ctx.lineTo(x + w/2 - r, y);
+        ctx.quadraticCurveTo(x + w/2, y, x + w/2, y + r);
+        ctx.lineTo(x + w/2, y + h - r);
+        ctx.quadraticCurveTo(x + w/2, y + h, x + w/2 - r, y + h);
+        ctx.lineTo(x - w/2 + r, y + h);
+        ctx.quadraticCurveTo(x - w/2, y + h, x - w/2, y + h - r);
+        ctx.lineTo(x - w/2, y + r);
+        ctx.quadraticCurveTo(x - w/2, y, x - w/2 + r, y);
+        ctx.closePath();
+        if (selected) {
+            ctx.fillStyle = 'rgba(0, 200, 255, 0.15)';
+            ctx.fill();
+            ctx.strokeStyle = '#0ff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#0ff';
+            ctx.font = 'bold 18px "Courier New", monospace';
+        } else {
+            ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(100, 140, 200, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillStyle = '#99aacc';
+            ctx.font = '16px "Courier New", monospace';
+        }
+        ctx.textAlign = 'center';
+        ctx.fillText('◂ BACK', x, y + 24);
+    }
+
     drawMenu(ctx) {
         // ── Dark overlay with gradient ──
         const grad = ctx.createLinearGradient(0, 0, 0, GAME_H);
@@ -3684,7 +3718,7 @@ export class Game {
         // Version / branding
         ctx.fillStyle = '#556';
         ctx.font = '9px "Courier New", monospace';
-        ctx.fillText('GAMEVOLT.IO', cx, GAME_H - 12);
+        ctx.fillText('SMARTPROC GAMES', cx, GAME_H - 12);
     }
 
     drawOptions(ctx) {
@@ -3877,29 +3911,7 @@ export class Game {
         // ── BACK button ──
         const backY = curY + 10;
         const backSel = this.optionsCursor === items.length;
-        const bbx = cx - 80;
-        const bby = backY;
-        const bbw = 160;
-        const bbh = 36;
-        roundRect(bbx, bby, bbw, bbh, 8);
-        if (backSel) {
-            ctx.fillStyle = 'rgba(0, 200, 255, 0.15)';
-            ctx.fill();
-            ctx.strokeStyle = '#0ff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.fillStyle = '#0ff';
-            ctx.font = 'bold 18px "Courier New", monospace';
-        } else {
-            ctx.fillStyle = 'rgba(10, 18, 35, 0.55)';
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(100, 140, 200, 0.3)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.fillStyle = '#99aacc';
-            ctx.font = '16px "Courier New", monospace';
-        }
-        ctx.fillText('◂ BACK', cx, backY + 24);
+        this._drawBackButton(ctx, cx, backY, backSel);
 
         // Gamepad status (compact, only when connected)
         if (this.input.gpConnected) {
@@ -4000,29 +4012,12 @@ export class Game {
         ], '#888888');
 
         // ── BACK button ──
-        const backY = GAME_H - 45;
-        const bbx = cx - 70;
-        const bby = backY - 16;
-        const bbr = 6;
-        ctx.beginPath();
-        ctx.moveTo(bbx + bbr, bby); ctx.lineTo(bbx + 140 - bbr, bby);
-        ctx.quadraticCurveTo(bbx + 140, bby, bbx + 140, bby + bbr);
-        ctx.lineTo(bbx + 140, bby + 32 - bbr);
-        ctx.quadraticCurveTo(bbx + 140, bby + 32, bbx + 140 - bbr, bby + 32);
-        ctx.lineTo(bbx + bbr, bby + 32);
-        ctx.quadraticCurveTo(bbx, bby + 32, bbx, bby + 32 - bbr);
-        ctx.lineTo(bbx, bby + bbr);
-        ctx.quadraticCurveTo(bbx, bby, bbx + bbr, bby);
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(0, 200, 255, 0.08)';
-        ctx.fill();
-        ctx.fillStyle = '#0cf';
-        ctx.font = 'bold 16px "Courier New", monospace';
-        ctx.fillText('◂ BACK', cx, backY + 4);
+        this._drawBackButton(ctx, cx, GAME_H - 61, false);
 
         ctx.fillStyle = '#667';
         ctx.font = '10px "Courier New", monospace';
-        ctx.fillText('© 2026 GameVolt.io', cx, GAME_H - 10);
+        ctx.textAlign = 'center';
+        ctx.fillText('© 2026 SmartProc Games', cx, GAME_H - 10);
     }
 
     drawLevelSelect(ctx) {
@@ -4218,32 +4213,8 @@ export class Game {
         }
 
         // BACK button
-        const backY = 590;
         const backSel = this.menuCursor === WORLDS.length + 1;
-        if (backSel) {
-            ctx.fillStyle = 'rgba(0, 200, 255, 0.1)';
-            const bbr = 6;
-            const bbx = cx - 70;
-            const bby = backY - 16;
-            ctx.beginPath();
-            ctx.moveTo(bbx + bbr, bby); ctx.lineTo(bbx + 140 - bbr, bby);
-            ctx.quadraticCurveTo(bbx + 140, bby, bbx + 140, bby + bbr);
-            ctx.lineTo(bbx + 140, bby + 32 - bbr);
-            ctx.quadraticCurveTo(bbx + 140, bby + 32, bbx + 140 - bbr, bby + 32);
-            ctx.lineTo(bbx + bbr, bby + 32);
-            ctx.quadraticCurveTo(bbx, bby + 32, bbx, bby + 32 - bbr);
-            ctx.lineTo(bbx, bby + bbr);
-            ctx.quadraticCurveTo(bbx, bby, bbx + bbr, bby);
-            ctx.closePath();
-            ctx.fill();
-            ctx.fillStyle = '#0ff';
-            ctx.font = 'bold 16px "Courier New", monospace';
-            ctx.fillText('◂ BACK', cx, backY + 4);
-        } else {
-            ctx.fillStyle = '#99aacc';
-            ctx.font = '14px "Courier New", monospace';
-            ctx.fillText('◂ BACK', cx, backY + 4);
-        }
+        this._drawBackButton(ctx, cx, 574, backSel);
 
         // Footer hint
         ctx.fillStyle = '#667';
@@ -5365,7 +5336,7 @@ export class Game {
             ctx.font = '11px "Courier New", monospace';
             ctx.fillText('THANK YOU FOR PLAYING!', GAME_W / 2, GAME_H / 2 + 115);
             ctx.fillStyle = '#666';
-            ctx.fillText('GAMEVOLT.IO', GAME_W / 2, GAME_H / 2 + 135);
+            ctx.fillText('SMARTPROC GAMES', GAME_W / 2, GAME_H / 2 + 135);
         }
 
         // "Press to continue"
@@ -5931,15 +5902,7 @@ export class Game {
         }
 
         // BACK button
-        ctx.fillStyle = '#889';
-        ctx.font = 'bold 16px "Courier New", monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('◂ BACK', cx, GAME_H - 22);
-
-        // Controls hint
-        ctx.fillStyle = '#667';
-        ctx.font = '10px "Courier New", monospace';
-        ctx.fillText('SWIPE TO SCROLL', cx, GAME_H - 6);
+        this._drawBackButton(ctx, cx, GAME_H - 50, false);
     }
 
     drawTrophies(ctx) {
@@ -6115,14 +6078,6 @@ export class Game {
         }
 
         // BACK button
-        ctx.fillStyle = '#889';
-        ctx.font = 'bold 16px "Courier New", monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('◂ BACK', cx, GAME_H - 22);
-
-        // Controls hint
-        ctx.fillStyle = '#667';
-        ctx.font = '10px "Courier New", monospace';
-        ctx.fillText('SWIPE TO SCROLL', cx, GAME_H - 6);
+        this._drawBackButton(ctx, cx, GAME_H - 50, false);
     }
 }
