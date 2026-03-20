@@ -598,6 +598,25 @@
 
   <!-- Main -->
   <div class="gv-main">
+    <h1 id="game-title" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;"></h1>
+    <script>
+      (function() {
+        var names = {
+          hoverdash: 'HoverDash — Free Neon Lane Runner',
+          snake: 'Snake Neo — Free Classic Snake Game',
+          breakout: 'Breakout — Free Brick Breaker Game',
+          gravitywell: 'Gravity Well — Free Space Arcade Game',
+          solitaire: 'Solitaire Collection — 6 Free Card Games',
+          blockstorm: 'BlockStorm — Free Block Puzzle Game',
+          connect4: 'Connect 4 — Free Strategy Board Game',
+          axeluga: 'Axeluga — Free Space Shooter',
+          taprush: 'Tap Rush — Free Reflex Challenge',
+          sudoku: 'Sudoku — Free Number Puzzle'
+        };
+        var game = new URLSearchParams(location.search).get('game');
+        document.getElementById('game-title').textContent = names[game] || 'GameVolt — Free Browser Games';
+      })();
+    </script>
     <!-- Game area -->
     <div class="gv-game-area" id="gameArea">
       <div class="gv-iframe-wrap" id="iframeWrap">
