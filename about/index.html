@@ -16,7 +16,7 @@
 
     <!-- SEO Meta Tags -->
     <title>About GameVolt - Free Browser Games Online</title>
-    <meta name="description" content="Learn about GameVolt - a passion project bringing classic arcade games to modern browsers. Play Snake, Breakout, Solitaire and more for free!">
+    <meta name="description" content="GameVolt is an independent Swedish game studio creating free, ad-free HTML5 browser games. Original games built from scratch, playable instantly on any device.">
     <meta name="robots" content="index, follow">
 
     <!-- Open Graph -->
@@ -35,6 +35,29 @@
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://gamevolt.io/about/">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "GameVolt",
+      "url": "https://gamevolt.io",
+      "description": "Independent Swedish game studio creating original, free-to-play HTML5 browser games with no advertisements.",
+      "foundingDate": "2024",
+      "foundingLocation": {
+        "@type": "Place",
+        "name": "Sweden"
+      },
+      "knowsAbout": ["HTML5 Games", "Browser Games", "Indie Games", "Web Games"],
+      "makesOffer": {
+        "@type": "Offer",
+        "description": "Free browser games — no ads, no downloads, no registration",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -592,9 +615,10 @@
     <main>
         <div class="content-section">
             <h2><span class="icon">📖</span> Our Story</h2>
-            <p>Remember the excitement of playing Snake on your Nokia 3310? Or the satisfying sound of breaking bricks in Breakout at the local arcade? Those memories inspired GameVolt.</p>
-            <p>We believe that great games don't need flashy graphics or complex mechanics. Sometimes, the simplest concepts create the most addictive experiences. That's why we focus on recreating timeless classics with a modern twist – keeping the gameplay pure while adding subtle visual enhancements that honor the originals.</p>
-            <p>Every game on GameVolt is handcrafted with attention to detail, optimized for both desktop and mobile play, and designed to run smoothly in any modern browser.</p>
+            <p>GameVolt is an independent game studio from Sweden building original HTML5 browser games. We started in 2024 with a simple idea: make free online games that you can play instantly, on any device, without ads getting in the way.</p>
+            <p>Every game on GameVolt is designed and built from scratch using modern web technology — Three.js for 3D graphics, Web Audio API for immersive sound, and HTML5 Canvas for smooth 2D rendering. We don't host third-party games or aggregate content from other portals. Every title in our collection is an original creation.</p>
+            <p>Today we have 10 games and growing, spanning arcade, puzzle, strategy, and action genres. All of them work on phones, tablets, and desktops with full touch control support. No app downloads needed, no account required — just open your browser and play. If you do create a free account, you get cloud saves and global leaderboards that sync across all your devices.</p>
+            <p>We believe the best gaming experiences don't need to be buried behind app store downloads or interrupted by advertisements. GameVolt is our answer to that — a place where you can find free browser games that are genuinely fun to play, instantly accessible, and respectful of your time and privacy.</p>
         </div>
 
         <div class="content-section">
@@ -624,9 +648,24 @@
         </div>
 
         <div class="content-section">
+            <h2><span class="icon">✨</span> What Makes GameVolt Different</h2>
+            <p>Most browser game portals aggregate thousands of games from third-party developers. GameVolt takes the opposite approach. Every game in our collection is an original title that we designed and built ourselves. When you play a game on GameVolt, you're playing something that was crafted specifically for this platform — not a generic embed from a content network.</p>
+            <p>We don't run advertisements. There are no banner ads, no video ads before gameplay, no interstitials, and no popups. When you click play, the game starts immediately. This is a deliberate choice — we think ads ruin the experience of playing browser games, and we'd rather build something people genuinely enjoy coming back to.</p>
+            <p>Privacy matters to us. We use basic analytics to understand which games people enjoy, but we don't sell data, we don't use ad trackers, and there are no cookie consent walls to click through. You can play every game on GameVolt without giving us any personal information at all.</p>
+            <p>Everything runs in your browser. No app downloads, no plugins, no registration screens. Open any game page and you're playing within three seconds. It works on Chrome, Safari, Firefox, and Edge — on desktop, tablet, or mobile.</p>
+        </div>
+
+        <div class="content-section">
             <h2><span class="icon">🎮</span> Our Games</h2>
-            <p>We're constantly working on new games and improving existing ones. Here's our current lineup:</p>
+            <p>We're constantly working on new games and improving existing ones. Here's our current lineup of 10 original browser games:</p>
             <div class="game-list">
+                <a href="/hoverdash/" class="game-item">
+                    <span class="game-item-icon">🏎️</span>
+                    <div class="game-item-info">
+                        <h3>HoverDash</h3>
+                        <p>Neon lane runner with dodge, dash and boost mechanics. Three lanes of endless obstacles at increasing speed. Keyboard and touch controls.</p>
+                    </div>
+                </a>
                 <a href="/snake/" class="game-item">
                     <span class="game-item-icon">🐍</span>
                     <div class="game-item-info">
@@ -660,6 +699,34 @@
                     <div class="game-item-info">
                         <h3>BlockStorm</h3>
                         <p>Synthwave block puzzle with Marathon, Sprint & Ultra modes.</p>
+                    </div>
+                </a>
+                <a href="/gravitywell/" class="game-item">
+                    <span class="game-item-icon">🌀</span>
+                    <div class="game-item-info">
+                        <h3>Gravity Well</h3>
+                        <p>Physics-based space arcade. Control a black hole, absorb cosmic particles, avoid antimatter. Five waves of increasing intensity.</p>
+                    </div>
+                </a>
+                <a href="/connect4/" class="game-item">
+                    <span class="game-item-icon">🔴</span>
+                    <div class="game-item-info">
+                        <h3>Connect 4</h3>
+                        <p>Classic four-in-a-row strategy. Play against a friend locally or challenge three difficulty levels of AI.</p>
+                    </div>
+                </a>
+                <a href="/axeluga/" class="game-item">
+                    <span class="game-item-icon">🚀</span>
+                    <div class="game-item-info">
+                        <h3>Axeluga</h3>
+                        <p>Vertical space shooter with 5 worlds, epic bosses, and gamepad support. Inspired by classic arcade shmups.</p>
+                    </div>
+                </a>
+                <a href="/sudoku/" class="game-item">
+                    <span class="game-item-icon">🔢</span>
+                    <div class="game-item-info">
+                        <h3>Sudoku</h3>
+                        <p>Classic number puzzle with three difficulty levels. Pencil marks, undo, and auto-save.</p>
                     </div>
                 </a>
             </div>
