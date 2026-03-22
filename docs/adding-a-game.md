@@ -255,6 +255,18 @@ ON CONFLICT (id) DO NOTHING;
 
 Add the same INSERT statements to `schema.sql` so the schema file stays in sync. The file is idempotent (safe to re-run).
 
+## 9. Sitemap — `/sitemap.xml`
+
+Add a new `<url>` entry for the game:
+
+```xml
+<url>
+    <loc>https://gamevolt.io/your-game/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+</url>
+```
+
 ---
 
 ## Quick Reference — Category Values
@@ -287,3 +299,4 @@ Add the same INSERT statements to `schema.sql` so the schema file stays in sync.
 - [ ] All other page footers updated
 - [ ] Supabase — `INSERT INTO games` + `INSERT INTO achievement_defs` (31 rows)
 - [ ] `/sql/schema.sql` — add same INSERTs to keep schema in sync
+- [ ] `/sitemap.xml` — add `<url>` entry for the game
