@@ -3017,14 +3017,52 @@ button:disabled {
   pointer-events: auto;
 }
 
-@media (max-width: 940px) {
+@media (max-width: 940px) and (min-width: 521px) {
   .game-shell {
-    grid-template-columns: 1fr;
-    width: min(660px, 94vw);
+    grid-template-columns: 240px 1fr;
+    width: min(760px, 96vw);
     margin: 12px auto;
-    gap: 10px;
+    gap: 12px;
   }
 
+  .hud-panel {
+    padding: 12px;
+    gap: 8px;
+    border-radius: 18px;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  .tagline {
+    font-size: 0.75rem;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+  }
+
+  .stat-card {
+    padding: 5px 6px;
+    border-radius: 10px;
+  }
+
+  .stat-card .label {
+    font-size: 0.6rem;
+  }
+
+  .stat-card .value {
+    font-size: 1rem;
+  }
+
+  .board {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
   .board {
     width: 100%;
   }
