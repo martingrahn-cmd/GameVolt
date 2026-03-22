@@ -3017,35 +3017,43 @@ button:disabled {
   pointer-events: auto;
 }
 
-@media (max-width: 940px) and (min-width: 521px) {
+@media (max-width: 940px) {
   .game-shell {
-    grid-template-columns: 240px 1fr;
-    width: min(760px, 96vw);
+    display: flex;
+    flex-direction: column;
+    width: min(660px, 96vw);
     margin: 12px auto;
-    gap: 12px;
+    gap: 10px;
+  }
+
+  .board-panel {
+    order: -1;
+  }
+
+  .board {
+    width: 100%;
   }
 
   .hud-panel {
-    padding: 12px;
+    padding: 14px;
     gap: 8px;
-    border-radius: 18px;
   }
 
   h1 {
-    font-size: 1.4rem;
+    font-size: 1.6rem;
   }
 
   .tagline {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   .stat-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 5px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
   }
 
   .stat-card {
-    padding: 5px 6px;
+    padding: 6px 8px;
     border-radius: 10px;
   }
 
@@ -3055,16 +3063,6 @@ button:disabled {
 
   .stat-card .value {
     font-size: 1rem;
-  }
-
-  .board {
-    width: 100%;
-  }
-}
-
-@media (max-width: 520px) {
-  .board {
-    width: 100%;
   }
 }
 
