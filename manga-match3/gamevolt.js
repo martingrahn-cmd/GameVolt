@@ -137,11 +137,21 @@ async function getMyRank() {
   try { return await window.GameVolt.leaderboard.getRank({ mode: "default" }); } catch { return null; }
 }
 
+/* ── Sync existing local trophies to cloud ── */
+
+function syncLocalTrophies() {
+  if (!window.GameVolt || unlocked.size === 0) return;
+  for (const id of unlocked) {
+    try { window.GameVolt.achievements.unlock(id); } catch {}
+  }
+}
+
 /* ── Init ── */
 
 function init() {
   if (window.GameVolt) {
     try { window.GameVolt.init("manga-match3"); } catch {}
+    window.GameVolt.onReady(() => syncLocalTrophies());
   }
 }
 
