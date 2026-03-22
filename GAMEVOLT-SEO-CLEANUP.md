@@ -62,6 +62,9 @@ Added: meta author, og:site_name.
 ### Gravity Well `/gravitywell/index.html` — COMPLETE
 Added: Google Analytics, meta keywords, meta author, theme-color, og:image:width, og:image:height, og:site_name.
 
+### Manga Match `/manga-match3/index.html` — COMPLETE
+All elements present. Added: JSON-LD VideoGame schema, SEO content div with H1. Sitemap entries added 2026-03-22.
+
 ---
 
 ## Summary Table
@@ -78,6 +81,7 @@ Added: Google Analytics, meta keywords, meta author, theme-color, og:image:width
 | Breakout | COMPLETE | +og:image dims, og:site_name, theme-color |
 | Connect 4 | COMPLETE | +author, og:site_name |
 | Gravity Well | COMPLETE | +GA4, keywords, author, theme-color, og:image dims, og:site_name |
+| Manga Match | COMPLETE | +JSON-LD, SEO H1, sitemaps |
 # GameVolt.io — SEO Cleanup: Ghost Pages & www Redirect
 
 ## Background
