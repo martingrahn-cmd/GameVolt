@@ -117,10 +117,11 @@ Add a game card. Choose `data-category` from: `coffee-break`, `brain-challenge`,
 </a>
 ```
 
-If you have a preview video, add `data-preview="/your-game/preview.mp4"` and add this inside `.game-thumbnail`:
+If you have a preview video, add `data-preview="/your-game/preview.mp4"` on the `<a>` tag and add this inside the thumbnail div (`.game-thumbnail`, `.ec-thumb`, or `.powered-thumb`):
 ```html
 <video class="preview-video" muted loop playsinline preload="none"></video>
 ```
+Do this for **all** card types where the game appears: Editor's Choice (`ec-card`), Just Launched / Powered Up (`powered-card`), and All Games (`game-card`).
 
 ### c) GAME_META object (~line 2268)
 
@@ -288,9 +289,12 @@ Add a new `<url>` entry for the game:
 
 - [ ] Game folder at `/{game-id}/`
 - [ ] Thumbnail at `/assets/thumbnails/{game-id}.webp` (filename must match game-id!)
+- [ ] Preview video at `/{game-id}/preview.mp4` (optional, for hover preview on cards)
 - [ ] SEO meta tags in game's `<head>` (GA4, OG, Twitter, canonical, favicon)
 - [ ] postMessage + GA4 tracker in game's `index.html` (before game script)
-- [ ] `/index.html` — JSON-LD, game card, GAME_META, hero stat, pill counts, footer
+- [ ] SDK script `<script src="/sdk/gamevolt.js"></script>` before game script (see `docs/sdk-integration.md`)
+- [ ] `/index.html` — JSON-LD, game card, GAME_META (incl. `preview` if video exists), hero stat, pill counts, footer
+- [ ] `/index.html` — `data-preview` + `<video>` tag on all card types if preview video exists (ec-card, powered-card, game-card)
 - [ ] `/index.html` — Featured sections if applicable (Editor's Choice, Just Launched, Powered Up)
 - [ ] `/play/index.html` — names, GAMES object
 - [ ] `/profile/index.html` — GAME_NAMES, GAME_THUMBS, TROPHY_CATALOG

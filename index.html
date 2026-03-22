@@ -1725,9 +1725,10 @@
                 </a>
 
                 <!-- Manga Match -->
-                <a href="/play/?game=manga-match3" class="ec-card">
+                <a href="/play/?game=manga-match3" class="ec-card" data-preview="/manga-match3/preview.mp4">
                     <div class="ec-thumb">
                         <img src="/assets/thumbnails/manga-match3.webp" alt="Manga Match">
+                        <video class="preview-video" muted loop playsinline preload="none"></video>
                         <div class="ec-play-overlay">
                             <div class="ec-play-btn">
                                 <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
@@ -1757,9 +1758,10 @@
             </div>
             <p class="powered-subtitle">Fresh games hot off the press</p>
             <div class="powered-grid" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));">
-                <a href="/play/?game=manga-match3" class="powered-card">
+                <a href="/play/?game=manga-match3" class="powered-card" data-preview="/manga-match3/preview.mp4">
                     <div class="powered-thumb">
                         <img src="/assets/thumbnails/manga-match3.webp" alt="Manga Match">
+                        <video class="preview-video" muted loop playsinline preload="none"></video>
                     </div>
                     <span class="powered-bolt">⚡</span>
                     <div class="powered-info">
@@ -1849,9 +1851,10 @@
                         </div>
                     </div>
                 </a>
-                <a href="/play/?game=manga-match3" class="powered-card">
+                <a href="/play/?game=manga-match3" class="powered-card" data-preview="/manga-match3/preview.mp4">
                     <div class="powered-thumb">
                         <img src="/assets/thumbnails/manga-match3.webp" alt="Manga Match">
+                        <video class="preview-video" muted loop playsinline preload="none"></video>
                     </div>
                     <span class="powered-bolt">⚡</span>
                     <div class="powered-info">
@@ -2131,9 +2134,10 @@
             </a>
 
             <!-- Manga Match -->
-            <a href="/play/?game=manga-match3" class="game-card" data-category="brain-challenge coffee-break">
+            <a href="/play/?game=manga-match3" class="game-card" data-category="brain-challenge coffee-break" data-preview="/manga-match3/preview.mp4">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/manga-match3.webp" alt="Manga Match Puzzle Game" loading="lazy">
+                    <video class="preview-video" muted loop playsinline preload="none"></video>
                     <span class="game-badge new">NEW</span>
                     <span class="game-bolt">⚡</span>
                 </div>
@@ -2327,7 +2331,7 @@
             axeluga:   { name: "Axeluga",    thumb: "/assets/thumbnails/axeluga.webp" },
             gravitywell:{ name: "Gravity Well", thumb: "/assets/thumbnails/gravitywell.webp", preview: "/gravitywell/preview.mp4" },
             sudoku:    { name: "Sudoku",      thumb: "/assets/thumbnails/sudoku.webp" },
-            "manga-match3": { name: "Manga Match", thumb: "/assets/thumbnails/manga-match3.webp" }
+            "manga-match3": { name: "Manga Match", thumb: "/assets/thumbnails/manga-match3.webp", preview: "/manga-match3/preview.mp4" }
         };
 
         var recent = GVTracker.getRecentlyPlayed(4);
