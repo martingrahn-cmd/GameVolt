@@ -234,6 +234,8 @@ Add `<a href="/play/?game=your-game">Your Game</a>` to the Games column in the f
 
 ## 8. Database — Supabase SQL Editor
 
+**IMPORTANT: The game ID must be identical everywhere** — `GameVolt.init()`, `gvPost()`, `games` table, `achievement_defs` ID prefix, and `schema.sql`. A mismatch causes FK violations on score/achievement inserts and null entries in the activity feed.
+
 ### a) Add game to `games` table
 
 ```sql
@@ -243,6 +245,8 @@ ON CONFLICT (id) DO NOTHING;
 ```
 
 ### b) Add achievement definitions (31 rows)
+
+The `id` column must use the format `{game-id}-{trophy-id}` where `{game-id}` matches the `games` table ID exactly. The SDK constructs this same format when calling `GameVolt.achievements.unlock(trophyId)`.
 
 ```sql
 INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_order) VALUES
@@ -293,6 +297,8 @@ Add a new `<url>` entry for the game:
 - [ ] SEO meta tags in game's `<head>` (GA4, OG, Twitter, canonical, favicon)
 - [ ] postMessage + GA4 tracker in game's `index.html` (before game script)
 - [ ] SDK script `<script src="/sdk/gamevolt.js"></script>` before game script (see `docs/sdk-integration.md`)
+- [ ] If adding SDK to an existing game: sync local trophies on `auth.onStateChange` (see `docs/sdk-integration.md`)
+- [ ] Game ID is identical in: `GameVolt.init()`, `gvPost()`, `games` table, `achievement_defs` prefix, `schema.sql`
 - [ ] `/index.html` — JSON-LD, game card, GAME_META (incl. `preview` if video exists), hero stat, pill counts, footer
 - [ ] `/index.html` — `data-preview` + `<video>` tag on all card types if preview video exists (ec-card, powered-card, game-card)
 - [ ] `/index.html` — Featured sections if applicable (Editor's Choice, Just Launched, Powered Up)
