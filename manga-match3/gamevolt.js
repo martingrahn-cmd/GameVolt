@@ -141,7 +141,7 @@ async function getMyRank() {
 
 function init() {
   if (window.GameVolt) {
-    try { window.GameVolt.init("manga-match"); } catch {}
+    try { window.GameVolt.init("manga-match3"); } catch {}
   }
 }
 
