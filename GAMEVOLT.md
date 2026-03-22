@@ -58,6 +58,9 @@ When writing code for this project, follow these rules:
 | 7 | Flappy Bird (404 page) | ✅ Live | ❌ Not yet |
 | 8 | HoverDash | ✅ Live | ✅ Yes (pilot) |
 | 9 | Axeluga | ✅ Live | ❌ Not yet |
+| 10 | Gravity Well | ✅ Live | ❌ Not yet |
+| 11 | Sudoku | ✅ Live | ✅ Yes |
+| 12 | Manga Match | ✅ Live | ❌ Not yet |
 
 **HoverDash was the pilot game for SDK integration.** SDK is now also integrated in Breakout and Connect 4.
 
