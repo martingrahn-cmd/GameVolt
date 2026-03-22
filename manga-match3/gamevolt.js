@@ -151,7 +151,9 @@ function syncLocalTrophies() {
 function init() {
   if (window.GameVolt) {
     try { window.GameVolt.init("manga-match3"); } catch {}
-    window.GameVolt.onReady(() => syncLocalTrophies());
+    window.GameVolt.auth.onStateChange((user) => {
+      if (user) syncLocalTrophies();
+    });
   }
 }
 
