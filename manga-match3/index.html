@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO Meta Tags -->
+    <title>Manga Match — Free Match-3 Puzzle Game | GameVolt</title>
+    <meta name="description" content="Play Manga Match free online — a manga-themed match-3 puzzle with combos, fever mode, and 30 stages across 3 worlds. Daily challenges, power-ups, and trophies. No download needed.">
+    <meta name="keywords" content="manga match 3, free match 3 game, puzzle game online, anime puzzle, browser match 3, manga game free">
+    <meta name="author" content="GameVolt">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gamevolt.io/manga-match3/">
+    <meta property="og:title" content="Manga Match — Free Match-3 Puzzle Game">
+    <meta property="og:description" content="Manga-themed match-3 puzzle with combos, fever mode, and 30 stages. Play free in your browser.">
+    <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/manga-match3.webp">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="GameVolt">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Manga Match — Free Match-3 Puzzle Game">
+    <meta name="twitter:description" content="Manga-themed match-3 puzzle with combos, fever mode, and 30 stages. Play free!">
+    <meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/manga-match3.webp">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://gamevolt.io/manga-match3/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bangers&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#1a2142" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  </head>
+  <body>
+    <div class="bg-halo halo-a"></div>
+    <div class="bg-halo halo-b"></div>
+
+    <!-- Main Menu -->
+    <div id="mainMenu" class="main-menu">
+      <div class="main-menu__inner">
+        <h1 class="main-menu__title">Manga Match!</h1>
+        <p class="main-menu__tagline">Combo panels. Anime energy.</p>
+        <nav class="main-menu__nav">
+          <button id="menuStartBtn" class="main-menu__btn main-menu__btn--start" type="button">Start <span class="menu-sub">スタート</span></button>
+          <button id="menuOptionsBtn" class="main-menu__btn" type="button">Options <span class="menu-sub">オプション</span></button>
+          <button id="menuHighscoreBtn" class="main-menu__btn" type="button">High Score <span class="menu-sub">ハイスコア</span></button>
+          <button id="menuAchievementsBtn" class="main-menu__btn" type="button">Achievements <span class="menu-sub">実績</span></button>
+          <button id="menuHowtoBtn" class="main-menu__btn" type="button">How to Play <span class="menu-sub">遊び方</span></button>
+          <button id="menuTutorialBtn" class="main-menu__btn" type="button">Tutorial <span class="menu-sub">チュートリアル</span></button>
+          <button id="menuCreditsBtn" class="main-menu__btn" type="button">Credits <span class="menu-sub">クレジット</span></button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Options overlay -->
+    <div id="optionsOverlay" class="menu-overlay" hidden>
+      <div class="menu-overlay__card">
+        <h2 class="menu-overlay__title">Options</h2>
+        <div class="options-list">
+          <div class="options-row">
+            <span class="options-label">Sound</span>
+            <button id="optSoundBtn" class="options-toggle" type="button">ON</button>
+          </div>
+          <div class="options-row">
+            <span class="options-label">Volume</span>
+            <input id="optVolumeRange" class="options-range" type="range" min="0" max="100" value="35">
+          </div>
+          <div class="options-row">
+            <span class="options-label">Reset progress</span>
+            <button id="optResetBtn" class="options-toggle options-toggle--danger" type="button">Delete</button>
+          </div>
+        </div>
+        <button id="optBackBtn" class="menu-overlay__back" type="button">Back</button>
+      </div>
+    </div>
+
+    <!-- High Score overlay -->
+    <div id="highscoreOverlay" class="menu-overlay" hidden>
+      <div class="menu-overlay__card">
+        <h2 class="menu-overlay__title">High Score</h2>
+        <div id="highscoreList" class="highscore-list"></div>
+        <button id="hsBackBtn" class="menu-overlay__back" type="button">Back</button>
+      </div>
+    </div>
+
+    <!-- Achievements overlay -->
+    <div id="achievementsOverlay" class="menu-overlay" hidden>
+      <div class="menu-overlay__card menu-overlay__card--wide">
+        <h2 class="menu-overlay__title">Achievements</h2>
+        <div id="achievementsList" class="achievements-list"></div>
+        <button id="achBackBtn" class="menu-overlay__back" type="button">Back</button>
+      </div>
+    </div>
+
+    <!-- How to Play overlay -->
+    <div id="howtoOverlay" class="menu-overlay" hidden>
+      <div class="menu-overlay__card menu-overlay__card--wide">
+        <h2 class="menu-overlay__title">How to Play</h2>
+        <div class="howto-content">
+          <div class="howto-section">
+            <h3>Basics</h3>
+            <p>Swap two adjacent tiles to match <strong>3 or more</strong> in a row — horizontally or vertically.</p>
+          </div>
+          <div class="howto-section">
+            <h3>Special Tiles</h3>
+            <p><strong>4 in a row</strong> → Line blast (clears entire row or column)</p>
+            <p><strong>5+ in a row</strong> → Color bomb (clears all tiles of one color)</p>
+            <p><strong>T/L shape</strong> → Bomb (clears 3×3 area)</p>
+          </div>
+          <div class="howto-section">
+            <h3>Obstacles</h3>
+            <p><strong>Ink</strong> — Has 2 layers. Damaged by adjacent matches.</p>
+            <p><strong>Frames</strong> — Block cells. Destroyed by adjacent matches.</p>
+            <p><strong>Locks</strong> — Tile can't be moved. Match it to unlock.</p>
+          </div>
+          <div class="howto-section">
+            <h3>Fever Mode</h3>
+            <p>Build chains and create specials to charge the fever meter. At 100%, <strong>Fever Mode</strong> activates — all points are multiplied for 5 moves!</p>
+          </div>
+          <div class="howto-section">
+            <h3>Stars</h3>
+            <p>Complete the level with moves remaining to earn stars. More moves left = more stars. Collect stars to unlock new stages!</p>
+          </div>
+        </div>
+        <button id="howtoBackBtn" class="menu-overlay__back" type="button">Back</button>
+      </div>
+    </div>
+
+    <!-- Credits overlay -->
+    <div id="creditsOverlay" class="menu-overlay" hidden>
+      <div class="menu-overlay__card">
+        <h2 class="menu-overlay__title">Credits</h2>
+        <div class="credits-content">
+          <p class="credits-role">Game Design & Code</p>
+          <p class="credits-name">SmartProc Games</p>
+          <p class="credits-role">AI Assistant</p>
+          <p class="credits-name">Claude (Anthropic)</p>
+          <p class="credits-role">Platform</p>
+          <p class="credits-name">GameVolt.io</p>
+          <p class="credits-copy">© 2026 SmartProc Games</p>
+        </div>
+        <button id="credBackBtn" class="menu-overlay__back" type="button">Back</button>
+      </div>
+    </div>
+
+    <div class="mobile-hud" aria-hidden="true">
+      <span class="mobile-hud__item"><span class="mobile-hud__label">Score</span><strong id="mScore">0</strong></span>
+      <span class="mobile-hud__item"><span class="mobile-hud__label">Moves</span><strong id="mMoves">25</strong></span>
+      <span class="mobile-hud__item"><span class="mobile-hud__label">Combo</span><strong id="mCombo">x1.0</strong></span>
+      <span class="mobile-hud__item"><span class="mobile-hud__label">Stage</span><strong id="mLevel">1</strong></span>
+      <span class="mobile-hud__item"><span class="mobile-hud__label">コイン</span><strong id="mCoins">0</strong></span>
+    </div>
+
+    <div id="levelSelect" class="level-select">
+      <div class="level-select__header">
+        <h1>Manga Match!</h1>
+        <p class="level-select__sub">Select Stage</p>
+      </div>
+      <div id="levelMap" class="level-map"></div>
+    </div>
+
+    <main class="game-shell" hidden>
+      <section class="hud-panel">
+        <h1>Manga Match!</h1>
+        <p class="tagline">Combo panels. Anime energy.</p>
+
+        <section class="goals-panel" aria-label="Stage goals">
+          <h2>Goals</h2>
+          <ul id="goalsList" class="goal-list"></ul>
+        </section>
+
+        <div id="status" class="status-box">Swap two tiles to start.</div>
+
+        <section class="fever-panel" aria-label="Fever mode">
+          <div class="fever-head">
+            <span class="label">Fever</span>
+            <strong id="feverState">Charging</strong>
+          </div>
+          <div id="feverMeter" class="fever-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="feverFill" class="fever-fill"></div>
+          </div>
+          <div class="fever-meta">
+            <span id="feverPercent">0%</span>
+            <span id="feverTurns">Build chains</span>
+          </div>
+        </section>
+
+        <section id="dailyPanel" class="daily-panel" aria-label="Daily challenge">
+          <div class="daily-head">
+            <span class="label">Daily Challenge</span>
+            <strong id="dailyStreak">Streak 0</strong>
+          </div>
+          <p id="dailyTask" class="daily-task">Loading challenge...</p>
+          <div id="dailyProgress" class="daily-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="dailyFill" class="daily-fill"></div>
+          </div>
+          <div class="daily-meta">
+            <span id="dailyCount">0/0</span>
+            <span id="dailyReward">Reward waiting</span>
+          </div>
+        </section>
+
+        <div class="stat-grid">
+          <article class="stat-card">
+            <span class="label">Score</span>
+            <strong id="score">0</strong>
+          </article>
+          <article class="stat-card">
+            <span class="label">Stage</span>
+            <strong id="level">1 / 10</strong>
+          </article>
+          <article class="stat-card">
+            <span class="label">Moves left</span>
+            <strong id="moves">25</strong>
+          </article>
+          <article class="stat-card">
+            <span class="label">Combo</span>
+            <strong id="combo">x1.0</strong>
+          </article>
+          <article class="stat-card stat-card--coins">
+            <span class="label">コイン</span>
+            <strong id="coinDisplay">0</strong>
+          </article>
+        </div>
+
+        <div class="controls">
+          <button id="pauseBtn" type="button">Pause</button>
+          <button id="restartBtn" type="button">Restart</button>
+          <button id="nextBtn" type="button">Next Stage</button>
+          <button id="shuffleBtn" type="button">Shuffle</button>
+          <button id="mapBtn" type="button">Stages</button>
+        </div>
+
+        <p class="rules">
+          Match 3+ in a row. <span>4</span> creates line blast, <span>5</span> creates color bomb,
+          <span>T/L</span> intersection creates bomb.
+        </p>
+      </section>
+
+      <section class="board-panel">
+        <div class="manga-strip top"></div>
+        <div class="sfx-tag" aria-hidden="true">KIRA!</div>
+        <div id="board" class="board" aria-label="Game board"></div>
+        <div id="fxLayer" class="fx-layer" aria-hidden="true"></div>
+        <div id="comboBurst" class="combo-burst" aria-hidden="true"></div>
+        <div id="resultOverlay" class="result-overlay" hidden>
+          <div class="result-card">
+            <h2 id="resultTitle" class="result-title"></h2>
+            <div id="resultStars" class="result-stars" aria-label="Stars"></div>
+            <div id="resultBody" class="result-body"></div>
+            <div class="result-actions">
+              <button id="resultRetryBtn" type="button">Try Again</button>
+              <button id="resultNextBtn" type="button">Next Stage</button>
+              <button id="resultMapBtn" type="button">Stages</button>
+            </div>
+          </div>
+          <div id="resultConfetti" class="result-confetti" aria-hidden="true"></div>
+        </div>
+        <div class="manga-strip bottom"></div>
+      </section>
+    </main>
+
+    <!-- Pause overlay -->
+    <div id="pauseOverlay" class="pause-overlay" hidden>
+      <div class="pause-card">
+        <h2 class="pause-title">Paused <span class="menu-sub">ポーズ</span></h2>
+        <div class="pause-actions">
+          <button id="pauseResumeBtn" class="pause-btn pause-btn--resume" type="button">Resume</button>
+          <button id="pauseRestartBtn" class="pause-btn" type="button">Restart</button>
+          <button id="pauseMapBtn" class="pause-btn" type="button">Stages</button>
+          <button id="pauseMenuBtn" class="pause-btn" type="button">Main Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level picker overlay -->
+    <div id="levelPicker" class="level-picker" hidden>
+      <div class="level-picker__inner">
+        <div class="level-picker__header">
+          <h1 class="level-picker__title">Manga Match!</h1>
+          <p class="level-picker__subtitle">Select Stage</p>
+          <button id="shopOpenBtn" class="level-picker__shop-btn" type="button">Shop</button>
+        </div>
+        <div id="levelGrid" class="level-picker__grid"></div>
+        <div class="level-picker__footer">
+          <button id="pickerCloseBtn" class="level-picker__close" type="button">Back</button>
+          <button id="pickerMenuBtn" class="level-picker__close" type="button">Main Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shop overlay -->
+    <div id="shopOverlay" class="shop-overlay" hidden>
+      <div class="shop-inner">
+        <div class="shop-header">
+          <h2 class="shop-title">Konbini</h2>
+          <p class="shop-coins">コイン <strong id="shopCoins">0</strong></p>
+        </div>
+        <div id="shopGrid" class="shop-grid"></div>
+        <button id="shopCloseBtn" class="shop-close-btn" type="button">Back</button>
+      </div>
+    </div>
+
+    <!-- Pre-level prep screen -->
+    <div id="prepOverlay" class="prep-overlay" hidden>
+      <div class="prep-inner">
+        <h2 id="prepTitle" class="prep-title"></h2>
+        <div class="prep-section">
+          <h3 class="prep-label">Goals</h3>
+          <ul id="prepGoals" class="prep-goals"></ul>
+        </div>
+        <div class="prep-section">
+          <h3 class="prep-label">Power-ups</h3>
+          <div id="prepPowerups" class="prep-powerups"></div>
+        </div>
+        <div class="prep-actions">
+          <button id="prepBackBtn" class="prep-back-btn" type="button">Back</button>
+          <button id="prepStartBtn" class="prep-start-btn" type="button">Start!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tutorial overlay -->
+    <div id="tutorialOverlay" class="tutorial-overlay" hidden>
+      <div class="tutorial-spotlight" id="tutorialSpotlight"></div>
+      <div class="tutorial-bubble" id="tutorialBubble">
+        <div class="tutorial-bubble__tail"></div>
+        <div class="tutorial-bubble__text" id="tutorialText"></div>
+        <button class="tutorial-bubble__btn" id="tutorialBtn" type="button">Next</button>
+        <button class="tutorial-bubble__skip" id="tutorialSkip" type="button">Skip</button>
+      </div>
+    </div>
+
+    <!-- postMessage bridge for GameVolt game player -->
+    <script>
+    function gvPost(action, payload) {
+      if (window.parent !== window) {
+        try { window.parent.postMessage({ type: 'gamevolt', action: action, gameId: 'manga-match3', payload: payload || {} }, '*'); } catch(e) {}
+      }
+    }
+    // GA4 Game Event Tracker (iframe-safe)
+    var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
+    start:function(n){this.gameName=n;this.startTime=Date.now();this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',{game_name:n});if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
+    end:function(o){o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'});if(this.timerInterval)clearInterval(this.timerInterval);},
+    _checkMilestones:function(){if(!this.startTime)return;var t=(Date.now()-this.startTime)/1000;if(t>=30&&!this.hasTracked30s){this.hasTracked30s=true;this._send('game_play_30s',{game_name:this.gameName});}if(t>=60&&!this.hasTracked60s){this.hasTracked60s=true;this._send('game_play_60s',{game_name:this.gameName});}},
+    _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}if(typeof gtag==='function'){gtag('event',n,p);return;}}};
+    // Hide SEO content in iframe
+    if(window.parent!==window){var s=document.getElementById('seo-content');if(s)s.style.display='none';}
+    </script>
+    <script type="module" src="game.js"></script>
+    <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js");</script>
+  </body>
+</html>

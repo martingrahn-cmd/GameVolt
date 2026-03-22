@@ -1,0 +1,60 @@
+{
+  "cell": 256,
+  "cols": 18,
+  "rows": 2,
+  "portrait_stride": 3,
+  "map": {
+    "sakura": [
+      0,
+      0
+    ],
+    "neko": [
+      3,
+      0
+    ],
+    "sun": [
+      6,
+      0
+    ],
+    "ink": [
+      9,
+      0
+    ],
+    "star": [
+      12,
+      0
+    ],
+    "blade": [
+      15,
+      0
+    ],
+    "special-line-h": [
+      0,
+      1
+    ],
+    "special-line-v": [
+      1,
+      1
+    ],
+    "special-bomb": [
+      2,
+      1
+    ],
+    "special-color": [
+      3,
+      1
+    ],
+    "lock": [
+      4,
+      1
+    ],
+    "ink-badge": [
+      5,
+      1
+    ],
+    "frame-badge": [
+      6,
+      1
+    ]
+  }
+}

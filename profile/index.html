@@ -773,6 +773,7 @@
                         <a href="/play/?game=blockstorm">BlockStorm</a>
                         <a href="/play/?game=connect4">Connect 4</a>
                         <a href="/play/?game=axeluga">Axeluga</a>
+                        <a href="/play/?game=manga-match3">Manga Match</a>
                     </div>
                     <div class="footer-column">
                         <h4>Info</h4>
@@ -805,7 +806,8 @@
             axeluga: 'Axeluga',
             taprush: 'Tap Rush',
             gravitywell: 'Gravity Well',
-            sudoku: 'Sudoku'
+            sudoku: 'Sudoku',
+            'manga-match3': 'Manga Match'
         };
 
         var GAME_THUMBS = {
@@ -818,7 +820,8 @@
             clickrush: '/assets/thumbnails/clickrush.webp',
             axeluga: '/assets/thumbnails/axeluga.webp',
             gravitywell: '/assets/thumbnails/gravitywell.webp',
-            sudoku: '/assets/thumbnails/sudoku.webp'
+            sudoku: '/assets/thumbnails/sudoku.webp',
+            'manga-match3': '/assets/thumbnails/manga-match3.webp'
         };
 
         // Full trophy catalog — all definitions from all games
@@ -1028,6 +1031,43 @@
                 { id:'sudoku-speed_3_easy', icon:'⚡', name:'Lightning', desc:'Complete an easy puzzle in under 3 minutes', tier:'gold' },
                 // Platinum (1)
                 { id:'sudoku-sudoku_master', icon:'👑', name:'Sudoku Master', desc:'Unlock all 30 other trophies', tier:'platinum' }
+            ],
+            'manga-match3': [
+                // Bronze (15)
+                { id:'manga-match-first_match', icon:'🌸', name:'First Bloom', desc:'Complete your first match', tier:'bronze' },
+                { id:'manga-match-stage_1', icon:'🏫', name:'Academy Student', desc:'Clear Stage 1', tier:'bronze' },
+                { id:'manga-match-stage_5', icon:'⭐', name:'Rising Star', desc:'Clear Stage 5', tier:'bronze' },
+                { id:'manga-match-stage_10', icon:'🌙', name:'Portal Opener', desc:'Clear World 1 (Stage 10)', tier:'bronze' },
+                { id:'manga-match-first_special', icon:'💎', name:'Special Discovery', desc:'Create your first special tile', tier:'bronze' },
+                { id:'manga-match-first_line', icon:'⚡', name:'Line Blast', desc:'Create a line attack tile', tier:'bronze' },
+                { id:'manga-match-first_bomb', icon:'💥', name:'Bomber', desc:'Create a bomb tile', tier:'bronze' },
+                { id:'manga-match-first_color', icon:'🌈', name:'Color Burst', desc:'Create a color bomb', tier:'bronze' },
+                { id:'manga-match-chain_2', icon:'🔗', name:'Chain Starter', desc:'Achieve a 2-chain combo', tier:'bronze' },
+                { id:'manga-match-fever_first', icon:'🔥', name:'First Fever', desc:'Activate Fever Mode for the first time', tier:'bronze' },
+                { id:'manga-match-score_5k', icon:'📊', name:'Point Collector', desc:'Score 5,000 points in a single stage', tier:'bronze' },
+                { id:'manga-match-clear_50', icon:'🧹', name:'Tile Sweeper', desc:'Clear 50 tiles in a single stage', tier:'bronze' },
+                { id:'manga-match-stars_10', icon:'✨', name:'Star Gazer', desc:'Earn 10 stars total', tier:'bronze' },
+                { id:'manga-match-daily_first', icon:'📅', name:'Daily Player', desc:'Complete your first daily challenge', tier:'bronze' },
+                { id:'manga-match-coins_500', icon:'🪙', name:'Coin Collector', desc:'Accumulate 500 coins', tier:'bronze' },
+                // Silver (10)
+                { id:'manga-match-stage_20', icon:'🏯', name:'Portal Guardian', desc:'Clear World 2 (Stage 20)', tier:'silver' },
+                { id:'manga-match-chain_4', icon:'⛓️', name:'Chain Master', desc:'Achieve a 4-chain combo', tier:'silver' },
+                { id:'manga-match-score_10k', icon:'🏆', name:'High Scorer', desc:'Score 10,000 points in a single stage', tier:'silver' },
+                { id:'manga-match-three_stars', icon:'🌟', name:'Perfectionist', desc:'Get 3 stars on any stage', tier:'silver' },
+                { id:'manga-match-stars_30', icon:'💫', name:'Star Hunter', desc:'Earn 30 stars total', tier:'silver' },
+                { id:'manga-match-ink_clear_20', icon:'🖋️', name:'Ink Eraser', desc:'Clear 20 ink obstacles total', tier:'silver' },
+                { id:'manga-match-locks_break_15', icon:'🔓', name:'Locksmith', desc:'Break 15 locks total', tier:'silver' },
+                { id:'manga-match-fever_5', icon:'🔥', name:'Fever Addict', desc:'Activate Fever Mode 5 times', tier:'silver' },
+                { id:'manga-match-daily_streak_3', icon:'📆', name:'Dedicated', desc:'Reach a 3-day daily challenge streak', tier:'silver' },
+                { id:'manga-match-powerup_use_5', icon:'⚗️', name:'Power User', desc:'Use 5 power-ups total', tier:'silver' },
+                // Gold (5)
+                { id:'manga-match-stage_30', icon:'👑', name:'Final Panel', desc:'Clear all 30 stages', tier:'gold' },
+                { id:'manga-match-chain_6', icon:'💀', name:'Chain Demon', desc:'Achieve a 6-chain combo', tier:'gold' },
+                { id:'manga-match-score_20k', icon:'🎌', name:'Score Legend', desc:'Score 20,000 points in a single stage', tier:'gold' },
+                { id:'manga-match-stars_90', icon:'🌠', name:'Star Master', desc:'Earn 90 stars (all stages 3-star)', tier:'gold' },
+                { id:'manga-match-daily_streak_7', icon:'🗓️', name:'Weekly Warrior', desc:'Reach a 7-day daily challenge streak', tier:'gold' },
+                // Platinum (1)
+                { id:'manga-match-manga_master', icon:'🏅', name:'Manga Master', desc:'Unlock all other trophies', tier:'platinum' }
             ]
         };
 

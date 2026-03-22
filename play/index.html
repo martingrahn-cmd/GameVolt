@@ -611,7 +611,8 @@
           connect4: 'Connect 4 — Free Strategy Board Game',
           axeluga: 'Axeluga — Free Space Shooter',
           taprush: 'Tap Rush — Free Reflex Challenge',
-          sudoku: 'Sudoku — Free Number Puzzle'
+          sudoku: 'Sudoku — Free Number Puzzle',
+          'manga-match3': 'Manga Match — Free Match-3 Puzzle'
         };
         var game = new URLSearchParams(location.search).get('game');
         document.getElementById('game-title').textContent = names[game] || 'GameVolt — Free Browser Games';
@@ -663,7 +664,8 @@
       hoverdash: { name: "HoverDash",   category: "Action", path: "/hoverdash/",  thumb: "/hoverdash/og-image.png" },
       axeluga:   { name: "Axeluga",     category: "Action", path: "/axeluga/",    thumb: "/assets/thumbnails/axeluga.webp" },
       gravitywell:{ name: "Gravity Well", category: "Arcade", path: "/gravitywell/", thumb: "/assets/thumbnails/gravitywell.webp" },
-      sudoku:    { name: "Sudoku",       category: "Puzzle", path: "/sudoku/",      thumb: "/assets/thumbnails/sudoku.webp" }
+      sudoku:    { name: "Sudoku",       category: "Puzzle", path: "/sudoku/",      thumb: "/assets/thumbnails/sudoku.webp" },
+      "manga-match3": { name: "Manga Match", category: "Puzzle", path: "/manga-match3/", thumb: "/assets/thumbnails/manga-match3.webp" }
     };
 
     const frame = document.getElementById('gameFrame');
