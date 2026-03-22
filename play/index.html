@@ -377,8 +377,8 @@
     }
     .gv-lb-link:hover { background: rgba(124, 92, 252, 0.1); }
 
-    /* ── Mobile ── */
-    @media (max-width: 768px) {
+    /* ── Tablet & Mobile (iPad portrait is 768–810px) ── */
+    @media (max-width: 1024px) {
       :root {
         --header-h: 44px;
         --bar-h: 36px;
@@ -485,7 +485,7 @@
     }
 
     /* ── Mobile portrait: compact bottom bar ── */
-    @media (max-width: 768px) and (orientation: portrait) {
+    @media (max-width: 1024px) and (orientation: portrait) {
       .gv-game-bar { height: 32px; padding: 0 10px; }
       .gv-bar-home { display: flex; width: 28px; height: 28px; }
       .gv-game-name { font-size: 0.8rem; }
@@ -524,7 +524,7 @@
       50% { transform: rotate(-90deg); }
       100% { transform: rotate(0deg); }
     }
-    @media screen and (max-width: 768px) and (orientation: portrait) {
+    @media screen and (max-width: 1024px) and (orientation: portrait) {
       .gv-rotate-overlay.active { display: flex; }
     }
 
