@@ -389,14 +389,23 @@
       .gv-logo-text { font-size: 1.1rem; }
 
       .gv-main {
+        position: static;
+        margin-top: var(--header-h);
         flex-direction: column;
-        overflow-y: auto;
+        overflow-y: visible;
+        height: auto;
       }
 
       .gv-game-area {
         flex: none;
-        height: calc(100vh - var(--header-h));
         height: calc(100dvh - var(--header-h));
+      }
+
+      /* Tablet portrait: shrink game so sidebar peeks below */
+      @media (min-width: 601px) and (orientation: portrait) {
+        .gv-game-area {
+          height: 65dvh;
+        }
       }
 
       .gv-sidebar {
@@ -445,7 +454,7 @@
     /* ── Mobile landscape: bar becomes thin side strip ── */
     @media (max-height: 500px) {
       .gv-header { display: none; }
-      .gv-main { top: 0; }
+      .gv-main { position: fixed; top: 0; margin-top: 0; overflow: hidden; }
       .gv-sidebar { display: none; }
 
       .gv-game-area {
