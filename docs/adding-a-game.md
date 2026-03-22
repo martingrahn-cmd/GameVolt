@@ -130,11 +130,28 @@ If you have a preview video, add `data-preview="/your-game/preview.mp4"` and add
 
 Add `preview: "/your-game/preview.mp4"` if you have a video.
 
-### d) Category pill counts (~line 1901)
+### d) Hero stat "Games Available" (~line 1682)
+
+Update the number in the hero section at the top of the page:
+
+```html
+<span class="stat-number">12</span>
+<span class="stat-label">Games Available</span>
+```
+
+### e) Category pill counts (~line 1901)
 
 Update the `pill-count` numbers in the category filter buttons. Increment "All Games" and whichever categories your game belongs to (`coffee-break`, `brain-challenge`, `action`).
 
-### e) Footer games list
+### f) Featured sections (optional)
+
+**Editor's Choice** (~line 1699): Two featured games with large cards. Replace an existing card if the new game should be featured.
+
+**Just Launched** (~line 1759): New games section. Add/replace cards here for newly released games.
+
+**Powered Up** (~line 1798): All SDK-integrated games with cloud save, leaderboard, and trophies. Add a card if the game has full SDK integration.
+
+### g) Footer games list
 
 Add `<a href="/play/?game=your-game">Your Game</a>` in the footer Games column.
 
@@ -214,6 +231,32 @@ Add `<a href="/play/?game=your-game">Your Game</a>` to the Games column in the f
 - `/action-games/index.html`
 - `/board-games/index.html`
 
+## 8. Database — Supabase SQL Editor
+
+### a) Add game to `games` table
+
+```sql
+INSERT INTO games (id, title, thumbnail_url) VALUES
+  ('your-game', 'Your Game', '/assets/thumbnails/your-game.webp')
+ON CONFLICT (id) DO NOTHING;
+```
+
+### b) Add achievement definitions (31 rows)
+
+```sql
+INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_order) VALUES
+  ('your-game-achievement_1', 'your-game', 'Trophy Name', 'Description', '🏆', 'bronze', 1),
+  -- ... 31 total (15 bronze, 10 silver, 5 gold, 1 platinum)
+  ('your-game-platinum',      'your-game', 'Master',      'Unlock all other trophies', '👑', 'platinum', 31)
+ON CONFLICT (id) DO NOTHING;
+```
+
+### c) Update `/sql/schema.sql`
+
+Add the same INSERT statements to `schema.sql` so the schema file stays in sync. The file is idempotent (safe to re-run).
+
+---
+
 ## Quick Reference — Category Values
 
 | data-category   | Description              |
@@ -232,12 +275,15 @@ Add `<a href="/play/?game=your-game">Your Game</a>` to the Games column in the f
 ## Checklist
 
 - [ ] Game folder at `/{game-id}/`
-- [ ] Thumbnail at `/assets/thumbnails/{game-id}.webp`
+- [ ] Thumbnail at `/assets/thumbnails/{game-id}.webp` (filename must match game-id!)
 - [ ] SEO meta tags in game's `<head>` (GA4, OG, Twitter, canonical, favicon)
 - [ ] postMessage + GA4 tracker in game's `index.html` (before game script)
-- [ ] `/index.html` — JSON-LD, game card, GAME_META, pill counts, footer
+- [ ] `/index.html` — JSON-LD, game card, GAME_META, hero stat, pill counts, footer
+- [ ] `/index.html` — Featured sections if applicable (Editor's Choice, Just Launched, Powered Up)
 - [ ] `/play/index.html` — names, GAMES object
 - [ ] `/profile/index.html` — GAME_NAMES, GAME_THUMBS, TROPHY_CATALOG
 - [ ] Category page(s) — JSON-LD, game card, footer
 - [ ] `/leaderboards/index.html` — filter pill, footer
 - [ ] All other page footers updated
+- [ ] Supabase — `INSERT INTO games` + `INSERT INTO achievement_defs` (31 rows)
+- [ ] `/sql/schema.sql` — add same INSERTs to keep schema in sync
