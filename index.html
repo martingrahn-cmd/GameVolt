@@ -173,6 +173,15 @@
                 "url": "https://gamevolt.io/manga-match3/",
                 "genre": ["Puzzle", "Match-3"],
                 "gamePlatform": "Web Browser"
+            },
+            {
+                "@type": "VideoGame",
+                "position": 12,
+                "name": "Golden Glyphs",
+                "description": "Mystical block puzzle with 100 campaign levels, daily challenges, time attack, and zen mode",
+                "url": "https://gamevolt.io/golden-glyphs/",
+                "genre": ["Puzzle"],
+                "gamePlatform": "Web Browser"
             }
         ]
     }
@@ -1679,7 +1688,7 @@
             <p>Play free arcade, puzzle, card and action games right in your browser. No downloads, no signups – just pure gaming enjoyment.</p>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="stat-number">11</span>
+                    <span class="stat-number">12</span>
                     <span class="stat-label">Games Available</span>
                 </div>
                 <div class="stat">
@@ -1758,6 +1767,21 @@
             </div>
             <p class="powered-subtitle">Fresh games hot off the press</p>
             <div class="powered-grid" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));">
+                <a href="/play/?game=golden-glyphs" class="powered-card" data-preview="/golden-glyphs/preview.mp4">
+                    <div class="powered-thumb">
+                        <img src="/assets/thumbnails/golden-glyphs.webp" alt="Golden Glyphs">
+                        <video class="preview-video" muted loop playsinline preload="none"></video>
+                    </div>
+                    <span class="powered-bolt">⚡</span>
+                    <div class="powered-info">
+                        <div class="powered-name">Golden Glyphs</div>
+                        <div class="powered-features">
+                            <span class="powered-feat" style="background:rgba(6,214,160,0.12);color:#06d6a0;border-color:rgba(6,214,160,0.15)">New</span>
+                            <span class="powered-feat cloud">Cloud Save</span>
+                            <span class="powered-feat trophy">31 Trophies</span>
+                        </div>
+                    </div>
+                </a>
                 <a href="/play/?game=manga-match3" class="powered-card" data-preview="/manga-match3/preview.mp4">
                     <div class="powered-thumb">
                         <img src="/assets/thumbnails/manga-match3.webp" alt="Manga Match">
@@ -1797,6 +1821,21 @@
             </div>
             <p class="powered-subtitle">Cloud saves, global leaderboards & trophies</p>
             <div class="powered-grid">
+                <a href="/play/?game=golden-glyphs" class="powered-card" data-preview="/golden-glyphs/preview.mp4">
+                    <div class="powered-thumb">
+                        <img src="/assets/thumbnails/golden-glyphs.webp" alt="Golden Glyphs">
+                        <video class="preview-video" muted loop playsinline preload="none"></video>
+                    </div>
+                    <span class="powered-bolt">⚡</span>
+                    <div class="powered-info">
+                        <div class="powered-name">Golden Glyphs</div>
+                        <div class="powered-features">
+                            <span class="powered-feat cloud">Cloud Save</span>
+                            <span class="powered-feat board">Leaderboard</span>
+                            <span class="powered-feat trophy">31 Trophies</span>
+                        </div>
+                    </div>
+                </a>
                 <a href="/play/?game=hoverdash" class="powered-card" data-preview="/hoverdash/preview.mp4">
                     <div class="powered-thumb">
                         <img src="/hoverdash/og-image.png" alt="HoverDash">
@@ -1927,7 +1966,7 @@
             <button class="category-pill active" data-filter="all">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
-                <span class="pill-count">11</span>
+                <span class="pill-count">12</span>
             </button>
             <button class="category-pill" data-filter="coffee-break">
                 <span class="pill-icon">☕</span>
@@ -1937,7 +1976,7 @@
             <button class="category-pill" data-filter="brain-challenge">
                 <span class="pill-icon">🧠</span>
                 <span>Brain Challenge</span>
-                <span class="pill-count">5</span>
+                <span class="pill-count">6</span>
             </button>
             <button class="category-pill" data-filter="action">
                 <span class="pill-icon">🔥</span>
@@ -2152,6 +2191,26 @@
                     <span class="play-btn">▶ Play Now</span>
                 </div>
             </a>
+
+            <!-- Golden Glyphs -->
+            <a href="/play/?game=golden-glyphs" class="game-card" data-category="brain-challenge" data-preview="/golden-glyphs/preview.mp4">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/golden-glyphs.webp" alt="Golden Glyphs Puzzle Game" loading="lazy">
+                    <video class="preview-video" muted loop playsinline preload="none"></video>
+                    <span class="game-badge new">NEW</span>
+                    <span class="game-bolt">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Golden Glyphs</h3>
+                    <p class="game-description">Mystical block puzzle with 100 campaign levels across 4 worlds, daily challenges, time attack mode, and zen mode. Unlock cosmetics and climb the leaderboard.</p>
+                    <div class="game-tags">
+                        <span class="tag">Puzzle</span>
+                        <span class="tag">Block</span>
+                        <span class="tag">Campaign</span>
+                    </div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
         </div>
 
         <section class="features-section">
@@ -2205,6 +2264,7 @@
                         <a href="/play/?game=gravitywell">Gravity Well</a>
                         <a href="/play/?game=sudoku">Sudoku</a>
                         <a href="/play/?game=manga-match3">Manga Match</a>
+                        <a href="/play/?game=golden-glyphs">Golden Glyphs</a>
                     </div>
                     <div class="footer-column">
                         <h4>Categories</h4>
@@ -2331,7 +2391,8 @@
             axeluga:   { name: "Axeluga",    thumb: "/assets/thumbnails/axeluga.webp" },
             gravitywell:{ name: "Gravity Well", thumb: "/assets/thumbnails/gravitywell.webp", preview: "/gravitywell/preview.mp4" },
             sudoku:    { name: "Sudoku",      thumb: "/assets/thumbnails/sudoku.webp" },
-            "manga-match3": { name: "Manga Match", thumb: "/assets/thumbnails/manga-match3.webp", preview: "/manga-match3/preview.mp4" }
+            "manga-match3": { name: "Manga Match", thumb: "/assets/thumbnails/manga-match3.webp", preview: "/manga-match3/preview.mp4" },
+            "golden-glyphs": { name: "Golden Glyphs", thumb: "/assets/thumbnails/golden-glyphs.webp", preview: "/golden-glyphs/preview.mp4" }
         };
 
         var recent = GVTracker.getRecentlyPlayed(4);

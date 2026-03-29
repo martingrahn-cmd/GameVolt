@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+
+    <!-- SEO -->
+    <title>Golden Glyphs — Free Puzzle Game | GameVolt</title>
+    <meta name="description" content="Play Golden Glyphs free online — a mystical block puzzle with 100 campaign levels, daily challenges, time attack, and a zen mode. No download needed.">
+    <meta name="keywords" content="golden glyphs, free puzzle game, block puzzle, browser puzzle game, tangram, spatial puzzle">
+    <meta name="author" content="GameVolt">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gamevolt.io/golden-glyphs/">
+    <meta property="og:title" content="Golden Glyphs — Free Puzzle Game">
+    <meta property="og:description" content="Mystical block puzzle with 100 levels, daily challenges, time attack, and zen mode. Play free in your browser.">
+    <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/golden-glyphs.webp">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="GameVolt">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Golden Glyphs — Free Puzzle Game">
+    <meta name="twitter:description" content="Mystical block puzzle with 100 levels, daily challenges, time attack, and zen mode. Play free!">
+    <meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/golden-glyphs.webp">
+
+    <!-- Canonical + Favicon -->
+    <link rel="canonical" href="https://gamevolt.io/golden-glyphs/">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+    <!-- PWA / Fullscreen iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Golden Glyphs">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
+
+    <link rel="stylesheet" href="./css/style.css" />
+
+    <style>
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #000; overflow: hidden; touch-action: none;
+        }
+        canvas { display: block; width: 100%; height: 100%; }
+        .overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 9999;
+            pointer-events: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.85);
+        }
+        .hidden { display: none !important; }
+        .win-content, .overlay-box {
+            text-align: center;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="rotate-overlay" class="hidden overlay">
+        <div class="rotate-content" style="text-align: center; color: #FFD700; font-family: 'Cinzel', serif;">
+            <div style="font-size: 80px; margin-bottom: 20px; animation: rotatePhone 2s ease-in-out infinite;">📱</div>
+            <h2 style="font-size: 1.5em; margin: 0;">Please rotate your device</h2>
+            <p style="font-size: 1em; color: #888; margin-top: 10px;">This game is best played in portrait mode</p>
+        </div>
+    </div>
+
+    <style>
+        @keyframes rotatePhone {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-30deg); }
+            75% { transform: rotate(30deg); }
+        }
+    </style>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- WIN SCREEN -->
+    <div id="win-screen" class="overlay hidden">
+        <div class="win-content">
+            <h1 style="font-size: 3em; margin: 0 0 20px 0; text-shadow: 0 0 20px #ffd700;">LEVEL COMPLETE</h1>
+            <div class="stars" style="font-size:50px; margin-bottom: 30px;"></div>
+            <button id="next-level-btn" style="background:#4CAF50; border:none; padding:20px 40px; font-size:24px; color:white; border-radius:10px; cursor:pointer; box-shadow: 0 0 10px rgba(76, 175, 80, 0.4);">NEXT LEVEL</button>
+        </div>
+    </div>
+
+    <!-- AUDIO OVERLAY -->
+    <div id="audioOverlay" class="overlay">
+      <div class="overlay-box">
+        <h2 style="font-size: 2em; color: #00ffff; margin-bottom: 15px;">Tap to Activate Audio</h2>
+        <p style="font-size: 1.2em; opacity: 0.8;">Tap anywhere to start.</p>
+        <p style="font-size: 1em; color: #555; margin-top: 50px;">A SmartProc Games Production</p>
+      </div>
+    </div>
+
+    <!-- postMessage bridge + GA4 tracker -->
+    <script>
+    function gvPost(action, payload) {
+      if (window.parent !== window) {
+        try { window.parent.postMessage({ type: 'gamevolt', action: action, gameId: 'golden-glyphs', payload: payload || {} }, '*'); } catch(e) {}
+      }
+    }
+    var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
+    start:function(n){this.gameName=n;this.startTime=Date.now();this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',{game_name:n});if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
+    end:function(o){o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'});if(this.timerInterval)clearInterval(this.timerInterval);},
+    _checkMilestones:function(){if(!this.startTime)return;var t=(Date.now()-this.startTime)/1000;if(t>=30&&!this.hasTracked30s){this.hasTracked30s=true;this._send('game_play_30s',{game_name:this.gameName});}if(t>=60&&!this.hasTracked60s){this.hasTracked60s=true;this._send('game_play_60s',{game_name:this.gameName});}},
+    _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}if(typeof gtag==='function'){gtag('event',n,p);return;}}};
+    if(window.parent!==window){var s=document.getElementById('seo-content');if(s)s.style.display='none';}
+    </script>
+
+    <!-- GameVolt SDK -->
+    <script src="/sdk/gamevolt.js"></script>
+
+    <script type="module" src="./src/js/game.js"></script>
+
+<script>
+        const audioDiv = document.getElementById('audioOverlay');
+        const rotateDiv = document.getElementById('rotate-overlay');
+
+        function checkOrientation() {
+            if (window.innerWidth > window.innerHeight) {
+                rotateDiv.classList.remove('hidden');
+            } else {
+                rotateDiv.classList.add('hidden');
+            }
+        }
+
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+        checkOrientation();
+
+        const enableAudio = (e) => {
+            if(e) e.preventDefault();
+            audioDiv.classList.add('hidden');
+            if (window.audio) {
+                if (typeof window.audio.resume === 'function') {
+                    window.audio.resume().catch(err => console.log("Audio resume failed:", err));
+                }
+                else if (typeof window.audio.play === 'function') {
+                    window.audio.play().catch(err => console.log("Audio play failed:", err));
+                }
+            }
+        };
+
+        audioDiv.addEventListener('click', enableAudio);
+        audioDiv.addEventListener('touchstart', enableAudio, {passive: false});
+    </script>
+</body>
+</html>

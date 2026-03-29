@@ -774,6 +774,7 @@
                         <a href="/play/?game=connect4">Connect 4</a>
                         <a href="/play/?game=axeluga">Axeluga</a>
                         <a href="/play/?game=manga-match3">Manga Match</a>
+                        <a href="/play/?game=golden-glyphs">Golden Glyphs</a>
                     </div>
                     <div class="footer-column">
                         <h4>Info</h4>
@@ -807,7 +808,8 @@
             taprush: 'Tap Rush',
             gravitywell: 'Gravity Well',
             sudoku: 'Sudoku',
-            'manga-match3': 'Manga Match'
+            'manga-match3': 'Manga Match',
+            'golden-glyphs': 'Golden Glyphs'
         };
 
         var GAME_THUMBS = {
@@ -821,7 +823,8 @@
             axeluga: '/assets/thumbnails/axeluga.webp',
             gravitywell: '/assets/thumbnails/gravitywell.webp',
             sudoku: '/assets/thumbnails/sudoku.webp',
-            'manga-match3': '/assets/thumbnails/manga-match3.webp'
+            'manga-match3': '/assets/thumbnails/manga-match3.webp',
+            'golden-glyphs': '/assets/thumbnails/golden-glyphs.webp'
         };
 
         // Full trophy catalog — all definitions from all games
@@ -1068,6 +1071,43 @@
                 { id:'manga-match-daily_streak_7', icon:'🗓️', name:'Weekly Warrior', desc:'Reach a 7-day daily challenge streak', tier:'gold' },
                 // Platinum (1)
                 { id:'manga-match-manga_master', icon:'🏅', name:'Manga Master', desc:'Unlock all other trophies', tier:'platinum' }
+            ],
+            'golden-glyphs': [
+                // Bronze (15)
+                { id:'golden-glyphs-ach_first_win', icon:'🏛️', name:'First Steps', desc:'Complete your first level', tier:'bronze' },
+                { id:'golden-glyphs-ach_win_5', icon:'📜', name:'Getting Started', desc:'Complete 5 levels', tier:'bronze' },
+                { id:'golden-glyphs-ach_win_10', icon:'🎓', name:'Apprentice', desc:'Complete 10 levels', tier:'bronze' },
+                { id:'golden-glyphs-ach_stars_10', icon:'⭐', name:'Star Collector', desc:'Earn 10 stars', tier:'bronze' },
+                { id:'golden-glyphs-ach_stars_30', icon:'✨', name:'Shiny!', desc:'Earn 30 stars', tier:'bronze' },
+                { id:'golden-glyphs-ach_visit_shop', icon:'🛒', name:'Window Shopper', desc:'Visit the shop', tier:'bronze' },
+                { id:'golden-glyphs-ach_first_cosmetic', icon:'🎨', name:'New Look', desc:'Buy your first cosmetic', tier:'bronze' },
+                { id:'golden-glyphs-ach_gold_500', icon:'🪙', name:'Pocket Change', desc:'Earn 500 gold total', tier:'bronze' },
+                { id:'golden-glyphs-ach_gold_2000', icon:'🐷', name:'Piggy Bank', desc:'Earn 2,000 gold total', tier:'bronze' },
+                { id:'golden-glyphs-ach_daily_1', icon:'📅', name:'Daily Player', desc:'Complete a daily challenge', tier:'bronze' },
+                { id:'golden-glyphs-ach_3star_1', icon:'💡', name:'Quick Thinker', desc:'Get 3 stars on a level', tier:'bronze' },
+                { id:'golden-glyphs-ach_3star_10', icon:'⚡', name:'Speed Demon', desc:'Get 3 stars on 10 levels', tier:'bronze' },
+                { id:'golden-glyphs-ach_time_attack', icon:'⏱️', name:'Time Rookie', desc:'Play Time Attack', tier:'bronze' },
+                { id:'golden-glyphs-ach_use_hint', icon:'🔍', name:'Hint Hunter', desc:'Use a hint', tier:'bronze' },
+                { id:'golden-glyphs-ach_change_trail', icon:'💃', name:'Fashionista', desc:'Equip a trail', tier:'bronze' },
+                // Silver (10)
+                { id:'golden-glyphs-ach_win_50', icon:'🗡️', name:'Veteran', desc:'Complete 50 levels', tier:'silver' },
+                { id:'golden-glyphs-ach_stars_100', icon:'🌟', name:'Star Hoarder', desc:'Earn 100 stars', tier:'silver' },
+                { id:'golden-glyphs-ach_gold_5000', icon:'💰', name:'Gold Rush', desc:'Earn 5,000 gold total', tier:'silver' },
+                { id:'golden-glyphs-ach_streak_7', icon:'🔥', name:'Dedicated', desc:'Complete 7 daily challenges in a row', tier:'silver' },
+                { id:'golden-glyphs-ach_easy_perfect', icon:'🥉', name:'Easy Peasy', desc:'Get 3 stars on all Easy levels', tier:'silver' },
+                { id:'golden-glyphs-ach_medium_perfect', icon:'🥈', name:'Medium Rare', desc:'Get 3 stars on all Medium levels', tier:'silver' },
+                { id:'golden-glyphs-ach_ta_2000', icon:'💥', name:'Time Crusher', desc:'Score 2,000 in Time Attack', tier:'silver' },
+                { id:'golden-glyphs-ach_own_10', icon:'👑', name:'Collector', desc:'Own 10 cosmetics', tier:'silver' },
+                { id:'golden-glyphs-ach_change_theme', icon:'🎭', name:'Trendsetter', desc:'Equip a theme', tier:'silver' },
+                { id:'golden-glyphs-ach_spend_5000', icon:'💸', name:'Big Spender', desc:'Spend 5,000 gold total', tier:'silver' },
+                // Gold (5)
+                { id:'golden-glyphs-ach_hard_perfect', icon:'💎', name:'Hard as Nails', desc:'Get 3 stars on all Hard levels', tier:'gold' },
+                { id:'golden-glyphs-ach_arcane_perfect', icon:'🔮', name:'Arcane Master', desc:'Get 3 stars on all Arcane levels', tier:'gold' },
+                { id:'golden-glyphs-ach_win_100', icon:'🏆', name:'Completionist', desc:'Complete all 100 campaign levels', tier:'gold' },
+                { id:'golden-glyphs-ach_ta_10000', icon:'⌛', name:'Time Lord', desc:'Score 10,000 in Time Attack', tier:'gold' },
+                { id:'golden-glyphs-ach_daily_30', icon:'📆', name:'Loyal Player', desc:'Complete 30 daily challenges', tier:'gold' },
+                // Platinum (1)
+                { id:'golden-glyphs-ach_platinum', icon:'👼', name:'Golden Legend', desc:'Unlock all other achievements', tier:'platinum' }
             ]
         };
 

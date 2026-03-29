@@ -362,7 +362,8 @@ INSERT INTO games (id, title, thumbnail_url) VALUES
   ('axeluga',    'Axeluga',     '/assets/thumbnails/axeluga.webp'),
   ('gravitywell','Gravity Well', '/assets/thumbnails/gravitywell.webp'),
   ('sudoku',     'Sudoku',      '/assets/thumbnails/sudoku.webp'),
-  ('manga-match3','Manga Match', '/assets/thumbnails/manga-match3.webp')
+  ('manga-match3','Manga Match', '/assets/thumbnails/manga-match3.webp'),
+  ('golden-glyphs','Golden Glyphs', '/assets/thumbnails/golden-glyphs.webp')
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
@@ -654,5 +655,43 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   ('manga-match3-stars_90',       'manga-match3', 'Star Master',       'Earn 90 stars (all stages 3-star)',       '🌠', 'gold', 29),
   ('manga-match3-daily_streak_7', 'manga-match3', 'Weekly Warrior',    'Reach a 7-day daily challenge streak',    '🗓️', 'gold', 30),
   -- Manga Match: Platinum (1)
-  ('manga-match3-manga_master',   'manga-match3', 'Manga Master',      'Unlock all other trophies',               '🏅', 'platinum', 31)
+  ('manga-match3-manga_master',   'manga-match3', 'Manga Master',      'Unlock all other trophies',               '🏅', 'platinum', 31),
+
+  -- ============================================================
+  -- Golden Glyphs: Bronze (15)
+  -- ============================================================
+  ('golden-glyphs-ach_first_win',      'golden-glyphs', 'First Steps',      'Complete your first level',               '🏛️', 'bronze', 1),
+  ('golden-glyphs-ach_win_5',          'golden-glyphs', 'Getting Started',  'Complete 5 levels',                       '📜', 'bronze', 2),
+  ('golden-glyphs-ach_win_10',         'golden-glyphs', 'Apprentice',       'Complete 10 levels',                      '🎓', 'bronze', 3),
+  ('golden-glyphs-ach_stars_10',       'golden-glyphs', 'Star Collector',   'Earn 10 stars',                           '⭐', 'bronze', 4),
+  ('golden-glyphs-ach_stars_30',       'golden-glyphs', 'Shiny!',           'Earn 30 stars',                           '✨', 'bronze', 5),
+  ('golden-glyphs-ach_visit_shop',     'golden-glyphs', 'Window Shopper',   'Visit the shop',                          '🛒', 'bronze', 6),
+  ('golden-glyphs-ach_first_cosmetic', 'golden-glyphs', 'New Look',         'Buy your first cosmetic',                 '🎨', 'bronze', 7),
+  ('golden-glyphs-ach_gold_500',       'golden-glyphs', 'Pocket Change',    'Earn 500 gold total',                     '🪙', 'bronze', 8),
+  ('golden-glyphs-ach_gold_2000',      'golden-glyphs', 'Piggy Bank',       'Earn 2,000 gold total',                   '🐷', 'bronze', 9),
+  ('golden-glyphs-ach_daily_1',        'golden-glyphs', 'Daily Player',     'Complete a daily challenge',               '📅', 'bronze', 10),
+  ('golden-glyphs-ach_3star_1',        'golden-glyphs', 'Quick Thinker',    'Get 3 stars on a level',                  '💡', 'bronze', 11),
+  ('golden-glyphs-ach_3star_10',       'golden-glyphs', 'Speed Demon',      'Get 3 stars on 10 levels',                '⚡', 'bronze', 12),
+  ('golden-glyphs-ach_time_attack',    'golden-glyphs', 'Time Rookie',      'Play Time Attack',                        '⏱️', 'bronze', 13),
+  ('golden-glyphs-ach_use_hint',       'golden-glyphs', 'Hint Hunter',      'Use a hint',                              '🔍', 'bronze', 14),
+  ('golden-glyphs-ach_change_trail',   'golden-glyphs', 'Fashionista',      'Equip a trail',                           '💃', 'bronze', 15),
+  -- Golden Glyphs: Silver (10)
+  ('golden-glyphs-ach_win_50',         'golden-glyphs', 'Veteran',          'Complete 50 levels',                      '🗡️', 'silver', 16),
+  ('golden-glyphs-ach_stars_100',      'golden-glyphs', 'Star Hoarder',     'Earn 100 stars',                          '🌟', 'silver', 17),
+  ('golden-glyphs-ach_gold_5000',      'golden-glyphs', 'Gold Rush',        'Earn 5,000 gold total',                   '💰', 'silver', 18),
+  ('golden-glyphs-ach_streak_7',       'golden-glyphs', 'Dedicated',        'Complete 7 daily challenges in a row',    '🔥', 'silver', 19),
+  ('golden-glyphs-ach_easy_perfect',   'golden-glyphs', 'Easy Peasy',       'Get 3 stars on all Easy levels',          '🥉', 'silver', 20),
+  ('golden-glyphs-ach_medium_perfect', 'golden-glyphs', 'Medium Rare',      'Get 3 stars on all Medium levels',        '🥈', 'silver', 21),
+  ('golden-glyphs-ach_ta_2000',        'golden-glyphs', 'Time Crusher',     'Score 2,000 in Time Attack',              '💥', 'silver', 22),
+  ('golden-glyphs-ach_own_10',         'golden-glyphs', 'Collector',        'Own 10 cosmetics',                        '👑', 'silver', 23),
+  ('golden-glyphs-ach_change_theme',   'golden-glyphs', 'Trendsetter',      'Equip a theme',                           '🎭', 'silver', 24),
+  ('golden-glyphs-ach_spend_5000',     'golden-glyphs', 'Big Spender',      'Spend 5,000 gold total',                  '💸', 'silver', 25),
+  -- Golden Glyphs: Gold (5)
+  ('golden-glyphs-ach_hard_perfect',   'golden-glyphs', 'Hard as Nails',    'Get 3 stars on all Hard levels',          '💎', 'gold', 26),
+  ('golden-glyphs-ach_arcane_perfect', 'golden-glyphs', 'Arcane Master',    'Get 3 stars on all Arcane levels',        '🔮', 'gold', 27),
+  ('golden-glyphs-ach_win_100',        'golden-glyphs', 'Completionist',    'Complete all 100 campaign levels',        '🏆', 'gold', 28),
+  ('golden-glyphs-ach_ta_10000',       'golden-glyphs', 'Time Lord',        'Score 10,000 in Time Attack',             '⌛', 'gold', 29),
+  ('golden-glyphs-ach_daily_30',       'golden-glyphs', 'Loyal Player',     'Complete 30 daily challenges',            '📆', 'gold', 30),
+  -- Golden Glyphs: Platinum (1)
+  ('golden-glyphs-ach_platinum',       'golden-glyphs', 'Golden Legend',    'Unlock all other achievements',           '👼', 'platinum', 31)
 ON CONFLICT (id) DO NOTHING;

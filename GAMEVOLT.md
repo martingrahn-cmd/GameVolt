@@ -61,6 +61,7 @@ When writing code for this project, follow these rules:
 | 10 | Gravity Well | ✅ Live | ❌ Not yet |
 | 11 | Sudoku | ✅ Live | ✅ Yes |
 | 12 | Manga Match | ✅ Live | ❌ Not yet |
+| 13 | Golden Glyphs | ✅ Live | ✅ Yes |
 
 **HoverDash was the pilot game for SDK integration.** SDK is now also integrated in Breakout and Connect 4.
 
@@ -357,7 +358,7 @@ CREATE INDEX idx_achievements_user ON user_achievements(user_id);
 
 ### Phase 1 — Foundation (MVP) ✅
 Spec, rebranding, Supabase, SDK v1, HoverDash pilot — all done.
-- [ ] Upload Golden Glyphs to portal
+- [x] Upload Golden Glyphs to portal
 
 ### Phase 2 — Engagement (in progress)
 SDK + leaderboards + profile page done. Breakout & Connect 4 integrated.
@@ -682,6 +683,7 @@ Optional: Transfer domain to Cloudflare to save ~100-200 kr/year.
 │   ├── og-image.jpg              ← Portal OG image (1200x630)
 │   ├── favicon.png
 │   └── thumbnails/               ← Game thumbnails (.webp)
+├── golden-glyphs/                ← Block puzzle (ES6 modules, SDK integrated)
 ├── axeluga/                      ← Space shooter (standalone game)
 ├── breakout/                     ← Breakout (multi-file ES6 modules)
 │   └── js/                       ← UI.js, Achievements.js, etc.
