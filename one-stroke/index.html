@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>One Stroke | Hamiltonian Path Puzzle</title>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#08141b" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="One Stroke" />
+    <link rel="apple-touch-icon" href="assets/icon-192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Oxanium:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;700&family=Sora:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient-blur blur-a"></div>
+    <div class="ambient-blur blur-b"></div>
+
+    <main class="app-shell">
+      <aside class="panel sidebar" id="sidebar">
+        <div class="mobile-panel-handle" aria-hidden="true"><span></span></div>
+        <header class="headline">
+          <p class="eyebrow">Hamiltonian Path Puzzle</p>
+          <h1>One Stroke</h1>
+          <p class="subtitle">
+            Besök varje spelbar nod exakt en gång i en enda sammanhängande väg.
+          </p>
+        </header>
+
+        <nav class="hub-menu" role="tablist" aria-label="Huvudmeny">
+          <button id="campaignModeBtn" type="button" class="active">Single-player</button>
+          <button id="challengeModeBtn" type="button">Multiplayer</button>
+          <button id="highScoreMenuBtn" type="button">High-score</button>
+          <button id="achievementMenuBtn" type="button">Achievement</button>
+          <button id="creditsMenuBtn" type="button">Credit</button>
+        </nav>
+
+        <div id="playSidebar" class="play-sidebar">
+          <section class="stats" aria-label="Spelstatus">
+            <article class="stat-card">
+              <span class="label">Nivå</span>
+              <strong id="levelLabel">1 / 200</strong>
+            </article>
+            <article class="stat-card">
+              <span class="label">Svårighet</span>
+              <strong id="difficultyLabel">Easy</strong>
+            </article>
+            <article class="stat-card">
+              <span class="label">Besökta</span>
+              <strong id="visitedLabel">1</strong>
+            </article>
+            <article class="stat-card stat-card-secondary">
+              <span class="label">Kvar</span>
+              <strong id="remainingLabel">0</strong>
+            </article>
+            <article class="stat-card stat-card-secondary">
+              <span class="label">Kampanj</span>
+              <strong id="campaignProgressLabel">0 klara</strong>
+            </article>
+            <article class="stat-card stat-card-secondary">
+              <span class="label">Status</span>
+              <strong id="phaseLabel">Spelar</strong>
+            </article>
+          </section>
+
+          <div id="statusBox" class="status-box" role="status" aria-live="polite">
+            Dra från startnoden till en granne. Dra bakåt för att ångra.
+          </div>
+
+          <div class="button-row">
+            <button id="undoBtn" type="button">Ångra <kbd>Z</kbd></button>
+            <button id="resetBtn" type="button">Starta om <kbd>R</kbd></button>
+            <button id="hintBtn" type="button" class="hint-btn">Hint <kbd>H</kbd></button>
+            <button id="nextBtn" type="button" class="primary">Nästa <kbd>N</kbd></button>
+          </div>
+
+          <details class="panel-inset rules-details">
+            <summary><h2>Regler</h2></summary>
+            <p>Fri slutnod. Ingen specifik målcell krävs.</p>
+            <p>Endast ortogonala steg.</p>
+            <p>Backtracking endast ett steg bakåt längs vägen (dra bakåt eller Ångra).</p>
+            <p>Hint visar nästa rekommenderade nod (utmaningsläge ger poängstraff).</p>
+          </details>
+
+          <section id="singlePlayerLevelSection" class="panel-inset">
+            <h2>Nivåer</h2>
+            <div class="level-section-actions">
+              <button id="openLevelSelectBtn" type="button" class="level-select-open-btn">
+                Full Level Select
+              </button>
+            </div>
+            <div id="levelList" class="level-list" role="list"></div>
+          </section>
+
+          <!-- ── Dagens utmaning (visas i alla gameplay-vyer) ── -->
+          <section id="dailyChallengeSection" class="panel-inset daily-challenge-panel">
+            <h2>Dagens utmaning</h2>
+            <p class="match-description">5 banor — samma för alla idag. Spela, jämför och dela ditt resultat!</p>
+            <p id="dailyDateLabel" class="daily-date-label"></p>
+            <button id="dailyChallengeBtn" type="button" class="primary daily-play-btn">Spela dagens utmaning</button>
+            <div id="dailyResultCard" class="daily-result-card" hidden>
+              <div class="daily-result-header">Dagens resultat</div>
+              <div class="daily-result-stats">
+                <article class="mini-stat">
+                  <span class="label">Poäng</span>
+                  <strong id="dailyScoreLabel">0</strong>
+                </article>
+                <article class="mini-stat">
+                  <span class="label">Tid</span>
+                  <strong id="dailyTimeLabel">--</strong>
+                </article>
+                <article class="mini-stat">
+                  <span class="label">Klara</span>
+                  <strong id="dailyCompletedLabel">0/5</strong>
+                </article>
+              </div>
+              <div class="daily-result-actions">
+                <button id="dailyShareBtn" type="button" class="primary">Dela resultat</button>
+                <button id="dailyReplayBtn" type="button">Spela igen</button>
+              </div>
+            </div>
+          </section>
+
+          <div id="multiplayerPanels">
+            <!-- ── Fas 1: Skapa match ── -->
+            <section id="matchPhaseSetup" class="panel-inset match-panel match-phase">
+              <h2>Utmana en vän</h2>
+              <p class="match-description">Välj antal banor och starta. Ni spelar samma banor — jämför poäng och tid efteråt.</p>
+
+              <div class="match-setup">
+                <div class="match-setup-row">
+                  <label class="match-label" for="matchLevelCountSelect">Banor</label>
+                  <select id="matchLevelCountSelect" aria-label="Antal banor">
+                    <option value="3">3 snabba</option>
+                    <option value="5">5 medel</option>
+                    <option value="10" selected>10 standard</option>
+                  </select>
+                </div>
+                <div class="match-setup-row">
+                  <label class="match-label" for="challengeSeedInput">Seed</label>
+                  <input
+                    id="challengeSeedInput"
+                    type="text"
+                    maxlength="64"
+                    placeholder="valfritt — lämna tomt för dagens"
+                    aria-label="Challenge seed"
+                  />
+                </div>
+              </div>
+
+              <div class="match-actions">
+                <button id="challengeGenerateBtn" type="button" class="primary">Skapa ny match</button>
+              </div>
+
+              <div class="match-divider">
+                <span>eller</span>
+              </div>
+
+              <button id="importMatchBtn" type="button" class="match-import-trigger">Har du en matchkod? Klistra in den här</button>
+            </section>
+
+            <!-- ── Fas 2: Spela ── -->
+            <section id="matchPhasePlay" class="panel-inset match-panel match-phase" hidden>
+              <div class="match-phase-header">
+                <h2>Match pågår</h2>
+                <p id="matchProgressLabel" class="match-progress-label">0 / 10 banor klara</p>
+              </div>
+              <div id="challengeList" class="challenge-list" role="list"></div>
+              <div class="challenge-totals">
+                <article class="mini-stat">
+                  <span class="label">Poäng</span>
+                  <strong id="challengeScoreLabel">0</strong>
+                </article>
+                <article class="mini-stat">
+                  <span class="label">Tid</span>
+                  <strong id="challengeTimeLabel">0:00</strong>
+                </article>
+                <article class="mini-stat">
+                  <span class="label">Klara</span>
+                  <strong id="challengeCompletedLabel">0 / 10</strong>
+                </article>
+              </div>
+              <div id="challengeSplitList" class="challenge-split-list" role="list"></div>
+              <button id="matchAbortBtn" type="button" class="match-abort-btn">Avbryt match</button>
+            </section>
+
+            <!-- ── Fas 3: Dela ── -->
+            <section id="matchPhaseShare" class="panel-inset match-panel match-phase" hidden>
+              <div class="match-phase-header">
+                <h2>Match klar!</h2>
+                <p class="match-description">Bra jobbat! Dela matchkoden med din vän så spelar hen samma banor.</p>
+              </div>
+              <div class="challenge-totals">
+                <article class="mini-stat">
+                  <span class="label">Poäng</span>
+                  <strong id="shareTotalScore">0</strong>
+                </article>
+                <article class="mini-stat">
+                  <span class="label">Tid</span>
+                  <strong id="shareTotalTime">0:00</strong>
+                </article>
+                <article class="mini-stat">
+                  <span class="label">Klara</span>
+                  <strong id="shareTotalCompleted">0 / 10</strong>
+                </article>
+              </div>
+              <button id="exportMatchBtn" type="button" class="primary match-share-btn">Kopiera challenge-länk</button>
+              <p id="matchShareConfirm" class="match-share-confirm" hidden></p>
+              <p class="match-share-hint">Skicka länken till din vän. Hen öppnar den och spelar samma banor.</p>
+              <button id="matchNewAfterShare" type="button" class="match-secondary-btn">Skapa ny match</button>
+            </section>
+
+            <!-- ── Fas 4: Resultat ── -->
+            <section id="matchPhaseResults" class="panel-inset match-panel match-phase" hidden>
+              <div class="match-phase-header">
+                <h2>Resultatjämförelse</h2>
+                <p id="matchResultStatus" class="match-progress-label"></p>
+              </div>
+              <div id="matchStandingsView" class="match-standings">
+                <h3>Ställning</h3>
+                <div id="matchStandingsList" class="match-standings-list" role="list"></div>
+                <h3>Per bana</h3>
+                <div id="matchLevelComparison" class="match-level-comparison" role="list"></div>
+              </div>
+              <button id="matchNewAfterResults" type="button" class="primary">Ny match</button>
+            </section>
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel board-panel">
+        <div id="gameplayView">
+          <div class="board-head">
+            <div>
+              <p id="boardModeLabel" class="eyebrow">Single-player · Kampanj</p>
+              <h2 id="levelName">Nivå 1</h2>
+            </div>
+            <div class="board-live-stats">
+              <span id="liveTimer" class="live-stat" aria-label="Tid">0:00</span>
+              <span id="liveMoves" class="live-stat" aria-label="Drag">0 drag</span>
+            </div>
+          </div>
+          <div class="board-stage">
+            <div class="stage-corners" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <div id="board" class="board" aria-label="Spelplan"></div>
+            <div id="countdownOverlay" class="countdown-overlay" hidden>
+              <button id="readyBtn" type="button" class="ready-btn">Redo?</button>
+              <span id="countdownNumber" class="countdown-number" hidden>3</span>
+            </div>
+            <div id="opponentDelta" class="opponent-delta" hidden></div>
+          </div>
+          <!-- Mobile-only play controls (visible below board on small screens) -->
+          <div class="mobile-play-controls">
+            <button id="undoBtnMobile" type="button">Ångra</button>
+            <button id="resetBtnMobile" type="button">Starta om</button>
+            <button id="hintBtnMobile" type="button" class="hint-btn">Hint</button>
+            <button id="nextBtnMobile" type="button" class="primary">Nästa</button>
+          </div>
+        </div>
+
+        <div id="hubInfoView" class="hub-info-view" hidden>
+          <section id="highScoreView" class="hub-pane" hidden>
+            <header class="hub-pane-head">
+              <p class="eyebrow">Historik & statistik</p>
+              <h2>High-score</h2>
+              <p>Lokalt sparade challenge-runs och dina bästa siffror.</p>
+            </header>
+            <div class="hub-mini-grid">
+              <article class="hub-mini-card">
+                <span class="label">Bästa Challenge</span>
+                <strong id="highScoreBestChallengeScore">0</strong>
+              </article>
+              <article class="hub-mini-card">
+                <span class="label">Snabbaste Challenge</span>
+                <strong id="highScoreBestChallengeTime">--</strong>
+              </article>
+              <article class="hub-mini-card">
+                <span class="label">Kampanj lösta</span>
+                <strong id="highScoreCampaignSolved">0</strong>
+              </article>
+              <article class="hub-mini-card">
+                <span class="label">Runs i historik</span>
+                <strong id="highScoreRunCount">0</strong>
+              </article>
+            </div>
+
+            <section class="hub-subpanel">
+              <h3>Kampanj per svårighet</h3>
+              <div class="difficulty-stats-wrap">
+                <table class="difficulty-stats-table" aria-label="Kampanjstatistik per svårighetsgrad">
+                  <thead>
+                    <tr>
+                      <th>Svårighet</th>
+                      <th>Klara</th>
+                      <th>Bästa tid</th>
+                      <th>Medeltid</th>
+                      <th>Win-rate</th>
+                    </tr>
+                  </thead>
+                  <tbody id="highScoreDifficultyBody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="hub-subpanel">
+              <h3>Challenge-run statistik</h3>
+              <div class="hub-mini-grid run-stats-grid">
+                <article class="hub-mini-card">
+                  <span class="label">Fulla runs</span>
+                  <strong id="highScoreRunCompletionRate">--</strong>
+                </article>
+                <article class="hub-mini-card">
+                  <span class="label">Snittpoäng / run</span>
+                  <strong id="highScoreRunAverageScore">--</strong>
+                </article>
+                <article class="hub-mini-card">
+                  <span class="label">Snitttid (full run)</span>
+                  <strong id="highScoreRunAverageTime">--</strong>
+                </article>
+                <article class="hub-mini-card">
+                  <span class="label">Snitt klara / run</span>
+                  <strong id="highScoreRunAverageCompleted">--</strong>
+                </article>
+                <article class="hub-mini-card">
+                  <span class="label">Snitt undo / run</span>
+                  <strong id="highScoreRunAverageUndo">--</strong>
+                </article>
+                <article class="hub-mini-card">
+                  <span class="label">Snitt hint / run</span>
+                  <strong id="highScoreRunAverageHint">--</strong>
+                </article>
+              </div>
+            </section>
+
+            <div id="highScoreRunList" class="hub-list" role="list"></div>
+
+            <section class="hub-subpanel run-detail-panel">
+              <h3>Run-detalj</h3>
+              <div id="highScoreRunDetail" class="run-detail-content"></div>
+            </section>
+          </section>
+
+          <section id="achievementView" class="hub-pane" hidden>
+            <header class="hub-pane-head">
+              <p class="eyebrow">Progression</p>
+              <h2>Achievement</h2>
+              <p id="achievementSummary">Lås upp milstolpar i kampanj och challenge.</p>
+            </header>
+            <div id="achievementList" class="achievement-list" role="list"></div>
+          </section>
+
+          <section id="creditsView" class="hub-pane" hidden>
+            <header class="hub-pane-head">
+              <p class="eyebrow">Team</p>
+              <h2>Credit</h2>
+              <p>Byggt med kärlek till pussel.</p>
+            </header>
+            <article class="credits-card">
+              <h3>SmartProc Games</h3>
+              <p>
+                Tack för att du spelar One Stroke. Målet är ett vasst logikspel med tydlig känsla i varje drag.
+              </p>
+            </article>
+          </section>
+        </div>
+      </section>
+
+      <!-- Mobile sidebar backdrop (inside app-shell for stacking context) -->
+      <div id="mobilePanelBackdrop" class="mobile-panel-backdrop" hidden></div>
+    </main>
+
+    <div
+      id="matchImportModal"
+      class="modal hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="matchImportTitle"
+    >
+      <div class="modal-card match-import-card">
+        <h2 id="matchImportTitle">Klistra in matchkod</h2>
+        <p>Din vän har skickat en matchkod. Klistra in den nedan.</p>
+        <textarea
+          id="matchImportTextarea"
+          class="match-import-textarea"
+          rows="4"
+          placeholder="Klistra in matchkoden här..."
+          aria-label="Matchkod"
+        ></textarea>
+        <div class="button-row">
+          <button id="matchImportCancelBtn" type="button">Avbryt</button>
+          <button id="matchImportConfirmBtn" type="button" class="primary">Starta match</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="winModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+      <div class="modal-card win-modal-card">
+        <h2 id="winTitle">Bana klar</h2>
+        <p id="winText">Snyggt. Du täckte alla noder exakt en gång.</p>
+        <div id="winSplitTable" class="win-split-table" hidden></div>
+        <div class="button-row">
+          <button id="modalResetBtn" type="button">Spela om</button>
+          <button id="modalNextBtn" type="button" class="primary">Nästa nivå</button>
+          <button id="modalCloseBtn" type="button">Stäng</button>
+        </div>
+        <button id="modalExportMatchBtn" type="button" class="primary modal-export-btn" hidden>Kopiera challenge-länk & skicka till vän</button>
+        <button id="modalShareDailyBtn" type="button" class="primary modal-share-daily-btn" hidden>Dela ditt resultat</button>
+        <p id="modalExportConfirm" class="modal-export-confirm" hidden></p>
+      </div>
+    </div>
+
+    <div
+      id="levelSelectModal"
+      class="modal hidden level-select-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="levelSelectTitle"
+    >
+      <div class="modal-card level-select-card">
+        <div class="level-select-head">
+          <h2 id="levelSelectTitle">Level Select</h2>
+          <button id="levelSelectCloseBtn" type="button">Stäng</button>
+        </div>
+        <p id="levelSelectSummary" class="level-select-summary">Laddar nivåer...</p>
+        <div class="level-select-filters">
+          <input
+            id="levelSelectSearchInput"
+            type="search"
+            placeholder="Sök nivå, namn eller ID"
+            aria-label="Sök nivå"
+          />
+          <select id="levelSelectDifficultyFilter" aria-label="Filtrera svårighet">
+            <option value="all">Alla svårigheter</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+            <option value="very-hard">Very Hard</option>
+          </select>
+          <select id="levelSelectStatusFilter" aria-label="Filtrera status">
+            <option value="all">Alla statusar</option>
+            <option value="solved">Klara</option>
+            <option value="unsolved">Oklara (upplåsta)</option>
+            <option value="unlocked">Upplåsta</option>
+            <option value="locked">Låsta</option>
+          </select>
+        </div>
+        <div id="levelSelectGrid" class="level-select-grid" role="list"></div>
+      </div>
+    </div>
+
+    <!-- Mobile bottom tab bar -->
+    <nav id="mobileTabBar" class="mobile-tab-bar" aria-label="Mobilmeny">
+      <button id="mobileTabPlay" type="button" class="mobile-tab active" data-tab="play">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        <span>Spela</span>
+      </button>
+      <button id="mobileTabMenu" type="button" class="mobile-tab" data-tab="menu">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        <span>Meny</span>
+      </button>
+      <button id="mobileTabStats" type="button" class="mobile-tab" data-tab="stats">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
+        <span>Stats</span>
+      </button>
+    </nav>
+
+    <script src="/sdk/gamevolt.js"></script>
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 // ============================================================
-// GameVolt SDK v1 — Auth, Cloud Save, Leaderboard, Achievements
+// GameVolt SDK v1 — Auth, Cloud Save, Leaderboard, Achievements, Challenges
 // Load via: <script src="/sdk/gamevolt.js"></script>
 // Usage:   if (window.GameVolt) GameVolt.init('game-slug');
 // ============================================================
@@ -510,6 +510,155 @@
   };
 
   // --------------------------------------------------------
+  // CHALLENGE module (async multiplayer)
+  // --------------------------------------------------------
+
+  var challenge = {
+    /**
+     * Create a new challenge.
+     * @param {object} opts - { seed, levelCount, config }
+     * @returns {Promise<{ id, seed, level_count }>}
+     */
+    create: function(opts) {
+      if (!currentUser || !sb) return Promise.reject('Login required to create challenges');
+      opts = opts || {};
+      var row = {
+        game_id: currentGameId,
+        created_by: currentUser.id,
+        seed: opts.seed || Date.now().toString(36),
+        level_count: opts.levelCount || 10,
+        config: opts.config || {}
+      };
+      return sb.from('challenges').insert(row).select('id, seed, level_count').single()
+        .then(function(res) {
+          if (res.error) throw res.error;
+          return res.data;
+        });
+    },
+
+    /**
+     * Get a challenge with all runs (for result comparison).
+     * @param {string} challengeId - UUID
+     * @returns {Promise<{ challenge, runs[] }>}
+     */
+    get: function(challengeId) {
+      if (!sb) return Promise.reject('Not connected');
+      return sb.rpc('get_challenge', { p_challenge_id: challengeId })
+        .then(function(res) {
+          if (res.error) throw res.error;
+          var rows = res.data || [];
+          if (rows.length === 0) return null;
+          var first = rows[0];
+          var info = {
+            id: first.challenge_id,
+            game_id: first.game_id,
+            seed: first.seed,
+            level_count: first.level_count,
+            config: first.config,
+            status: first.status,
+            created_at: first.created_at,
+            created_by: first.created_by,
+            creator_username: first.creator_username
+          };
+          var runs = [];
+          rows.forEach(function(r) {
+            if (r.run_user_id) {
+              runs.push({
+                user_id: r.run_user_id,
+                username: r.run_username,
+                avatar_url: r.run_avatar_url,
+                score: r.run_score,
+                time_ms: r.run_time_ms,
+                completed_count: r.run_completed_count,
+                total_count: r.run_total_count,
+                splits: r.run_splits,
+                stats: r.run_stats,
+                completed_at: r.run_completed_at
+              });
+            }
+          });
+          return { challenge: info, runs: runs };
+        });
+    },
+
+    /**
+     * Submit a run result for a challenge.
+     * @param {string} challengeId - UUID
+     * @param {object} result - { score, timeMs, completedCount, totalCount, splits, stats }
+     * @returns {Promise<void>}
+     */
+    submit: function(challengeId, result) {
+      if (!currentUser || !sb) return Promise.reject('Login required to submit challenge runs');
+      result = result || {};
+      var row = {
+        challenge_id: challengeId,
+        user_id: currentUser.id,
+        score: result.score || 0,
+        time_ms: result.timeMs || 0,
+        completed_count: result.completedCount || 0,
+        total_count: result.totalCount || 0,
+        splits: result.splits || [],
+        stats: result.stats || {}
+      };
+      return sb.from('challenge_runs').upsert(row, { onConflict: 'challenge_id,user_id' })
+        .then(function(res) {
+          if (res.error) throw res.error;
+        });
+    },
+
+    /**
+     * List my challenges (created + participated).
+     * @param {object} opts - { limit }
+     * @returns {Promise<array>}
+     */
+    list: function(opts) {
+      if (!currentUser || !sb) return Promise.resolve([]);
+      opts = opts || {};
+      return sb.rpc('get_my_challenges', {
+        p_user_id: currentUser.id,
+        p_game_id: currentGameId,
+        p_limit: opts.limit || 20
+      }).then(function(res) {
+        if (res.error) throw res.error;
+        return res.data || [];
+      }).catch(function() { return []; });
+    },
+
+    /**
+     * Subscribe to new runs on a challenge (realtime).
+     * Returns an unsubscribe function.
+     * @param {string} challengeId - UUID
+     * @param {function} callback - called with the new run row
+     * @returns {function} unsubscribe
+     */
+    onResult: function(challengeId, callback) {
+      if (!sb) return function() {};
+      var channel = sb.channel('challenge-' + challengeId)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'challenge_runs',
+          filter: 'challenge_id=eq.' + challengeId
+        }, function(payload) {
+          if (payload.new && typeof callback === 'function') {
+            // Enrich with username
+            sb.from('profiles').select('username, avatar_url').eq('id', payload.new.user_id).single()
+              .then(function(res) {
+                var run = payload.new;
+                if (res.data) {
+                  run.username = res.data.username;
+                  run.avatar_url = res.data.avatar_url;
+                }
+                callback(run);
+              });
+          }
+        })
+        .subscribe();
+      return function() { sb.removeChannel(channel); };
+    }
+  };
+
+  // --------------------------------------------------------
   // INIT
   // --------------------------------------------------------
 
@@ -585,6 +734,7 @@
     auth: auth,
     save: save,
     leaderboard: leaderboard,
-    achievements: achievements
+    achievements: achievements,
+    challenge: challenge
   };
 })();

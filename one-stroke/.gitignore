@@ -1,0 +1,11 @@
+.DS_Store
+
+# Local environments / caches
+.venv/
+.vite/
+node_modules/
+tools/__pycache__/
+*.pyc
+
+# Local video analysis artifacts
+tools/video_debug/

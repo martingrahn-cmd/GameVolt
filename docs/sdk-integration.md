@@ -245,6 +245,70 @@ if (window.GameVolt) {
 }
 ```
 
+## 7. Challenges (Async Multiplayer)
+
+Create seeded challenges where players compete on the same levels and compare results.
+
+### Create a challenge
+
+```js
+if (window.GameVolt) {
+  const ch = await GameVolt.challenge.create({
+    seed: "my-custom-seed",   // optional, auto-generated if omitted
+    levelCount: 10,           // number of levels
+    config: { difficulty: "mixed" }  // game-specific config (JSONB)
+  });
+  // ch = { id: "uuid", seed: "...", level_count: 10 }
+  // Share ch.id with opponent (via URL, link, etc.)
+}
+```
+
+### Get challenge + results
+
+```js
+if (window.GameVolt) {
+  const data = await GameVolt.challenge.get("challenge-uuid");
+  // data.challenge = { id, seed, level_count, config, status, creator_username, ... }
+  // data.runs = [{ user_id, username, score, time_ms, splits, stats, ... }, ...]
+}
+```
+
+### Submit a run
+
+```js
+if (window.GameVolt) {
+  await GameVolt.challenge.submit("challenge-uuid", {
+    score: 8500,
+    timeMs: 142000,
+    completedCount: 9,
+    totalCount: 10,
+    splits: [{ level: 1, time: 12300, score: 950 }, ...],
+    stats: { undos: 3, resets: 1, hints: 0 }
+  });
+}
+```
+
+### List my challenges
+
+```js
+if (window.GameVolt) {
+  const list = await GameVolt.challenge.list({ limit: 20 });
+  // [{ challenge_id, seed, my_score, opponent_username, opponent_score, ... }]
+}
+```
+
+### Listen for opponent result (realtime)
+
+```js
+if (window.GameVolt) {
+  const unsub = GameVolt.challenge.onResult("challenge-uuid", function(run) {
+    console.log(run.username + " scored " + run.score);
+    // Show notification / update UI
+  });
+  // Call unsub() to stop listening
+}
+```
+
 ## Checklist
 
 - [ ] `<script src="/sdk/gamevolt.js"></script>` before game script
@@ -255,3 +319,5 @@ if (window.GameVolt) {
 - [ ] Cloud save via `GameVolt.save.set()` / `.get()`
 - [ ] Migration config registered for localStorage → cloud transition
 - [ ] All SDK calls guarded with `if (window.GameVolt)`
+- [ ] `GameVolt.challenge.create()` / `.submit()` / `.get()` for async multiplayer
+- [ ] `GameVolt.challenge.onResult()` for realtime opponent notifications
