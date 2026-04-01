@@ -969,6 +969,10 @@ export class OneStrokeApp {
 
     if (phase === "share") {
       this.renderSharePhase();
+      // Fetch cloud results to show comparison if opponent already played
+      if (this.cloudChallengeId) {
+        this.fetchAndShowCloudResults(this.cloudChallengeId);
+      }
     }
     if (phase === "results") {
       this.renderMatchStandings();
@@ -2765,6 +2769,18 @@ export class OneStrokeApp {
         },
       }).then(() => {
         console.log("[gamevolt] challenge run submitted");
+        // Start listening for opponent results
+        const cid = this.cloudChallengeId;
+        const user = GameVolt.auth.getUser();
+        this.cloudChallengeUnsub?.();
+        this.cloudChallengeUnsub = GameVolt.challenge.onResult(cid, (run) => {
+          if (user && run.user_id !== user.id) {
+            this.setStatus(`${run.username || "Motståndare"} har spelat klart! Poäng: ${run.score}`);
+            if (this.matchPhase === "share" || this.matchPhase === "results") {
+              this.fetchAndShowCloudResults(cid);
+            }
+          }
+        });
       }).catch((e) => {
         console.warn("[gamevolt] challenge run submit failed:", e);
       });
@@ -3393,9 +3409,16 @@ export class OneStrokeApp {
       const myRun = user ? runs.find((r) => r.user_id === user.id) : null;
 
       if (myRun) {
-        // Already played — show results
+        // Already played — show results comparison
+        this.cloudChallengeId = challengeId;
+        this.setHubView("multiplayer", { syncMode: false });
+        this.state.mode = "challenge";
+        this.challenge = { seed: ch.seed, levels: matchLevels, cursor: 0, resultsByLevelId: {} };
+        this.setMatchPhase("results");
+        this.fetchAndShowCloudResults(challengeId);
+        this.renderModeButtons();
+        this.closeMobilePanel();
         this.setStatus("Du har redan spelat denna challenge. Visar resultat.");
-        // TODO: show comparison view
         return;
       }
 
@@ -3424,11 +3447,15 @@ export class OneStrokeApp {
         this.activeMatch = null;
       }
 
-      // Subscribe to opponent results
+      // Subscribe to opponent results (realtime)
       this.cloudChallengeUnsub?.();
       this.cloudChallengeUnsub = GameVolt.challenge.onResult(challengeId, (run) => {
         if (user && run.user_id !== user.id) {
           this.setStatus(`${run.username || "Motståndare"} har spelat klart! Poäng: ${run.score}`);
+          // Auto-refresh results if we're on share or results phase
+          if (this.matchPhase === "share" || this.matchPhase === "results") {
+            this.fetchAndShowCloudResults(challengeId);
+          }
         }
       });
 
@@ -3445,6 +3472,131 @@ export class OneStrokeApp {
     } catch (e) {
       console.error("[gamevolt] join challenge failed:", e);
       this.setStatus("Kunde inte ladda challenge.", "loss");
+    }
+  }
+
+  async fetchAndShowCloudResults(challengeId) {
+    if (!window.GameVolt?.challenge) return;
+
+    try {
+      const data = await GameVolt.challenge.get(challengeId);
+      if (!data || !data.runs.length) return;
+
+      this.cloudRuns = data.runs;
+      const user = GameVolt.auth.getUser();
+
+      // Render cloud results panel
+      this.renderCloudResults(data.challenge, data.runs, user);
+    } catch (e) {
+      console.warn("[gamevolt] fetch results failed:", e);
+    }
+  }
+
+  renderCloudResults(challenge, runs, currentUser) {
+    // Use the results phase panel to show cloud comparison
+    if (!this.matchStandingsListEl || !this.matchResultStatusEl) return;
+
+    const myId = currentUser?.id;
+    const sorted = [...runs].sort((a, b) => b.score - a.score);
+
+    // Show results phase
+    this.matchPhaseResultsEl.hidden = false;
+
+    // Status
+    this.matchResultStatusEl.textContent = runs.length === 1
+      ? "Väntar på motståndare..."
+      : `${runs.length} spelare har spelat`;
+
+    // Standings
+    this.matchStandingsListEl.innerHTML = "";
+    sorted.forEach((run, i) => {
+      const row = document.createElement("article");
+      row.className = "match-standing-row";
+      const isYou = run.user_id === myId;
+      if (isYou) row.classList.add("is-you");
+
+      const rank = document.createElement("span");
+      rank.className = "match-standing-rank";
+      rank.textContent = `#${i + 1}`;
+
+      const info = document.createElement("div");
+      info.className = "match-standing-info";
+
+      const name = document.createElement("div");
+      name.className = "match-standing-name";
+      name.textContent = isYou ? "Du" : (run.username || "Motståndare");
+
+      const details = document.createElement("div");
+      details.className = "match-standing-details";
+      details.textContent =
+        `${toDisplayTime(run.time_ms)} · ${run.completed_count}/${run.total_count} klara`;
+
+      info.append(name, details);
+
+      const score = document.createElement("span");
+      score.className = "match-standing-score";
+      score.textContent = `${toDisplayScore(run.score)} p`;
+
+      row.append(rank, info, score);
+      this.matchStandingsListEl.append(row);
+    });
+
+    // Per-level comparison
+    if (this.matchLevelComparisonEl && runs.length >= 2) {
+      this.matchLevelComparisonEl.innerHTML = "";
+      const mySplits = sorted.find((r) => r.user_id === myId)?.splits || [];
+      const oppRun = sorted.find((r) => r.user_id !== myId);
+      const oppSplits = oppRun?.splits || [];
+
+      const maxLen = Math.max(mySplits.length, oppSplits.length);
+      for (let i = 0; i < maxLen; i++) {
+        const mySplit = mySplits[i];
+        const oppSplit = oppSplits[i];
+
+        const row = document.createElement("article");
+        row.className = "match-level-row";
+
+        const header = document.createElement("div");
+        header.className = "match-level-header";
+        header.textContent = `${i + 1}. ${mySplit?.levelId || oppSplit?.levelId || "Bana"}`;
+
+        const playersDiv = document.createElement("div");
+        playersDiv.className = "match-level-players";
+
+        // My result
+        const myEntry = document.createElement("div");
+        myEntry.className = "match-level-entry";
+        if (mySplit) {
+          const myScore = mySplit.score || 0;
+          const oppScore = oppSplit?.score || 0;
+          if (myScore >= oppScore && myScore > 0) myEntry.classList.add("match-level-winner");
+          myEntry.innerHTML =
+            `<span class="match-entry-name">Du</span>` +
+            `<span class="match-entry-stats">${toDisplayTime(mySplit.time)} · ${toDisplayScore(myScore)} p</span>`;
+        } else {
+          myEntry.textContent = "Du: Inte spelat";
+          myEntry.classList.add("match-level-pending");
+        }
+
+        // Opponent result
+        const oppEntry = document.createElement("div");
+        oppEntry.className = "match-level-entry";
+        if (oppSplit) {
+          const myScore = mySplit?.score || 0;
+          const oppScore = oppSplit.score || 0;
+          if (oppScore > myScore) oppEntry.classList.add("match-level-winner");
+          oppEntry.innerHTML =
+            `<span class="match-entry-name">${oppRun?.username || "Motståndare"}</span>` +
+            `<span class="match-entry-stats">${toDisplayTime(oppSplit.time)} · ${toDisplayScore(oppScore)} p</span>`;
+        } else {
+          oppEntry.textContent = `${oppRun?.username || "Motståndare"}: Inte spelat`;
+          oppEntry.classList.add("match-level-pending");
+        }
+
+        playersDiv.append(myEntry, oppEntry);
+        row.append(header, playersDiv);
+        this.matchLevelComparisonEl.append(row);
+      }
     }
   }
 
