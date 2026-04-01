@@ -664,6 +664,7 @@
 
   function init(gameId) {
     currentGameId = gameId;
+    createWidget();
 
     loadSupabase().then(function() {
       if (!window.supabase) {
@@ -707,12 +708,106 @@
           });
         }
         ready = true;
+        updateWidget();
         readyCallbacks.forEach(function(fn) { fn(); });
       });
     });
   }
 
+  // --------------------------------------------------------
+  // Floating user widget (injected into every game)
+  // --------------------------------------------------------
+
+  var widget = null;
+
+  function createWidget() {
+    if (widget) return;
+    widget = document.createElement('div');
+    widget.id = 'gv-user-widget';
+    widget.innerHTML =
+      '<button class="gv-widget-btn" type="button" aria-label="Account">' +
+        '<span class="gv-widget-avatar">' +
+          '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
+        '</span>' +
+        '<span class="gv-widget-name">Sign in</span>' +
+      '</button>' +
+      '<div class="gv-widget-menu" hidden>' +
+        '<div class="gv-widget-user-info"></div>' +
+        '<button class="gv-widget-logout" type="button">Sign out</button>' +
+      '</div>';
+
+    var css = document.createElement('style');
+    css.textContent =
+      '#gv-user-widget{position:fixed;top:10px;right:10px;z-index:9998;font-family:system-ui,-apple-system,sans-serif}' +
+      '.gv-widget-btn{display:flex;align-items:center;gap:6px;padding:5px 12px 5px 6px;border-radius:20px;border:1px solid #ffffff22;background:rgba(10,10,26,0.85);color:#ccc;font-size:12px;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}' +
+      '.gv-widget-btn:hover{background:rgba(10,10,26,0.95);color:#fff;border-color:#ffffff44}' +
+      '.gv-widget-avatar{width:24px;height:24px;border-radius:50%;background:#222;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}' +
+      '.gv-widget-avatar img{width:100%;height:100%;object-fit:cover}' +
+      '.gv-widget-avatar svg{color:#666}' +
+      '.gv-widget-btn.signed-in .gv-widget-avatar svg{color:#00e5ff}' +
+      '.gv-widget-name{white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}' +
+      '.gv-widget-menu{position:absolute;top:calc(100% + 6px);right:0;background:#1a1a2e;border:1px solid #333;border-radius:10px;padding:12px;min-width:160px;box-shadow:0 8px 24px rgba(0,0,0,0.5)}' +
+      '.gv-widget-user-info{color:#ccc;font-size:12px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #333}' +
+      '.gv-widget-logout{width:100%;padding:8px;border-radius:6px;border:none;background:#ffffff11;color:#f44336;font-size:12px;cursor:pointer;transition:background .2s}' +
+      '.gv-widget-logout:hover{background:#ffffff22}';
+    document.head.appendChild(css);
+    document.body.appendChild(widget);
+
+    // Events
+    var btn = widget.querySelector('.gv-widget-btn');
+    var menu = widget.querySelector('.gv-widget-menu');
+
+    btn.onclick = function() {
+      if (!currentUser) {
+        openModal();
+      } else {
+        menu.hidden = !menu.hidden;
+      }
+    };
+
+    widget.querySelector('.gv-widget-logout').onclick = function() {
+      menu.hidden = true;
+      auth.logout();
+    };
+
+    // Close menu on outside click
+    document.addEventListener('click', function(e) {
+      if (!widget.contains(e.target)) {
+        menu.hidden = true;
+      }
+    });
+  }
+
+  function updateWidget() {
+    if (!widget) return;
+    var btn = widget.querySelector('.gv-widget-btn');
+    var avatarEl = widget.querySelector('.gv-widget-avatar');
+    var nameEl = widget.querySelector('.gv-widget-name');
+    var infoEl = widget.querySelector('.gv-widget-user-info');
+    var menu = widget.querySelector('.gv-widget-menu');
+
+    if (currentUser) {
+      var name = (userProfile && userProfile.username) || 'Player';
+      var avatarUrl = userProfile && userProfile.avatar_url;
+      nameEl.textContent = name;
+      btn.classList.add('signed-in');
+      if (avatarUrl) {
+        avatarEl.innerHTML = '<img src="' + avatarUrl + '" alt="">';
+      } else {
+        avatarEl.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      }
+      infoEl.textContent = currentUser.email || name;
+      menu.hidden = true;
+    } else {
+      nameEl.textContent = 'Sign in';
+      btn.classList.remove('signed-in');
+      avatarEl.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      menu.hidden = true;
+    }
+  }
+
   function notifyStateChange() {
+    updateWidget();
     var user = auth.getUser();
     for (var i = 0; i < stateChangeCallbacks.length; i++) {
       try { stateChangeCallbacks[i](user); } catch (e) {}
