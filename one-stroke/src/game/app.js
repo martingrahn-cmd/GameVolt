@@ -969,9 +969,15 @@ export class OneStrokeApp {
 
     if (phase === "share") {
       this.renderSharePhase();
-      // Fetch cloud results to show comparison if opponent already played
+      // Fetch cloud results after our submit has landed
       if (this.cloudChallengeId) {
-        this.fetchAndShowCloudResults(this.cloudChallengeId);
+        const cid = this.cloudChallengeId;
+        const doFetch = () => this.fetchAndShowCloudResults(cid);
+        if (this._cloudSubmitPromise) {
+          this._cloudSubmitPromise.then(doFetch, doFetch);
+        } else {
+          doFetch();
+        }
       }
     }
     if (phase === "results") {
@@ -2747,8 +2753,9 @@ export class OneStrokeApp {
     this.challengeRunMeta.saved = true;
 
     // Submit run to GameVolt cloud
+    this._cloudSubmitPromise = null;
     if (this.cloudChallengeId && window.GameVolt?.challenge && GameVolt.auth.getUser()) {
-      GameVolt.challenge.submit(this.cloudChallengeId, {
+      this._cloudSubmitPromise = GameVolt.challenge.submit(this.cloudChallengeId, {
         score: summary.totalScore,
         timeMs: summary.totalTimeMs,
         completedCount: summary.completedCount,
@@ -3502,10 +3509,17 @@ export class OneStrokeApp {
     // Show results phase
     this.matchPhaseResultsEl.hidden = false;
 
-    // Status
-    this.matchResultStatusEl.textContent = runs.length === 1
-      ? "Väntar på motståndare..."
-      : `${runs.length} spelare har spelat`;
+    // Status — check if the opponent has played, not just run count
+    const hasOpponent = runs.some((r) => r.user_id !== myId);
+    const hasMyRun = runs.some((r) => r.user_id === myId);
+
+    if (hasOpponent && hasMyRun) {
+      this.matchResultStatusEl.textContent = `${runs.length} spelare har spelat — se jämförelsen!`;
+    } else if (hasOpponent) {
+      this.matchResultStatusEl.textContent = "Motståndaren har spelat — spela du med!";
+    } else {
+      this.matchResultStatusEl.textContent = "Väntar på motståndare...";
+    }
 
     // Standings
     this.matchStandingsListEl.innerHTML = "";
