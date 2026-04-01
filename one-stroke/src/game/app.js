@@ -3157,8 +3157,12 @@ export class OneStrokeApp {
     // Prefer cloud challenge link, fall back to local match code
     let shareText;
     if (this.cloudChallengeId) {
-      const base = window.location.origin + window.location.pathname;
-      shareText = `${base}?challenge=${this.cloudChallengeId}`;
+      const origin = window.location.origin;
+      const inIframe = window.self !== window.top;
+      const base = inIframe
+        ? `${origin}/play/?game=one-stroke&`
+        : `${origin}${window.location.pathname}?`;
+      shareText = `${base}challenge=${this.cloudChallengeId}`;
     } else {
       shareText = encodeMatchCode(this.activeMatch);
     }

@@ -722,6 +722,8 @@
 
   function createWidget() {
     if (widget) return;
+    // Don't show widget inside iframe (parent page has its own login UI)
+    if (window.self !== window.top) return;
     widget = document.createElement('div');
     widget.id = 'gv-user-widget';
     widget.innerHTML =
