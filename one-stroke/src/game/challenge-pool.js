@@ -17,7 +17,7 @@ function normalizeSeed(seedInput) {
   if (raw.length > 0) {
     return raw;
   }
-  return `challenge-${new Date().toISOString().slice(0, 10)}`;
+  return `challenge-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 }
 
 function groupByDifficulty(levels) {
