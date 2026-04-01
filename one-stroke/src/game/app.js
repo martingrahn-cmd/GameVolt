@@ -2776,9 +2776,15 @@ export class OneStrokeApp {
         },
       }).then(() => {
         console.log("[gamevolt] challenge run submitted");
-        // Start listening for opponent results
         const cid = this.cloudChallengeId;
         const user = GameVolt.auth.getUser();
+
+        // Fetch results now that our run is saved
+        if (this.matchPhase === "share" || this.matchPhase === "results") {
+          this.fetchAndShowCloudResults(cid);
+        }
+
+        // Start listening for opponent results
         this.cloudChallengeUnsub?.();
         this.cloudChallengeUnsub = GameVolt.challenge.onResult(cid, (run) => {
           if (user && run.user_id !== user.id) {
