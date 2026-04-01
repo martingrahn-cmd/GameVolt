@@ -3509,12 +3509,15 @@ export class OneStrokeApp {
     // Show results phase
     this.matchPhaseResultsEl.hidden = false;
 
-    // Status — check if the opponent has played, not just run count
+    // Status — we know we just played if we're on share phase
+    const iJustPlayed = this.matchPhase === "share" || this.challengeRunMeta?.saved;
     const hasOpponent = runs.some((r) => r.user_id !== myId);
-    const hasMyRun = runs.some((r) => r.user_id === myId);
+    const hasMyRun = myId ? runs.some((r) => r.user_id === myId) : iJustPlayed;
 
-    if (hasOpponent && hasMyRun) {
+    if (runs.length >= 2 || (hasOpponent && (hasMyRun || iJustPlayed))) {
       this.matchResultStatusEl.textContent = `${runs.length} spelare har spelat — se jämförelsen!`;
+    } else if (iJustPlayed) {
+      this.matchResultStatusEl.textContent = "Ditt resultat är sparat. Väntar på motståndare...";
     } else if (hasOpponent) {
       this.matchResultStatusEl.textContent = "Motståndaren har spelat — spela du med!";
     } else {
