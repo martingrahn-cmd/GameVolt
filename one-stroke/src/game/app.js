@@ -350,7 +350,7 @@ export class OneStrokeApp {
     this.highScoreMenuBtn?.addEventListener("click", () => this.setHubView("high-score"));
     this.achievementMenuBtn?.addEventListener("click", () => this.setHubView("achievement"));
     this.creditsMenuBtn?.addEventListener("click", () => this.setHubView("credit"));
-    this.challengeGenerateBtn.addEventListener("click", () => {
+    this.challengeGenerateBtn?.addEventListener("click", () => {
       this.dailyMode = false;
       const levelCount = Number(this.matchLevelCountSelect?.value) || 10;
       this.createChallenge(this.challengeSeedInput.value.trim(), levelCount);
@@ -364,7 +364,6 @@ export class OneStrokeApp {
     this.dailyChallengeBtn?.addEventListener("click", () => this.startDailyChallenge());
     this.dailyShareBtn?.addEventListener("click", () => this.shareDailyResult());
     this.dailyShareBtn2?.addEventListener("click", () => this.shareDailyResult());
-    this.dailyReplayBtn?.addEventListener("click", () => this.startDailyChallenge());
     this.exportMatchBtn?.addEventListener("click", () => this.exportMatchCode());
     this.importMatchBtn?.addEventListener("click", () => this.openMatchImport());
     this.matchAbortBtn?.addEventListener("click", () => this.abortMatch());
