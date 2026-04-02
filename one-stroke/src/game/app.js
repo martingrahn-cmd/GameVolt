@@ -514,10 +514,6 @@ export class OneStrokeApp {
   }
 
   startDailyChallenge() {
-    if (this.hasDailyBeenPlayed()) {
-      this.setStatus("Du har redan spelat dagens utmaning. Kom tillbaka imorgon!");
-      return;
-    }
     this.dailyMode = true;
     if (this.dailyResultCard) this.dailyResultCard.hidden = true;
     this.createChallenge(this.getDailySeed(), 5);
@@ -547,15 +543,14 @@ export class OneStrokeApp {
     const playBtn = this.dailyChallengeBtn;
 
     if (played && this.dailyResultCard) {
-      // Already played today — show result, hide play button
-      if (playBtn) playBtn.hidden = true;
+      // Show previous result but keep play button visible
       this.dailyResultCard.hidden = false;
       if (this.dailyScoreLabel) this.dailyScoreLabel.textContent = toDisplayScore(played.score);
       if (this.dailyTimeLabel) this.dailyTimeLabel.textContent = toDisplayTime(played.timeMs);
       if (this.dailyCompletedLabel) this.dailyCompletedLabel.textContent = `${played.completedCount}/${played.totalCount}`;
-      if (this.dailyReplayBtn) this.dailyReplayBtn.hidden = true;
+      if (playBtn) playBtn.textContent = "Spela igen";
     } else {
-      if (playBtn) playBtn.hidden = false;
+      if (playBtn) playBtn.textContent = "Spela";
       if (this.dailyResultCard) this.dailyResultCard.hidden = true;
     }
   }
