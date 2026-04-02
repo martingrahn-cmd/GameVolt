@@ -173,7 +173,9 @@ export class OneStrokeApp {
     this.matchImportConfirmBtn = document.getElementById("matchImportConfirmBtn");
 
     // Daily challenge
-    this.dailyChallengeSectionEl = document.getElementById("dailyChallengeSection");
+    this.dailyLeaderboardListEl = document.getElementById("dailyLeaderboardList");
+    this.dailyLeaderboardShareListEl = document.getElementById("dailyLeaderboardShareList");
+    this.dailyShareBtn2 = document.getElementById("dailyShareBtn2");
     this.dailyChallengeBtn = document.getElementById("dailyChallengeBtn");
     this.dailyResultCard = document.getElementById("dailyResultCard");
     this.dailyScoreLabel = document.getElementById("dailyScoreLabel");
@@ -361,6 +363,7 @@ export class OneStrokeApp {
     });
     this.dailyChallengeBtn?.addEventListener("click", () => this.startDailyChallenge());
     this.dailyShareBtn?.addEventListener("click", () => this.shareDailyResult());
+    this.dailyShareBtn2?.addEventListener("click", () => this.shareDailyResult());
     this.dailyReplayBtn?.addEventListener("click", () => this.startDailyChallenge());
     this.exportMatchBtn?.addEventListener("click", () => this.exportMatchCode());
     this.importMatchBtn?.addEventListener("click", () => this.openMatchImport());
@@ -886,9 +889,8 @@ export class OneStrokeApp {
     }
     if (view === "single-player") {
       this.setMode("campaign");
-    } else if (view === "multiplayer") {
-      this.setMode("challenge");
     }
+    // multiplayer view no longer auto-starts — player must click "Spela"
   }
 
   renderHubPanels() {
@@ -904,9 +906,6 @@ export class OneStrokeApp {
     }
     if (this.singlePlayerLevelSectionEl) {
       this.singlePlayerLevelSectionEl.hidden = this.hubView !== "single-player";
-    }
-    if (this.dailyChallengeSectionEl) {
-      this.dailyChallengeSectionEl.hidden = !isGameplay;
     }
     if (this.multiplayerPanelsEl) {
       this.multiplayerPanelsEl.hidden = this.hubView !== "multiplayer";
@@ -969,8 +968,15 @@ export class OneStrokeApp {
 
     if (phase === "share") {
       this.renderSharePhase();
-      // Fetch cloud results after our submit has landed
-      if (this.cloudChallengeId) {
+      // Fetch daily leaderboard after our submit has landed
+      const doFetchLeaderboard = () => this.fetchDailyLeaderboard(this.dailyLeaderboardShareListEl);
+      if (this._cloudSubmitPromise) {
+        this._cloudSubmitPromise.then(doFetchLeaderboard, doFetchLeaderboard);
+      } else {
+        doFetchLeaderboard();
+      }
+      // Also fetch cloud challenge results if applicable
+      if (this.cloudChallengeId && !this.dailyMode) {
         const cid = this.cloudChallengeId;
         const doFetch = () => this.fetchAndShowCloudResults(cid);
         if (this._cloudSubmitPromise) {
@@ -979,6 +985,10 @@ export class OneStrokeApp {
           doFetch();
         }
       }
+    }
+    if (phase === "setup") {
+      this.updateDailyUI();
+      this.fetchDailyLeaderboard(this.dailyLeaderboardListEl);
     }
     if (phase === "results") {
       this.renderMatchStandings();
@@ -3485,6 +3495,55 @@ export class OneStrokeApp {
     } catch (e) {
       console.error("[gamevolt] join challenge failed:", e);
       this.setStatus("Kunde inte ladda challenge.", "loss");
+    }
+  }
+
+  async fetchDailyLeaderboard(targetEl) {
+    if (!targetEl || !window.GameVolt?.challenge) return;
+
+    try {
+      const seed = this.getDailySeed();
+      const rows = await GameVolt.challenge.getDailyLeaderboard(seed, { limit: 20 });
+      const user = GameVolt.auth.getUser();
+
+      targetEl.innerHTML = "";
+      if (rows.length === 0) {
+        targetEl.innerHTML = '<p class="daily-leaderboard-empty">Ingen har spelat ännu idag. Bli först!</p>';
+        return;
+      }
+
+      for (const row of rows) {
+        const el = document.createElement("article");
+        el.className = "match-standing-row";
+        const isYou = user && row.user_id === user.id;
+        if (isYou) el.classList.add("is-you");
+
+        const rank = document.createElement("span");
+        rank.className = "match-standing-rank";
+        rank.textContent = `#${row.rank}`;
+
+        const info = document.createElement("div");
+        info.className = "match-standing-info";
+
+        const name = document.createElement("div");
+        name.className = "match-standing-name";
+        name.textContent = isYou ? "Du" : (row.username || "Spelare");
+
+        const details = document.createElement("div");
+        details.className = "match-standing-details";
+        details.textContent = `${toDisplayTime(row.time_ms)} · ${row.completed_count}/${row.total_count} klara`;
+
+        info.append(name, details);
+
+        const score = document.createElement("span");
+        score.className = "match-standing-score";
+        score.textContent = `${toDisplayScore(row.score)} p`;
+
+        el.append(rank, info, score);
+        targetEl.append(el);
+      }
+    } catch (e) {
+      console.warn("[gamevolt] daily leaderboard fetch failed:", e);
     }
   }
 

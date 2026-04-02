@@ -655,6 +655,25 @@
         })
         .subscribe();
       return function() { sb.removeChannel(channel); };
+    },
+
+    /**
+     * Get daily leaderboard for a specific seed.
+     * @param {string} seed - e.g. "daily-2026-04-02"
+     * @param {object} opts - { limit }
+     * @returns {Promise<array>}
+     */
+    getDailyLeaderboard: function(seed, opts) {
+      if (!sb) return Promise.resolve([]);
+      opts = opts || {};
+      return sb.rpc('get_daily_leaderboard', {
+        p_game_id: currentGameId,
+        p_seed: seed,
+        p_limit: opts.limit || 50
+      }).then(function(res) {
+        if (res.error) throw res.error;
+        return res.data || [];
+      }).catch(function() { return []; });
     }
   };
 

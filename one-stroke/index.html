@@ -35,7 +35,7 @@
 
         <nav class="hub-menu" role="tablist" aria-label="Huvudmeny">
           <button id="campaignModeBtn" type="button" class="active">Single-player</button>
-          <button id="challengeModeBtn" type="button">Multiplayer</button>
+          <button id="challengeModeBtn" type="button">Daglig</button>
           <button id="highScoreMenuBtn" type="button">High-score</button>
           <button id="achievementMenuBtn" type="button">Achievement</button>
           <button id="creditsMenuBtn" type="button">Credit</button>
@@ -98,78 +98,49 @@
             <div id="levelList" class="level-list" role="list"></div>
           </section>
 
-          <!-- ── Dagens utmaning (visas i alla gameplay-vyer) ── -->
-          <section id="dailyChallengeSection" class="panel-inset daily-challenge-panel">
-            <h2>Dagens utmaning</h2>
-            <p class="match-description">5 banor — samma för alla idag. Spela, jämför och dela ditt resultat!</p>
-            <p id="dailyDateLabel" class="daily-date-label"></p>
-            <button id="dailyChallengeBtn" type="button" class="primary daily-play-btn">Spela dagens utmaning</button>
-            <div id="dailyResultCard" class="daily-result-card" hidden>
-              <div class="daily-result-header">Dagens resultat</div>
-              <div class="daily-result-stats">
-                <article class="mini-stat">
-                  <span class="label">Poäng</span>
-                  <strong id="dailyScoreLabel">0</strong>
-                </article>
-                <article class="mini-stat">
-                  <span class="label">Tid</span>
-                  <strong id="dailyTimeLabel">--</strong>
-                </article>
-                <article class="mini-stat">
-                  <span class="label">Klara</span>
-                  <strong id="dailyCompletedLabel">0/5</strong>
-                </article>
-              </div>
-              <div class="daily-result-actions">
-                <button id="dailyShareBtn" type="button" class="primary">Dela resultat</button>
-                <button id="dailyReplayBtn" type="button">Spela igen</button>
-              </div>
-            </div>
-          </section>
-
           <div id="multiplayerPanels">
-            <!-- ── Fas 1: Skapa match ── -->
-            <section id="matchPhaseSetup" class="panel-inset match-panel match-phase">
-              <h2>Utmana en vän</h2>
-              <p class="match-description">Välj antal banor och starta. Ni spelar samma banor — jämför poäng och tid efteråt.</p>
+            <!-- ── Daily Challenge: Lobby ── -->
+            <section id="matchPhaseSetup" class="panel-inset match-panel match-phase daily-challenge-panel">
+              <h2>Dagens utmaning</h2>
+              <p id="dailyDateLabel" class="daily-date-label"></p>
+              <p class="match-description">5 banor — samma för alla idag. Spela, jämför och tävla om topplistan!</p>
+              <button id="dailyChallengeBtn" type="button" class="primary daily-play-btn">Spela</button>
 
-              <div class="match-setup">
-                <div class="match-setup-row">
-                  <label class="match-label" for="matchLevelCountSelect">Banor</label>
-                  <select id="matchLevelCountSelect" aria-label="Antal banor">
-                    <option value="3">3 snabba</option>
-                    <option value="5">5 medel</option>
-                    <option value="10" selected>10 standard</option>
-                  </select>
+              <div id="dailyResultCard" class="daily-result-card" hidden>
+                <div class="daily-result-header">Ditt resultat</div>
+                <div class="daily-result-stats">
+                  <article class="mini-stat">
+                    <span class="label">Poäng</span>
+                    <strong id="dailyScoreLabel">0</strong>
+                  </article>
+                  <article class="mini-stat">
+                    <span class="label">Tid</span>
+                    <strong id="dailyTimeLabel">--</strong>
+                  </article>
+                  <article class="mini-stat">
+                    <span class="label">Klara</span>
+                    <strong id="dailyCompletedLabel">0/5</strong>
+                  </article>
                 </div>
-                <div class="match-setup-row">
-                  <label class="match-label" for="challengeSeedInput">Seed</label>
-                  <input
-                    id="challengeSeedInput"
-                    type="text"
-                    maxlength="64"
-                    placeholder="valfritt — lämna tomt för dagens"
-                    aria-label="Challenge seed"
-                  />
+                <div class="daily-result-actions">
+                  <button id="dailyShareBtn" type="button" class="primary">Dela resultat</button>
+                  <button id="dailyReplayBtn" type="button">Spela igen</button>
                 </div>
               </div>
 
-              <div class="match-actions">
-                <button id="challengeGenerateBtn" type="button" class="primary">Skapa ny match</button>
+              <div id="dailyLeaderboard" class="daily-leaderboard">
+                <h3>Dagens topplista</h3>
+                <div id="dailyLeaderboardList" class="match-standings-list" role="list">
+                  <p class="daily-leaderboard-empty">Ingen har spelat ännu idag. Bli först!</p>
+                </div>
               </div>
-
-              <div class="match-divider">
-                <span>eller</span>
-              </div>
-
-              <button id="importMatchBtn" type="button" class="match-import-trigger">Har du en matchkod? Klistra in den här</button>
             </section>
 
             <!-- ── Fas 2: Spela ── -->
             <section id="matchPhasePlay" class="panel-inset match-panel match-phase" hidden>
               <div class="match-phase-header">
-                <h2>Match pågår</h2>
-                <p id="matchProgressLabel" class="match-progress-label">0 / 10 banor klara</p>
+                <h2>Dagens utmaning</h2>
+                <p id="matchProgressLabel" class="match-progress-label">0 / 5 banor klara</p>
               </div>
               <div id="challengeList" class="challenge-list" role="list"></div>
               <div class="challenge-totals">
@@ -183,18 +154,18 @@
                 </article>
                 <article class="mini-stat">
                   <span class="label">Klara</span>
-                  <strong id="challengeCompletedLabel">0 / 10</strong>
+                  <strong id="challengeCompletedLabel">0 / 5</strong>
                 </article>
               </div>
               <div id="challengeSplitList" class="challenge-split-list" role="list"></div>
-              <button id="matchAbortBtn" type="button" class="match-abort-btn">Avbryt match</button>
+              <button id="matchAbortBtn" type="button" class="match-abort-btn">Avbryt</button>
             </section>
 
-            <!-- ── Fas 3: Dela ── -->
+            <!-- ── Fas 3: Resultat ── -->
             <section id="matchPhaseShare" class="panel-inset match-panel match-phase" hidden>
               <div class="match-phase-header">
-                <h2>Match klar!</h2>
-                <p class="match-description">Bra jobbat! Dela matchkoden med din vän så spelar hen samma banor.</p>
+                <h2>Bra jobbat!</h2>
+                <p class="match-description">Ditt resultat är sparat. Se hur du ligger till!</p>
               </div>
               <div class="challenge-totals">
                 <article class="mini-stat">
@@ -207,16 +178,21 @@
                 </article>
                 <article class="mini-stat">
                   <span class="label">Klara</span>
-                  <strong id="shareTotalCompleted">0 / 10</strong>
+                  <strong id="shareTotalCompleted">0 / 5</strong>
                 </article>
               </div>
-              <button id="exportMatchBtn" type="button" class="primary match-share-btn">Kopiera challenge-länk</button>
+              <button id="dailyShareBtn2" type="button" class="primary match-share-btn">Dela resultat</button>
               <p id="matchShareConfirm" class="match-share-confirm" hidden></p>
-              <p class="match-share-hint">Skicka länken till din vän. Hen öppnar den och spelar samma banor.</p>
-              <button id="matchNewAfterShare" type="button" class="match-secondary-btn">Skapa ny match</button>
+
+              <div id="dailyLeaderboardShare" class="daily-leaderboard">
+                <h3>Dagens topplista</h3>
+                <div id="dailyLeaderboardShareList" class="match-standings-list" role="list"></div>
+              </div>
+
+              <button id="matchNewAfterShare" type="button" class="match-secondary-btn">Tillbaka</button>
             </section>
 
-            <!-- ── Fas 4: Resultat ── -->
+            <!-- ── Fas 4: Resultatjämförelse (cloud challenges) ── -->
             <section id="matchPhaseResults" class="panel-inset match-panel match-phase" hidden>
               <div class="match-phase-header">
                 <h2>Resultatjämförelse</h2>
@@ -228,9 +204,13 @@
                 <h3>Per bana</h3>
                 <div id="matchLevelComparison" class="match-level-comparison" role="list"></div>
               </div>
-              <button id="matchNewAfterResults" type="button" class="primary">Ny match</button>
+              <button id="matchNewAfterResults" type="button" class="primary">Tillbaka</button>
             </section>
           </div>
+
+          <!-- Hidden elements kept for JS compatibility -->
+          <input id="challengeSeedInput" type="hidden" />
+          <select id="matchLevelCountSelect" hidden><option value="5" selected>5</option></select>
         </div>
       </aside>
 
