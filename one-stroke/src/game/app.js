@@ -489,7 +489,36 @@ export class OneStrokeApp {
     return `daily-${todaySeed()}`;
   }
 
+  hasDailyBeenPlayed() {
+    const key = `daily-played-${todaySeed()}`;
+    try { return localStorage.getItem(key) !== null; } catch { return false; }
+  }
+
+  markDailyAsPlayed(summary) {
+    const key = `daily-played-${todaySeed()}`;
+    try {
+      localStorage.setItem(key, JSON.stringify({
+        score: summary.totalScore,
+        timeMs: summary.totalTimeMs,
+        completedCount: summary.completedCount,
+        totalCount: summary.totalLevels,
+      }));
+    } catch {}
+  }
+
+  getDailyPlayedResult() {
+    const key = `daily-played-${todaySeed()}`;
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
   startDailyChallenge() {
+    if (this.hasDailyBeenPlayed()) {
+      this.setStatus("Du har redan spelat dagens utmaning. Kom tillbaka imorgon!");
+      return;
+    }
     this.dailyMode = true;
     if (this.dailyResultCard) this.dailyResultCard.hidden = true;
     this.createChallenge(this.getDailySeed(), 5);
@@ -511,6 +540,24 @@ export class OneStrokeApp {
         month: "long",
         day: "numeric",
       }).format(today);
+    }
+  }
+
+  updateDailyLobbyState() {
+    const played = this.getDailyPlayedResult();
+    const playBtn = this.dailyChallengeBtn;
+
+    if (played && this.dailyResultCard) {
+      // Already played today — show result, hide play button
+      if (playBtn) playBtn.hidden = true;
+      this.dailyResultCard.hidden = false;
+      if (this.dailyScoreLabel) this.dailyScoreLabel.textContent = toDisplayScore(played.score);
+      if (this.dailyTimeLabel) this.dailyTimeLabel.textContent = toDisplayTime(played.timeMs);
+      if (this.dailyCompletedLabel) this.dailyCompletedLabel.textContent = `${played.completedCount}/${played.totalCount}`;
+      if (this.dailyReplayBtn) this.dailyReplayBtn.hidden = true;
+    } else {
+      if (playBtn) playBtn.hidden = false;
+      if (this.dailyResultCard) this.dailyResultCard.hidden = true;
     }
   }
 
@@ -988,6 +1035,7 @@ export class OneStrokeApp {
     }
     if (phase === "setup") {
       this.updateDailyUI();
+      this.updateDailyLobbyState();
       this.fetchDailyLeaderboard(this.dailyLeaderboardListEl);
     }
     if (phase === "results") {
@@ -2811,6 +2859,7 @@ export class OneStrokeApp {
 
     this.renderHubPanels();
     if (this.dailyMode) {
+      this.markDailyAsPlayed(summary);
       this.showDailyResult();
     }
   }
