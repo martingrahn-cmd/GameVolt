@@ -3575,7 +3575,7 @@ export class OneStrokeApp {
 
         const name = document.createElement("div");
         name.className = "match-standing-name";
-        name.textContent = isYou ? "Du" : (row.username || "Spelare");
+        name.textContent = row.username || "Spelare";
 
         const details = document.createElement("div");
         details.className = "match-standing-details";
@@ -3855,8 +3855,11 @@ export class OneStrokeApp {
 
   showReadyOverlay() {
     this.state.status = "waiting";
+    // Reset timer display to 0:00 while waiting
+    if (this.liveTimerEl) this.liveTimerEl.textContent = "0:00";
     if (!this.countdownOverlayEl) {
       // No overlay — start immediately
+      this.levelAttempt.startedAtMs = Date.now();
       this.startLiveTimer();
       return;
     }
