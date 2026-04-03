@@ -344,7 +344,6 @@ export class OneStrokeApp {
       this.setHubView("single-player");
     });
     this.challengeModeBtn.addEventListener("click", () => {
-      this.closeMobilePanel();
       this.setHubView("multiplayer");
     });
     this.highScoreMenuBtn?.addEventListener("click", () => this.setHubView("high-score"));
