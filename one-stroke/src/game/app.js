@@ -501,7 +501,37 @@ export class OneStrokeApp {
         completedCount: summary.completedCount,
         totalCount: summary.totalLevels,
       }));
+      this.updateStreak();
     } catch {}
+  }
+
+  getDateString(daysAgo = 0) {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return d.toISOString().slice(0, 10);
+  }
+
+  updateStreak() {
+    // Count consecutive days played backwards from today
+    let streak = 0;
+    for (let i = 0; i < 365; i++) {
+      const key = `daily-played-${this.getDateString(i)}`;
+      try {
+        if (localStorage.getItem(key) !== null) {
+          streak++;
+        } else {
+          break;
+        }
+      } catch { break; }
+    }
+    try { localStorage.setItem("daily-streak", String(streak)); } catch {}
+    return streak;
+  }
+
+  getStreak() {
+    // Quick read — recalculate if today not played yet
+    const streak = this.updateStreak();
+    return streak;
   }
 
   getDailyPlayedResult() {
@@ -542,7 +572,6 @@ export class OneStrokeApp {
     const playBtn = this.dailyChallengeBtn;
 
     if (played && this.dailyResultCard) {
-      // Show previous result but keep play button visible
       this.dailyResultCard.hidden = false;
       if (this.dailyScoreLabel) this.dailyScoreLabel.textContent = toDisplayScore(played.score);
       if (this.dailyTimeLabel) this.dailyTimeLabel.textContent = toDisplayTime(played.timeMs);
@@ -551,6 +580,19 @@ export class OneStrokeApp {
     } else {
       if (playBtn) playBtn.textContent = "Spela";
       if (this.dailyResultCard) this.dailyResultCard.hidden = true;
+    }
+
+    // Streak badge
+    const streak = this.getStreak();
+    const badge = document.getElementById("dailyStreakBadge");
+    const countEl = document.getElementById("dailyStreakCount");
+    if (badge && countEl) {
+      if (streak >= 2) {
+        countEl.textContent = streak;
+        badge.hidden = false;
+      } else {
+        badge.hidden = true;
+      }
     }
   }
 
