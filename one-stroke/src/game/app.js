@@ -1583,6 +1583,7 @@ export class OneStrokeApp {
     }));
 
     let hasNewUnlock = false;
+    const newlyUnlocked = [];
     const results = dynamicResults.map((result) => {
       if (result.tier === "platinum") {
         return result;
@@ -1592,6 +1593,7 @@ export class OneStrokeApp {
       if (unlocked && !persistedUnlocked) {
         this.achievementUnlocks[result.id] = true;
         hasNewUnlock = true;
+        newlyUnlocked.push(result);
       }
       return {
         ...result,
@@ -1611,6 +1613,7 @@ export class OneStrokeApp {
       if (platinumUnlocked && !persistedPlatinum) {
         this.achievementUnlocks[platinumId] = true;
         hasNewUnlock = true;
+        newlyUnlocked.push(results[platinumIndex]);
       }
       results[platinumIndex] = {
         ...results[platinumIndex],
@@ -1620,6 +1623,12 @@ export class OneStrokeApp {
 
     if (hasNewUnlock) {
       saveAchievementUnlocks(this.achievementUnlocks);
+      // Sync to GameVolt cloud
+      if (window.GameVolt?.achievements) {
+        for (const trophy of newlyUnlocked) {
+          GameVolt.achievements.unlock(trophy.id);
+        }
+      }
     }
     return results;
   }
