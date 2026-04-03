@@ -2831,21 +2831,23 @@ export class OneStrokeApp {
         const cid = this.cloudChallengeId;
         const user = GameVolt.auth.getUser();
 
-        // Fetch results now that our run is saved
-        if (this.matchPhase === "share" || this.matchPhase === "results") {
+        // Fetch results now that our run is saved (skip for daily — has its own leaderboard)
+        if (!this.dailyMode && (this.matchPhase === "share" || this.matchPhase === "results")) {
           this.fetchAndShowCloudResults(cid);
         }
 
-        // Start listening for opponent results
-        this.cloudChallengeUnsub?.();
-        this.cloudChallengeUnsub = GameVolt.challenge.onResult(cid, (run) => {
-          if (user && run.user_id !== user.id) {
-            this.setStatus(`${run.username || "Motståndare"} har spelat klart! Poäng: ${run.score}`);
-            if (this.matchPhase === "share" || this.matchPhase === "results") {
-              this.fetchAndShowCloudResults(cid);
+        // Listen for opponent results (1v1 challenges only, not daily)
+        if (!this.dailyMode) {
+          this.cloudChallengeUnsub?.();
+          this.cloudChallengeUnsub = GameVolt.challenge.onResult(cid, (run) => {
+            if (user && run.user_id !== user.id) {
+              this.setStatus(`${run.username || "Motståndare"} har spelat klart! Poäng: ${run.score}`);
+              if (this.matchPhase === "share" || this.matchPhase === "results") {
+                this.fetchAndShowCloudResults(cid);
+              }
             }
-          }
-        });
+          });
+        }
       }).catch((e) => {
         console.warn("[gamevolt] challenge run submit failed:", e);
       });
@@ -3649,7 +3651,7 @@ export class OneStrokeApp {
 
       const name = document.createElement("div");
       name.className = "match-standing-name";
-      name.textContent = isYou ? "Du" : (run.username || "Motståndare");
+      name.textContent = run.username || "Spelare";
 
       const details = document.createElement("div");
       details.className = "match-standing-details";
@@ -3770,7 +3772,7 @@ export class OneStrokeApp {
 
       const name = document.createElement("div");
       name.className = "match-standing-name";
-      name.textContent = isYou ? "Du" : entry.playerId;
+      name.textContent = entry.playerId;
 
       const details = document.createElement("div");
       details.className = "match-standing-details";
@@ -3818,7 +3820,7 @@ export class OneStrokeApp {
         const entry = document.createElement("div");
         entry.className = "match-level-entry";
         const isYou = result.playerId === LOCAL_PLAYER_ID;
-        const displayName = isYou ? "Du" : result.playerId;
+        const displayName = result.playerId;
 
         if (result.durationMs !== null) {
           const isWinner = result.score === bestScore && bestScore > 0;
