@@ -2,56 +2,63 @@
 
 Alla noterbara ändringar i projektet.
 
-## [Unreleased]
+## [2026-04-03]
 
 ### Added
-- **Fixed endpoint mode**: medium/hard/very-hard banor kräver att vägen slutar på en specifik målnod markerad med "E". 105 av 200 banor har fast slutpunkt (alla very-hard).
-- **Inside-out path-profil**: ny genereringsprofil som tvingar centrumstart och straffar perimeter-hogging, för mer variation i lösningsstrategier.
-- Visuell markör för målnod (guld "E" med warm glow) distinkt från startnod (blå "S").
-- Hint-system v1 med hint-knapp och tangentbordsstöd (`H`).
-- Visuell hint-markering av rekommenderad nästa nod på spelplanen.
-- Komplett level select modal med sök, svårighetsfilter och statusfilter.
-- Drag-back undo: spelaren kan dra till föregående nod för snabb ångring.
-- Lokal challenge-run historik i `localStorage` (senaste 20 runs).
-- Trophy-system med 31 achievements: 15 brons, 10 silver, 5 guld, 1 platinum.
-- Global high-score statistik: tabell per svårighetsgrad (best time, medeltid, win-rate) och challenge-run snittkort.
-- Detaljerad run-resultatvy i High-score med valbar run, PB-jämförelse och split-list.
-- Standardiserat challenge-summary schema v1 för export (JSON) och delning (text).
-- Hint-knapp i fail-statusen (ångra + visa hint i ett steg).
+- **Daily Challenge**: Nytt primärt multiplayer-läge. 5 banor per dag, samma seed för alla.
+- **Daglig topplista**: Supabase-backad leaderboard med bästa poäng per spelare per dag.
+- **GameVolt SDK integration**: Auth, cloud save, achievements, leaderboards och ny challenge-modul.
+- **Login-widget**: Diskret floating pill i SDK:t — alla spel får den automatiskt. Döljs i iframe.
+- **Iframe-stöd**: Spelet fungerar i GameVolt's `/play/` wrapper med challenge-param forwarding.
+- **PWA**: Service worker, manifest, offline-stöd, installérbar på hemskärmen.
+- **Cloud challenge-system**: Skapa challenge → dela UUID-länk → motståndaren spelar → resultatjämförelse.
+- **Realtime resultat**: Supabase Realtime notifierar när motståndaren spelat klart (1v1).
 
 ### Changed
-- Challenge-score tar nu hänsyn till antal hints (poängstraff per hint).
-- Challenge-splits visar nu `H`-antal tillsammans med undo/reset.
-- Undo/reset-straff i challenge-score är nu centraliserade som konstanter i kodbasen.
-- Drag-back visar nu också lokal straff-feedback direkt på spelplanen (flytande `+2,5s` vid noden).
-- Ny huvudmeny/hub med separata vyer: Single-player, Multiplayer, High-score, Achievement och Credit.
-- Achievement-vyn visar nu trophy-fördelning per tier och markerar status per trophy.
-- High-score-vyn visar nu fler aggregerade nyckeltal för challenge-historik.
-- High-score run-list är nu interaktiv med markerad vald run och tangentbordsstöd.
-- Copy summary och JSON-export bygger nu på samma payload-builder.
-- Fail-feedback visar nu progress (besökta/totala noder, procent).
-- Reset-feedback visar nu antal noder kvar.
+- Multiplayer-vyn ersatt med clean Daily Challenge lobby (bort med seed-fält, matchkod, dropdown).
+- "Multiplayer"-tab omdöpt till "Daglig".
+- Mobil: tab-meny stänger inte panelen vid "Daglig" — visar lobbyn först.
+- Challenge-länk genereras som URL (`?challenge=UUID`) istället för Base64-matchkod.
+- Topplistan visar riktiga användarnamn (inte "Du").
+
+### Fixed
+- Timer startar inte förrän spelaren trycker "Redo".
+- Upsert-stöd för challenge_runs (UPDATE RLS-policy).
+
+## [2026-03-28]
+
+### Added
+- **Fixed endpoint mode**: 105/200 banor har fast slutpunkt (guld "E").
+- **Inside-out path-profil**: centrumstart, straffar perimeter-hogging.
+- Hint-system v1 med hint-knapp och tangentbordsstöd (H).
+- Komplett level select med sök, svårighetsfilter och statusfilter.
+- Drag-back undo med lokal straff-feedback (+2,5s).
+- Challenge-run historik (senaste 20 runs).
+- Trophy-system: 31 achievements i 4 tiers.
+- Global high-score statistik per svårighetsgrad.
+- Detaljerad run-resultatvy med PB-jämförelse.
+- Standardiserat challenge-summary schema v1.
+
+### Changed
+- Ny huvudmeny med Single-player, Multiplayer, High-score, Achievement, Credit.
+- Challenge-score tar hänsyn till hints, undo och reset.
+- Fail/reset-feedback visar progress.
 
 ### Refactored
-- Level format version bumped 2 → 3 (stöd för `endMode: "fixed"` och `end` coordinate).
-- Kampanjbanor regenererade med seed v2 för att inkludera inside-out och fixed endpoint.
-- Bröt ut `trophies.js` (trophy-katalog och tier-metadata) ur app.js.
-- Bröt ut `formatting.js` (12 visningsfunktioner) ur app.js.
-- Uppdaterad README med fullständig projektstruktur, arkitekturbeskrivning och QA-kommandon.
-- Uppdaterad TODO med P1-status och ny P3 (gameplay-variation).
+- Level format v2 → v3 (endMode + end coordinate).
+- Bröt ut `trophies.js` och `formatting.js` från app.js.
 
 ## [2026-03-19]
 
 ### Added
-- Modulär kodstruktur i `src/` med separata lager för core, data och game.
-- Kampanj med 200 banor och svårighetsbanden `easy`, `medium`, `hard`, `very-hard`.
-- Seedad Challenge Mix med 10 banor ur blandad svårighets-pool.
-- Challenge-resultatvy med split-tider, totalpoäng och exportbar sammanfattning.
+- Modulär kodstruktur i `src/` med core, data och game.
+- Kampanj med 200 banor i 4 svårighetsband.
+- Seedad Challenge Mix (3/5/10 banor).
+- Challenge-resultatvy med splits och export.
 
 ### Changed
-- Visuell riktning uppdaterad till Circuit Atelier (typografi, energi, spelkänsla).
-- Tidig progression rebalanserad (fr.a. nivå 3 och 4).
-- Spelplanens visuella signaler harmoniserade (rundad formspråkslinje i UI).
+- Visuell riktning: Circuit Atelier.
+- Progression rebalanserad (nivå 3–4).
 
 ### Fixed
-- Nivå 4 verifierad lösningsbar och startinstruktioner förtydligade.
+- Nivå 4 verifierad lösningsbar.

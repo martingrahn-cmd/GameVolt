@@ -2,49 +2,31 @@
 
 ## Fokus just nu
 
-1. Bygga om multiplayer-vyn till Daily Challenge som primärt läge.
-2. Topplista och statistik kring daily challenges.
+1. UX-polish på daglig challenge (mobil + desktop).
+2. Överväga anonym auth för oinloggade spelare.
 
-## Senast klart (2026-04-01)
+## Senast klart (2026-04-03)
 
-- **GameVolt SDK-integration**: Supabase-backade challenges, cloud save, login-widget.
-- **Async multiplayer**: Skapa challenge → dela länk → motståndare spelar → resultatjämförelse (realtime).
-- **Iframe-stöd**: Spelet fungerar i GameVolt's /play/ wrapper med challenge-param forwarding.
+- **Daily Challenge som primärt multiplayer-läge**: Ersatte seed/matchkod-setup med en clean lobby — 5 banor per dag, samma för alla, topplista.
+- **Daglig topplista**: Supabase RPC (`get_daily_leaderboard`) visar bästa poäng per spelare.
+- **Ett försök per dag** (förbered, avaktiverat under utveckling).
+- **Login-widget i SDK**: Alla GameVolt-spel får diskret floating login-pill automatiskt. Döljs i iframe.
+- **Iframe-stöd**: Challenge-param vidarebefordras genom GameVolt's `/play/` wrapper.
+- **GameVolt SDK challenge-modul**: create, get, submit, list, onResult, getDailyLeaderboard.
 - **PWA**: Service worker, offline-stöd, installérbar app.
-- **Login-widget**: Diskret floating pill i SDK:t (alla spel får den gratis).
+- **Resultatjämförelse**: Cloud-baserad jämförelse vid 1v1-challenges (realtime).
 
-## Nästa steg: Daily Challenge redesign
+## Nästa steg
 
-### Problemet
-- Multiplayer-knappen startar spelet direkt på mobil innan man hunnit välja
-- "Utmana en vän" skapar massor av orphan-challenges som ingen joinar
-- För många val: daily / utmana vän / matchkod / seed — rörigt
-
-### Lösning
-Ersätt nuvarande multiplayer-vy med **en enda ingång: Daglig Challenge**:
-
-- **5 fasta banor per dag**, samma seed för alla (`daily-YYYY-MM-DD`)
-- **Spela → se resultat → jämför med alla** den dagen
-- Ingen seed-hantering, inget att dela manuellt
-
-### Topplista-idéer
-- Dagens resultat (alla som spelat idag, sorterat på poäng)
-- Flest vinster (mest 1:a-platser totalt)
-- Längsta streak (dagar i rad man spelat)
-- Snabbaste snittid
-- Månadens bästa
-
-### "Utmana en vän"
-Finns kvar som sekundär feature men inte i fokus. Kan gömmas bakom en "Mer"-knapp.
-
-## Övrigt att fixa
-
-- Dropdown (3/5/10 banor) behöver tydligare visuell indikator
-- Web Share API för iOS share sheet
-- Synka One Stroke-repot (GameVolt-kopian är source of truth just nu)
+- Streak-tracker (dagar i rad man spelat daily).
+- Topplista-varianter: flest vinster, månadens bästa, snabbaste snittid.
+- Web Share API för iOS share sheet.
+- Anonym auth (Supabase) så oinloggade syns på topplistan med genererat handle.
 
 ## Parkerat
 
-- Icke-rektangulära banformer
-- Waypoints / envägspilar
-- Release-rutin och CI
+- Icke-rektangulära banformer (T, L, kors).
+- Waypoints / envägspilar.
+- Ljud & haptics.
+- Puzzle editor.
+- Release-rutin och CI.
