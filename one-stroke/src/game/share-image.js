@@ -170,17 +170,32 @@ export async function shareResult(canvas, { date }) {
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
   const file = new File([blob], `one-stroke-daily-${date}.png`, { type: "image/png" });
 
-  // Try Web Share API (mobile)
+  // Try Web Share API (mobile + desktop where supported)
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({
         title: "One Stroke — Dagens utmaning",
-        text: `Jag klarade dagens utmaning i One Stroke! Kan du slå mig?`,
+        text: `Jag fick ${date ? "" : ""}dagens poäng i One Stroke! Kan du slå mig?\nhttps://gamevolt.io/one-stroke/`,
         files: [file],
+        url: "https://gamevolt.io/one-stroke/",
       });
       return "shared";
     } catch {
       // User cancelled or error — fall through to download
+    }
+  }
+
+  // Try text-only share if file sharing not supported
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: "One Stroke — Dagens utmaning",
+        text: `Jag fick dagens poäng i One Stroke! Kan du slå mig?`,
+        url: "https://gamevolt.io/one-stroke/",
+      });
+      return "shared";
+    } catch {
+      // Fall through to download
     }
   }
 
