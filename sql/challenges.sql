@@ -51,11 +51,13 @@ CREATE POLICY "challenges_select" ON challenges FOR SELECT USING (true);
 CREATE POLICY "challenges_insert" ON challenges FOR INSERT WITH CHECK (auth.uid() = created_by);
 CREATE POLICY "challenges_update" ON challenges FOR UPDATE USING (auth.uid() = created_by);
 
--- challenge_runs: public read (so opponent can see result), own insert
+-- challenge_runs: public read (so opponent can see result), own insert/update
 DROP POLICY IF EXISTS "challenge_runs_select" ON challenge_runs;
 DROP POLICY IF EXISTS "challenge_runs_insert" ON challenge_runs;
+DROP POLICY IF EXISTS "challenge_runs_update" ON challenge_runs;
 CREATE POLICY "challenge_runs_select" ON challenge_runs FOR SELECT USING (true);
 CREATE POLICY "challenge_runs_insert" ON challenge_runs FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "challenge_runs_update" ON challenge_runs FOR UPDATE USING (auth.uid() = user_id);
 
 -- ============================================================
 -- Get challenge with all runs (for result comparison)
