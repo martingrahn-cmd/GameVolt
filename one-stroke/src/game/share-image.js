@@ -175,7 +175,7 @@ export async function shareResult(canvas, { date }) {
     try {
       await navigator.share({
         title: "One Stroke — Dagens utmaning",
-        text: `Jag fick ${date ? "" : ""}dagens poäng i One Stroke! Kan du slå mig?\nhttps://gamevolt.io/one-stroke/`,
+        text: "Jag fick dagens poäng i One Stroke! Kan du slå mig?",
         files: [file],
         url: "https://gamevolt.io/one-stroke/",
       });
