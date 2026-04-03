@@ -346,9 +346,18 @@ export class OneStrokeApp {
     this.challengeModeBtn.addEventListener("click", () => {
       this.setHubView("multiplayer");
     });
-    this.highScoreMenuBtn?.addEventListener("click", () => this.setHubView("high-score"));
-    this.achievementMenuBtn?.addEventListener("click", () => this.setHubView("achievement"));
-    this.creditsMenuBtn?.addEventListener("click", () => this.setHubView("credit"));
+    this.highScoreMenuBtn?.addEventListener("click", () => {
+      this.closeMobilePanel();
+      this.setHubView("high-score");
+    });
+    this.achievementMenuBtn?.addEventListener("click", () => {
+      this.closeMobilePanel();
+      this.setHubView("achievement");
+    });
+    this.creditsMenuBtn?.addEventListener("click", () => {
+      this.closeMobilePanel();
+      this.setHubView("credit");
+    });
     this.challengeGenerateBtn?.addEventListener("click", () => {
       this.dailyMode = false;
       const levelCount = Number(this.matchLevelCountSelect?.value) || 10;
