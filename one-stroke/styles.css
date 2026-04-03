@@ -873,12 +873,30 @@ details.rules-details summary h2 {
   background: #2f5668cc;
 }
 
+.achievement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.achievement-status {
+  font-size: 0.9rem;
+}
+
 .achievement-name {
   margin-top: 7px;
   font-size: 0.79rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   color: #deeffa;
+}
+
+.achievement-item.locked .achievement-name {
+  color: #6a7a88;
+}
+
+.achievement-item.locked {
+  opacity: 0.55;
 }
 
 .achievement-meta {

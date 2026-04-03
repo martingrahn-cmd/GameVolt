@@ -1670,20 +1670,30 @@ export class OneStrokeApp {
       const card = document.createElement("article");
       card.className = `achievement-item tier-${result.tier}`;
       card.classList.toggle("unlocked", result.unlocked);
+      card.classList.toggle("locked", !result.unlocked);
+
+      const header = document.createElement("div");
+      header.className = "achievement-header";
 
       const tier = document.createElement("span");
       tier.className = "achievement-tier";
       tier.textContent = TROPHY_TIER_META[result.tier].label;
 
+      const status = document.createElement("span");
+      status.className = "achievement-status";
+      status.textContent = result.unlocked ? "\u2705" : "\uD83D\uDD12";
+
+      header.append(tier, status);
+
       const name = document.createElement("div");
       name.className = "achievement-name";
-      name.textContent = result.name;
+      name.textContent = result.unlocked ? result.name : "???";
 
       const meta = document.createElement("div");
       meta.className = "achievement-meta";
-      meta.textContent = `${result.description} · ${result.unlocked ? "Klar" : "Låst"}`;
+      meta.textContent = result.description;
 
-      card.append(tier, name, meta);
+      card.append(header, name, meta);
       this.achievementListEl.append(card);
     });
   }
