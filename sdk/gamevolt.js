@@ -678,6 +678,155 @@
   };
 
   // --------------------------------------------------------
+  // UI module — achievement toast with Crystal sound
+  // --------------------------------------------------------
+
+  var toastQueue = [];
+  var toastActive = false;
+  var toastEl = null;
+  var audioCtx = null;
+
+  function getAudioCtx() {
+    if (!audioCtx) {
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      catch (e) { return null; }
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function crystalBell(freq, time, dur, vol, dest) {
+    var c = audioCtx;
+    // Fundamental
+    var o1 = c.createOscillator(); o1.type = 'sine'; o1.frequency.value = freq;
+    var g1 = c.createGain();
+    g1.gain.setValueAtTime(0, time);
+    g1.gain.linearRampToValueAtTime(vol, time + 0.005);
+    g1.gain.exponentialRampToValueAtTime(0.001, time + dur);
+    o1.connect(g1); g1.connect(dest);
+    o1.start(time); o1.stop(time + dur + 0.05);
+    // Overtone (3x — octave + fifth)
+    var o2 = c.createOscillator(); o2.type = 'sine'; o2.frequency.value = freq * 3;
+    var g2 = c.createGain();
+    g2.gain.setValueAtTime(0, time);
+    g2.gain.linearRampToValueAtTime(vol * 0.15, time + 0.003);
+    g2.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.5);
+    o2.connect(g2); g2.connect(dest);
+    o2.start(time); o2.stop(time + dur * 0.5 + 0.05);
+    // Shimmer overtone (5x)
+    var o3 = c.createOscillator(); o3.type = 'sine'; o3.frequency.value = freq * 5;
+    o3.detune.value = 7;
+    var g3 = c.createGain();
+    g3.gain.setValueAtTime(0, time);
+    g3.gain.linearRampToValueAtTime(vol * 0.06, time + 0.003);
+    g3.gain.exponentialRampToValueAtTime(0.001, time + dur * 0.3);
+    o3.connect(g3); g3.connect(dest);
+    o3.start(time); o3.stop(time + dur * 0.3 + 0.05);
+  }
+
+  function playCrystalSound(tier) {
+    var c = getAudioCtx();
+    if (!c) return;
+    var dest = c.destination;
+    var now = c.currentTime;
+
+    if (tier === 'bronze') {
+      crystalBell(880, now, 0.5, 0.2, dest);
+      crystalBell(1320, now + 0.08, 0.4, 0.12, dest);
+    } else if (tier === 'silver') {
+      crystalBell(784, now, 0.5, 0.18, dest);
+      crystalBell(988, now + 0.1, 0.5, 0.18, dest);
+      crystalBell(1318, now + 0.2, 0.45, 0.14, dest);
+    } else if (tier === 'gold') {
+      crystalBell(784, now, 0.6, 0.16, dest);
+      crystalBell(988, now + 0.1, 0.55, 0.17, dest);
+      crystalBell(1175, now + 0.2, 0.5, 0.17, dest);
+      crystalBell(1568, now + 0.3, 0.6, 0.15, dest);
+    } else {
+      // platinum
+      var notes = [784, 988, 1175, 1318, 1568];
+      for (var i = 0; i < notes.length; i++) {
+        crystalBell(notes[i], now + i * 0.1, 0.7 - i * 0.05, 0.14, dest);
+      }
+      // Glow: sustained high shimmer
+      var glowNotes = [2093, 2637, 3136];
+      for (var j = 0; j < glowNotes.length; j++) {
+        var o = c.createOscillator(); o.type = 'sine'; o.frequency.value = glowNotes[j];
+        o.detune.value = (j - 1) * 8;
+        var g = c.createGain();
+        g.gain.setValueAtTime(0, now + 0.4);
+        g.gain.linearRampToValueAtTime(0.03, now + 0.5);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+        o.connect(g); g.connect(dest);
+        o.start(now + 0.4); o.stop(now + 1.05);
+      }
+    }
+  }
+
+  function ensureToastDOM() {
+    if (toastEl) return;
+    toastEl = document.createElement('div');
+    toastEl.id = 'gv-trophy-toast';
+    toastEl.innerHTML =
+      '<div class="gv-toast-icon"></div>' +
+      '<div class="gv-toast-body">' +
+        '<div class="gv-toast-label">TROPHY UNLOCKED</div>' +
+        '<div class="gv-toast-tier"></div>' +
+        '<div class="gv-toast-name"></div>' +
+      '</div>';
+
+    var css = document.createElement('style');
+    css.textContent =
+      '#gv-trophy-toast{position:fixed;bottom:-80px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:#0a0a18ee;border:1px solid #ffd70066;border-radius:10px;padding:10px 20px;z-index:9999;transition:bottom .5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 30px #ffd70033;pointer-events:none;font-family:system-ui,-apple-system,sans-serif;white-space:nowrap}' +
+      '#gv-trophy-toast.show{bottom:24px}' +
+      '.gv-toast-icon{font-size:28px}' +
+      '.gv-toast-label{font-size:9px;color:#ffd700;letter-spacing:3px;font-weight:700;text-transform:uppercase}' +
+      '.gv-toast-tier{font-size:9px;font-weight:700;letter-spacing:2px}' +
+      '.gv-toast-tier.bronze{color:#cd7f32}.gv-toast-tier.silver{color:#c0c0c0}.gv-toast-tier.gold{color:#ffd700}.gv-toast-tier.platinum{color:#b4ffff}' +
+      '.gv-toast-name{font-size:14px;color:#fff;font-weight:700;letter-spacing:1px}';
+    document.head.appendChild(css);
+    document.body.appendChild(toastEl);
+  }
+
+  function popToast() {
+    if (toastQueue.length === 0) { toastActive = false; return; }
+    toastActive = true;
+    var trophy = toastQueue.shift();
+    ensureToastDOM();
+    toastEl.querySelector('.gv-toast-icon').textContent = trophy.icon || '';
+    toastEl.querySelector('.gv-toast-name').textContent = trophy.name || trophy.title || '';
+    var tierEl = toastEl.querySelector('.gv-toast-tier');
+    var tier = trophy.tier || 'bronze';
+    tierEl.textContent = tier.toUpperCase();
+    tierEl.className = 'gv-toast-tier ' + tier;
+    // Update border color per tier
+    var borderColors = { bronze: '#cd7f3266', silver: '#c0c0c066', gold: '#ffd70066', platinum: '#b4ffff66' };
+    toastEl.style.borderColor = borderColors[tier] || '#ffd70066';
+    toastEl.classList.add('show');
+    playCrystalSound(tier);
+    setTimeout(function() {
+      toastEl.classList.remove('show');
+      setTimeout(popToast, 400);
+    }, 2800);
+  }
+
+  var ui = {
+    /**
+     * Show an achievement toast with Crystal chime.
+     * Queues multiple — they display one after another.
+     * @param {object|array} trophy - { icon, name, tier } or array of these
+     */
+    achievementToast: function(trophy) {
+      if (Array.isArray(trophy)) {
+        for (var i = 0; i < trophy.length; i++) toastQueue.push(trophy[i]);
+      } else {
+        toastQueue.push(trophy);
+      }
+      if (!toastActive) popToast();
+    }
+  };
+
+  // --------------------------------------------------------
   // INIT
   // --------------------------------------------------------
 
@@ -851,6 +1000,7 @@
     save: save,
     leaderboard: leaderboard,
     achievements: achievements,
-    challenge: challenge
+    challenge: challenge,
+    ui: ui
   };
 })();

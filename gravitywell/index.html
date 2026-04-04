@@ -501,25 +501,6 @@
   }
   .setting-toggle.on { border-color: #44ff8866; color: #44ff88; }
 
-  /* ACHIEVEMENT TOAST */
-  #achievement-toast {
-    position: fixed; bottom: -80px; left: 50%; transform: translateX(-50%);
-    display: flex; align-items: center; gap: 12px;
-    background: #0a0a18ee; border: 1px solid #ffd70066; border-radius: 8px;
-    padding: 10px 20px; z-index: 30;
-    transition: bottom .5s cubic-bezier(.34, 1.56, .64, 1);
-    box-shadow: 0 0 30px #ffd70033; pointer-events: none;
-  }
-  #achievement-toast.show { bottom: 24px; }
-  #ach-toast-icon { font-size: 28px; }
-  #ach-toast-label { font-size: 9px; color: #ffd700; letter-spacing: 3px; font-weight: 700; text-transform: uppercase; }
-  .ach-tier-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; }
-  .ach-tier-label.bronze { color: #cd7f32; }
-  .ach-tier-label.silver { color: #c0c0c0; }
-  .ach-tier-label.gold { color: #ffd700; }
-  .ach-tier-label.platinum { color: #b4ffff; }
-  #ach-toast-name { font-size: 14px; color: #fff; font-weight: 700; letter-spacing: 1px; }
-
   @media (max-width: 480px) {
     .tab-btn { padding: 6px 8px; font-size: 8px; letter-spacing: 1px; }
     #menu-inner { max-height: 94dvh; }
@@ -679,15 +660,6 @@
   </div>
 </div>
 
-<div id="achievement-toast">
-  <div id="ach-toast-icon"></div>
-  <div>
-    <div id="ach-toast-label">TROPHY UNLOCKED</div>
-    <div id="ach-toast-tier"></div>
-    <div id="ach-toast-name"></div>
-  </div>
-</div>
-
 <script>
 // ============================================================
 // GRAVITY WELL - A cosmic arcade game
@@ -778,14 +750,11 @@ function getAchStatValue(stat) {
   return 0;
 }
 
-let achToastQueue = [];
-let achToastShowing = false;
-
 function tryUnlock(ach) {
   if (gwData.unlocked[ach.id]) return false;
   gwData.unlocked[ach.id] = Date.now();
   saveGWData();
-  showAchToast(ach);
+  if (window.GameVolt) GameVolt.ui.achievementToast(ach);
   // Auto-check platinum
   if (ach.id !== 'gravity_master') {
     let count = 0;
@@ -836,57 +805,6 @@ function checkEndgameAch() {
       if (getAchStatValue(a.stat) >= a.target) tryUnlock(a);
     }
   }
-}
-
-function showAchToast(ach) {
-  achToastQueue.push(ach);
-  if (!achToastShowing) processAchToast();
-}
-
-function processAchToast() {
-  if (achToastQueue.length === 0) { achToastShowing = false; return; }
-  achToastShowing = true;
-  const ach = achToastQueue.shift();
-  const toast = document.getElementById('achievement-toast');
-  document.getElementById('ach-toast-icon').textContent = ach.icon;
-  document.getElementById('ach-toast-name').textContent = ach.name;
-  const tierEl = document.getElementById('ach-toast-tier');
-  tierEl.className = 'ach-tier-label ' + ach.tier;
-  tierEl.textContent = ach.tier.toUpperCase();
-  toast.style.borderColor = ach.tier === 'gold' ? '#ffd70066' : ach.tier === 'silver' ? '#c0c0c066' : ach.tier === 'platinum' ? '#b4ffff66' : '#cd7f3266';
-  toast.classList.add('show');
-  // Play unlock sound
-  playAchSFX();
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(processAchToast, 400);
-  }, 3000);
-}
-
-function playAchSFX() {
-  if (!SFX.ctx || !gwData.sfxEnabled) return;
-  const ctx = SFX.ctx;
-  const now = ctx.currentTime;
-  // Bright chime
-  const osc = ctx.createOscillator();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(880, now);
-  osc.frequency.exponentialRampToValueAtTime(1760, now + 0.1);
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0.12, now);
-  g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-  osc.connect(g); g.connect(ctx.destination);
-  osc.start(now); osc.stop(now + 0.4);
-  // Second chime
-  const osc2 = ctx.createOscillator();
-  osc2.type = 'sine';
-  osc2.frequency.setValueAtTime(1320, now + 0.08);
-  osc2.frequency.exponentialRampToValueAtTime(2200, now + 0.18);
-  const g2 = ctx.createGain();
-  g2.gain.setValueAtTime(0.08, now + 0.08);
-  g2.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-  osc2.connect(g2); g2.connect(ctx.destination);
-  osc2.start(now + 0.08); osc2.stop(now + 0.5);
 }
 
 // --- Tab Switching & Keyboard Navigation ---

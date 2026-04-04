@@ -321,42 +321,6 @@
     }
     .win-stat .lbl { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
 
-    /* ── Trophy Toast ── */
-    .trophy-toast {
-      position: fixed;
-      top: -80px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      z-index: 200;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px var(--teal-glow);
-      transition: top 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      white-space: nowrap;
-      max-width: 90vw;
-    }
-    .trophy-toast.show { top: 16px; }
-    .trophy-toast .toast-icon { font-size: 1.5rem; }
-    .trophy-toast .toast-text { display: flex; flex-direction: column; }
-    .trophy-toast .toast-title {
-      font-weight: 800; font-size: 0.85rem;
-      background: linear-gradient(135deg, #7c5cfc, #38bdf8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .trophy-toast .toast-sub { font-size: 0.7rem; color: var(--text-dim); }
-
-    .toast-tier-bronze { border-color: #cd7f32; }
-    .toast-tier-silver { border-color: #b0b8c8; }
-    .toast-tier-gold { border-color: #ffc107; }
-    .toast-tier-platinum { border-color: #e5e4e2; box-shadow: 0 0 24px rgba(229,228,226,0.3), 0 8px 32px rgba(0,0,0,0.5); }
-
     /* ── Trophy Grid (in win modal) ── */
     .trophy-section { margin-top: 16px; text-align: left; }
     .trophy-section-title {
@@ -427,15 +391,6 @@
 
   <!-- Login button -->
   <button id="login-btn" class="hidden" onclick="if(window.GameVolt)GameVolt.auth.login()">LOG IN</button>
-
-  <!-- Trophy Toast -->
-  <div class="trophy-toast" id="trophyToast">
-    <span class="toast-icon" id="toastIcon"></span>
-    <div class="toast-text">
-      <span class="toast-title" id="toastTitle"></span>
-      <span class="toast-sub" id="toastSub"></span>
-    </div>
-  </div>
 
   <!-- Difficulty Select -->
   <div class="overlay" id="diffOverlay">
@@ -590,36 +545,13 @@
       { id: 'sudoku_master',   title: 'Sudoku Master',     desc: 'Unlock all 30 other trophies',         icon: '👑', tier: 'platinum' }
     ];
 
-    var toastQueue = [];
-    var toastActive = false;
-
-    function showToast(achievement) {
-      toastQueue.push(achievement);
-      if (!toastActive) processToastQueue();
-    }
-
-    function processToastQueue() {
-      if (toastQueue.length === 0) { toastActive = false; return; }
-      toastActive = true;
-      var a = toastQueue.shift();
-      var toast = document.getElementById('trophyToast');
-      document.getElementById('toastIcon').textContent = a.icon;
-      document.getElementById('toastTitle').textContent = a.title;
-      document.getElementById('toastSub').textContent = a.desc;
-      toast.className = 'trophy-toast toast-tier-' + a.tier + ' show';
-      setTimeout(function() {
-        toast.classList.remove('show');
-        setTimeout(processToastQueue, 400);
-      }, 2800);
-    }
-
     function tryUnlock(id) {
       if (stats.unlocked[id]) return;
       var a = ACHIEVEMENTS.find(function(a) { return a.id === id; });
       if (!a) return;
       stats.unlocked[id] = Date.now();
       saveStats();
-      showToast(a);
+      if (window.GameVolt) GameVolt.ui.achievementToast(a);
       gvPost('achievement', { id: 'sudoku-' + id, title: a.title });
       if (window.GameVolt) {
         GameVolt.achievements.unlock('sudoku-' + id);

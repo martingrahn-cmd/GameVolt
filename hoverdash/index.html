@@ -187,14 +187,6 @@
   .trophy-tier-header.gold{color:#ffd700;border-color:#ffd70044}
   .trophy-tier-header.platinum{color:#b4ffff;border-color:#b4ffff44}
   .trophy-tier-header:first-child{padding-top:2px}
-  /* ACHIEVEMENT TOAST */
-  #achievement-toast{position:fixed;bottom:-80px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:#0a0a18ee;border:1px solid #ffd70066;border-radius:8px;padding:10px 20px;z-index:30;transition:bottom .5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 30px #ffd70033;pointer-events:none}
-  #achievement-toast.show{bottom:24px}
-  #ach-toast-icon{font-size:28px}
-  #ach-toast-label{font-size:9px;color:#ffd700;letter-spacing:3px;font-weight:700;text-transform:uppercase}
-  .ach-tier-label{font-size:9px;font-weight:700;letter-spacing:2px}
-  .ach-tier-label.bronze{color:#cd7f32}.ach-tier-label.silver{color:#c0c0c0}.ach-tier-label.gold{color:#ffd700}
-  #ach-toast-name{font-size:14px;color:#fff;font-weight:700;letter-spacing:1px}
   /* SETTINGS */
   #settings-title{font-size:clamp(28px,6vw,42px);font-weight:900;color:#00e5ff;text-shadow:0 0 20px #00e5ff66;letter-spacing:4px;margin-bottom:24px;text-align:center}
   #settings-list{width:min(80vw,320px)}
@@ -266,7 +258,6 @@
   <button id="pause-resume" onclick="togglePause()">RESUME</button>
   <div id="pause-hint"><span class="kh">P</span> / <span class="kh">ESC</span> to resume</div>
 </div>
-<div id="achievement-toast"><div id="ach-toast-icon"></div><div id="ach-toast-body"><div id="ach-toast-label">ACHIEVEMENT UNLOCKED</div><div id="ach-toast-tier" class="ach-tier-label bronze"></div><div id="ach-toast-name"></div></div></div>
 <div id="overlay">
   <div id="tab-bar">
     <button class="tab-btn active" data-tab="play">PLAY</button>
@@ -2273,8 +2264,6 @@ function togglePause(){
 // ═══════════════════════════════════════════════════
 // ACHIEVEMENT ENGINE
 // ═══════════════════════════════════════════════════
-let achToastQueue=[],achToastActive=false;
-
 function getStatValue(s){
   switch(s){
     case 'totalGames':return hdData.totalGames;case 'totalCoins':return hdData.totalCoins;
@@ -2294,41 +2283,11 @@ function getStatValue(s){
   }
 }
 
-function showAchToast(ach){
-  achToastQueue.push(ach);
-  if(!achToastActive) popAchToast();
-}
-function popAchToast(){
-  if(!achToastQueue.length){achToastActive=false;return;}
-  achToastActive=true;
-  const ach=achToastQueue.shift();
-  const t=document.getElementById('achievement-toast');
-  document.getElementById('ach-toast-icon').textContent=ach.icon;
-  document.getElementById('ach-toast-name').textContent=ach.name;
-  const tierEl=document.getElementById('ach-toast-tier');
-  tierEl.textContent=ach.tier.toUpperCase();tierEl.className='ach-tier-label '+ach.tier;
-  t.classList.add('show');
-  setTimeout(()=>{t.classList.remove('show');setTimeout(popAchToast,400);},2800);
-}
-
-function playAchSFX(){
-  if(!sfxOk()) return;
-  const t=audioCtx.currentTime;
-  // Quick two-tone chime: G5 → C6
-  const notes=[784,1047];
-  for(let i=0;i<2;i++){
-    const o=audioCtx.createOscillator();o.type='sine';o.frequency.value=notes[i];
-    const g=audioCtx.createGain();const on=t+i*0.08;
-    g.gain.setValueAtTime(0.001,on);g.gain.linearRampToValueAtTime(0.25,on+0.015);
-    g.gain.exponentialRampToValueAtTime(0.001,on+0.4);
-    o.connect(g);g.connect(audioCtx.destination);o.start(on);o.stop(on+0.45);
-  }
-}
 
 function tryUnlock(ach){
   if(hdData.unlocked[ach.id]) return false;
   hdData.unlocked[ach.id]=Date.now();saveHDData();
-  showAchToast(ach);playAchSFX();
+  if(window.GameVolt) GameVolt.ui.achievementToast(ach);
   gvPost('achievement',{id:ach.id,name:ach.name});
   if(window.GameVolt) GameVolt.achievements.unlock(ach.id);
   // Check platinum

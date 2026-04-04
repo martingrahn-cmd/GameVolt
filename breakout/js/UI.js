@@ -6,9 +6,6 @@ export default class UIManager {
   constructor(game) {
     this.game = game;
     this.boData = loadBOData();
-    this.achToastQueue = [];
-    this.achToastActive = false;
-
     // Per-game stats (reset each game)
     this.pg = {};
     this.levelsWithoutDeath = 0;
@@ -44,11 +41,6 @@ export default class UIManager {
     this.pauseResume = document.getElementById('pause-resume');
     this.instructions = document.getElementById('instructions');
     this.studioCredit = document.getElementById('studio-credit');
-
-    this.achToastEl = document.getElementById('achievement-toast');
-    this.achToastIcon = document.getElementById('ach-toast-icon');
-    this.achToastTier = document.getElementById('ach-toast-tier');
-    this.achToastName = document.getElementById('ach-toast-name');
 
     this.lbToggle = document.getElementById('lb-toggle');
     this.lbLocalBtn = document.getElementById('lb-local-btn');
@@ -354,26 +346,7 @@ export default class UIManager {
   // --- ACHIEVEMENT TOAST ---
 
   showAchToast(ach) {
-    this.achToastQueue.push(ach);
-    if (!this.achToastActive) this.popAchToast();
-  }
-
-  popAchToast() {
-    if (!this.achToastQueue.length) { this.achToastActive = false; return; }
-    this.achToastActive = true;
-    var ach = this.achToastQueue.shift();
-
-    this.achToastIcon.textContent = ach.icon;
-    this.achToastName.textContent = ach.name;
-    this.achToastTier.textContent = ach.tier.toUpperCase();
-    this.achToastTier.className = 'ach-tier-label ' + ach.tier;
-    this.achToastEl.classList.add('show');
-
-    var self = this;
-    setTimeout(function() {
-      self.achToastEl.classList.remove('show');
-      setTimeout(function() { self.popAchToast(); }, 400);
-    }, 2800);
+    if (window.GameVolt) GameVolt.ui.achievementToast(ach);
   }
 
   // --- ACHIEVEMENT TRACKING ---

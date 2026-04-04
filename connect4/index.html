@@ -1316,51 +1316,6 @@
             transition: width 0.3s ease;
         }
         
-        /* Achievement Toast */
-        .achievement-toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--bg-secondary);
-            border: 2px solid var(--accent-yellow);
-            border-radius: 16px;
-            padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            z-index: 300;
-            opacity: 0;
-            transition: all 0.4s ease;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-        
-        .achievement-toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-        
-        .achievement-toast-icon {
-            font-size: 2.5rem;
-        }
-        
-        .achievement-toast-text {
-            text-align: left;
-        }
-        
-        .achievement-toast-label {
-            font-size: 0.75rem;
-            color: var(--accent-yellow);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .achievement-toast-name {
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: var(--text-primary);
-        }
-        
         /* Touch Feedback Animations (for devices without haptic) */
         .tap-pulse {
             animation: tapPulse 0.3s ease-out;
@@ -2242,15 +2197,6 @@
         <div id="leaderboard-list"></div>
     </div>
     
-    <!-- Achievement Toast -->
-    <div class="achievement-toast" id="achievement-toast">
-        <div class="achievement-toast-icon" id="toast-icon">🏆</div>
-        <div class="achievement-toast-text">
-            <div class="achievement-toast-label">Trophy Unlocked!</div>
-            <div class="achievement-toast-name" id="toast-name">Achievement Name</div>
-        </div>
-    </div>
-    
     <div class="game-container">
         <header>
             <h2 class="logo">CONNECT 4</h2>
@@ -2717,9 +2663,7 @@
                     }
                     break;
                 case 'success':
-                    // Pulse the achievement toast
-                    const toast = document.getElementById('achievement-toast');
-                    addAndRemove(toast, 'tap-pulse', 300);
+                    // Visual feedback for achievement unlock (SDK handles toast)
                     break;
                 case 'error':
                 case 'lose':
@@ -2840,25 +2784,13 @@
                     gvPost('achievement', { id: ach.id, name: ach.name, tier: ach.tier });
                     if (window.GameVolt) GameVolt.achievements.unlock(ach.id);
                 });
-                // Show toast for first new achievement
-                showAchievementToast(newlyUnlocked[0]);
+                // Show toast for new achievements (SDK handles queuing)
+                hapticFeedback('success');
+                if (window.GameVolt) GameVolt.ui.achievementToast(newlyUnlocked);
                 document.getElementById('achievements-btn').classList.add('has-new');
             }
 
             return newlyUnlocked;
-        }
-        
-        function showAchievementToast(achievement) {
-            const toast = document.getElementById('achievement-toast');
-            document.getElementById('toast-icon').textContent = achievement.icon;
-            document.getElementById('toast-name').textContent = achievement.name;
-            
-            toast.classList.add('show');
-            hapticFeedback('success');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 4000);
         }
         
         const TIER_COLORS = { bronze: '#cd7f32', silver: '#c0c0c0', gold: '#ffd700', platinum: '#b388ff' };

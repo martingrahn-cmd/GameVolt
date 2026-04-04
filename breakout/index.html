@@ -393,36 +393,6 @@
       letter-spacing: 2px;
     }
 
-    /* ===== ACHIEVEMENT TOAST ===== */
-    #achievement-toast {
-      position: absolute;
-      bottom: -80px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(10,10,24,0.93);
-      border: 1px solid rgba(255,215,0,0.4);
-      border-radius: 8px;
-      padding: 10px 18px;
-      z-index: 20;
-      transition: bottom .5s cubic-bezier(.34, 1.56, .64, 1);
-      box-shadow: 0 0 30px rgba(255,215,0,0.2);
-      pointer-events: none;
-      font-family: 'Press Start 2P', monospace;
-      white-space: nowrap;
-    }
-    #achievement-toast.show { bottom: 20px; }
-    #ach-toast-icon { font-size: 22px; }
-    #ach-toast-label { font-size: 7px; color: #ffd700; letter-spacing: 2px; margin-bottom: 2px; }
-    #ach-toast-name { font-size: 10px; color: #fff; letter-spacing: 1px; }
-    .ach-tier-label { font-size: 7px; font-weight: 700; letter-spacing: 2px; margin-bottom: 1px; }
-    .ach-tier-label.bronze { color: #cd7f32; }
-    .ach-tier-label.silver { color: #c0c0c0; }
-    .ach-tier-label.gold { color: #ffd700; }
-    .ach-tier-label.platinum { color: #b4ffff; }
-
     /* ===== TROPHIES ===== */
     #trophy-header {
       text-align: center;
@@ -651,7 +621,7 @@
 
     /* ===== PORTRAIT: hide overlays too ===== */
     @media screen and (orientation: portrait) {
-      #overlay, #pause-overlay, #pause-btn, #achievement-toast { display: none !important; }
+      #overlay, #pause-overlay, #pause-btn { display: none !important; }
     }
   </style>
   <script src="/sdk/gamevolt.js"></script>
@@ -669,16 +639,6 @@
       <div id="pause-title">PAUSED</div>
       <button id="pause-resume" class="gv-btn">RESUME</button>
       <div id="pause-hint"><span class="kh">P</span> / <span class="kh">ESC</span> to resume</div>
-    </div>
-
-    <!-- Achievement toast -->
-    <div id="achievement-toast">
-      <div id="ach-toast-icon"></div>
-      <div id="ach-toast-body">
-        <div id="ach-toast-label">ACHIEVEMENT UNLOCKED</div>
-        <div id="ach-toast-tier" class="ach-tier-label bronze"></div>
-        <div id="ach-toast-name"></div>
-      </div>
     </div>
 
     <!-- Main overlay (menu / game over) -->

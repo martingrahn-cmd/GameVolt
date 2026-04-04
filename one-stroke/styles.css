@@ -1816,45 +1816,6 @@ div.cell {
   color: #d7ecf8;
 }
 
-/* ── Trophy toast ── */
-#trophy-toast {
-  position: fixed;
-  bottom: -80px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #0a0a18ee;
-  border: 1px solid #ffd70066;
-  border-radius: 10px;
-  padding: 10px 20px;
-  z-index: 50;
-  transition: bottom .5s cubic-bezier(.34, 1.56, .64, 1);
-  box-shadow: 0 0 30px #ffd70033;
-  pointer-events: none;
-  font-family: var(--display-font);
-  white-space: nowrap;
-}
-#trophy-toast.show { bottom: 24px; }
-#trophy-toast-icon { font-size: 28px; }
-#trophy-toast-label {
-  font-size: 9px; color: #ffd700;
-  letter-spacing: 3px; font-weight: 700;
-  text-transform: uppercase;
-}
-#trophy-toast-tier {
-  font-size: 9px; font-weight: 700; letter-spacing: 2px;
-}
-#trophy-toast-tier.bronze { color: #cd7f32; }
-#trophy-toast-tier.silver { color: #c0c0c0; }
-#trophy-toast-tier.gold { color: #ffd700; }
-#trophy-toast-tier.platinum { color: #b4ffff; }
-#trophy-toast-name {
-  font-size: 14px; color: #fff;
-  font-weight: 700; letter-spacing: 1px;
-}
-
 .daily-streak-badge {
   display: inline-flex;
   align-items: center;

@@ -156,13 +156,6 @@ class AudioManager {
   uiClick() { this.tone(700, "sine", 0.04, { vol: 0.12 }); }
   purchase() { this.tone(523, "sine", 0.1, { vol: 0.2 }); this.tone(784, "sine", 0.15, { delay: 0.08, vol: 0.25 }); this.noise(0.08, { vol: 0.06, delay: 0.08 }); }
 
-  trophy(tier) {
-    const notes = tier === "gold" || tier === "platinum" ? [784, 988, 1318] : [784, 1047];
-    notes.forEach((f, i) => {
-      this.tone(f, "sine", 0.4, { delay: i * 0.08, vol: 0.25 });
-      this.tone(f, "triangle", 0.15, { delay: i * 0.08 + 0.02, vol: 0.1 });
-    });
-  }
 }
 
 export const sfx = new AudioManager();

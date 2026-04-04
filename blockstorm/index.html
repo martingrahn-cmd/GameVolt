@@ -323,28 +323,6 @@
     </div>
   </div>
 
-  <!-- Achievement toast -->
-  <div id="achievement-toast">
-    <div id="ach-toast-icon"></div>
-    <div id="ach-toast-body">
-      <div id="ach-toast-label">TROPHY UNLOCKED</div>
-      <div id="ach-toast-tier" class="ach-tier-label bronze"></div>
-      <div id="ach-toast-name"></div>
-    </div>
-  </div>
-
-  <style>
-    #achievement-toast{position:fixed;bottom:-80px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:12px;background:#0a0a18ee;border:1px solid #ffd70066;border-radius:8px;padding:10px 20px;z-index:30;transition:bottom .5s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 30px #ffd70033;pointer-events:none;font-family:'Nunito',sans-serif}
-    #achievement-toast.show{bottom:24px}
-    #ach-toast-icon{font-size:28px}
-    #ach-toast-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#ffd700;font-weight:700}
-    .ach-tier-label{display:inline-block;font-size:9px;padding:1px 6px;border-radius:4px;font-weight:700;letter-spacing:.5px;margin-top:2px}
-    .ach-tier-label.bronze{background:#cd7f3233;color:#cd7f32}
-    .ach-tier-label.silver{background:#c0c0c033;color:#c0c0c0}
-    .ach-tier-label.gold{background:#ffd70033;color:#ffd700}
-    .ach-tier-label.platinum{background:#e5e4e233;color:#e5e4e2}
-    #ach-toast-name{font-size:14px;color:#fff;font-weight:600}
-  </style>
 
   <!-- GameVolt SDK -->
   <script src="/sdk/gamevolt.js"></script>
@@ -1172,32 +1150,13 @@
     window.BS_ACHIEVEMENTS=ACHIEVEMENTS;
 
     // ========================================
-    // ACHIEVEMENT TOAST
+    // ACHIEVEMENT UNLOCK
     // ========================================
-    var achToastQueue=[];
-    var achToastActive=false;
-
-    function showAchToast(ach){
-      achToastQueue.push(ach);
-      if(!achToastActive) popAchToast();
-    }
-    function popAchToast(){
-      if(!achToastQueue.length){achToastActive=false;return;}
-      achToastActive=true;
-      var ach=achToastQueue.shift();
-      var t=document.getElementById('achievement-toast');
-      document.getElementById('ach-toast-icon').textContent=ach.icon;
-      document.getElementById('ach-toast-name').textContent=ach.name;
-      var tierEl=document.getElementById('ach-toast-tier');
-      tierEl.textContent=ach.tier.toUpperCase();tierEl.className='ach-tier-label '+ach.tier;
-      t.classList.add('show');
-      setTimeout(function(){t.classList.remove('show');setTimeout(popAchToast,400);},2800);
-    }
 
     function tryUnlock(ach){
       if(bsData.unlocked[ach.id]) return false;
       bsData.unlocked[ach.id]=Date.now();saveBSData();
-      showAchToast(ach);
+      if(window.GameVolt) GameVolt.ui.achievementToast(ach);
       gvPost('achievement',{id:ach.id,name:ach.name});
       if(window.GameVolt) GameVolt.achievements.unlock(ach.id);
       // Check platinum

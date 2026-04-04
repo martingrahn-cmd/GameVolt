@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO -->
+    <title>Sudoku — Free Online Sudoku Puzzle Game | GameVolt</title>
+    <meta name="description" content="Play Sudoku free online — classic number puzzle with 4 difficulty levels, pencil marks, smart hints, undo, auto-save, and a global leaderboard. No download required.">
+    <meta name="keywords" content="sudoku, free sudoku, online sudoku, sudoku puzzle, number puzzle, brain game, logic puzzle, sudoku game">
+    <meta name="author" content="GameVolt">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gamevolt.io/games/sudoku/">
+    <meta property="og:title" content="Sudoku — Free Online Sudoku Puzzle Game">
+    <meta property="og:description" content="Classic number puzzle with 4 difficulty levels, pencil marks, hints, and cloud save. Play free in your browser.">
+    <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/sudoku.webp">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="GameVolt">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Sudoku — Free Online Sudoku Puzzle Game">
+    <meta name="twitter:description" content="Classic Sudoku with 4 difficulty levels, pencil marks, and global leaderboards. Play free!">
+    <meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/sudoku.webp">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Sudoku",
+      "description": "A classic Sudoku puzzle game with 4 difficulty levels, pencil marks, smart hints, undo, auto-save, and a global leaderboard. Free to play in your browser.",
+      "url": "https://gamevolt.io/games/sudoku/",
+      "image": "https://gamevolt.io/assets/thumbnails/sudoku.webp",
+      "genre": ["Puzzle", "Logic"],
+      "gamePlatform": ["Web Browser", "Mobile", "Desktop"],
+      "operatingSystem": "Any (Browser-based)",
+      "applicationCategory": "Game",
+      "numberOfPlayers": { "@type": "QuantitativeValue", "value": "1" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+      "author": { "@type": "Organization", "name": "GameVolt", "url": "https://gamevolt.io" },
+      "publisher": { "@type": "Organization", "name": "GameVolt", "url": "https://gamevolt.io" },
+      "inLanguage": "en",
+      "isAccessibleForFree": true,
+      "playMode": "SinglePlayer"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://gamevolt.io/"},
+        {"@type": "ListItem", "position": 2, "name": "Puzzle Games", "item": "https://gamevolt.io/puzzle-games/"},
+        {"@type": "ListItem", "position": 3, "name": "Sudoku", "item": "https://gamevolt.io/games/sudoku/"}
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Sudoku free to play?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, Sudoku on GameVolt is completely free. No download, no registration, and no ads. Just open the page and start solving." }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I play Sudoku on my phone?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, Sudoku works on any device with a modern browser — phone, tablet, or desktop. The grid is designed for easy touch input on smaller screens." }
+        },
+        {
+          "@type": "Question",
+          "name": "What difficulty levels are available?",
+          "acceptedAnswer": { "@type": "Answer", "text": "There are 4 difficulty levels: Easy (38+ given digits, great for beginners), Medium (30-37 given digits), Hard (25-29 given digits, requires advanced techniques), and Expert (22-24 given digits, for serious Sudoku solvers)." }
+        },
+        {
+          "@type": "Question",
+          "name": "What are pencil marks?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Pencil marks let you note candidate numbers in a cell before committing to a final answer. Toggle pencil mode and tap numbers to add or remove candidates — a classic Sudoku solving technique." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is there a timer?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, a timer tracks how long you take to solve each puzzle. Your best times are saved and submitted to the global leaderboard so you can compete with other players." }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Canonical + Favicon -->
+    <link rel="canonical" href="https://gamevolt.io/games/sudoku/">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #7c5cfc;
+            --primary-light: #a78bfa;
+            --primary-dark: #6341e0;
+            --accent: #06d6a0;
+            --accent-blue: #38bdf8;
+            --bg-body: #0f1221;
+            --bg-surface: #181c30;
+            --bg-card: rgba(25, 30, 55, 0.7);
+            --bg-glass: rgba(255, 255, 255, 0.04);
+            --text-bright: #f0f0ff;
+            --text-medium: #a0a4c0;
+            --text-muted: #626580;
+            --border-subtle: rgba(124, 92, 252, 0.15);
+            --border-glow: rgba(124, 92, 252, 0.3);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-medium);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3 { font-family: 'Fredoka', sans-serif; color: var(--text-bright); }
+
+        a { color: var(--primary-light); text-decoration: none; }
+        a:hover { color: var(--text-bright); }
+
+        /* ── Header ── */
+        header {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(15, 18, 33, 0.85);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .header-content {
+            max-width: 1200px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 24px;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        .logo-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: linear-gradient(135deg, #7c5cfc, #38bdf8, #06d6a0);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 16px rgba(124, 92, 252, 0.4);
+        }
+        .logo-text { font-family: 'Fredoka', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--text-bright); }
+        .nav-links { display: flex; gap: 6px; }
+        .nav-link {
+            color: var(--text-medium); font-size: 0.9rem; font-weight: 600;
+            padding: 6px 14px; border-radius: var(--radius-sm);
+            transition: all 0.2s;
+        }
+        .nav-link:hover { background: var(--bg-glass); color: var(--primary-light); }
+
+        /* ── Hero ── */
+        .game-hero {
+            padding: 60px 24px 48px;
+            max-width: 1200px; margin: 0 auto;
+        }
+        .breadcrumb {
+            font-size: 0.85rem; color: var(--text-muted); margin-bottom: 24px;
+        }
+        .breadcrumb a { color: var(--text-muted); }
+        .breadcrumb a:hover { color: var(--primary-light); }
+        .breadcrumb span { margin: 0 8px; }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+        }
+
+        .hero-media {
+            position: relative;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            aspect-ratio: 16/10;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-subtle);
+        }
+        .hero-media img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        .hero-text h1 {
+            font-size: 2.5rem; font-weight: 700; line-height: 1.2;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff, #c4b5fd, #38bdf8);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-text .tagline {
+            font-size: 1.15rem; color: var(--text-medium);
+            margin-bottom: 24px; line-height: 1.6;
+        }
+        .hero-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+        .hero-tag {
+            background: rgba(124, 92, 252, 0.1);
+            color: var(--primary-light);
+            padding: 5px 14px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 700;
+            border: 1px solid var(--border-subtle);
+            letter-spacing: 0.5px;
+        }
+        .play-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, #7c5cfc, #38bdf8, #06d6a0);
+            color: white; font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem; font-weight: 700;
+            padding: 14px 36px; border-radius: var(--radius-md);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(124, 92, 252, 0.3);
+        }
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(124, 92, 252, 0.4);
+            color: white;
+        }
+
+        /* ── Features ── */
+        .features {
+            padding: 48px 24px;
+            max-width: 1200px; margin: 0 auto;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .feature-icon { font-size: 2rem; margin-bottom: 12px; }
+        .feature-card h3 { font-size: 1rem; margin-bottom: 6px; }
+        .feature-card p { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* ── Content Sections ── */
+        .content {
+            max-width: 1200px; margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 48px;
+        }
+        .content-main h2 {
+            font-size: 1.6rem; margin-bottom: 16px; margin-top: 40px;
+        }
+        .content-main h2:first-child { margin-top: 0; }
+        .content-main p { margin-bottom: 16px; }
+
+        .world-list {
+            list-style: none; padding: 0;
+        }
+        .world-list li {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 14px;
+        }
+        .world-list .world-icon { font-size: 1.5rem; flex-shrink: 0; }
+        .world-list .world-name { font-weight: 700; color: var(--text-bright); }
+        .world-list .world-desc { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* Sidebar */
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .sidebar-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            backdrop-filter: blur(10px);
+        }
+        .sidebar-card h3 {
+            font-size: 1rem; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .info-row {
+            display: flex; justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 0.9rem;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: var(--text-muted); }
+        .info-value { color: var(--text-bright); font-weight: 600; }
+
+        .trophy-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 6px 0; font-size: 0.85rem;
+        }
+        .trophy-dot {
+            width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+        }
+        .trophy-dot.bronze { background: #cd7f32; }
+        .trophy-dot.silver { background: #c0c0c0; }
+        .trophy-dot.gold { background: #ffd700; }
+        .trophy-dot.platinum { background: #b4ffff; }
+
+        .cta-card {
+            background: linear-gradient(135deg, rgba(124, 92, 252, 0.15), rgba(56, 189, 248, 0.1));
+            border-color: var(--border-glow);
+            text-align: center;
+        }
+        .cta-card h3 { justify-content: center; }
+        .cta-card p { font-size: 0.9rem; margin-bottom: 16px; }
+        .cta-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #7c5cfc, #38bdf8, #06d6a0);
+            color: white; font-weight: 700; font-size: 0.9rem;
+            padding: 10px 28px; border-radius: var(--radius-sm);
+            transition: all 0.3s;
+        }
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(124, 92, 252, 0.4); color: white; }
+
+        /* ── FAQ ── */
+        .faq {
+            padding: 48px 24px;
+            max-width: 800px; margin: 0 auto;
+        }
+        .faq h2 {
+            font-size: 1.6rem; margin-bottom: 24px; text-align: center;
+        }
+        .faq-item {
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 20px 0;
+        }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-q {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.05rem; font-weight: 600;
+            color: var(--text-bright); margin-bottom: 8px;
+        }
+        .faq-a { font-size: 0.95rem; color: var(--text-medium); }
+
+        /* ── Related Games ── */
+        .related {
+            padding: 0 24px 60px;
+            max-width: 1200px; margin: 0 auto;
+        }
+        .related h2 { font-size: 1.6rem; margin-bottom: 24px; }
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .related-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .related-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(124, 92, 252, 0.2);
+            border-color: var(--border-glow);
+        }
+        .related-thumb {
+            aspect-ratio: 4/3; overflow: hidden;
+        }
+        .related-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
+        .related-card:hover .related-thumb img { transform: scale(1.06); }
+        .related-info { padding: 14px 16px; }
+        .related-info h3 { font-size: 1rem; margin-bottom: 4px; }
+        .related-info p { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* ── Footer ── */
+        footer {
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-subtle);
+            padding: 48px 24px 24px;
+        }
+        .footer-content { max-width: 1200px; margin: 0 auto; }
+        .footer-top { display: flex; justify-content: space-between; gap: 48px; margin-bottom: 32px; }
+        .footer-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .footer-logo-icon {
+            width: 28px; height: 28px; border-radius: 8px;
+            background: linear-gradient(135deg, #7c5cfc, #38bdf8, #06d6a0);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .footer-logo-text { font-family: 'Fredoka', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--text-bright); }
+        .footer-tagline { font-size: 0.85rem; color: var(--text-muted); max-width: 280px; }
+        .footer-links { display: flex; gap: 48px; }
+        .footer-column { display: flex; flex-direction: column; gap: 8px; }
+        .footer-column h4 { color: var(--text-bright); font-size: 0.9rem; margin-bottom: 4px; }
+        .footer-column a { color: var(--text-muted); font-size: 0.85rem; transition: color 0.2s; }
+        .footer-column a:hover { color: var(--primary-light); }
+        .footer-bottom {
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 20px; text-align: center;
+            font-size: 0.8rem; color: var(--text-muted);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .hero-grid { grid-template-columns: 1fr; gap: 32px; }
+            .hero-text h1 { font-size: 2rem; }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .content-grid { grid-template-columns: 1fr; }
+            .sidebar { order: -1; }
+        }
+        @media (max-width: 600px) {
+            .features-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+            .footer-top { flex-direction: column; gap: 32px; }
+            .footer-links { flex-wrap: wrap; gap: 32px; }
+            .hero-text h1 { font-size: 1.6rem; }
+            .game-hero { padding: 32px 16px 24px; }
+            .play-btn { width: 100%; justify-content: center; }
+            .related-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-content">
+        <a href="/" class="logo">
+            <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+            <span class="logo-text">GameVolt</span>
+        </a>
+        <nav class="nav-links">
+            <a href="/" class="nav-link">Games</a>
+            <a href="/leaderboards/" class="nav-link">Leaderboards</a>
+            <a href="/about/" class="nav-link">About</a>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <!-- Hero -->
+    <section class="game-hero">
+        <div class="breadcrumb">
+            <a href="/">Home</a><span>/</span>
+            <a href="/puzzle-games/">Puzzle Games</a><span>/</span>
+            Sudoku
+        </div>
+
+        <div class="hero-grid">
+            <div class="hero-media">
+                <img src="/assets/thumbnails/sudoku.webp" alt="Sudoku — free online number puzzle game">
+            </div>
+            <div class="hero-text">
+                <h1>Sudoku</h1>
+                <p class="tagline">The classic number puzzle, refined for the browser. Choose from four difficulty levels, use pencil marks to track candidates, get smart hints when you're stuck, and race the clock to climb the global leaderboard. Your progress auto-saves so you never lose a puzzle in progress.</p>
+                <div class="hero-tags">
+                    <span class="hero-tag">Puzzle</span>
+                    <span class="hero-tag">Logic</span>
+                    <span class="hero-tag">Numbers</span>
+                    <span class="hero-tag">Classic</span>
+                    <span class="hero-tag">Free</span>
+                </div>
+                <a href="/play/?game=sudoku" class="play-btn">&#9654; Play Now — Free</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">&#127919;</div>
+                <h3>4 Difficulty Levels</h3>
+                <p>Easy, Medium, Hard, and Expert — from relaxing warm-ups to brain-bending challenges</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#9999;</div>
+                <h3>Pencil Marks</h3>
+                <p>Note candidate numbers in each cell — an essential technique for harder puzzles</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128161;</div>
+                <h3>Smart Hints</h3>
+                <p>Stuck? Get a contextual hint that teaches you the logic without giving away the answer</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#9729;</div>
+                <h3>Cloud Save</h3>
+                <p>Auto-save in your browser, or sync across all devices with a free GameVolt account</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content + Sidebar -->
+    <section class="content">
+        <div class="content-grid">
+            <div class="content-main">
+                <h2>How to Play Sudoku</h2>
+                <p>The goal is simple: fill every cell in the 9x9 grid so that each row, each column, and each 3x3 box contains the digits 1 through 9 exactly once. No repeats allowed. Start with the given numbers and use logic to deduce the rest.</p>
+                <p>Tap or click a cell to select it, then choose a number. Use pencil mode to jot down candidates when you're not sure. Undo any mistakes with a single tap, and let the auto-save handle the rest so you can pick up right where you left off.</p>
+
+                <h2>Difficulty Levels</h2>
+                <ul class="world-list">
+                    <li>
+                        <span class="world-icon">&#127807;</span>
+                        <div>
+                            <div class="world-name">Easy</div>
+                            <div class="world-desc">38+ given digits. Perfect for beginners or a relaxing session. Most cells can be solved with basic elimination.</div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="world-icon">&#127774;</span>
+                        <div>
+                            <div class="world-name">Medium</div>
+                            <div class="world-desc">30-37 given digits. Requires more scanning and occasional pencil marks. A satisfying challenge for regular players.</div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="world-icon">&#128293;</span>
+                        <div>
+                            <div class="world-name">Hard</div>
+                            <div class="world-desc">25-29 given digits. You'll need advanced techniques like naked pairs, hidden singles, and pointing pairs.</div>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="world-icon">&#128128;</span>
+                        <div>
+                            <div class="world-name">Expert</div>
+                            <div class="world-desc">22-24 given digits. For serious solvers. X-Wing, Swordfish, and chain logic may be required. Good luck.</div>
+                        </div>
+                    </li>
+                </ul>
+
+                <h2>Trophies and Achievements</h2>
+                <p>Sudoku features 31 trophies to unlock. Solve puzzles on each difficulty, beat time targets, complete puzzles without hints, and build solving streaks to earn bronze, silver, gold, and the prestigious platinum trophy. Sign in with a free GameVolt account to sync your trophies across devices.</p>
+
+                <h2>Leaderboard</h2>
+                <p>Every completed puzzle submits your solve time to the global Sudoku leaderboard, broken down by difficulty. Compare your best times against players worldwide. Can you claim the fastest solve on Expert?</p>
+
+                <h2>Cloud Save and Cross-Device Play</h2>
+                <p>Your puzzle progress, solve times, and settings save automatically in your browser. Create a free GameVolt account to sync everything across devices — start a puzzle on your phone during lunch and finish it on your laptop at home.</p>
+            </div>
+
+            <aside class="sidebar">
+                <div class="sidebar-card">
+                    <h3>&#128203; Game Details</h3>
+                    <div class="info-row"><span class="info-label">Developer</span><span class="info-value">GameVolt</span></div>
+                    <div class="info-row"><span class="info-label">Genre</span><span class="info-value">Puzzle / Logic</span></div>
+                    <div class="info-row"><span class="info-label">Difficulty Levels</span><span class="info-value">4</span></div>
+                    <div class="info-row"><span class="info-label">Trophies</span><span class="info-value">31</span></div>
+                    <div class="info-row"><span class="info-label">Cloud Save</span><span class="info-value">Yes</span></div>
+                    <div class="info-row"><span class="info-label">Leaderboard</span><span class="info-value">Global</span></div>
+                    <div class="info-row"><span class="info-label">Price</span><span class="info-value">Free</span></div>
+                    <div class="info-row"><span class="info-label">Platform</span><span class="info-value">Browser (any device)</span></div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3>&#127942; Trophy Tiers</h3>
+                    <div class="trophy-row"><span class="trophy-dot bronze"></span> 15 Bronze trophies</div>
+                    <div class="trophy-row"><span class="trophy-dot silver"></span> 10 Silver trophies</div>
+                    <div class="trophy-row"><span class="trophy-dot gold"></span> 5 Gold trophies</div>
+                    <div class="trophy-row"><span class="trophy-dot platinum"></span> 1 Platinum trophy</div>
+                </div>
+
+                <div class="sidebar-card cta-card">
+                    <h3>Ready to Play?</h3>
+                    <p>Jump in — no download or registration needed.</p>
+                    <a href="/play/?game=sudoku" class="cta-btn">&#9654; Play Sudoku</a>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+            <div class="faq-q">Is Sudoku free to play?</div>
+            <div class="faq-a">Yes, completely free. No ads, no in-app purchases, no downloads. Just open the page and start solving.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">Can I play on my phone or tablet?</div>
+            <div class="faq-a">Absolutely. The Sudoku grid is designed for touch input on any screen size. It works beautifully on phones, tablets, and desktops alike.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">What are the difficulty levels?</div>
+            <div class="faq-a">There are four: Easy (38+ givens), Medium (30-37 givens), Hard (25-29 givens), and Expert (22-24 givens). Each level requires progressively more advanced solving techniques.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">What are pencil marks and how do I use them?</div>
+            <div class="faq-a">Pencil marks let you note possible candidate numbers in a cell before committing. Toggle pencil mode, then tap numbers to add or remove them. It's the classic technique every serious Sudoku player uses.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-q">Is there a timer?</div>
+            <div class="faq-a">Yes, every puzzle is timed. Your fastest solve times are saved locally and submitted to the global leaderboard when you're signed in. Compete for the fastest time on each difficulty level.</div>
+        </div>
+    </section>
+
+    <!-- Related Games -->
+    <section class="related">
+        <h2>More Puzzle Games on GameVolt</h2>
+        <div class="related-grid">
+            <a href="/games/golden-glyphs/" class="related-card">
+                <div class="related-thumb"><img src="/assets/thumbnails/golden-glyphs.webp" alt="Golden Glyphs puzzle game" loading="lazy"></div>
+                <div class="related-info"><h3>Golden Glyphs</h3><p>Mystical block puzzle with 100 levels, daily challenges, and zen mode.</p></div>
+            </a>
+            <a href="/games/one-stroke/" class="related-card">
+                <div class="related-thumb"><img src="/assets/thumbnails/one-stroke.webp" alt="One Stroke puzzle game" loading="lazy"></div>
+                <div class="related-info"><h3>One Stroke</h3><p>Visit every node exactly once. 200 levels + daily challenges.</p></div>
+            </a>
+            <a href="/games/manga-match3/" class="related-card">
+                <div class="related-thumb"><img src="/assets/thumbnails/manga-match3.webp" alt="Manga Match puzzle game" loading="lazy"></div>
+                <div class="related-info"><h3>Manga Match</h3><p>Anime-themed match-3 with power-ups, fever mode, and 80+ levels.</p></div>
+            </a>
+            <a href="/games/blockstorm/" class="related-card">
+                <div class="related-thumb"><img src="/assets/thumbnails/blockstorm.webp" alt="BlockStorm puzzle game" loading="lazy"></div>
+                <div class="related-info"><h3>BlockStorm</h3><p>Fast-paced falling blocks with marathon and sprint modes.</p></div>
+            </a>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="footer-content">
+        <div class="footer-top">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+                    <span class="footer-logo-text">GameVolt</span>
+                </div>
+                <p class="footer-tagline">Free browser games for everyone. Made with love in Sweden.</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h4>Games</h4>
+                    <a href="/play/?game=hoverdash">HoverDash</a>
+                    <a href="/play/?game=snake">Snake Neo</a>
+                    <a href="/play/?game=breakout">Breakout</a>
+                    <a href="/play/?game=taprush">Tap Rush</a>
+                    <a href="/play/?game=solitaire">Solitaire</a>
+                    <a href="/play/?game=blockstorm">BlockStorm</a>
+                    <a href="/play/?game=connect4">Connect 4</a>
+                    <a href="/play/?game=axeluga">Axeluga</a>
+                    <a href="/play/?game=gravitywell">Gravity Well</a>
+                    <a href="/play/?game=sudoku">Sudoku</a>
+                    <a href="/play/?game=manga-match3">Manga Match</a>
+                    <a href="/play/?game=golden-glyphs">Golden Glyphs</a>
+                    <a href="/play/?game=one-stroke">One Stroke</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Categories</h4>
+                    <a href="/arcade-games/">Arcade</a>
+                    <a href="/action-games/">Action</a>
+                    <a href="/puzzle-games/">Puzzle</a>
+                    <a href="/board-games/">Board Games</a>
+                </div>
+                <div class="footer-column">
+                    <h4>Info</h4>
+                    <a href="/about/">About</a>
+                    <a href="/contact/">Contact</a>
+                    <a href="/privacy/">Privacy Policy</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 GameVolt. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

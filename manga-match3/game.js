@@ -87,8 +87,6 @@ class MangaMatch3 {
     this.comboBurstTimer = null;
     this.hintTimer = null;
     this.hintedCells = [];
-    this._trophyToastQueue = [];
-    this._trophyToastActive = false;
     this.paused = false;
 
     this.collectCounts = Array(TILE_TYPES.length).fill(0);
@@ -374,7 +372,7 @@ class MangaMatch3 {
       gamevolt.addStat("totalLocksBreaked", this.unlockedCount);
       gamevolt.submitScore(this.score);
       const newTrophies = gamevolt.checkAchievements();
-      if (newTrophies.length > 0) this.showTrophyUnlocks(newTrophies);
+      if (newTrophies.length > 0 && window.GameVolt) GameVolt.ui.achievementToast(newTrophies);
       window.setTimeout(() => this.showResultOverlay("victory"), 1200); return;
     }
     if (this.moves <= 0) {
@@ -384,7 +382,7 @@ class MangaMatch3 {
       gamevolt.addStat("totalInkCleared", this.clearedObstacleCounts.ink);
       gamevolt.addStat("totalLocksBreaked", this.unlockedCount);
       const goTrophies = gamevolt.checkAchievements();
-      if (goTrophies.length > 0) this.showTrophyUnlocks(goTrophies);
+      if (goTrophies.length > 0 && window.GameVolt) GameVolt.ui.achievementToast(goTrophies);
       window.setTimeout(() => this.showResultOverlay("game-over"), 1200); return;
     }
     if (!this.hasAnyPossibleMove()) { this.shuffleBoard(false); this.setStatus("Board shuffled — no moves available."); }
@@ -455,33 +453,6 @@ class MangaMatch3 {
     this.scheduleHint();
   }
 
-  /* ── Trophy Notifications ── */
-
-  showTrophyUnlocks(trophies) {
-    for (const trophy of trophies) {
-      this._trophyToastQueue.push(trophy);
-    }
-    if (!this._trophyToastActive) this._popTrophyToast();
-  }
-
-  _popTrophyToast() {
-    if (!this._trophyToastQueue.length) { this._trophyToastActive = false; return; }
-    this._trophyToastActive = true;
-    const trophy = this._trophyToastQueue.shift();
-    const el = document.getElementById("trophy-toast");
-    if (!el) { this._trophyToastActive = false; return; }
-    document.getElementById("trophy-toast-icon").textContent = trophy.icon;
-    document.getElementById("trophy-toast-name").textContent = trophy.name;
-    const tierEl = document.getElementById("trophy-toast-tier");
-    tierEl.textContent = trophy.tier.toUpperCase();
-    tierEl.className = trophy.tier;
-    el.classList.add("show");
-    sfx.trophy(trophy.tier);
-    window.setTimeout(() => {
-      el.classList.remove("show");
-      window.setTimeout(() => this._popTrophyToast(), 400);
-    }, 2800);
-  }
 
   /* ── Utility ── */
 

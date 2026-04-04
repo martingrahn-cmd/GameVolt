@@ -828,8 +828,6 @@ export class Game {
 
         // Trophy system
         this.trophyData = loadTrophyData();
-        this._trophyToastQueue = [];
-        this._trophyToastActive = false;
         this.trophyScrollY = 0;
 
         // Scores/leaderboard state
@@ -5535,15 +5533,11 @@ export class Game {
         this.trophyData[id] = Date.now();
         saveTrophyData(this.trophyData);
 
-        // Show toast
-        this._trophyToastQueue.push(trophy);
-        if (!this._trophyToastActive) this._popTrophyToast();
-
-        // Play SFX
-        this._playTrophySfx(trophy.tier);
-
-        // GameVolt SDK
-        if (window.GameVolt) GameVolt.achievements.unlock(id);
+        // GameVolt SDK — toast + cloud sync
+        if (window.GameVolt) {
+            GameVolt.ui.achievementToast(trophy);
+            GameVolt.achievements.unlock(id);
+        }
 
         // Check for platinum
         if (id !== 'platinum') {
@@ -5556,52 +5550,6 @@ export class Game {
         return true;
     }
 
-    _popTrophyToast() {
-        if (!this._trophyToastQueue.length) {
-            this._trophyToastActive = false;
-            return;
-        }
-        this._trophyToastActive = true;
-        const trophy = this._trophyToastQueue.shift();
-        const el = document.getElementById('trophy-toast');
-        if (!el) {
-            this._trophyToastActive = false;
-            return;
-        }
-        document.getElementById('trophy-toast-icon').textContent = trophy.icon;
-        document.getElementById('trophy-toast-name').textContent = trophy.name;
-        const tierEl = document.getElementById('trophy-toast-tier');
-        tierEl.textContent = trophy.tier.toUpperCase();
-        tierEl.className = trophy.tier;
-        el.classList.add('show');
-        setTimeout(() => {
-            el.classList.remove('show');
-            setTimeout(() => this._popTrophyToast(), 400);
-        }, 2800);
-    }
-
-    _playTrophySfx(tier) {
-        this.audio._play(() => {
-            const ctx = this.audio.ctx;
-            const t = ctx.currentTime;
-            const dest = this.audio.masterGain;
-            const notes = tier === 'gold' || tier === 'platinum'
-                ? [784, 988, 1318] : [784, 1047];
-            for (let i = 0; i < notes.length; i++) {
-                const o = ctx.createOscillator();
-                o.type = 'sine';
-                o.frequency.value = notes[i];
-                const g = ctx.createGain();
-                const on = t + i * 0.08;
-                g.gain.setValueAtTime(0.001, on);
-                g.gain.linearRampToValueAtTime(0.25, on + 0.015);
-                g.gain.exponentialRampToValueAtTime(0.001, on + 0.4);
-                o.connect(g).connect(dest);
-                o.start(on);
-                o.stop(on + 0.45);
-            }
-        });
-    }
 
     checkInstantTrophies() {
         const s = this._runStats;
