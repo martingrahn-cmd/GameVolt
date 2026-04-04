@@ -21,6 +21,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="/js/gv-tracker.js"></script>
+    <script src="/js/gv-search.js"></script>
   <script src="/sdk/gamevolt.js"></script>
 
   <!-- Google Analytics -->
@@ -278,6 +279,14 @@
     .gv-sidebar-card.active {
       background: rgba(124, 92, 252, 0.15);
       border: 1px solid rgba(124, 92, 252, 0.25);
+    }
+    .gv-sidebar-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      padding: 8px 0 2px;
     }
 
     .gv-sidebar-thumb {
@@ -755,8 +764,38 @@
 
     function renderSidebar(activeKey) {
       grid.innerHTML = '';
-      for (const [key, game] of Object.entries(GAMES)) {
-        if (key === activeKey) continue;
+      const activeGame = GAMES[activeKey];
+      const activeCategory = activeGame ? activeGame.category : '';
+
+      // Sort: same category first, then rest
+      const sorted = Object.entries(GAMES)
+        .filter(([key]) => key !== activeKey)
+        .sort(([, a], [, b]) => {
+          if (a.category === activeCategory && b.category !== activeCategory) return -1;
+          if (b.category === activeCategory && a.category !== activeCategory) return 1;
+          return 0;
+        });
+
+      // Add "More like this" label before same-category games
+      let addedLabel = false;
+      for (const [key, game] of sorted) {
+        if (!addedLabel && game.category === activeCategory) {
+          const label = document.createElement('div');
+          label.className = 'gv-sidebar-label';
+          label.textContent = 'More ' + activeCategory + ' Games';
+          grid.appendChild(label);
+          addedLabel = true;
+        }
+        if (addedLabel && game.category !== activeCategory && sorted.some(([, g]) => g.category !== activeCategory)) {
+          // Add "Other Games" label once
+          const others = grid.querySelector('.gv-sidebar-label-other');
+          if (!others) {
+            const label = document.createElement('div');
+            label.className = 'gv-sidebar-label gv-sidebar-label-other';
+            label.textContent = 'Other Games';
+            grid.appendChild(label);
+          }
+        }
         const card = document.createElement('a');
         card.className = 'gv-sidebar-card';
         card.href = '/play/?game=' + key;
