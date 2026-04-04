@@ -131,26 +131,34 @@ Do this for **all** card types where the game appears: Editor's Choice (`ec-card
 
 Add `preview: "/your-game/preview.mp4"` if you have a video.
 
-### d) Hero stat "Games Available" (~line 1682)
+### d) Hero stat "Games Available"
 
-Update the number in the hero section at the top of the page:
+Update the number in the hero section (search for `stat-number`):
 
 ```html
-<span class="stat-number">12</span>
+<span class="stat-number">N</span>  <!-- increment this -->
 <span class="stat-label">Games Available</span>
+```
+
+### d2) Search catalog — `/js/gv-search.js`
+
+Add the game to the `GAMES` array in the search script so it appears in search results:
+
+```js
+{ id: 'your-game', name: 'Your Game', cat: 'Puzzle', thumb: '/assets/thumbnails/your-game.webp', tags: 'puzzle logic keywords' },
 ```
 
 ### e) Category pill counts (~line 1901)
 
 Update the `pill-count` numbers in the category filter buttons. Increment "All Games" and whichever categories your game belongs to (`coffee-break`, `brain-challenge`, `action`).
 
-### f) Featured sections (optional)
+### f) Featured sections (if SDK-integrated)
 
-**Editor's Choice** (~line 1699): Two featured games with large cards. Replace an existing card if the new game should be featured.
+**Just Launched**: New games section. Add a `powered-card` here for newly released games.
 
-**Just Launched** (~line 1759): New games section. Add/replace cards here for newly released games.
+**Powered Up**: All SDK-integrated games with cloud save, leaderboard, and trophies. Add a `powered-card` if the game has full SDK integration.
 
-**Powered Up** (~line 1798): All SDK-integrated games with cloud save, leaderboard, and trophies. Add a card if the game has full SDK integration.
+**Trending**: Populated dynamically from GV-tracker data — add the game to the `GAME_DATA` object in the trending script at the bottom of `index.html`.
 
 ### g) Footer games list
 
@@ -301,7 +309,10 @@ Add a new `<url>` entry for the game:
 - [ ] Game ID is identical in: `GameVolt.init()`, `gvPost()`, `games` table, `achievement_defs` prefix, `schema.sql`
 - [ ] `/index.html` — JSON-LD, game card, GAME_META (incl. `preview` if video exists), hero stat, pill counts, footer
 - [ ] `/index.html` — `data-preview` + `<video>` tag on all card types if preview video exists (ec-card, powered-card, game-card)
-- [ ] `/index.html` — Featured sections if applicable (Editor's Choice, Just Launched, Powered Up)
+- [ ] `/index.html` — Featured sections if applicable (Just Launched, Powered Up)
+- [ ] `/index.html` — Trending `GAME_DATA` object (at bottom of page)
+- [ ] `/js/gv-search.js` — add game to `GAMES` array for search
+- [ ] Game's OG image is correct (not a placeholder from another game!)
 - [ ] `/play/index.html` — names, GAMES object
 - [ ] `/profile/index.html` — GAME_NAMES, GAME_THUMBS, TROPHY_CATALOG
 - [ ] Category page(s) — JSON-LD, game card, footer
