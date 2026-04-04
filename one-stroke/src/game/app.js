@@ -2781,6 +2781,7 @@ export class OneStrokeApp {
     }
     saveCampaignProgress(this.progress);
     this.syncCloudSave();
+    this.checkTrophies();
     this.renderHubPanels();
   }
 
@@ -2927,6 +2928,7 @@ export class OneStrokeApp {
     this.renderHubPanels();
     this.syncCloudSave();
     this.submitToLeaderboard(summary.totalScore);
+    this.checkTrophies();
     if (this.dailyMode) {
       this.markDailyAsPlayed(summary);
       this.showDailyResult();
@@ -4113,6 +4115,13 @@ export class OneStrokeApp {
       return;
     }
     this.loadChallengeLevel(nextChallengeIndex, { announce: true });
+  }
+
+  // ── Trophy check (run after level/challenge completion) ────
+
+  checkTrophies() {
+    const metrics = this.getAchievementMetrics();
+    this.buildAchievementResults(metrics);
   }
 
   // ── Trophy toast (queue-based) ────────────────────────────
