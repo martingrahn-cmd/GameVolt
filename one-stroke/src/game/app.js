@@ -1632,11 +1632,12 @@ export class OneStrokeApp {
 
     if (hasNewUnlock) {
       saveAchievementUnlocks(this.achievementUnlocks);
-      // Sync to GameVolt cloud
-      if (window.GameVolt?.achievements) {
-        for (const trophy of newlyUnlocked) {
+      // Sync to GameVolt cloud + show toast
+      for (const trophy of newlyUnlocked) {
+        if (window.GameVolt?.achievements) {
           GameVolt.achievements.unlock(trophy.id);
         }
+        this.showTrophyToast(trophy);
       }
     }
     return results;
@@ -2779,6 +2780,7 @@ export class OneStrokeApp {
       this.progress.unlockedLevel = clamp(unlockCandidate, 1, CAMPAIGN_TOTAL_LEVELS);
     }
     saveCampaignProgress(this.progress);
+    this.syncCloudSave();
     this.renderHubPanels();
   }
 
@@ -2923,6 +2925,8 @@ export class OneStrokeApp {
     }
 
     this.renderHubPanels();
+    this.syncCloudSave();
+    this.submitToLeaderboard(summary.totalScore);
     if (this.dailyMode) {
       this.markDailyAsPlayed(summary);
       this.showDailyResult();
@@ -4109,5 +4113,58 @@ export class OneStrokeApp {
       return;
     }
     this.loadChallengeLevel(nextChallengeIndex, { announce: true });
+  }
+
+  // ── Trophy toast (queue-based) ────────────────────────────
+
+  showTrophyToast(trophy) {
+    if (!this._toastQueue) this._toastQueue = [];
+    this._toastQueue.push(trophy);
+    if (!this._toastActive) this._popToast();
+  }
+
+  _popToast() {
+    if (!this._toastQueue || !this._toastQueue.length) {
+      this._toastActive = false;
+      return;
+    }
+    this._toastActive = true;
+    const trophy = this._toastQueue.shift();
+    const el = document.getElementById("trophy-toast");
+    if (!el) { this._toastActive = false; return; }
+    const iconEl = document.getElementById("trophy-toast-icon");
+    const nameEl = document.getElementById("trophy-toast-name");
+    const tierEl = document.getElementById("trophy-toast-tier");
+    if (iconEl) iconEl.textContent = trophy.icon || "";
+    if (nameEl) nameEl.textContent = trophy.name;
+    if (tierEl) {
+      tierEl.textContent = (trophy.tier || "bronze").toUpperCase();
+      tierEl.className = trophy.tier || "bronze";
+    }
+    el.classList.add("show");
+    setTimeout(() => {
+      el.classList.remove("show");
+      setTimeout(() => this._popToast(), 400);
+    }, 2800);
+  }
+
+  // ── Cloud save ────────────────────────────────────────────
+
+  syncCloudSave() {
+    if (!window.GameVolt?.save) return;
+    GameVolt.save.set({
+      campaignProgress: {
+        unlockedLevel: this.progress.unlockedLevel,
+        solvedCount: Object.keys(this.progress.solvedLevels).length,
+      },
+      achievementCount: Object.keys(this.achievementUnlocks).length,
+    }).catch(() => {});
+  }
+
+  // ── Leaderboard submission ────────────────────────────────
+
+  submitToLeaderboard(score) {
+    if (!window.GameVolt?.leaderboard || !GameVolt.auth.getUser()) return;
+    GameVolt.leaderboard.submit(score, { mode: "daily" }).catch(() => {});
   }
 }

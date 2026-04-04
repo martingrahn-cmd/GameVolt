@@ -3,7 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>One Stroke | Hamiltonian Path Puzzle</title>
+    <title>One Stroke — Free Hamiltonian Path Puzzle | GameVolt</title>
+    <meta name="description" content="Play One Stroke free online — visit every node exactly once in a single connected path. 200 campaign levels, daily challenges and leaderboards.">
+    <link rel="canonical" href="https://gamevolt.io/one-stroke/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="One Stroke — Hamiltonian Path Puzzle">
+    <meta property="og:description" content="Visit every node exactly once. 200 levels, daily challenges, trophies. Free, no download.">
+    <meta property="og:image" content="https://gamevolt.io/one-stroke/assets/marketing/og-image.png">
+    <meta property="og:url" content="https://gamevolt.io/one-stroke/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="One Stroke — Hamiltonian Path Puzzle">
+    <meta name="twitter:description" content="Visit every node exactly once. 200 levels, daily challenges, trophies.">
+    <meta name="twitter:image" content="https://gamevolt.io/one-stroke/assets/marketing/og-image.png">
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#08141b" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -455,7 +466,28 @@
       </button>
     </nav>
 
+    <!-- Trophy toast -->
+    <div id="trophy-toast">
+      <div id="trophy-toast-icon"></div>
+      <div>
+        <div id="trophy-toast-label">TROPHY UNLOCKED</div>
+        <div id="trophy-toast-tier" class="bronze"></div>
+        <div id="trophy-toast-name"></div>
+      </div>
+    </div>
+
+    <script src="/js/gv-tracker.js"></script>
     <script src="/sdk/gamevolt.js"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+
     <script type="module" src="src/main.js"></script>
   </body>
 </html>
