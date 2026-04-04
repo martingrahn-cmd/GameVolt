@@ -35,7 +35,7 @@ function formatScore(value) {
 
 function formatDate(dateStr) {
   const d = new Date(dateStr);
-  return new Intl.DateTimeFormat("sv-SE", {
+  return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -98,7 +98,7 @@ export function generateShareImage({ date, score, timeMs, levelCount, completedC
   ctx.fillStyle = "#8aafcc";
   ctx.font = "bold 18px 'Oxanium', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(`Dagens utmaning — ${formatDate(date)}`, 220, 143);
+  ctx.fillText(`Daily Challenge — ${formatDate(date)}`, 220, 143);
 
   // ── Main score ──
   ctx.textAlign = "center";
@@ -155,7 +155,7 @@ export function generateShareImage({ date, score, timeMs, levelCount, completedC
   ctx.fillStyle = "#d0e8f8";
   ctx.font = "bold 22px 'Oxanium', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Kan du slå mig? Prova dagens utmaning!", CARD_WIDTH / 2, 515);
+  ctx.fillText("Can you beat me? Try today's challenge!", CARD_WIDTH / 2, 515);
 
   // ── Footer ──
   ctx.fillStyle = "#2a3a4a";
@@ -174,8 +174,8 @@ export async function shareResult(canvas, { date }) {
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({
-        title: "One Stroke — Dagens utmaning",
-        text: "Jag fick dagens poäng i One Stroke! Kan du slå mig?",
+        title: "One Stroke — Daily Challenge",
+        text: "I scored today's challenge in One Stroke! Can you beat me?",
         files: [file],
         url: "https://gamevolt.io/one-stroke/",
       });
@@ -189,8 +189,8 @@ export async function shareResult(canvas, { date }) {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: "One Stroke — Dagens utmaning",
-        text: `Jag fick dagens poäng i One Stroke! Kan du slå mig?`,
+        title: "One Stroke — Daily Challenge",
+        text: `I scored today's challenge in One Stroke! Can you beat me?`,
         url: "https://gamevolt.io/one-stroke/",
       });
       return "shared";

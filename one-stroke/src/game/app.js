@@ -284,7 +284,7 @@ export class OneStrokeApp {
     this.renderModeButtons();
     this.setHubView("single-player", { syncMode: false });
     this.updateDailyUI();
-    this.setStatus("Dra från startnoden till en granne. Dra bakåt för att ångra.");
+    this.setStatus("Drag from the start node to a neighbor. Drag backward to undo.");
 
     // Check URL for cloud challenge invite
     this.handleChallengeUrl();
@@ -333,7 +333,7 @@ export class OneStrokeApp {
     this.modalExportMatchBtn?.addEventListener("click", async () => {
       await this.exportMatchCode();
       if (this.modalExportConfirmEl) {
-        this.modalExportConfirmEl.textContent = "Matchkod kopierad! Skicka den till din vän.";
+        this.modalExportConfirmEl.textContent = "Match code copied! Send it to your friend.";
         this.modalExportConfirmEl.hidden = false;
       }
     });
@@ -561,13 +561,13 @@ export class OneStrokeApp {
     this.loadChallengeLevel(0, { announce: false });
     this.renderModeButtons();
     this.updateDailyUI();
-    this.setStatus("Dagens utmaning! 5 banor — samma för alla idag.");
+    this.setStatus("Today's challenge! 5 levels — the same for everyone today.");
   }
 
   updateDailyUI() {
     if (this.dailyDateLabel) {
       const today = new Date();
-      this.dailyDateLabel.textContent = new Intl.DateTimeFormat("sv-SE", {
+      this.dailyDateLabel.textContent = new Intl.DateTimeFormat("en-US", {
         weekday: "long",
         year: "numeric",
         month: "long",
@@ -585,9 +585,9 @@ export class OneStrokeApp {
       if (this.dailyScoreLabel) this.dailyScoreLabel.textContent = toDisplayScore(played.score);
       if (this.dailyTimeLabel) this.dailyTimeLabel.textContent = toDisplayTime(played.timeMs);
       if (this.dailyCompletedLabel) this.dailyCompletedLabel.textContent = `${played.completedCount}/${played.totalCount}`;
-      if (playBtn) playBtn.textContent = "Spela igen";
+      if (playBtn) playBtn.textContent = "Play again";
     } else {
-      if (playBtn) playBtn.textContent = "Spela";
+      if (playBtn) playBtn.textContent = "Play";
       if (this.dailyResultCard) this.dailyResultCard.hidden = true;
     }
 
@@ -627,7 +627,7 @@ export class OneStrokeApp {
   async shareDailyResult() {
     const summary = this.getChallengeSummary();
     if (!summary) {
-      this.setStatus("Inget resultat att dela.", "loss");
+      this.setStatus("No result to share.", "loss");
       return;
     }
 
@@ -654,9 +654,9 @@ export class OneStrokeApp {
 
     const result = await shareResult(canvas, { date: todaySeed() });
     if (result === "shared") {
-      this.setStatus("Resultat delat!");
+      this.setStatus("Result shared!");
     } else {
-      this.setStatus("Resultatbild nedladdad!");
+      this.setStatus("Result image downloaded!");
     }
   }
 
@@ -668,7 +668,7 @@ export class OneStrokeApp {
     const completedCount = Object.keys(this.challenge.resultsByLevelId).length;
     if (this.matchProgressLabelEl) {
       this.matchProgressLabelEl.textContent =
-        `${completedCount} / ${this.challenge.levels.length} banor klara`;
+        `${completedCount} / ${this.challenge.levels.length} levels completed`;
     }
 
     this.challengeListEl.innerHTML = "";
@@ -783,7 +783,7 @@ export class OneStrokeApp {
         meta.textContent =
           `${toDisplayTime(split.timeMs)} · U:${split.undoCount} R:${split.resetCount} H:${split.hintCount} · ${toDisplayScore(split.score)} p`;
       } else {
-        meta.textContent = "Inte klar ännu";
+        meta.textContent = "Not completed yet";
       }
 
       row.append(title, meta);
@@ -929,9 +929,9 @@ export class OneStrokeApp {
         document.execCommand("copy");
         textarea.remove();
       }
-      this.setStatus("Challenge-summary (text v1) kopierad till urklipp.");
+      this.setStatus("Challenge summary (text v1) copied to clipboard.");
     } catch {
-      this.setStatus("Kunde inte kopiera summary automatiskt.", "loss");
+      this.setStatus("Could not copy summary automatically.", "loss");
     }
   }
 
@@ -949,7 +949,7 @@ export class OneStrokeApp {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    this.setStatus("Challenge-summary exporterad som JSON (schema v1).");
+    this.setStatus("Challenge summary exported as JSON (schema v1).");
   }
 
   renderModeButtons() {
@@ -1036,7 +1036,7 @@ export class OneStrokeApp {
     const isChallenge = this.state.mode === "challenge";
     this.boardModeLabelEl.textContent = isChallenge
       ? "Multiplayer · Challenge"
-      : "Single-player · Kampanj";
+      : "Single-player · Campaign";
     if (this.appShellEl) {
       this.appShellEl.dataset.mode = isChallenge ? "challenge" : "campaign";
     }
@@ -1111,7 +1111,7 @@ export class OneStrokeApp {
     }
     const playerCount = Object.keys(this.activeMatch.players).length;
     const finishedCount = Object.values(this.activeMatch.players).filter((p) => p.status === "finished").length;
-    this.matchResultStatusEl.textContent = `${finishedCount} av ${playerCount} spelare klara`;
+    this.matchResultStatusEl.textContent = `${finishedCount} of ${playerCount} players finished`;
   }
 
   abortMatch() {
@@ -1239,7 +1239,7 @@ export class OneStrokeApp {
       this.renderHighScoreRunDetail(null, []);
       const empty = document.createElement("p");
       empty.className = "hub-empty";
-      empty.textContent = "Ingen challenge-historik ännu. Spela en challenge-run för att fylla listan.";
+      empty.textContent = "No challenge history yet. Play a challenge run to fill the list.";
       this.highScoreRunListEl.append(empty);
       return;
     }
@@ -1262,7 +1262,7 @@ export class OneStrokeApp {
       const meta = document.createElement("div");
       meta.className = "hub-run-meta";
       meta.textContent =
-        `${toDisplayTime(run.totalTimeMs)} · ${run.completedCount}/${run.totalLevels} klara · ${toDisplayDateTime(run.finishedAt)}`;
+        `${toDisplayTime(run.totalTimeMs)} · ${run.completedCount}/${run.totalLevels} completed · ${toDisplayDateTime(run.finishedAt)}`;
 
       const selectRun = () => {
         this.selectedHighScoreRunId = run.id;
@@ -1327,7 +1327,7 @@ export class OneStrokeApp {
     if (!selectedRun) {
       const empty = document.createElement("p");
       empty.className = "hub-empty";
-      empty.textContent = "Välj en run för att se detaljerad jämförelse mot personligt bästa.";
+      empty.textContent = "Select a run to see a detailed comparison against your personal best.";
       this.highScoreRunDetailEl.append(empty);
       return;
     }
@@ -1350,25 +1350,25 @@ export class OneStrokeApp {
     const summary = document.createElement("p");
     summary.className = "run-detail-summary";
     summary.textContent =
-      `Run #${rank} · Seed ${selectedRun.seed || "--"} · ${completedCount}/${totalLevels} klara · ${toDisplayDateTime(selectedRun.finishedAt)}`;
+      `Run #${rank} · Seed ${selectedRun.seed || "--"} · ${completedCount}/${totalLevels} completed · ${toDisplayDateTime(selectedRun.finishedAt)}`;
     this.highScoreRunDetailEl.append(summary);
 
     const metricGrid = document.createElement("div");
     metricGrid.className = "hub-mini-grid run-detail-grid";
     metricGrid.append(
-      this.createRunDetailMetricCard("Poäng", `${toDisplayScore(score)} p`),
+      this.createRunDetailMetricCard("Score", `${toDisplayScore(score)} p`),
       this.createRunDetailMetricCard(
-        "Poäng vs PB",
+        "Score vs PB",
         toDisplaySignedScoreDelta(scoreDelta),
         scoreDelta === 0 ? "better" : "worse",
       ),
-      this.createRunDetailMetricCard("Tid", toDisplayTime(timeMs)),
+      this.createRunDetailMetricCard("Time", toDisplayTime(timeMs)),
       this.createRunDetailMetricCard(
-        "Tid vs PB",
-        isComplete ? toDisplaySignedTimeDelta(timeDelta) : "Kräver full run",
+        "Time vs PB",
+        isComplete ? toDisplaySignedTimeDelta(timeDelta) : "Requires full run",
         isComplete && timeDelta === 0 ? "better" : isComplete ? "worse" : "neutral",
       ),
-      this.createRunDetailMetricCard("Klara", `${completedCount}/${totalLevels}`),
+      this.createRunDetailMetricCard("Completed", `${completedCount}/${totalLevels}`),
       this.createRunDetailMetricCard("U / R / H", `U:${undoCount} R:${resetCount} H:${hintCount}`),
     );
     this.highScoreRunDetailEl.append(metricGrid);
@@ -1387,7 +1387,7 @@ export class OneStrokeApp {
     if (splits.length === 0) {
       const empty = document.createElement("p");
       empty.className = "hub-empty";
-      empty.textContent = "Ingen split-data sparad för den här runen.";
+      empty.textContent = "No split data saved for this run.";
       splitList.append(empty);
     } else {
       splits.forEach((split) => {
@@ -1406,7 +1406,7 @@ export class OneStrokeApp {
           meta.textContent =
             `${toDisplayTime(split.timeMs)} · U:${split.undoCount} R:${split.resetCount} H:${split.hintCount} · ${toDisplayScore(split.score)} p`;
         } else {
-          meta.textContent = "Inte klar ännu";
+          meta.textContent = "Not completed yet";
         }
 
         row.append(title, meta);
@@ -1684,15 +1684,15 @@ export class OneStrokeApp {
       const header = document.createElement("div");
       header.className = "achievement-header";
 
+      const iconEl = document.createElement("span");
+      iconEl.className = "achievement-icon";
+      iconEl.textContent = result.unlocked ? (result.icon || "") : "\uD83D\uDD12";
+
       const tier = document.createElement("span");
       tier.className = "achievement-tier";
       tier.textContent = TROPHY_TIER_META[result.tier].label;
 
-      const status = document.createElement("span");
-      status.className = "achievement-status";
-      status.textContent = result.unlocked ? "\u2705" : "\uD83D\uDD12";
-
-      header.append(tier, status);
+      header.append(iconEl, tier);
 
       const name = document.createElement("div");
       name.className = "achievement-name";
@@ -1773,13 +1773,13 @@ export class OneStrokeApp {
     });
 
     this.levelSelectSummaryEl.textContent =
-      `Visar ${visibleLevels.length}/${CAMPAIGN_TOTAL_LEVELS} · Upplåsta ${unlockedCount} · Klara ${solvedCount}`;
+      `Showing ${visibleLevels.length}/${CAMPAIGN_TOTAL_LEVELS} · Unlocked ${unlockedCount} · Solved ${solvedCount}`;
 
     this.levelSelectGridEl.innerHTML = "";
     if (visibleLevels.length === 0) {
       const empty = document.createElement("p");
       empty.className = "level-select-empty";
-      empty.textContent = "Inga nivåer matchar filtret.";
+      empty.textContent = "No levels match the filter.";
       this.levelSelectGridEl.append(empty);
       return;
     }
@@ -1809,13 +1809,13 @@ export class OneStrokeApp {
       const meta = document.createElement("span");
       meta.className = "level-select-meta";
       meta.textContent = unlocked
-        ? `${level.width}x${level.height} · ${level.par + 1} noder${solved ? " · Klar" : ""}`
-        : "Låst nivå";
+        ? `${level.width}x${level.height} · ${level.par + 1} nodes${solved ? " · Solved" : ""}`
+        : "Locked level";
 
       card.append(number, name, meta);
       card.addEventListener("click", () => {
         if (!unlocked) {
-          this.flashInvalid("Nivån är låst. Lös föregående nivåer först.");
+          this.flashInvalid("Level is locked. Solve previous levels first.");
           return;
         }
         this.closeLevelSelect();
@@ -1970,7 +1970,7 @@ export class OneStrokeApp {
     const campaignLevelNumber = clamped + 1;
 
     if (!bypassLock && campaignLevelNumber > this.progress.unlockedLevel) {
-      this.setStatus("Nivån är låst. Lös föregående nivå först.", "loss");
+      this.setStatus("Level is locked. Solve the previous level first.", "loss");
       this.flashInvalidBoard();
       return;
     }
@@ -1983,7 +1983,7 @@ export class OneStrokeApp {
   loadChallengeLevel(index, options = {}) {
     const { announce = true } = options;
     if (this.challenge.levels.length === 0) {
-      this.setStatus("Ingen challenge tillgänglig ännu.", "loss");
+      this.setStatus("No challenge available yet.", "loss");
       return;
     }
     const clamped = clamp(index, 0, this.challenge.levels.length - 1);
@@ -2032,9 +2032,9 @@ export class OneStrokeApp {
     if (announce) {
       const modePrefix =
         this.state.mode === "campaign"
-          ? `Kampanjnivå ${level.campaignIndex}`
+          ? `Campaign level ${level.campaignIndex}`
           : `Challenge ${this.challenge.cursor + 1}`;
-      const endHint = this.state.endKey ? " (fast slutnod)" : "";
+      const endHint = this.state.endKey ? " (fixed end node)" : "";
       this.setStatus(`${modePrefix}: ${level.name}${endHint}`);
     }
 
@@ -2060,7 +2060,7 @@ export class OneStrokeApp {
         if (!blocked) {
           node.type = "button";
           node.dataset.key = key;
-          node.setAttribute("aria-label", `Nod ${x + 1},${y + 1}`);
+          node.setAttribute("aria-label", `Node ${x + 1},${y + 1}`);
           node.append(this.createTraceNode());
           this.cells.set(key, node);
         } else {
@@ -2128,7 +2128,7 @@ export class OneStrokeApp {
 
   renderCampaignMeta() {
     const solvedCount = Object.keys(this.progress.solvedLevels).length;
-    this.campaignProgressLabelEl.textContent = `${solvedCount} klara`;
+    this.campaignProgressLabelEl.textContent = `${solvedCount} solved`;
   }
 
   updateNextButton() {
@@ -2164,7 +2164,7 @@ export class OneStrokeApp {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "level-btn";
-        button.textContent = unlocked ? String(index + 1) : "Låst";
+        button.textContent = unlocked ? String(index + 1) : "Locked";
         button.disabled = !unlocked;
         button.title = `${level.name} (${DIFFICULTY_META[level.difficulty].label})`;
         button.classList.toggle("active", index === this.campaignCursorIndex);
@@ -2194,12 +2194,12 @@ export class OneStrokeApp {
 
   getPhaseLabel(status) {
     if (status === "won") {
-      return "Vinst";
+      return "Won";
     }
     if (status === "lost") {
-      return "Fastlåst";
+      return "Stuck";
     }
-    return "Spelar";
+    return "Playing";
   }
 
   handleCellInput(key, pointerPosition = null) {
@@ -2212,7 +2212,7 @@ export class OneStrokeApp {
 
   requestHint() {
     if (this.state.status !== "playing") {
-      this.setStatus("Hints kan bara användas medan banan pågår.");
+      this.setStatus("Hints can only be used while the level is in progress.");
       return;
     }
 
@@ -2228,7 +2228,7 @@ export class OneStrokeApp {
       }
       this.renderState();
       const [x, y] = parseKey(hint.key);
-      this.setStatus(`Hint: prova nod ${x + 1},${y + 1}.${penaltyText}`);
+      this.setStatus(`Hint: try node ${x + 1},${y + 1}.${penaltyText}`);
       return;
     }
 
@@ -2238,16 +2238,16 @@ export class OneStrokeApp {
       this.renderState();
       const stepsBack = hint.stepsBack;
       this.setStatusWithActions(
-        `Ingen lösning härifrån. Backa ${stepsBack} steg.${penaltyText}`,
+        `No solution from here. Backtrack ${stepsBack} steps.${penaltyText}`,
         "loss",
-        [{ label: `Backa ${stepsBack} steg`, action: () => this.backtrackMultiple(stepsBack) }],
+        [{ label: `Backtrack ${stepsBack} steps`, action: () => this.backtrackMultiple(stepsBack) }],
       );
       return;
     }
 
     this.activeHintKey = null;
     this.renderState();
-    this.flashInvalid("Ingen lösning hittades. Starta om banan.");
+    this.flashInvalid("No solution found. Restart the level.");
   }
 
   backtrackMultiple(steps) {
@@ -2268,7 +2268,7 @@ export class OneStrokeApp {
       this.renderChallengeResults();
     }
     const remaining = this.state.playableCount - this.state.visited.size;
-    this.setStatus(`Backade ${steps} steg. ${remaining} noder kvar.`);
+    this.setStatus(`Backtracked ${steps} steps. ${remaining} nodes remaining.`);
   }
 
   findHintTarget() {
@@ -2466,12 +2466,12 @@ export class OneStrokeApp {
     const nextX = x + dx;
     const nextY = y + dy;
     if (!inBounds(this.state.level, nextX, nextY)) {
-      this.flashInvalid("Draget går utanför spelplanen.");
+      this.flashInvalid("The move goes outside the board.");
       return;
     }
     const nextKey = coordKey(nextX, nextY);
     if (!this.cells.has(nextKey)) {
-      this.flashInvalid("Den noden är blockerad.");
+      this.flashInvalid("That node is blocked.");
       return;
     }
     this.tryExtendPath(nextKey, null);
@@ -2488,12 +2488,12 @@ export class OneStrokeApp {
     }
 
     if (!this.cells.has(targetKey)) {
-      this.flashInvalid("Den noden går inte att använda.");
+      this.flashInvalid("That node cannot be used.");
       return;
     }
 
     if (!this.isAdjacentKeys(tailKey, targetKey)) {
-      this.flashInvalid("Endast ortogonala steg från senaste noden är giltiga.");
+      this.flashInvalid("Only orthogonal steps from the latest node are valid.");
       return;
     }
 
@@ -2504,7 +2504,7 @@ export class OneStrokeApp {
     }
 
     if (this.state.visited.has(targetKey)) {
-      this.flashInvalid("Noden är redan använd. Dra bakåt till föregående nod eller använd Ångra.");
+      this.flashInvalid("Node already visited. Drag backward to the previous node or use Undo.");
       return;
     }
 
@@ -2514,7 +2514,7 @@ export class OneStrokeApp {
 
     if (this.state.visited.size === this.state.playableCount) {
       if (this.state.endKey && this.getTailKey() !== this.state.endKey) {
-        this.handleLoss("alla noder besökta men du slutade inte på målnoden.");
+        this.handleLoss("all nodes visited but you did not end on the goal node.");
         return;
       }
       this.handleWin();
@@ -2528,7 +2528,7 @@ export class OneStrokeApp {
     }
 
     this.renderState();
-    this.setStatus(`Bra. ${this.state.playableCount - this.state.visited.size} noder kvar.`);
+    this.setStatus(`Good. ${this.state.playableCount - this.state.visited.size} nodes remaining.`);
   }
 
   backtrackOneStep(source = "undo", focusKey = null, pointerPosition = null) {
@@ -2556,9 +2556,9 @@ export class OneStrokeApp {
     }
     const remaining = this.state.playableCount - this.state.visited.size;
     const challengePenaltyText =
-      this.state.mode === "challenge" ? ` (-${CHALLENGE_UNDO_PENALTY_SECONDS}s i challenge-straff)` : "";
-    const prefix = source === "drag" ? "Drog tillbaka ett steg." : "Ångrade ett steg.";
-    this.setStatus(`${prefix}${challengePenaltyText} ${remaining} noder kvar.`);
+      this.state.mode === "challenge" ? ` (-${CHALLENGE_UNDO_PENALTY_SECONDS}s challenge penalty)` : "";
+    const prefix = source === "drag" ? "Dragged back one step." : "Undid one step.";
+    this.setStatus(`${prefix}${challengePenaltyText} ${remaining} nodes remaining.`);
     return true;
   }
 
@@ -2619,7 +2619,7 @@ export class OneStrokeApp {
     if (this.state.mode === "challenge") {
       this.renderChallengeResults();
     }
-    this.setStatus("Nytt försök. Kör igen.");
+    this.setStatus("New attempt. Go again.");
   }
 
   resetLevel() {
@@ -2637,7 +2637,7 @@ export class OneStrokeApp {
     if (this.state.mode === "challenge") {
       this.renderChallengeResults();
     }
-    this.setStatus(`Banan återställd. ${this.state.playableCount - 1} noder kvar. Kör igen.`);
+    this.setStatus(`Level reset. ${this.state.playableCount - 1} nodes remaining. Go again.`);
   }
 
   handleWin() {
@@ -2660,9 +2660,9 @@ export class OneStrokeApp {
     if (this.state.mode === "campaign") {
       const previous = this.progress.solvedLevels[this.state.level.id];
       if (!previous) {
-        pbTag = " · Första klaring!";
+        pbTag = " · First clear!";
       } else if (durationMs < previous.bestTimeMs) {
-        pbTag = ` · Nytt PB! (${toDisplayTime(previous.bestTimeMs)} → ${toDisplayTime(durationMs)})`;
+        pbTag = ` · New PB! (${toDisplayTime(previous.bestTimeMs)} → ${toDisplayTime(durationMs)})`;
       }
       this.recordCampaignResult(this.state.level, result);
     } else {
@@ -2674,8 +2674,8 @@ export class OneStrokeApp {
 
     const hasNext = this.hasNextLevelInCurrentMode();
     const winMsg = this.state.endKey
-      ? "Bana klar! Alla noder täckta och målet nått."
-      : "Bana klar. Alla noder täckta exakt en gång.";
+      ? "Level complete! All nodes covered and goal reached."
+      : "Level complete. All nodes covered exactly once.";
     this.setStatus(winMsg, "win");
 
     const timingText = `${toDisplayTime(durationMs)} · ${result.undoCount} undo · ${result.resetCount} reset · ${result.hintCount} hint`;
@@ -2692,8 +2692,8 @@ export class OneStrokeApp {
     if (this.state.mode === "campaign") {
       this.showModal(
         hasNext
-          ? `Kampanj klarad. ${timingText}${pbTag}. Nästa nivå är upplåst.`
-          : `Sista kampanjnivån klarad. ${timingText}${pbTag}.`,
+          ? `Campaign cleared. ${timingText}${pbTag}. Next level unlocked.`
+          : `Final campaign level cleared. ${timingText}${pbTag}.`,
         hasNext,
       );
     } else {
@@ -2730,18 +2730,18 @@ export class OneStrokeApp {
           const diffMs = durationMs - opponent.durationMs;
           const sign = diffMs > 0 ? "+" : "−";
           const sec = (Math.abs(diffMs) / 1000).toFixed(1);
-          deltaText = Math.abs(diffMs) < 100 ? " · Lika!" : ` · ${sign}${sec}s`;
+          deltaText = Math.abs(diffMs) < 100 ? " · Tied!" : ` · ${sign}${sec}s`;
         }
         this.showModal(
-          `Bana ${this.challenge.cursor + 1}/${totalLevels} klarad. ${challengeStatsText}. Split ${toDisplayScore(splitScore)} p${deltaText}`,
+          `Level ${this.challenge.cursor + 1}/${totalLevels} cleared. ${challengeStatsText}. Split ${toDisplayScore(splitScore)} p${deltaText}`,
           true,
           { splits: modalSplits },
         );
       } else {
         this.showModal(
-          `Match klar! ${solvedCount}/${totalLevels} banor · ${toDisplayScore(summary.totalScore)} p · ${toDisplayTime(summary.totalTimeMs)}`,
+          `Match complete! ${solvedCount}/${totalLevels} levels · ${toDisplayScore(summary.totalScore)} p · ${toDisplayTime(summary.totalTimeMs)}`,
           false,
-          { title: this.dailyMode ? "Dagens utmaning klar!" : "Match klar!", splits: modalSplits, showDailyShare: this.dailyMode },
+          { title: this.dailyMode ? "Daily challenge complete!" : "Match complete!", splits: modalSplits, showDailyShare: this.dailyMode },
         );
         // Transition to share phase
         this.setMatchPhase("share");
@@ -2910,7 +2910,7 @@ export class OneStrokeApp {
           this.cloudChallengeUnsub?.();
           this.cloudChallengeUnsub = GameVolt.challenge.onResult(cid, (run) => {
             if (user && run.user_id !== user.id) {
-              this.setStatus(`${run.username || "Motståndare"} har spelat klart! Poäng: ${run.score}`);
+              this.setStatus(`${run.username || "Opponent"} has finished! Score: ${run.score}`);
               if (this.matchPhase === "share" || this.matchPhase === "results") {
                 this.fetchAndShowCloudResults(cid);
               }
@@ -2940,10 +2940,10 @@ export class OneStrokeApp {
     const visited = this.state.visited.size;
     const total = this.state.playableCount;
     const pct = Math.round((visited / total) * 100);
-    const progress = `${visited}/${total} noder (${pct}%)`;
-    this.setStatusWithActions(`Fastlåst: ${reason} Täckt ${progress}.`, "loss", [
-      { label: "Ångra (Z)", action: () => this.undo() },
-      { label: "Starta om (R)", action: () => this.resetLevel() },
+    const progress = `${visited}/${total} nodes (${pct}%)`;
+    this.setStatusWithActions(`Stuck: ${reason} Covered ${progress}.`, "loss", [
+      { label: "Undo (Z)", action: () => this.undo() },
+      { label: "Restart (R)", action: () => this.resetLevel() },
       { label: "Hint (H)", action: () => { this.undo(); this.requestHint(); } },
     ]);
   }
@@ -2962,7 +2962,7 @@ export class OneStrokeApp {
       (key) => !visitedSet.has(key),
     );
     if (immediateMoves.length === 0) {
-      return "inga giltiga drag kvar från nuvarande nod.";
+      return "no valid moves left from the current node.";
     }
 
     const allowed = new Set(unvisited);
@@ -2984,7 +2984,7 @@ export class OneStrokeApp {
 
     for (const key of unvisited) {
       if (!seen.has(key)) {
-        return "minst en nod blev isolerad.";
+        return "at least one node became isolated.";
       }
     }
 
@@ -2994,7 +2994,7 @@ export class OneStrokeApp {
       const endNeighbors = getNeighborKeys(this.state.level, this.state.blockedSet, this.state.endKey)
         .filter((k) => !visitedSet.has(k) || k === tailKey);
       if (endNeighbors.length === 0) {
-        return "målnoden blev oåtkomlig.";
+        return "the goal node became unreachable.";
       }
     }
 
@@ -3133,7 +3133,7 @@ export class OneStrokeApp {
   }
 
   showModal(text, showNext, options = {}) {
-    const { showMatchExport = false, showDailyShare = false, title = "Bana klar", splits = null } = options;
+    const { showMatchExport = false, showDailyShare = false, title = "Level Complete", splits = null } = options;
     this.winModalEl.querySelector("#winTitle").textContent = title;
     this.winTextEl.textContent = text;
     this.modalNextBtn.hidden = !showNext;
@@ -3172,8 +3172,8 @@ export class OneStrokeApp {
     const thead = document.createElement("thead");
     const headRow = document.createElement("tr");
     const headers = hasOpponent
-      ? ["#", "Du", "Poäng", "Motst.", "Diff"]
-      : ["#", "Tid", "Poäng", "H/R/U"];
+      ? ["#", "You", "Score", "Opp.", "Diff"]
+      : ["#", "Time", "Score", "H/R/U"];
     for (const label of headers) {
       const th = document.createElement("th");
       th.textContent = label;
@@ -3229,7 +3229,7 @@ export class OneStrokeApp {
         if (split.opponentTimeMs != null && split.timeMs != null) {
           const diffMs = split.timeMs - split.opponentTimeMs;
           if (Math.abs(diffMs) < 100) {
-            tdDiff.textContent = "Lika";
+            tdDiff.textContent = "Tied";
             tdDiff.classList.add("win-split-tied");
           } else {
             const sign = diffMs > 0 ? "+" : "−";
@@ -3280,7 +3280,7 @@ export class OneStrokeApp {
       if (runningMyTime > 0 && runningOpponentTime > 0) {
         const totalDiff = runningMyTime - runningOpponentTime;
         if (Math.abs(totalDiff) < 100) {
-          tdDiffTotal.textContent = "Lika";
+          tdDiffTotal.textContent = "Tied";
           tdDiffTotal.classList.add("win-split-tied");
         } else {
           const sign = totalDiff > 0 ? "+" : "−";
@@ -3303,7 +3303,7 @@ export class OneStrokeApp {
 
   async exportMatchCode() {
     if (!this.activeMatch) {
-      this.setStatus("Skapa en challenge först.", "loss");
+      this.setStatus("Create a challenge first.", "loss");
       return;
     }
 
@@ -3336,13 +3336,13 @@ export class OneStrokeApp {
       }
       if (this.matchShareConfirmEl) {
         this.matchShareConfirmEl.textContent = this.cloudChallengeId
-          ? "Länk kopierad! Skicka den till din vän."
-          : "Kopierad! Skicka koden till din vän.";
+          ? "Link copied! Send it to your friend."
+          : "Copied! Send the code to your friend.";
         this.matchShareConfirmEl.hidden = false;
       }
-      this.setStatus(this.cloudChallengeId ? "Challenge-länk kopierad!" : "Matchkod kopierad!");
+      this.setStatus(this.cloudChallengeId ? "Challenge link copied!" : "Match code copied!");
     } catch {
-      this.setStatus("Kunde inte kopiera.", "loss");
+      this.setStatus("Could not copy.", "loss");
     }
   }
 
@@ -3391,7 +3391,7 @@ export class OneStrokeApp {
 
     const raw = this.matchImportTextarea?.value?.trim();
     if (!raw) {
-      this.setMatchImportError("Klistra in en challenge-länk eller matchkod först.");
+      this.setMatchImportError("Paste a challenge link or match code first.");
       return;
     }
 
@@ -3417,7 +3417,7 @@ export class OneStrokeApp {
     if (decoded.format === "json") {
       const validation = validateMatchStructure(matchData);
       if (!validation.ok) {
-        this.setMatchImportError(`Ogiltig matchkod: ${validation.reason}`);
+        this.setMatchImportError(`Invalid match code: ${validation.reason}`);
         return;
       }
     }
@@ -3430,7 +3430,7 @@ export class OneStrokeApp {
 
     if (matchLevels.length !== matchData.levels.length) {
       this.setMatchImportError(
-        `Matchkoden innehåller ${matchData.levels.length} nivåer men ${matchData.levels.length - matchLevels.length} saknas i din kampanjdata.`,
+        `The match code contains ${matchData.levels.length} levels but ${matchData.levels.length - matchLevels.length} are missing from your campaign data.`,
       );
       return;
     }
@@ -3438,7 +3438,7 @@ export class OneStrokeApp {
     // Rename the opponent's "local-player" so we can join as ourselves
     if (matchData.players[LOCAL_PLAYER_ID]) {
       const opponentData = matchData.players[LOCAL_PLAYER_ID];
-      const opponentName = `spelare-${matchData.matchId.slice(-6)}`;
+      const opponentName = `player-${matchData.matchId.slice(-6)}`;
       opponentData.playerId = opponentName;
       delete matchData.players[LOCAL_PLAYER_ID];
       matchData.players[opponentName] = opponentData;
@@ -3465,7 +3465,7 @@ export class OneStrokeApp {
       this.setHubView("multiplayer");
       this.setMatchPhase("results");
       this.renderMatchPanel();
-      this.setStatus("Match importerad — resultatjämförelse visas.");
+      this.setStatus("Match imported — showing result comparison.");
       return;
     }
 
@@ -3492,8 +3492,8 @@ export class OneStrokeApp {
       .filter((id) => id !== LOCAL_PLAYER_ID)
       .map((id) => id)
       .join(", ");
-    const opponentInfo = opponentNames ? ` mot ${opponentNames}` : "";
-    this.setStatus(`Match startad${opponentInfo}! Spela alla ${matchData.levelCount} banor.`);
+    const opponentInfo = opponentNames ? ` vs ${opponentNames}` : "";
+    this.setStatus(`Match started${opponentInfo}! Play all ${matchData.levelCount} levels.`);
   }
 
   // ── Cloud challenge (GameVolt) ────────────────────────────
@@ -3511,20 +3511,20 @@ export class OneStrokeApp {
     if (window.GameVolt) {
       GameVolt.onReady(() => this.joinCloudChallenge(challengeId));
     } else {
-      this.setStatus("Logga in för att spela cloud-challenges.", "loss");
+      this.setStatus("Log in to play cloud challenges.", "loss");
     }
   }
 
   async joinCloudChallenge(challengeId) {
     if (!window.GameVolt?.challenge) {
-      this.setStatus("GameVolt SDK saknas.", "loss");
+      this.setStatus("GameVolt SDK missing.", "loss");
       return;
     }
 
     try {
       const data = await GameVolt.challenge.get(challengeId);
       if (!data) {
-        this.setStatus("Hittade inte denna challenge.", "loss");
+        this.setStatus("Could not find this challenge.", "loss");
         return;
       }
 
@@ -3537,7 +3537,7 @@ export class OneStrokeApp {
         .filter(Boolean);
 
       if (matchLevels.length === 0) {
-        this.setStatus("Kunde inte ladda challenge-banorna.", "loss");
+        this.setStatus("Could not load the challenge levels.", "loss");
         return;
       }
 
@@ -3555,7 +3555,7 @@ export class OneStrokeApp {
         this.fetchAndShowCloudResults(challengeId);
         this.renderModeButtons();
         this.closeMobilePanel();
-        this.setStatus("Du har redan spelat denna challenge. Visar resultat.");
+        this.setStatus("You have already played this challenge. Showing results.");
         return;
       }
 
@@ -3588,7 +3588,7 @@ export class OneStrokeApp {
       this.cloudChallengeUnsub?.();
       this.cloudChallengeUnsub = GameVolt.challenge.onResult(challengeId, (run) => {
         if (user && run.user_id !== user.id) {
-          this.setStatus(`${run.username || "Motståndare"} har spelat klart! Poäng: ${run.score}`);
+          this.setStatus(`${run.username || "Opponent"} has finished! Score: ${run.score}`);
           // Auto-refresh results if we're on share or results phase
           if (this.matchPhase === "share" || this.matchPhase === "results") {
             this.fetchAndShowCloudResults(challengeId);
@@ -3604,11 +3604,11 @@ export class OneStrokeApp {
       this.renderMatchPanel();
       this.renderModeButtons();
 
-      const creatorName = ch.creator_username || "Någon";
-      this.setStatus(`${creatorName} utmanar dig! Spela alla ${matchLevels.length} banor.`);
+      const creatorName = ch.creator_username || "Someone";
+      this.setStatus(`${creatorName} challenges you! Play all ${matchLevels.length} levels.`);
     } catch (e) {
       console.error("[gamevolt] join challenge failed:", e);
-      this.setStatus("Kunde inte ladda challenge.", "loss");
+      this.setStatus("Could not load challenge.", "loss");
     }
   }
 
@@ -3622,7 +3622,7 @@ export class OneStrokeApp {
 
       targetEl.innerHTML = "";
       if (rows.length === 0) {
-        targetEl.innerHTML = '<p class="daily-leaderboard-empty">Ingen har spelat ännu idag. Bli först!</p>';
+        targetEl.innerHTML = '<p class="daily-leaderboard-empty">No one has played yet today. Be first!</p>';
         return;
       }
 
@@ -3641,11 +3641,11 @@ export class OneStrokeApp {
 
         const name = document.createElement("div");
         name.className = "match-standing-name";
-        name.textContent = row.username || "Spelare";
+        name.textContent = row.username || "Player";
 
         const details = document.createElement("div");
         details.className = "match-standing-details";
-        details.textContent = `${toDisplayTime(row.time_ms)} · ${row.completed_count}/${row.total_count} klara`;
+        details.textContent = `${toDisplayTime(row.time_ms)} · ${row.completed_count}/${row.total_count} completed`;
 
         info.append(name, details);
 
@@ -3694,13 +3694,13 @@ export class OneStrokeApp {
     const hasMyRun = myId ? runs.some((r) => r.user_id === myId) : iJustPlayed;
 
     if (runs.length >= 2 || (hasOpponent && (hasMyRun || iJustPlayed))) {
-      this.matchResultStatusEl.textContent = `${runs.length} spelare har spelat — se jämförelsen!`;
+      this.matchResultStatusEl.textContent = `${runs.length} players have played — see the comparison!`;
     } else if (iJustPlayed) {
-      this.matchResultStatusEl.textContent = "Ditt resultat är sparat. Väntar på motståndare...";
+      this.matchResultStatusEl.textContent = "Your result is saved. Waiting for opponent...";
     } else if (hasOpponent) {
-      this.matchResultStatusEl.textContent = "Motståndaren har spelat — spela du med!";
+      this.matchResultStatusEl.textContent = "Opponent has played — play your turn!";
     } else {
-      this.matchResultStatusEl.textContent = "Väntar på motståndare...";
+      this.matchResultStatusEl.textContent = "Waiting for opponent...";
     }
 
     // Standings
@@ -3720,12 +3720,12 @@ export class OneStrokeApp {
 
       const name = document.createElement("div");
       name.className = "match-standing-name";
-      name.textContent = run.username || "Spelare";
+      name.textContent = run.username || "Player";
 
       const details = document.createElement("div");
       details.className = "match-standing-details";
       details.textContent =
-        `${toDisplayTime(run.time_ms)} · ${run.completed_count}/${run.total_count} klara`;
+        `${toDisplayTime(run.time_ms)} · ${run.completed_count}/${run.total_count} completed`;
 
       info.append(name, details);
 
@@ -3754,7 +3754,7 @@ export class OneStrokeApp {
 
         const header = document.createElement("div");
         header.className = "match-level-header";
-        header.textContent = `${i + 1}. ${mySplit?.levelId || oppSplit?.levelId || "Bana"}`;
+        header.textContent = `${i + 1}. ${mySplit?.levelId || oppSplit?.levelId || "Level"}`;
 
         const playersDiv = document.createElement("div");
         playersDiv.className = "match-level-players";
@@ -3770,7 +3770,7 @@ export class OneStrokeApp {
             `<span class="match-entry-name">Du</span>` +
             `<span class="match-entry-stats">${toDisplayTime(mySplit.time)} · ${toDisplayScore(myScore)} p</span>`;
         } else {
-          myEntry.textContent = "Du: Inte spelat";
+          myEntry.textContent = "You: Not played";
           myEntry.classList.add("match-level-pending");
         }
 
@@ -3782,10 +3782,10 @@ export class OneStrokeApp {
           const oppScore = oppSplit.score || 0;
           if (oppScore > myScore) oppEntry.classList.add("match-level-winner");
           oppEntry.innerHTML =
-            `<span class="match-entry-name">${oppRun?.username || "Motståndare"}</span>` +
+            `<span class="match-entry-name">${oppRun?.username || "Opponent"}</span>` +
             `<span class="match-entry-stats">${toDisplayTime(oppSplit.time)} · ${toDisplayScore(oppScore)} p</span>`;
         } else {
-          oppEntry.textContent = `${oppRun?.username || "Motståndare"}: Inte spelat`;
+          oppEntry.textContent = `${oppRun?.username || "Opponent"}: Not played`;
           oppEntry.classList.add("match-level-pending");
         }
 
@@ -3805,7 +3805,7 @@ export class OneStrokeApp {
     if (this.matchProgressLabelEl) {
       const completedCount = Object.keys(this.challenge.resultsByLevelId).length;
       const totalLevels = this.challenge.levels.length;
-      this.matchProgressLabelEl.textContent = `${completedCount} / ${totalLevels} banor klara`;
+      this.matchProgressLabelEl.textContent = `${completedCount} / ${totalLevels} levels completed`;
     }
 
     // If there are opponents, show results phase standings
@@ -3846,7 +3846,7 @@ export class OneStrokeApp {
       const details = document.createElement("div");
       details.className = "match-standing-details";
       details.textContent =
-        `${toDisplayTime(entry.totalTimeMs)} · ${entry.completedCount}/${this.activeMatch.levelCount} klara · U:${entry.totalUndoCount} R:${entry.totalResetCount} H:${entry.totalHintCount}`;
+        `${toDisplayTime(entry.totalTimeMs)} · ${entry.completedCount}/${this.activeMatch.levelCount} completed · U:${entry.totalUndoCount} R:${entry.totalResetCount} H:${entry.totalHintCount}`;
 
       info.append(name, details);
 
@@ -3908,7 +3908,7 @@ export class OneStrokeApp {
 
           entry.append(nameSpan, statsSpan);
         } else {
-          entry.textContent = `${displayName}: Inte spelat ännu`;
+          entry.textContent = `${displayName}: Not played`;
           entry.classList.add("match-level-pending");
         }
         playersDiv.append(entry);
@@ -3950,7 +3950,7 @@ export class OneStrokeApp {
       this.state.status = "playing";
       this.levelAttempt.startedAtMs = Date.now();
       this.startLiveTimer();
-      this.setStatus(`Kör! ${this.state.playableCount - 1} noder kvar.`);
+      this.setStatus(`Go! ${this.state.playableCount - 1} nodes remaining.`);
     });
   }
 
@@ -4024,18 +4024,18 @@ export class OneStrokeApp {
     const absDiff = Math.abs(diffMs);
     const sign = diffMs > 0 ? "+" : "-";
     const seconds = (absDiff / 1000).toFixed(1);
-    const displayName = opponent.playerId === LOCAL_PLAYER_ID ? "motståndare" : opponent.playerId;
+    const displayName = opponent.playerId === LOCAL_PLAYER_ID ? "opponent" : opponent.playerId;
 
     this.opponentDeltaEl.classList.remove("ahead", "behind", "tied");
 
     if (Math.abs(diffMs) < 100) {
-      this.opponentDeltaEl.textContent = `Lika mot ${displayName}!`;
+      this.opponentDeltaEl.textContent = `Tied with ${displayName}!`;
       this.opponentDeltaEl.classList.add("tied");
     } else if (diffMs < 0) {
-      this.opponentDeltaEl.textContent = `${sign}${seconds}s mot ${displayName}`;
+      this.opponentDeltaEl.textContent = `${sign}${seconds}s vs ${displayName}`;
       this.opponentDeltaEl.classList.add("ahead");
     } else {
-      this.opponentDeltaEl.textContent = `${sign}${seconds}s mot ${displayName}`;
+      this.opponentDeltaEl.textContent = `${sign}${seconds}s vs ${displayName}`;
       this.opponentDeltaEl.classList.add("behind");
     }
 
@@ -4072,7 +4072,7 @@ export class OneStrokeApp {
     }
     if (this.liveMovesEl) {
       const moves = Math.max(0, this.state.path.length - 1);
-      this.liveMovesEl.textContent = `${moves} drag`;
+      this.liveMovesEl.textContent = `${moves} moves`;
     }
   }
 
@@ -4083,7 +4083,7 @@ export class OneStrokeApp {
 
   goToNextLevel() {
     if (this.state.status !== "won") {
-      this.setStatus("Klara banan först för att gå vidare.");
+      this.setStatus("Complete the level first to proceed.");
       return;
     }
 
@@ -4091,11 +4091,11 @@ export class OneStrokeApp {
       const nextIndex = this.campaignCursorIndex + 1;
       const nextNumber = nextIndex + 1;
       if (nextIndex >= CAMPAIGN_TOTAL_LEVELS) {
-        this.setStatus("Du är redan på sista kampanjnivån.", "win");
+        this.setStatus("You are already on the last campaign level.", "win");
         return;
       }
       if (nextNumber > this.progress.unlockedLevel) {
-        this.setStatus("Nästa nivå är inte upplåst ännu.", "loss");
+        this.setStatus("Next level is not unlocked yet.", "loss");
         return;
       }
       this.loadCampaignLevel(nextIndex, { announce: true, bypassLock: true });
@@ -4105,7 +4105,7 @@ export class OneStrokeApp {
     const nextChallengeIndex = this.challenge.cursor + 1;
     if (nextChallengeIndex >= this.challenge.levels.length) {
       this.setMatchPhase("share");
-      this.setStatus("Match klar! Dela matchkoden med din vän.", "win");
+      this.setStatus("Match complete! Share the match code with your friend.", "win");
       return;
     }
     this.loadChallengeLevel(nextChallengeIndex, { announce: true });

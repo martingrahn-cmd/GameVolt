@@ -21,14 +21,14 @@ export function toDisplayTime(ms) {
 }
 
 export function toDisplayScore(value) {
-  return new Intl.NumberFormat("sv-SE").format(Math.round(value));
+  return new Intl.NumberFormat("en-US").format(Math.round(value));
 }
 
 export function toDisplayDecimal(value, fractionDigits = 1) {
   if (!Number.isFinite(value)) {
     return "--";
   }
-  return new Intl.NumberFormat("sv-SE", {
+  return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   }).format(value);
@@ -74,7 +74,7 @@ export function toDisplayPenaltySeconds(seconds) {
   if (!Number.isFinite(seconds) || seconds <= 0) {
     return "+0.0s";
   }
-  const formatted = new Intl.NumberFormat("sv-SE", {
+  const formatted = new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   }).format(seconds);
@@ -89,7 +89,7 @@ export function toDisplayDateTime(iso) {
   if (Number.isNaN(date.getTime())) {
     return "--";
   }
-  return new Intl.DateTimeFormat("sv-SE", {
+  return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

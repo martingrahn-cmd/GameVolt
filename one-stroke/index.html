@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="sv">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -29,67 +29,67 @@
           <p class="eyebrow">Hamiltonian Path Puzzle</p>
           <h1>One Stroke</h1>
           <p class="subtitle">
-            Besök varje spelbar nod exakt en gång i en enda sammanhängande väg.
+            Visit every playable node exactly once in a single connected path.
           </p>
         </header>
 
-        <nav class="hub-menu" role="tablist" aria-label="Huvudmeny">
-          <button id="campaignModeBtn" type="button" class="active">Single-player</button>
-          <button id="challengeModeBtn" type="button">Daglig</button>
+        <nav class="hub-menu" role="tablist" aria-label="Main menu">
+          <button id="campaignModeBtn" type="button" class="active">Campaign</button>
+          <button id="challengeModeBtn" type="button">Daily</button>
           <button id="highScoreMenuBtn" type="button">High-score</button>
-          <button id="achievementMenuBtn" type="button">Achievement</button>
-          <button id="creditsMenuBtn" type="button">Credit</button>
+          <button id="achievementMenuBtn" type="button">Trophies</button>
+          <button id="creditsMenuBtn" type="button">Credits</button>
         </nav>
 
         <div id="playSidebar" class="play-sidebar">
-          <section class="stats" aria-label="Spelstatus">
+          <section class="stats" aria-label="Game status">
             <article class="stat-card">
-              <span class="label">Nivå</span>
+              <span class="label">Level</span>
               <strong id="levelLabel">1 / 200</strong>
             </article>
             <article class="stat-card">
-              <span class="label">Svårighet</span>
+              <span class="label">Difficulty</span>
               <strong id="difficultyLabel">Easy</strong>
             </article>
             <article class="stat-card">
-              <span class="label">Besökta</span>
+              <span class="label">Visited</span>
               <strong id="visitedLabel">1</strong>
             </article>
             <article class="stat-card stat-card-secondary">
-              <span class="label">Kvar</span>
+              <span class="label">Remaining</span>
               <strong id="remainingLabel">0</strong>
             </article>
             <article class="stat-card stat-card-secondary">
-              <span class="label">Kampanj</span>
-              <strong id="campaignProgressLabel">0 klara</strong>
+              <span class="label">Campaign</span>
+              <strong id="campaignProgressLabel">0 solved</strong>
             </article>
             <article class="stat-card stat-card-secondary">
               <span class="label">Status</span>
-              <strong id="phaseLabel">Spelar</strong>
+              <strong id="phaseLabel">Playing</strong>
             </article>
           </section>
 
           <div id="statusBox" class="status-box" role="status" aria-live="polite">
-            Dra från startnoden till en granne. Dra bakåt för att ångra.
+            Drag from the start node to a neighbor. Drag back to undo.
           </div>
 
           <div class="button-row">
-            <button id="undoBtn" type="button">Ångra <kbd>Z</kbd></button>
-            <button id="resetBtn" type="button">Starta om <kbd>R</kbd></button>
+            <button id="undoBtn" type="button">Undo <kbd>Z</kbd></button>
+            <button id="resetBtn" type="button">Reset <kbd>R</kbd></button>
             <button id="hintBtn" type="button" class="hint-btn">Hint <kbd>H</kbd></button>
-            <button id="nextBtn" type="button" class="primary">Nästa <kbd>N</kbd></button>
+            <button id="nextBtn" type="button" class="primary">Next <kbd>N</kbd></button>
           </div>
 
           <details class="panel-inset rules-details">
-            <summary><h2>Regler</h2></summary>
-            <p>Fri slutnod. Ingen specifik målcell krävs.</p>
-            <p>Endast ortogonala steg.</p>
-            <p>Backtracking endast ett steg bakåt längs vägen (dra bakåt eller Ångra).</p>
-            <p>Hint visar nästa rekommenderade nod (utmaningsläge ger poängstraff).</p>
+            <summary><h2>Rules</h2></summary>
+            <p>Free end node. No specific goal cell required.</p>
+            <p>Orthogonal steps only.</p>
+            <p>Backtracking one step back along the path (drag back or Undo).</p>
+            <p>Hint shows the next recommended node (score penalty in challenge mode).</p>
           </details>
 
           <section id="singlePlayerLevelSection" class="panel-inset">
-            <h2>Nivåer</h2>
+            <h2>Levels</h2>
             <div class="level-section-actions">
               <button id="openLevelSelectBtn" type="button" class="level-select-open-btn">
                 Full Level Select
@@ -101,113 +101,113 @@
           <div id="multiplayerPanels">
             <!-- ── Daily Challenge: Lobby ── -->
             <section id="matchPhaseSetup" class="panel-inset match-panel match-phase daily-challenge-panel">
-              <h2>Dagens utmaning</h2>
+              <h2>Daily Challenge</h2>
               <p id="dailyDateLabel" class="daily-date-label"></p>
-              <p class="match-description">5 banor — samma för alla idag. Spela, jämför och tävla om topplistan!</p>
+              <p class="match-description">5 levels — the same for everyone today. Play, compare and compete for the leaderboard!</p>
               <div id="dailyStreakBadge" class="daily-streak-badge" hidden>
                 <span class="daily-streak-fire">&#x1F525;</span>
-                <span id="dailyStreakCount">0</span> dagar i rad
+                <span id="dailyStreakCount">0</span> day streak
               </div>
-              <button id="dailyChallengeBtn" type="button" class="primary daily-play-btn">Spela</button>
+              <button id="dailyChallengeBtn" type="button" class="primary daily-play-btn">Play</button>
 
               <div id="dailyResultCard" class="daily-result-card" hidden>
-                <div class="daily-result-header">Ditt resultat</div>
+                <div class="daily-result-header">Your Result</div>
                 <div class="daily-result-stats">
                   <article class="mini-stat">
-                    <span class="label">Poäng</span>
+                    <span class="label">Score</span>
                     <strong id="dailyScoreLabel">0</strong>
                   </article>
                   <article class="mini-stat">
-                    <span class="label">Tid</span>
+                    <span class="label">Time</span>
                     <strong id="dailyTimeLabel">--</strong>
                   </article>
                   <article class="mini-stat">
-                    <span class="label">Klara</span>
+                    <span class="label">Solved</span>
                     <strong id="dailyCompletedLabel">0/5</strong>
                   </article>
                 </div>
                 <div class="daily-result-actions">
-                  <button id="dailyShareBtn" type="button" class="primary">Dela resultat</button>
+                  <button id="dailyShareBtn" type="button" class="primary">Share Result</button>
                 </div>
               </div>
 
               <div id="dailyLeaderboard" class="daily-leaderboard">
-                <h3>Dagens topplista</h3>
+                <h3>Today's Leaderboard</h3>
                 <div id="dailyLeaderboardList" class="match-standings-list" role="list">
-                  <p class="daily-leaderboard-empty">Ingen har spelat ännu idag. Bli först!</p>
+                  <p class="daily-leaderboard-empty">No one has played yet today. Be the first!</p>
                 </div>
               </div>
             </section>
 
-            <!-- ── Fas 2: Spela ── -->
+            <!-- ── Phase 2: Playing ── -->
             <section id="matchPhasePlay" class="panel-inset match-panel match-phase" hidden>
               <div class="match-phase-header">
-                <h2>Dagens utmaning</h2>
-                <p id="matchProgressLabel" class="match-progress-label">0 / 5 banor klara</p>
+                <h2>Daily Challenge</h2>
+                <p id="matchProgressLabel" class="match-progress-label">0 / 5 levels solved</p>
               </div>
               <div id="challengeList" class="challenge-list" role="list"></div>
               <div class="challenge-totals">
                 <article class="mini-stat">
-                  <span class="label">Poäng</span>
+                  <span class="label">Score</span>
                   <strong id="challengeScoreLabel">0</strong>
                 </article>
                 <article class="mini-stat">
-                  <span class="label">Tid</span>
+                  <span class="label">Time</span>
                   <strong id="challengeTimeLabel">0:00</strong>
                 </article>
                 <article class="mini-stat">
-                  <span class="label">Klara</span>
+                  <span class="label">Solved</span>
                   <strong id="challengeCompletedLabel">0 / 5</strong>
                 </article>
               </div>
               <div id="challengeSplitList" class="challenge-split-list" role="list"></div>
-              <button id="matchAbortBtn" type="button" class="match-abort-btn">Avbryt</button>
+              <button id="matchAbortBtn" type="button" class="match-abort-btn">Abort</button>
             </section>
 
-            <!-- ── Fas 3: Resultat ── -->
+            <!-- ── Phase 3: Results ── -->
             <section id="matchPhaseShare" class="panel-inset match-panel match-phase" hidden>
               <div class="match-phase-header">
-                <h2>Bra jobbat!</h2>
-                <p class="match-description">Ditt resultat är sparat. Se hur du ligger till!</p>
+                <h2>Well Done!</h2>
+                <p class="match-description">Your result has been saved. See where you stand!</p>
               </div>
               <div class="challenge-totals">
                 <article class="mini-stat">
-                  <span class="label">Poäng</span>
+                  <span class="label">Score</span>
                   <strong id="shareTotalScore">0</strong>
                 </article>
                 <article class="mini-stat">
-                  <span class="label">Tid</span>
+                  <span class="label">Time</span>
                   <strong id="shareTotalTime">0:00</strong>
                 </article>
                 <article class="mini-stat">
-                  <span class="label">Klara</span>
+                  <span class="label">Solved</span>
                   <strong id="shareTotalCompleted">0 / 5</strong>
                 </article>
               </div>
-              <button id="dailyShareBtn2" type="button" class="primary match-share-btn">Dela resultat</button>
+              <button id="dailyShareBtn2" type="button" class="primary match-share-btn">Share Result</button>
               <p id="matchShareConfirm" class="match-share-confirm" hidden></p>
 
               <div id="dailyLeaderboardShare" class="daily-leaderboard">
-                <h3>Dagens topplista</h3>
+                <h3>Today's Leaderboard</h3>
                 <div id="dailyLeaderboardShareList" class="match-standings-list" role="list"></div>
               </div>
 
-              <button id="matchNewAfterShare" type="button" class="match-secondary-btn">Stäng</button>
+              <button id="matchNewAfterShare" type="button" class="match-secondary-btn">Close</button>
             </section>
 
-            <!-- ── Fas 4: Resultatjämförelse (cloud challenges) ── -->
+            <!-- ── Phase 4: Comparison (cloud challenges) ── -->
             <section id="matchPhaseResults" class="panel-inset match-panel match-phase" hidden>
               <div class="match-phase-header">
-                <h2>Resultatjämförelse</h2>
+                <h2>Results</h2>
                 <p id="matchResultStatus" class="match-progress-label"></p>
               </div>
               <div id="matchStandingsView" class="match-standings">
-                <h3>Ställning</h3>
+                <h3>Standings</h3>
                 <div id="matchStandingsList" class="match-standings-list" role="list"></div>
-                <h3>Per bana</h3>
+                <h3>Per Level</h3>
                 <div id="matchLevelComparison" class="match-level-comparison" role="list"></div>
               </div>
-              <button id="matchNewAfterResults" type="button" class="primary">Tillbaka</button>
+              <button id="matchNewAfterResults" type="button" class="primary">Back</button>
             </section>
           </div>
 
@@ -221,71 +221,71 @@
         <div id="gameplayView">
           <div class="board-head">
             <div>
-              <p id="boardModeLabel" class="eyebrow">Single-player · Kampanj</p>
-              <h2 id="levelName">Nivå 1</h2>
+              <p id="boardModeLabel" class="eyebrow">Campaign</p>
+              <h2 id="levelName">Level 1</h2>
             </div>
             <div class="board-live-stats">
-              <span id="liveTimer" class="live-stat" aria-label="Tid">0:00</span>
-              <span id="liveMoves" class="live-stat" aria-label="Drag">0 drag</span>
+              <span id="liveTimer" class="live-stat" aria-label="Time">0:00</span>
+              <span id="liveMoves" class="live-stat" aria-label="Moves">0 moves</span>
             </div>
           </div>
           <div class="board-stage">
             <div class="stage-corners" aria-hidden="true">
               <span></span><span></span><span></span><span></span>
             </div>
-            <div id="board" class="board" aria-label="Spelplan"></div>
+            <div id="board" class="board" aria-label="Game board"></div>
             <div id="countdownOverlay" class="countdown-overlay" hidden>
-              <button id="readyBtn" type="button" class="ready-btn">Redo?</button>
+              <button id="readyBtn" type="button" class="ready-btn">Ready?</button>
               <span id="countdownNumber" class="countdown-number" hidden>3</span>
             </div>
             <div id="opponentDelta" class="opponent-delta" hidden></div>
           </div>
           <!-- Mobile-only play controls (visible below board on small screens) -->
           <div class="mobile-play-controls">
-            <button id="undoBtnMobile" type="button">Ångra</button>
-            <button id="resetBtnMobile" type="button">Starta om</button>
+            <button id="undoBtnMobile" type="button">Undo</button>
+            <button id="resetBtnMobile" type="button">Reset</button>
             <button id="hintBtnMobile" type="button" class="hint-btn">Hint</button>
-            <button id="nextBtnMobile" type="button" class="primary">Nästa</button>
+            <button id="nextBtnMobile" type="button" class="primary">Next</button>
           </div>
         </div>
 
         <div id="hubInfoView" class="hub-info-view" hidden>
           <section id="highScoreView" class="hub-pane" hidden>
             <header class="hub-pane-head">
-              <p class="eyebrow">Historik & statistik</p>
+              <p class="eyebrow">History & Stats</p>
               <h2>High-score</h2>
-              <p>Lokalt sparade challenge-runs och dina bästa siffror.</p>
+              <p>Locally saved challenge runs and your best stats.</p>
             </header>
             <div class="hub-mini-grid">
               <article class="hub-mini-card">
-                <span class="label">Bästa Challenge</span>
+                <span class="label">Best Challenge</span>
                 <strong id="highScoreBestChallengeScore">0</strong>
               </article>
               <article class="hub-mini-card">
-                <span class="label">Snabbaste Challenge</span>
+                <span class="label">Fastest Challenge</span>
                 <strong id="highScoreBestChallengeTime">--</strong>
               </article>
               <article class="hub-mini-card">
-                <span class="label">Kampanj lösta</span>
+                <span class="label">Campaign Solved</span>
                 <strong id="highScoreCampaignSolved">0</strong>
               </article>
               <article class="hub-mini-card">
-                <span class="label">Runs i historik</span>
+                <span class="label">Runs in History</span>
                 <strong id="highScoreRunCount">0</strong>
               </article>
             </div>
 
             <section class="hub-subpanel">
-              <h3>Kampanj per svårighet</h3>
+              <h3>Campaign by Difficulty</h3>
               <div class="difficulty-stats-wrap">
-                <table class="difficulty-stats-table" aria-label="Kampanjstatistik per svårighetsgrad">
+                <table class="difficulty-stats-table" aria-label="Campaign stats by difficulty">
                   <thead>
                     <tr>
-                      <th>Svårighet</th>
-                      <th>Klara</th>
-                      <th>Bästa tid</th>
-                      <th>Medeltid</th>
-                      <th>Win-rate</th>
+                      <th>Difficulty</th>
+                      <th>Solved</th>
+                      <th>Best Time</th>
+                      <th>Avg Time</th>
+                      <th>Win Rate</th>
                     </tr>
                   </thead>
                   <tbody id="highScoreDifficultyBody"></tbody>
@@ -294,30 +294,30 @@
             </section>
 
             <section class="hub-subpanel">
-              <h3>Challenge-run statistik</h3>
+              <h3>Challenge Run Stats</h3>
               <div class="hub-mini-grid run-stats-grid">
                 <article class="hub-mini-card">
-                  <span class="label">Fulla runs</span>
+                  <span class="label">Full Runs</span>
                   <strong id="highScoreRunCompletionRate">--</strong>
                 </article>
                 <article class="hub-mini-card">
-                  <span class="label">Snittpoäng / run</span>
+                  <span class="label">Avg Score / Run</span>
                   <strong id="highScoreRunAverageScore">--</strong>
                 </article>
                 <article class="hub-mini-card">
-                  <span class="label">Snitttid (full run)</span>
+                  <span class="label">Avg Time (Full)</span>
                   <strong id="highScoreRunAverageTime">--</strong>
                 </article>
                 <article class="hub-mini-card">
-                  <span class="label">Snitt klara / run</span>
+                  <span class="label">Avg Solved / Run</span>
                   <strong id="highScoreRunAverageCompleted">--</strong>
                 </article>
                 <article class="hub-mini-card">
-                  <span class="label">Snitt undo / run</span>
+                  <span class="label">Avg Undo / Run</span>
                   <strong id="highScoreRunAverageUndo">--</strong>
                 </article>
                 <article class="hub-mini-card">
-                  <span class="label">Snitt hint / run</span>
+                  <span class="label">Avg Hint / Run</span>
                   <strong id="highScoreRunAverageHint">--</strong>
                 </article>
               </div>
@@ -326,7 +326,7 @@
             <div id="highScoreRunList" class="hub-list" role="list"></div>
 
             <section class="hub-subpanel run-detail-panel">
-              <h3>Run-detalj</h3>
+              <h3>Run Detail</h3>
               <div id="highScoreRunDetail" class="run-detail-content"></div>
             </section>
           </section>
@@ -334,8 +334,8 @@
           <section id="achievementView" class="hub-pane" hidden>
             <header class="hub-pane-head">
               <p class="eyebrow">Progression</p>
-              <h2>Achievement</h2>
-              <p id="achievementSummary">Lås upp milstolpar i kampanj och challenge.</p>
+              <h2>Trophies</h2>
+              <p id="achievementSummary">Unlock milestones in campaign and challenge.</p>
             </header>
             <div id="achievementList" class="achievement-list" role="list"></div>
           </section>
@@ -343,13 +343,13 @@
           <section id="creditsView" class="hub-pane" hidden>
             <header class="hub-pane-head">
               <p class="eyebrow">Team</p>
-              <h2>Credit</h2>
-              <p>Byggt med kärlek till pussel.</p>
+              <h2>Credits</h2>
+              <p>Built with love for puzzles.</p>
             </header>
             <article class="credits-card">
               <h3>SmartProc Games</h3>
               <p>
-                Tack för att du spelar One Stroke. Målet är ett vasst logikspel med tydlig känsla i varje drag.
+                Thanks for playing One Stroke. The goal is a sharp logic game with a clear feel in every move.
               </p>
             </article>
           </section>
@@ -368,34 +368,34 @@
       aria-labelledby="matchImportTitle"
     >
       <div class="modal-card match-import-card">
-        <h2 id="matchImportTitle">Klistra in matchkod</h2>
-        <p>Din vän har skickat en matchkod. Klistra in den nedan.</p>
+        <h2 id="matchImportTitle">Paste Challenge Code</h2>
+        <p>Your friend has sent you a challenge code. Paste it below.</p>
         <textarea
           id="matchImportTextarea"
           class="match-import-textarea"
           rows="4"
-          placeholder="Klistra in matchkoden här..."
-          aria-label="Matchkod"
+          placeholder="Paste the challenge code here..."
+          aria-label="Challenge code"
         ></textarea>
         <div class="button-row">
-          <button id="matchImportCancelBtn" type="button">Avbryt</button>
-          <button id="matchImportConfirmBtn" type="button" class="primary">Starta match</button>
+          <button id="matchImportCancelBtn" type="button">Cancel</button>
+          <button id="matchImportConfirmBtn" type="button" class="primary">Start Match</button>
         </div>
       </div>
     </div>
 
     <div id="winModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="winTitle">
       <div class="modal-card win-modal-card">
-        <h2 id="winTitle">Bana klar</h2>
-        <p id="winText">Snyggt. Du täckte alla noder exakt en gång.</p>
+        <h2 id="winTitle">Level Complete</h2>
+        <p id="winText">Nice. You visited every node exactly once.</p>
         <div id="winSplitTable" class="win-split-table" hidden></div>
         <div class="button-row">
-          <button id="modalResetBtn" type="button">Spela om</button>
-          <button id="modalNextBtn" type="button" class="primary">Nästa nivå</button>
-          <button id="modalCloseBtn" type="button">Stäng</button>
+          <button id="modalResetBtn" type="button">Replay</button>
+          <button id="modalNextBtn" type="button" class="primary">Next Level</button>
+          <button id="modalCloseBtn" type="button">Close</button>
         </div>
-        <button id="modalExportMatchBtn" type="button" class="primary modal-export-btn" hidden>Kopiera challenge-länk & skicka till vän</button>
-        <button id="modalShareDailyBtn" type="button" class="primary modal-share-daily-btn" hidden>Dela ditt resultat</button>
+        <button id="modalExportMatchBtn" type="button" class="primary modal-export-btn" hidden>Copy challenge link</button>
+        <button id="modalShareDailyBtn" type="button" class="primary modal-share-daily-btn" hidden>Share your result</button>
         <p id="modalExportConfirm" class="modal-export-confirm" hidden></p>
       </div>
     </div>
@@ -410,29 +410,29 @@
       <div class="modal-card level-select-card">
         <div class="level-select-head">
           <h2 id="levelSelectTitle">Level Select</h2>
-          <button id="levelSelectCloseBtn" type="button">Stäng</button>
+          <button id="levelSelectCloseBtn" type="button">Close</button>
         </div>
-        <p id="levelSelectSummary" class="level-select-summary">Laddar nivåer...</p>
+        <p id="levelSelectSummary" class="level-select-summary">Loading levels...</p>
         <div class="level-select-filters">
           <input
             id="levelSelectSearchInput"
             type="search"
-            placeholder="Sök nivå, namn eller ID"
-            aria-label="Sök nivå"
+            placeholder="Search level, name or ID"
+            aria-label="Search level"
           />
-          <select id="levelSelectDifficultyFilter" aria-label="Filtrera svårighet">
-            <option value="all">Alla svårigheter</option>
+          <select id="levelSelectDifficultyFilter" aria-label="Filter difficulty">
+            <option value="all">All Difficulties</option>
             <option value="easy">Easy</option>
             <option value="medium">Medium</option>
             <option value="hard">Hard</option>
             <option value="very-hard">Very Hard</option>
           </select>
-          <select id="levelSelectStatusFilter" aria-label="Filtrera status">
-            <option value="all">Alla statusar</option>
-            <option value="solved">Klara</option>
-            <option value="unsolved">Oklara (upplåsta)</option>
-            <option value="unlocked">Upplåsta</option>
-            <option value="locked">Låsta</option>
+          <select id="levelSelectStatusFilter" aria-label="Filter status">
+            <option value="all">All Statuses</option>
+            <option value="solved">Solved</option>
+            <option value="unsolved">Unsolved (Unlocked)</option>
+            <option value="unlocked">Unlocked</option>
+            <option value="locked">Locked</option>
           </select>
         </div>
         <div id="levelSelectGrid" class="level-select-grid" role="list"></div>
@@ -440,14 +440,14 @@
     </div>
 
     <!-- Mobile bottom tab bar -->
-    <nav id="mobileTabBar" class="mobile-tab-bar" aria-label="Mobilmeny">
+    <nav id="mobileTabBar" class="mobile-tab-bar" aria-label="Mobile menu">
       <button id="mobileTabPlay" type="button" class="mobile-tab active" data-tab="play">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-        <span>Spela</span>
+        <span>Play</span>
       </button>
       <button id="mobileTabMenu" type="button" class="mobile-tab" data-tab="menu">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-        <span>Meny</span>
+        <span>Menu</span>
       </button>
       <button id="mobileTabStats" type="button" class="mobile-tab" data-tab="stats">
         <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
