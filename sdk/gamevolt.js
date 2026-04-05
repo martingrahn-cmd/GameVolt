@@ -783,7 +783,7 @@
     toastEl.innerHTML =
       '<div class="gv-toast-icon"></div>' +
       '<div class="gv-toast-body">' +
-        '<div class="gv-toast-label">TROPHY UNLOCKED</div>' +
+        '<div class="gv-toast-label">ACHIEVEMENT UNLOCKED</div>' +
         '<div class="gv-toast-tier"></div>' +
         '<div class="gv-toast-name"></div>' +
       '</div>';

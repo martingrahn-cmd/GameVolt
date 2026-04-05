@@ -1019,7 +1019,7 @@
 
     function renderWinTrophies() {
       var container = document.getElementById('winTrophies');
-      var html = '<div class="trophy-section"><div class="trophy-section-title">Trophies ' +
+      var html = '<div class="trophy-section"><div class="trophy-section-title">Achievements ' +
         Object.keys(stats.unlocked).length + '/' + ACHIEVEMENTS.length + '</div><div class="trophy-mini-grid">';
       ACHIEVEMENTS.forEach(function(a) {
         var unlocked = !!stats.unlocked[a.id];
