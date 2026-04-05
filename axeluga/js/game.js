@@ -3616,7 +3616,7 @@ export class Game {
         }
 
         // ── Menu items (styled buttons) ──
-        const menuItems = ['START', 'SCORES', 'TROPHIES', 'OPTIONS', 'CREDITS'];
+        const menuItems = ['START', 'SCORES', 'ACHIEVEMENTS', 'OPTIONS', 'CREDITS'];
         const menuIcons = ['▶', '🏆', '★', '⚙', '✦'];
         const menuY = 330;
         const spacing = 46;
@@ -5864,7 +5864,7 @@ export class Game {
         // Header
         ctx.fillStyle = '#0ff';
         ctx.font = 'bold 24px "Courier New", monospace';
-        ctx.fillText('TROPHIES', cx, 42);
+        ctx.fillText('ACHIEVEMENTS', cx, 42);
 
         // Count
         const count = this.getTrophyCount();
