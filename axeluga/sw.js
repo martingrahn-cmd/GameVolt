@@ -1,4 +1,4 @@
-const CACHE_NAME = 'axeluga-v1';
+const CACHE_NAME = 'axeluga-v2';
 
 // Pre-cache core files on install
 self.addEventListener('install', e => {
@@ -14,7 +14,6 @@ self.addEventListener('install', e => {
             './js/config.js',
             './js/audio.js',
             './js/input.js',
-            './js/background.js',
         ])).then(() => self.skipWaiting())
     );
 });
