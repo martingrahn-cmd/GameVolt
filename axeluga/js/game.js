@@ -901,8 +901,7 @@ export class Game {
         await this.assets.load([...files]);
         document.getElementById('loading').style.display = 'none';
 
-        // Load BGM music files (non-blocking, falls back to procedural)
-        this.audio.init();
+        // Pre-load BGM and SFX (audio context created on first user gesture)
         this.audio.loadBGM().catch(() => {});
         this.audio.loadSFX().catch(() => {});
 
@@ -914,7 +913,11 @@ export class Game {
         this._syncHighScore();
 
         this.input.onTap((x, y) => {
-            this.audio.init();
+            if (!this.audio._initialized) {
+                this.audio.init();
+                this.audio.loadBGM().catch(() => {});
+                this.audio.loadSFX().catch(() => {});
+            }
             this.audio.resume();
             // Restart title BGM on first tap if on menu
             if (this.state === 'menu' && !this._titleMusicResumed) {
@@ -1347,7 +1350,11 @@ export class Game {
                           Math.abs(this.input.gpAxes.x) > 0.3 || Math.abs(this.input.gpAxes.y) > 0.3;
             const anyKey = Object.values(this.input.keys).some(v => v);
             if (anyGp || anyKey) {
-                this.audio.init();
+                if (!this.audio._initialized) {
+                    this.audio.init();
+                    this.audio.loadBGM().catch(() => {});
+                    this.audio.loadSFX().catch(() => {});
+                }
                 this.audio.resume();
                 if (this.state === 'menu' || this.state === 'levelselect') {
                     setTimeout(() => {
@@ -1362,9 +1369,8 @@ export class Game {
 
         if (this.state === 'menu') {
             this.flashAlpha = 0; // clear any lingering flash
-            // Start title music — needs user gesture to actually play
+            // Start title music — only works after user gesture activates AudioContext
             if (!this._titleMusicPlaying) {
-                this.audio.init();
                 this.audio.startTitleBGM();
                 this._titleMusicPlaying = true;
                 this._titleMusicResumed = !!(this.audio.ctx && this.audio.ctx.state === 'running');

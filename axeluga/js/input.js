@@ -334,12 +334,6 @@ export class Input {
         if (dpUp) ay = -1;
         if (dpDown) ay = 1;
 
-        // Debug: log first directional input
-        if (!this._gpDebugLogged && (Math.abs(ay) > 0.3 || dpUp || dpDown)) {
-            console.log('🎮 Y-axis debug:', { rawLY: ly, dpUp, dpDown, finalAY: ay });
-            this._gpDebugLogged = true;
-        }
-
         this.gpAxes = { x: ax, y: ay };
 
         // ── Buttons: detect ANY pressed button for fire/bomb ──
