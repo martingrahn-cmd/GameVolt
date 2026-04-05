@@ -1299,11 +1299,15 @@ export class Game {
         this.audio.startBGM(startWorld);
     }
 
-    // ─── Main Loop ───
-    loop() {
+    // ─── Main Loop (locked to 60fps) ───
+    loop(timestamp) {
+        requestAnimationFrame((t) => this.loop(t));
+        if (!this._lastFrameTime) this._lastFrameTime = timestamp;
+        const elapsed = timestamp - this._lastFrameTime;
+        if (elapsed < 16) return; // skip if less than ~16ms (60fps cap)
+        this._lastFrameTime = timestamp - (elapsed % 16);
         this.update();
         this.render();
-        requestAnimationFrame(() => this.loop());
     }
 
     update() {
