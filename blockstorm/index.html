@@ -473,7 +473,7 @@
     });
 
     async function startGame() {
-      GameVoltTracker.start('BlockStorm');
+      if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.start('BlockStorm');
       const g = window.PULSE_TETRIS;
       if (!g) return;
 
@@ -635,7 +635,7 @@
       }
 
       // GA4 tracking
-      GameVoltTracker.end({score: score, level: stats.level || null, outcome: gameWon ? 'win' : 'lose'});
+      if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.end({score: score, level: stats.level || null, outcome: gameWon ? 'win' : 'lose'});
 
       // PostMessage to portal
       if (window.gvPost) {
