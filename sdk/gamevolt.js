@@ -125,9 +125,22 @@
 
   function signInWithGoogle() {
     if (!sb) return;
-    // Save current page so callback can redirect back
-    sessionStorage.setItem('gv_return_to', window.location.href);
     var redirectTo = window.location.origin + '/auth/callback/';
+    // In iframe: navigate the top window so Safari ITP doesn't block OAuth
+    if (window.self !== window.top) {
+      sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: redirectTo, skipBrowserRedirect: true }
+      }).then(function(res) {
+        if (res.data && res.data.url) {
+          try { window.top.sessionStorage.setItem('gv_return_to', window.top.location.href); } catch (e) {}
+          window.top.location.href = res.data.url;
+        }
+      });
+      return;
+    }
+    // Standalone: normal OAuth flow
+    sessionStorage.setItem('gv_return_to', window.location.href);
     sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: redirectTo }
