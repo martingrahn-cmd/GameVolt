@@ -1237,6 +1237,11 @@
     }
     window.checkAchievements=checkAchievements;
 
+    // Live achievement checks during gameplay (called from game.js on each piece lock)
+    window.onPieceLocked=function(stats,score,level,lines,mode){
+      checkAchievements(stats,score,mode,false);
+    };
+
     // ========================================
     // UPDATE CUMULATIVE STATS (called on game over)
     // ========================================

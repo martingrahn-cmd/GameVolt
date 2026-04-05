@@ -571,6 +571,11 @@ export class Game {
       this.lastClearType = message;
       this.clearMessageTimer = 1500;
     }
+
+    // Notify for live achievement checks
+    if (window.onPieceLocked) {
+      window.onPieceLocked(this.stats, this.score, this.level, this.lines, this.gameMode);
+    }
   }
 
   updateLevel() {
