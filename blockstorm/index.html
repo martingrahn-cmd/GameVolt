@@ -162,6 +162,7 @@
         <button id="startBtn" class="start-btn">PLAY <kbd>Enter</kbd></button>
         
         <button id="leaderboardBtn" class="leaderboard-btn">🏆 LEADERBOARD</button>
+        <button id="trophyBtn" class="leaderboard-btn">🏅 TROPHIES</button>
         <button id="guideBtn" class="leaderboard-btn">📖 HOW TO PLAY</button>
         
         <div class="player-name-display" id="playerNameArea">
@@ -234,6 +235,16 @@
         </div>
 
         <button id="closeGuideBtn" class="close-lb-btn">CLOSE</button>
+      </div>
+    </div>
+
+    <!-- TROPHY OVERLAY -->
+    <div id="trophyOverlay">
+      <div class="trophy-container">
+        <h2>🏅 TROPHIES</h2>
+        <div class="trophy-count" id="trophyCount">0 / 31</div>
+        <div class="trophy-scroll" id="trophyGrid"></div>
+        <button id="closeTrophyBtn" class="close-lb-btn">CLOSE</button>
       </div>
     </div>
 
@@ -1315,6 +1326,71 @@
       if(seo) seo.style.display='none';
     }
   })();
+  </script>
+
+  <!-- TROPHY GRID (after ACHIEVEMENTS is defined) -->
+  <script>
+    (function() {
+      var trophyOverlay = document.getElementById('trophyOverlay');
+      var trophyBtn = document.getElementById('trophyBtn');
+      var closeTrophyBtn = document.getElementById('closeTrophyBtn');
+      var trophyGrid = document.getElementById('trophyGrid');
+      var trophyCountEl = document.getElementById('trophyCount');
+
+      function renderTrophyGrid() {
+        if (!window.ACHIEVEMENTS || !window.bsData) return;
+        trophyGrid.innerHTML = '';
+        var n = 0;
+        var tiers = ['bronze', 'silver', 'gold', 'platinum'];
+        for (var t = 0; t < tiers.length; t++) {
+          var tier = tiers[t];
+          var tierAchs = [];
+          for (var i = 0; i < ACHIEVEMENTS.length; i++) {
+            if (ACHIEVEMENTS[i].tier === tier) tierAchs.push(ACHIEVEMENTS[i]);
+          }
+          if (tierAchs.length === 0) continue;
+          var header = document.createElement('div');
+          header.className = 'trophy-tier-header ' + tier;
+          header.textContent = tier.toUpperCase();
+          trophyGrid.appendChild(header);
+          var grid = document.createElement('div');
+          grid.className = 'trophy-grid-inner';
+          for (var j = 0; j < tierAchs.length; j++) {
+            var a = tierAchs[j];
+            var ok = !!(bsData.unlocked && bsData.unlocked[a.id]);
+            if (ok) n++;
+            var card = document.createElement('div');
+            card.className = 'trophy-card ' + tier + (ok ? ' unlocked' : ' locked');
+            card.innerHTML =
+              '<div class="t-icon">' + (ok ? a.icon : '🔒') + '</div>' +
+              '<div class="t-tier ' + tier + '">' + tier.toUpperCase() + '</div>' +
+              '<div class="t-name">' + a.name + '</div>' +
+              '<div class="t-desc">' + a.desc + '</div>' +
+              (ok ? '<div class="t-check">✓</div>' : '');
+            grid.appendChild(card);
+          }
+          trophyGrid.appendChild(grid);
+        }
+        trophyCountEl.textContent = n + ' / ' + ACHIEVEMENTS.length;
+      }
+
+      trophyBtn.addEventListener('click', function() {
+        renderTrophyGrid();
+        trophyOverlay.classList.add('visible');
+      });
+      trophyBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        renderTrophyGrid();
+        trophyOverlay.classList.add('visible');
+      });
+      closeTrophyBtn.addEventListener('click', function() {
+        trophyOverlay.classList.remove('visible');
+      });
+      closeTrophyBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        trophyOverlay.classList.remove('visible');
+      });
+    })();
   </script>
 
   <div id="seo-content" style="max-width:800px;margin:3rem auto 0;padding:2rem;color:#b0b0b0;font-size:0.95rem;line-height:1.7;">
