@@ -164,7 +164,7 @@
         <button id="leaderboardBtn" class="leaderboard-btn">🏆 LEADERBOARD</button>
         <button id="guideBtn" class="leaderboard-btn">📖 HOW TO PLAY</button>
         
-        <div class="player-name-display">
+        <div class="player-name-display" id="playerNameArea">
           Playing as: <span id="playerNameDisplay">Guest</span>
           <button id="rerollNameBtn" class="reroll-btn" style="display:none">🎲</button>
           <button id="loginBtn" class="reroll-btn" onclick="if(window.GameVolt)GameVolt.auth.login()">🔑 Log In</button>
@@ -1084,6 +1084,8 @@
       if(window.parent!==window){try{window.parent.postMessage({type:'gamevolt',action:action,gameId:'blockstorm',payload:payload||{}},'*');}catch(e){}}
     }
     window.gvPost=gvPost;
+    // Hide in-game login area when inside iframe (game player has its own)
+    if(window.parent!==window){var pa=document.getElementById('playerNameArea');if(pa)pa.style.display='none';}
 
     // GA4 Game Event Tracker
     var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
