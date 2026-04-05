@@ -1902,8 +1902,11 @@
                         </div>
                     </div>
                 </a>
-                <a href="/play/?game=blockstorm" class="powered-card">
-                    <img src="/assets/thumbnails/blockstorm.webp" alt="BlockStorm">
+                <a href="/play/?game=blockstorm" class="powered-card" data-preview="/blockstorm/preview.mp4">
+                    <div class="powered-thumb">
+                        <img src="/assets/thumbnails/blockstorm.webp" alt="BlockStorm">
+                        <video class="preview-video" muted loop playsinline preload="none"></video>
+                    </div>
                     <span class="powered-bolt">⚡</span>
                     <div class="powered-info">
                         <div class="powered-name">BlockStorm</div>
@@ -2126,9 +2129,10 @@
             </a>
             
             <!-- BlockStorm -->
-            <a href="/play/?game=blockstorm" class="game-card" data-category="brain-challenge">
+            <a href="/play/?game=blockstorm" class="game-card" data-category="brain-challenge" data-preview="/blockstorm/preview.mp4">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/blockstorm.webp" alt="BlockStorm" loading="lazy">
+                    <video class="preview-video" muted loop playsinline preload="none"></video>
                     <span class="game-bolt">⚡</span>
                 </div>
                 <div class="game-info">
@@ -2452,7 +2456,7 @@
             taprush:   { name: "Tap Rush",   thumb: "/assets/thumbnails/taprush.webp" },
             solitaire: { name: "Solitaire",  thumb: "/assets/thumbnails/solitaire.webp" },
             connect4:  { name: "Connect 4",  thumb: "/assets/thumbnails/connect4-thumbnail.webp" },
-            blockstorm:{ name: "BlockStorm", thumb: "/assets/thumbnails/blockstorm.webp" },
+            blockstorm:{ name: "BlockStorm", thumb: "/assets/thumbnails/blockstorm.webp", preview: "/blockstorm/preview.mp4" },
             hoverdash: { name: "HoverDash",  thumb: "/hoverdash/og-image.png", preview: "/hoverdash/preview.mp4" },
             axeluga:   { name: "Axeluga",    thumb: "/assets/thumbnails/axeluga.webp" },
             gravitywell:{ name: "Gravity Well", thumb: "/assets/thumbnails/gravitywell.webp", preview: "/gravitywell/preview.mp4" },
