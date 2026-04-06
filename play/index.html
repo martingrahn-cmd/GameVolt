@@ -109,7 +109,7 @@
       background-clip: text;
     }
 
-    .gv-header-right { display: flex; align-items: center; gap: 8px; }
+    .gv-header-right { display: flex; align-items: center; gap: 12px; }
     .gv-nav { display: flex; gap: 8px; align-items: center; }
 
     .gv-nav a {
@@ -917,6 +917,9 @@
     var gvCurrentUserId = null;
     if (window.GameVolt) {
       GameVolt.init('player');
+      // Hide SDK widget — game player has its own header with login
+      var sdkWidget = document.getElementById('gv-user-widget');
+      if (sdkWidget) sdkWidget.style.display = 'none';
       GameVolt.auth.onStateChange(function(user) {
         var loginBtn = document.getElementById('gv-login-btn');
         var usernameEl = document.getElementById('gv-username');
