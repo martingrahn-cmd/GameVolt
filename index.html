@@ -320,7 +320,7 @@
         .header-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
         .nav-links {
@@ -363,6 +363,18 @@
         }
 
         .gv-login-btn:hover { opacity: 0.85; }
+
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+        }
+
+        @media (max-width: 480px) {
+            .header-content { padding: 10px 16px; }
+            .logo-icon { width: 36px; height: 36px; }
+            .logo-text { font-size: 1.3rem; }
+            #gv-user-area { margin-left: 4px; }
+            .gv-login-btn { padding: 6px 14px; font-size: 0.75rem; }
+        }
 
         .gv-username {
             color: var(--primary-light);
@@ -2362,6 +2374,9 @@
     <script>
     if (window.GameVolt) {
         GameVolt.init('portal');
+        // Hide SDK widget on portal — portal has its own login UI in the header
+        var sdkWidget = document.getElementById('gv-user-widget');
+        if (sdkWidget) sdkWidget.style.display = 'none';
         GameVolt.auth.onStateChange(function(user) {
             var loginBtn = document.getElementById('gv-login-btn');
             var userInfo = document.getElementById('gv-user-info');
