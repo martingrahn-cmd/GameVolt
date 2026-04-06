@@ -842,6 +842,151 @@ setLevelTheme(level);
 updateMuteIcons();
 
 // ============================================================
+// SDK Pause Menu Integration
+// ============================================================
+let paused = false;
+let pausedTargetStates = []; // stores remaining time for each target
+
+function pauseGame() {
+  if (!active || paused) return;
+  paused = true;
+  active = false;
+  allowSpawning = false;
+
+  // Freeze each active target's timeout and record remaining time
+  const now = performance.now();
+  pausedTargetStates = activeTargets.map(t => {
+    clearTimeout(t.timeoutId);
+    const elapsed = now - t.shownAt;
+    const totalTime = getLevelSpeed(level);
+    const remaining = Math.max(0, totalTime - elapsed);
+    return { targetObj: t, remaining };
+  });
+
+  music_stop();
+}
+
+function resumeGame() {
+  if (!paused) return;
+  paused = false;
+  active = true;
+  allowSpawning = true;
+
+  // Restart music if not muted
+  if (!musicMuted) {
+    ensureAudio();
+    music_play();
+  }
+
+  // Restore target timeouts with their remaining time
+  pausedTargetStates.forEach(({ targetObj: tObj, remaining }) => {
+    // Only restore if the target is still in the active list
+    if (activeTargets.indexOf(tObj) === -1) return;
+    // Reset shownAt so reaction time stays accurate
+    tObj.shownAt = performance.now() - (getLevelSpeed(level) - remaining);
+    tObj.timeoutId = setTimeout(() => {
+      removeTarget(tObj);
+      if (tObj.type !== 'bomb') {
+        lives = Math.max(0, lives - 1);
+        livesEl.textContent = String(lives);
+        if (AC) fx_miss();
+        if (lives <= 0) { endGame(); return; }
+      }
+      scheduleSpawnFill();
+    }, remaining);
+  });
+  pausedTargetStates = [];
+}
+
+function restartFromPause() {
+  paused = false;
+  pausedTargetStates = [];
+  // Clear all active target timeouts before startGame clears the elements
+  activeTargets.forEach(t => clearTimeout(t.timeoutId));
+  startGame();
+}
+
+function quitToMenu() {
+  paused = false;
+  pausedTargetStates = [];
+  active = false;
+  allowSpawning = false;
+  // Clear all targets
+  activeTargets.forEach(t => clearTimeout(t.timeoutId));
+  [...activeTargets].forEach(t => removeTarget(t));
+  music_stop();
+  // Hide game overlays
+  gameoverEl.style.display = 'none';
+  levelSummary.style.display = 'none';
+  levelIntro.style.display = 'none';
+  centerText.style.display = 'none';
+  // Reset HUD
+  score = 0; lives = 5; level = 1;
+  roundClicks = 0; reactionTimes = [];
+  bestReaction = Infinity; combo = 0;
+  lastClickTime = 0; levelStats = [];
+  scoreEl.textContent = '000';
+  livesEl.textContent = '5';
+  levelEl.textContent = '1';
+  avgEl.textContent = '–';
+  bestEl.textContent = '–';
+  updateProgress();
+  setLevelTheme(level);
+  // Show start screen
+  startOverlay.classList.remove('hidden');
+  brandIntro.classList.remove('hidden');
+}
+
+function togglePause() {
+  if (window.GameVolt) {
+    GameVolt.ui.pauseMenu({
+      musicVolume: musicMuted ? 0 : (master ? master.gain.value / 0.6 : 1),
+      sfxVolume: fxMuted ? 0 : 1,
+      onPause: function() {
+        pauseGame();
+      },
+      onResume: function() {
+        resumeGame();
+      },
+      onRestart: function() {
+        restartFromPause();
+      },
+      onQuit: function() {
+        quitToMenu();
+      },
+      onMusicVolume: function(v) {
+        if (v === 0) {
+          musicMuted = true;
+          music_stop();
+        } else {
+          musicMuted = false;
+          // Adjust master gain proportionally (base is 0.6)
+          if (master) master.gain.value = 0.6 * v;
+          // Don't start music while paused — it resumes on unpause
+        }
+        updateMuteIcons();
+      },
+      onSfxVolume: function(v) {
+        fxMuted = (v === 0);
+        updateMuteIcons();
+      }
+    });
+  }
+}
+
+// Keyboard listener for ESC and P
+window.addEventListener('keydown', function(e) {
+  if (!window.GameVolt) return;
+  if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+    // Only toggle pause when actively playing or already paused
+    if (active || paused) {
+      e.preventDefault();
+      togglePause();
+    }
+  }
+});
+
+// ============================================================
 // Auto-version display in footer (reads from header comment)
 // ============================================================
 // ============================================================

@@ -1126,9 +1126,47 @@
       clearSavedState();
     }
 
+    // ── Pause (SDK) ──
+    var paused = false;
+
+    function pauseGame() {
+      if (!gameActive || paused) return;
+      if (!window.GameVolt) return;
+      paused = true;
+      clearInterval(timerInterval);
+      GameVolt.ui.pauseMenu({
+        musicVolume: 0.5,
+        sfxVolume: 0.5,
+        onResume: function() {
+          paused = false;
+          clearInterval(timerInterval);
+          timerInterval = setInterval(function() {
+            if (!gameActive) return;
+            timerSeconds++;
+            timerEl.textContent = formatTime(timerSeconds);
+          }, 1000);
+        },
+        onRestart: function() {
+          paused = false;
+          showDifficultySelect();
+        },
+        onQuit: function() {
+          paused = false;
+          showDifficultySelect();
+        },
+        onMusicVolume: function(v) { /* no audio yet */ },
+        onSfxVolume: function(v) { /* no audio yet */ }
+      });
+    }
+
     // ── Keyboard ──
     document.addEventListener('keydown', function(e) {
-      if (!gameActive) return;
+      if (e.key === 'Escape' && gameActive && !paused && window.GameVolt) {
+        e.preventDefault();
+        pauseGame();
+        return;
+      }
+      if (!gameActive || paused) return;
       var n = parseInt(e.key);
       if (n >= 1 && n <= 9) { placeNumber(n); return; }
       if (e.key === 'Backspace' || e.key === 'Delete') { erase(); return; }

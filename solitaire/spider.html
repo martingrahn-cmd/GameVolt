@@ -1638,8 +1638,42 @@
                 saveGame();
             });
 
+            // ── Pause (SDK) ──
+            function pauseGame() {
+                if (!game.gameStarted || game.gameWon) return;
+                if (!window.GameVolt) return;
+                clearInterval(game.timerInterval);
+                game.timerInterval = null;
+                GameVolt.ui.pauseMenu({
+                    musicVolume: 0.5,
+                    sfxVolume: 0.5,
+                    onResume: function() {
+                        game.gameStarted = false;
+                        startTimer();
+                    },
+                    onRestart: function() {
+                        newGame(game.numSuits);
+                    },
+                    onQuit: function() {
+                        window.location.href = '/solitaire/';
+                    },
+                    onMusicVolume: function(v) { /* no audio */ },
+                    onSfxVolume: function(v) { /* no audio */ }
+                });
+            }
+
             document.addEventListener('keydown', (e) => {
                 if (e.target.tagName === 'INPUT') return;
+                if ((e.key === 'Escape' || e.key === 'p' || e.key === 'P') && game.gameStarted && !game.gameWon && window.GameVolt) {
+                    if (e.key === 'Escape' && !GameVolt.ui.isPaused()) {
+                        const anyModal = document.querySelector('.modal-overlay.active');
+                        if (anyModal) { clearSelection(); document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active')); return; }
+                    }
+                    e.preventDefault();
+                    pauseGame();
+                    return;
+                }
+                if (window.GameVolt && GameVolt.ui.isPaused()) return;
                 if (e.key === 'z' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); undo(); }
                 if (e.key === 'h' || e.key === 'H') showHint();
                 if (e.key === 'n' || e.key === 'N') {
@@ -1674,5 +1708,7 @@
     })();
     </script>
     <script src="leaderboard.js"></script>
+    <script src="/sdk/gamevolt.js"></script>
+    <script>if (window.GameVolt) GameVolt.init('solitaire-spider');</script>
 </body>
 </html>

@@ -2575,28 +2575,73 @@
             }
         }
         
+        // ===== PAUSE MENU (SDK) =====
+        function togglePauseMenu() {
+            if (!window.GameVolt) return;
+            GameVolt.ui.pauseMenu({
+                sfxVolume: soundEnabled ? 1 : 0,
+                musicVolume: 0,
+                onResume: function() { /* turn-based — nothing to unpause */ },
+                onRestart: function() {
+                    if (gameMode === '2p') {
+                        start2PGame();
+                    } else {
+                        startGame(currentLevel);
+                    }
+                },
+                onQuit: function() {
+                    showMenu();
+                },
+                onSfxVolume: function(v) {
+                    soundEnabled = v > 0;
+                    localStorage.setItem('connect4Sound', soundEnabled);
+                    updateSoundButton();
+                },
+                onMusicVolume: function() { /* no music in Connect 4 */ }
+            });
+        }
+
         // ===== KEYBOARD =====
         function handleKeyDown(e) {
             // Only handle keys during gameplay
             const gameScreen = document.getElementById('game-screen');
             if (!gameScreen.classList.contains('active')) return;
-            if (gameOver || isThinking) return;
-            
-            // Keys 1-7 for columns
+
             const key = e.key;
+
+            // ESC / P → SDK pause menu (works even when gameOver)
+            if (key === 'Escape' || key === 'p' || key === 'P') {
+                if (window.GameVolt) {
+                    // If pause is already open, let the SDK handle closing via its own Resume button
+                    // but still toggle on open
+                    togglePauseMenu();
+                    return;
+                }
+                // Fallback: no SDK — ESC goes to menu
+                if (key === 'Escape') {
+                    showMenu();
+                }
+                return;
+            }
+
+            if (gameOver || isThinking) return;
+            // If SDK pause menu is open, block gameplay keys
+            if (window.GameVolt && GameVolt.ui.isPaused()) return;
+
+            // Keys 1-7 for columns
             if (key >= '1' && key <= '7') {
                 const col = parseInt(key) - 1;
-                
+
                 // Visual feedback on key hint
                 const hint = document.querySelector(`.key-hint[data-col="${col}"]`);
                 if (hint) {
                     hint.classList.add('active');
                     setTimeout(() => hint.classList.remove('active'), 150);
                 }
-                
+
                 handleCellClick(col);
             }
-            
+
             // R for restart
             if (key === 'r' || key === 'R') {
                 if (gameMode === '2p') {
@@ -2604,11 +2649,6 @@
                 } else {
                     startGame(currentLevel);
                 }
-            }
-            
-            // Escape for menu
-            if (key === 'Escape') {
-                showMenu();
             }
         }
         
@@ -3549,6 +3589,7 @@
         // ===== GAME FLOW =====
         async function handleCellClick(col) {
             if (gameOver || isThinking) return;
+            if (window.GameVolt && GameVolt.ui.isPaused()) return;
             
             // In 1P mode, only allow clicks when it's player's turn
             if (gameMode === '1p' && currentPlayer !== PLAYER) return;
