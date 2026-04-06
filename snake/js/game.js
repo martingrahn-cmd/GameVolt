@@ -153,13 +153,13 @@ export class Game {
                 }
             }
 
-            // O = Options menu (only when playing or paused)
-            if ((e.key === "o" || e.key === "O") && (this.state === "playing" || this.state === "paused")) {
+            // O = Options menu (only when playing or paused, skip if SDK pause is active)
+            if ((e.key === "o" || e.key === "O") && (this.state === "playing" || this.state === "paused") && !this._sdkPause) {
                 this._showOptions();
             }
 
-            // H = Highscores (when playing, paused, or game over)
-            if ((e.key === "h" || e.key === "H") && this.state !== "options") {
+            // H = Highscores (skip if SDK pause is active)
+            if ((e.key === "h" || e.key === "H") && this.state !== "options" && !this._sdkPause) {
                 this._showHighscores();
             }
         });
@@ -188,9 +188,11 @@ export class Game {
             return;
         }
 
-        // Handle pause menu navigation
+        // Handle pause menu navigation (SDK pause handles its own input)
         if (this.state === "paused") {
-            this.pauseScreen.handleDirection(dir);
+            if (!this._sdkPause) {
+                this.pauseScreen.handleDirection(dir);
+            }
             return;
         }
 
@@ -228,6 +230,15 @@ export class Game {
 
         // Pause screen
         if (this.state === "paused") {
+            // SDK pause menu handles its own input (ESC/P/click)
+            if (this._sdkPause) {
+                // Start button (gamepad) toggles SDK pause
+                if (action === "start") {
+                    if (window.GameVolt) window.GameVolt.ui.pauseMenu();
+                }
+                return;
+            }
+            // Fallback PauseScreen
             // Start button resumes
             if (action === "start") {
                 this._resume();
@@ -238,7 +249,9 @@ export class Game {
         }
 
         // Playing — toggle pause with back or start
+        // Debounce: SDK pause calls onResume on same keypress that game input sees
         if (this.state === "playing" && (action === "back" || action === "start")) {
+            if (this._resumedAt && performance.now() - this._resumedAt < 100) return;
             this._showPause();
         }
     }
@@ -512,19 +525,61 @@ export class Game {
     _showPause() {
         this.state = "paused";
         if (window.audioNeoSFX) window.audioNeoSFX.pause();
-        
+
         // Hide pause button while paused
         if (this.hud?.setPauseButtonVisible) {
             this.hud.setPauseButtonVisible(false);
         }
-        
-        this.pauseScreen.show(
-            () => this._resume(),
-            () => this._restart(),
-            () => this._returnToMenu(),
-            () => this._showOptionsFromPause(),
-            () => this._showHighscoresFromPause()
-        );
+
+        // Use SDK pause menu when available
+        if (window.GameVolt) {
+            this._sdkPause = true;
+
+            // Read current volume levels for slider init
+            const musicVol = window._snakeMusicVolume !== undefined ? window._snakeMusicVolume : 0.7;
+            const sfxVol = window.audioNeoSFX ? window.audioNeoSFX.volume : 0.5;
+
+            window.GameVolt.ui.pauseMenu({
+                musicVolume: musicVol,
+                sfxVolume: sfxVol,
+                onResume: () => this._resume(),
+                onRestart: () => this._restart(),
+                onQuit: () => this._returnToMenu(),
+                onMusicVolume: (v) => {
+                    window._snakeMusicVolume = v;
+                    // Set volume on the music player
+                    if (window._snakeAudioNeo) {
+                        window._snakeAudioNeo.setVolume(v);
+                        // If dragged to 0, mute; if dragged above 0, ensure playing
+                        if (v === 0 && window._snakeAudioNeo.isPlaying) {
+                            window._snakeAudioNeo.toggleMusic();
+                        } else if (v > 0 && window._snakeAudioNeo.audio && window._snakeAudioNeo.audio.paused) {
+                            window._snakeAudioNeo.resumeMusic();
+                        }
+                    }
+                    // Also update options setting
+                    this.optionsScreen.setSetting("music", v > 0);
+                },
+                onSfxVolume: (v) => {
+                    if (window.audioNeoSFX) {
+                        window.audioNeoSFX.setVolume(v);
+                        window.audioNeoSFX.setEnabled(v > 0);
+                    }
+                    // Also update options setting
+                    this.optionsScreen.setSetting("soundEffects", v > 0);
+                }
+            });
+        } else {
+            // Fallback: old PauseScreen
+            this._sdkPause = false;
+            this.pauseScreen.show(
+                () => this._resume(),
+                () => this._restart(),
+                () => this._returnToMenu(),
+                () => this._showOptionsFromPause(),
+                () => this._showHighscoresFromPause()
+            );
+        }
     }
 
     _showOptionsFromPause() {
@@ -544,7 +599,9 @@ export class Game {
         if (window.audioNeoSFX) window.audioNeoSFX.pause();
         this.state = "playing";
         this.last = performance.now();
-        
+        this._sdkPause = false;
+        this._resumedAt = performance.now(); // debounce vs SDK keypress
+
         // Show pause button again
         if (this.hud?.setPauseButtonVisible) {
             this.hud.setPauseButtonVisible(true);

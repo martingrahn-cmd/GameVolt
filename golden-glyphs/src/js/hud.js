@@ -65,9 +65,9 @@ export class HUD {
         const btnSize = 50;
         const margin = 18;
 
-        // --- VÄNSTER SIDA: BACK-KNAPP ---
+        // --- VÄNSTER SIDA: PAUSE/BACK-KNAPP ---
         this.btnMenu = { x: margin, y: centerY - btnSize/2, w: btnSize, h: btnSize };
-        this.drawSquareButton(ctx, this.btnMenu, "↩", false);
+        this.drawSquareButton(ctx, this.btnMenu, window.GameVolt ? "⏸" : "↩", false);
 
 
         // --- HÖGER SIDA: HINT-KNAPP (Symmetrisk) ---

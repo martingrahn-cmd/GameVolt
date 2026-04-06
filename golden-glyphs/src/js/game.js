@@ -31,7 +31,8 @@ const ctx = canvas ? canvas.getContext("2d") : null;
 let layout, grid, bitfield, tray, pieces = [], effects, audio, hud, input, ui, worldMap, shop, tutorial, dailySystem, timeAttack, dynamicBg, achievements;
 let lastTime = 0; let timeElapsed = 0; let gameState = "MENU"; let currentLevelIndex = 0; let currentLevelSet = []; let currentLevelSetName = 'LEVELS_EASY'; let hasSeenTutorial = false; let totalGold = 0;
 
-let ownedHints = 3; 
+let gamePaused = false; // SDK pause menu state
+let ownedHints = 3;
 let ownedItems = ["trail_default", "skin_default", "glow_none", "default"]; 
 let activeItems = { trail: "trail_default", skin: "skin_default", glow: "glow_none", world: "default" };
 let menuBtnLayout = { x: 0, startY: 0, w: 0, h: 0, gap: 0 };
@@ -168,7 +169,70 @@ function drawBackground() {
     ctx.globalAlpha = 1.0;
 }
 
-function initSystems() { 
+// --- SDK PAUSE MENU ---
+function togglePause() {
+    if (window.GameVolt && GameVolt.ui) {
+        GameVolt.ui.pauseMenu({
+            musicVolume: audio ? audio.musicVolume : 0.5,
+            sfxVolume: audio ? audio.sfxVolume : 0.6,
+            onPause: function() {
+                gamePaused = true;
+                if (input) input.locked = true;
+                if (audio && audio.currentAudio) audio.currentAudio.volume = audio.musicVolume * 0.2;
+            },
+            onResume: function() {
+                gamePaused = false;
+                if (input) input.locked = false;
+                if (audio && audio.currentAudio) audio.currentAudio.volume = audio.musicVolume;
+            },
+            onRestart: function() {
+                gamePaused = false;
+                if (input) input.locked = false;
+                if (audio && audio.currentAudio) audio.currentAudio.volume = audio.musicVolume;
+                timeElapsed = 0;
+                clearActiveHint();
+                loadLevel(currentLevelIndex);
+            },
+            onQuit: function() {
+                gamePaused = false;
+                if (input) input.locked = false;
+                if (audio && audio.currentAudio) audio.currentAudio.volume = audio.musicVolume;
+                quitToMenu();
+            },
+            onMusicVolume: function(v) {
+                if (audio) {
+                    audio.musicVolume = v;
+                    if (audio.currentAudio && !audio.currentAudio.paused) audio.currentAudio.volume = v * 0.2;
+                }
+            },
+            onSfxVolume: function(v) {
+                if (audio) audio.sfxVolume = v;
+            }
+        });
+    } else {
+        // Fallback without SDK: go directly to menu/map
+        quitToMenu();
+    }
+}
+
+function quitToMenu() {
+    saveProgress();
+    if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.end({ outcome: 'quit' });
+    if (gameState === "TIME_ATTACK") {
+        if (audio) audio.stopMusic();
+        gameState = "MENU";
+        return;
+    }
+    if (zenMode || currentLevelSetName === 'LEVELS_DAILY') {
+        zenMode = false;
+        if (audio) audio.stopMusic();
+        gameState = "MENU";
+    } else {
+        gameState = "MAP";
+    }
+}
+
+function initSystems() {
   layout = new Layout(canvas); grid = new Grid(ctx, CONFIG.COLS, CONFIG.ROWS); hud = new HUD(layout); 
   audio = new AudioManager(); window.audio = audio; 
   dynamicBg = new DynamicBackground(canvas); // Partikeleffekter
@@ -241,10 +305,17 @@ function initSystems() {
         const titleText = "LEVEL COMPLETE";
         const btnText = "NEXT LEVEL";
         ui.showWinScreen(awardedStars, reward, () => { totalGold += reward; saveProgress(); playSound('purchase'); }, titleText, btnText, null, (name) => playSound(name), streakBonus); } else { gameState = "MAP"; } }, 1500); });
-  canvas.addEventListener('pointerdown', (e) => { const pos = getEventPos(e); if (gameState === "CREDITS") { const btn = window._creditsBackBtn; if (btn && pos.x >= btn.x && pos.x <= btn.x + btn.w && pos.y >= btn.y && pos.y <= btn.y + btn.h) { playSound('menu_back'); hideCredits(); } return; } if (gameState === "MENU") { playSound('click'); handleMenuClick(pos.x, pos.y); } else if (gameState === "MAP") { worldMap.handleInput('down', pos.x, pos.y); } else if (gameState === "SHOP") { shop.handleInput('down', pos.x, pos.y); } else if (gameState === "ACHIEVEMENTS") { if (achievements.checkBackButton(pos.x, pos.y)) { playSound('menu_back'); gameState = "MENU"; return; } achievements.handleInput('down', pos.x, pos.y); } else if (gameState === "PLAYING" || gameState === "TIME_ATTACK") { const hudAction = hud.checkHit(pos.x, pos.y); if (hudAction === 'menu') { playSound('click'); saveProgress(); if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.end({ outcome: 'quit' }); if (gameState === "TIME_ATTACK") { if (audio) audio.stopMusic(); gameState = "MENU"; return; } if (zenMode || currentLevelSetName === 'LEVELS_DAILY') { zenMode = false; if (audio) audio.stopMusic(); gameState = "MENU"; } else { gameState = "MAP"; } return; } if (hudAction === 'hint') { tryUseHint(); return; } } });
+  canvas.addEventListener('pointerdown', (e) => { const pos = getEventPos(e); if (gameState === "CREDITS") { const btn = window._creditsBackBtn; if (btn && pos.x >= btn.x && pos.x <= btn.x + btn.w && pos.y >= btn.y && pos.y <= btn.y + btn.h) { playSound('menu_back'); hideCredits(); } return; } if (gameState === "MENU") { playSound('click'); handleMenuClick(pos.x, pos.y); } else if (gameState === "MAP") { worldMap.handleInput('down', pos.x, pos.y); } else if (gameState === "SHOP") { shop.handleInput('down', pos.x, pos.y); } else if (gameState === "ACHIEVEMENTS") { if (achievements.checkBackButton(pos.x, pos.y)) { playSound('menu_back'); gameState = "MENU"; return; } achievements.handleInput('down', pos.x, pos.y); } else if (gameState === "PLAYING" || gameState === "TIME_ATTACK") { const hudAction = hud.checkHit(pos.x, pos.y); if (hudAction === 'menu') { playSound('click'); togglePause(); return; } if (hudAction === 'hint') { tryUseHint(); return; } } });
   canvas.addEventListener('pointermove', (e) => { const pos = getEventPos(e); if (gameState === "MAP") worldMap.handleInput('move', pos.x, pos.y); if (gameState === "SHOP") shop.handleInput('move', pos.x, pos.y); if (gameState === "ACHIEVEMENTS") achievements.handleInput('move', pos.x, pos.y); });
   canvas.addEventListener('pointerup', (e) => { const pos = getEventPos(e); if (gameState === "MAP") worldMap.handleInput('up', pos.x, pos.y); if (gameState === "SHOP") shop.handleInput('up', pos.x, pos.y); if (gameState === "ACHIEVEMENTS") achievements.handleInput('up', pos.x, pos.y); });
   canvas.addEventListener('wheel', (e) => { if (gameState === "MAP") { e.preventDefault(); worldMap.handleScroll(e.deltaY); } if (gameState === "SHOP") { e.preventDefault(); shop.handleWheel(e.deltaY); } if (gameState === "ACHIEVEMENTS") { e.preventDefault(); achievements.handleWheel(e.deltaY); } }, { passive: false });
+  // ESC key opens/closes SDK pause menu during gameplay
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && (gameState === "PLAYING" || gameState === "TIME_ATTACK")) {
+      e.preventDefault();
+      togglePause();
+    }
+  });
   layout.resize(); if (!loadProgress()) { currentLevelSetName = 'LEVELS_EASY'; currentLevelIndex = 0; } if (effects && activeItems.trail) effects.setTrailType(activeItems.trail); if (grid && activeItems.glow) grid.setGlow(activeItems.glow);
 }
 
@@ -803,8 +874,8 @@ function loop(timestamp) {
         }
     }
     
-    if (gameState === "PLAYING") { timeElapsed += dt; if (hud) { hud.isTimeAttack = false; hud.time = zenMode ? null : timeElapsed; hud.currentLevelName = zenMode ? "ZEN" : (currentLevelSetName === 'LEVELS_DAILY') ? "DAILY CHALLENGE" : `LEVEL ${currentLevelIndex + 1}`; hud.currency = totalGold; hud.ownedHints = ownedHints; hud.currentScore = 0; const levelKey = `${currentLevelSetName}_${currentLevelIndex}`; hud.earnedStars = parseInt(localStorage.getItem(levelKey) || 0); } } 
-    else if (gameState === "TIME_ATTACK") { const status = timeAttack.update(dt); if (status === "GAME_OVER") { handleTimeAttackGameOver(); loopRunning = false; return; } if (hud) { hud.isTimeAttack = true; hud.time = timeAttack.timeLeft; hud.currentScore = timeAttack.score; hud.currency = totalGold; const currentHigh = parseInt(localStorage.getItem('goldenGlyphsHighScore') || 0); if (timeAttack.score > currentHigh) { hud.highScore = timeAttack.score; localStorage.setItem('goldenGlyphsHighScore', timeAttack.score); } else { hud.highScore = currentHigh; } } }
+    if (gameState === "PLAYING") { if (!gamePaused) timeElapsed += dt; if (hud) { hud.isTimeAttack = false; hud.time = zenMode ? null : timeElapsed; hud.currentLevelName = zenMode ? "ZEN" : (currentLevelSetName === 'LEVELS_DAILY') ? "DAILY CHALLENGE" : `LEVEL ${currentLevelIndex + 1}`; hud.currency = totalGold; hud.ownedHints = ownedHints; hud.currentScore = 0; const levelKey = `${currentLevelSetName}_${currentLevelIndex}`; hud.earnedStars = parseInt(localStorage.getItem(levelKey) || 0); } }
+    else if (gameState === "TIME_ATTACK") { const status = gamePaused ? null : timeAttack.update(dt); if (status === "GAME_OVER") { handleTimeAttackGameOver(); loopRunning = false; return; } if (hud) { hud.isTimeAttack = true; hud.time = timeAttack.timeLeft; hud.currentScore = timeAttack.score; hud.currency = totalGold; const currentHigh = parseInt(localStorage.getItem('goldenGlyphsHighScore') || 0); if (timeAttack.score > currentHigh) { hud.highScore = timeAttack.score; localStorage.setItem('goldenGlyphsHighScore', timeAttack.score); } else { hud.highScore = currentHigh; } } }
     ctx.save(); 
     let shakeX = 0; let shakeY = 0; if (effects) { const shake = effects.getShakeOffset(); shakeX = shake.x; shakeY = shake.y; } ctx.translate(shakeX, shakeY);
     drawBackground(); 

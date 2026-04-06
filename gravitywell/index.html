@@ -967,7 +967,7 @@ function updateMenuFocusVisual() {
 }
 
 document.addEventListener('keydown', (e) => {
-  // If game is running, ignore menu keys (except Escape for future pause)
+  // If game is running or dying, ignore menu keys (pause is handled by SDK)
   if (state.running || state.dying) return;
   if (menuOverlay.classList.contains('hidden')) return;
 
@@ -3311,6 +3311,117 @@ showMenu(false);
     gvPost('game_start', {});
     GameVoltTracker.start('GravityWell');
   };
+
+  // --- SDK Pause Menu ---
+  var _justResumed = false; // guard against ESC double-fire (SDK handler + ours)
+
+  function getMusicVolume() {
+    if (AudioSystem.muted || !gwData.musicEnabled) return 0;
+    return AudioSystem.volume;
+  }
+  function getSfxVolume() {
+    if (!gwData.sfxEnabled) return 0;
+    return 1;
+  }
+
+  function openPause() {
+    if (!state.running || state.dying || state.gameOver) return;
+    if (GameVolt.ui.isPaused()) return;
+
+    GameVolt.ui.pauseMenu({
+      musicVolume: getMusicVolume(),
+      sfxVolume: getSfxVolume(),
+
+      onPause: function() {
+        state.running = false;
+        hud.style.display = 'none';
+        // Silence audio while paused
+        if (AudioSystem.track && AudioSystem.started) AudioSystem.track.volume = 0;
+        if (SFX.droneGain) SFX.droneGain.gain.value = 0;
+        if (SFX.windGain) SFX.windGain.gain.value = 0;
+        if (SFX.heartbeatGain) SFX.heartbeatGain.gain.value = 0;
+        if (SFX.tensionGain) SFX.tensionGain.gain.value = 0;
+      },
+
+      onResume: function() {
+        state.running = true;
+        hud.style.display = 'flex';
+        // Restore audio
+        if (AudioSystem.track && AudioSystem.started && !AudioSystem.muted) {
+          AudioSystem.track.volume = AudioSystem.volume;
+        }
+        // Guard: prevent same keydown event from re-opening pause
+        _justResumed = true;
+        requestAnimationFrame(function() { _justResumed = false; });
+      },
+
+      onRestart: function() {
+        startGame();
+      },
+
+      onQuit: function() {
+        state.running = false;
+        state.gameOver = true;
+        AudioSystem.stop();
+        SFX.stop();
+        hud.style.display = 'none';
+        document.body.classList.remove('playing');
+        showMenu(false);
+        titleLoop();
+      },
+
+      onMusicVolume: function(v) {
+        if (v === 0) {
+          gwData.musicEnabled = false;
+          AudioSystem.muted = true;
+          if (AudioSystem.track) AudioSystem.track.volume = 0;
+        } else {
+          gwData.musicEnabled = true;
+          AudioSystem.muted = false;
+          AudioSystem.volume = v;
+          if (AudioSystem.track && AudioSystem.started) AudioSystem.track.volume = v;
+        }
+        audioToggle.textContent = gwData.musicEnabled ? '🔊' : '🔇';
+        audioToggle.classList.toggle('muted', !gwData.musicEnabled);
+        var musicBtn = document.getElementById('music-btn');
+        if (musicBtn) {
+          musicBtn.textContent = gwData.musicEnabled ? 'ON' : 'OFF';
+          musicBtn.classList.toggle('on', gwData.musicEnabled);
+        }
+        saveGWData();
+      },
+
+      onSfxVolume: function(v) {
+        gwData.sfxEnabled = v > 0;
+        var sfxBtn = document.getElementById('sfx-btn');
+        if (sfxBtn) {
+          sfxBtn.textContent = gwData.sfxEnabled ? 'ON' : 'OFF';
+          sfxBtn.classList.toggle('on', gwData.sfxEnabled);
+        }
+        saveGWData();
+      }
+    });
+  }
+
+  // Keyboard: ESC / P to open pause during gameplay
+  // The SDK's own keydown handler handles closing on ESC/P.
+  document.addEventListener('keydown', function(e) {
+    if (state.dying || _justResumed) return;
+    if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
+      if (state.running && !GameVolt.ui.isPaused()) {
+        e.preventDefault();
+        e.stopPropagation();
+        openPause();
+      }
+    }
+  });
+
+  // Auto-pause on tab visibility change
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden && state.running && !GameVolt.ui.isPaused()) {
+      openPause();
+    }
+  });
 
   // --- Global leaderboard in scores tab ---
   var _origRenderScores = renderScores;

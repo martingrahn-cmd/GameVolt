@@ -1075,7 +1075,9 @@ export class Game {
                 this.menuCursor = 0;
                 this.frame = 0;
             } else if (this.state === 'paused') {
-                // Tap on pause options
+                // SDK pause menu handles its own touch — skip canvas tap handling
+                if (window.GameVolt && GameVolt.ui.isPaused()) return;
+                // Canvas-drawn pause fallback (no SDK)
                 const resumeY = GAME_H / 2 + 10;
                 const quitY = GAME_H / 2 + 40;
                 if (y > resumeY - 15 && y < resumeY + 15) {
@@ -1576,8 +1578,44 @@ export class Game {
             }
         } else if (this.state === 'playing') {
             if (this.input.isPausePressed()) {
-                this.state = 'paused';
-                this.pauseCursor = 0; // 0=resume, 1=quit
+                if (window.GameVolt) {
+                    // SDK pause menu (HTML overlay)
+                    this.state = 'paused';
+                    GameVolt.ui.pauseMenu({
+                        musicVolume: this.settings.musicVol,
+                        sfxVolume: this.settings.sfxVol,
+                        onResume: () => {
+                            this.state = 'playing';
+                            // Consume pause keys so the game doesn't immediately re-pause
+                            this.input.keys['Escape'] = false;
+                            this.input.keys['KeyP'] = false;
+                            this.input.gpPausePrev = true;
+                        },
+                        onRestart: () => {
+                            this.startGame(this.world);
+                        },
+                        onQuit: () => {
+                            this.audio.stopBGM();
+                            this.state = 'menu';
+                            this.menuCursor = 0;
+                            this.frame = 0;
+                        },
+                        onMusicVolume: (v) => {
+                            this.settings.musicVol = Math.round(v * 10) / 10;
+                            this._applyVolumes();
+                            this._saveSettings();
+                        },
+                        onSfxVolume: (v) => {
+                            this.settings.sfxVol = Math.round(v * 10) / 10;
+                            this._applyVolumes();
+                            this._saveSettings();
+                        },
+                    });
+                } else {
+                    // Canvas-drawn pause fallback (no SDK)
+                    this.state = 'paused';
+                    this.pauseCursor = 0; // 0=resume, 1=quit
+                }
                 // Must save prev state so confirm doesn't fire immediately
                 this._gpTapPrev = true;  // block gamepad confirm next frame
                 this._kConfirmPrev = true; // block keyboard confirm next frame
@@ -1585,6 +1623,19 @@ export class Game {
             }
             this.updatePlaying();
         } else if (this.state === 'paused') {
+            // SDK pause menu handles its own keyboard input — but not gamepad
+            if (window.GameVolt && GameVolt.ui.isPaused()) {
+                // Gamepad Start should also close the SDK pause menu
+                if (this.input.isPausePressed()) {
+                    GameVolt.ui.pauseMenu(); // toggle closed
+                }
+                return;
+            }
+            if (window.GameVolt && !GameVolt.ui.isPaused()) {
+                // SDK menu was closed via callback — state already updated
+                return;
+            }
+            // Canvas-drawn pause fallback (no SDK)
             if (navUp || navDown) this.pauseCursor = this.pauseCursor === 0 ? 1 : 0;
             if (confirm || this.input.isPausePressed()) {
                 if (this.pauseCursor === 0) {
@@ -3377,7 +3428,7 @@ export class Game {
             this.drawLevelSelect(ctx);
         } else if (this.state === 'playing' || this.state === 'gameover' || this.state === 'paused') {
             this.drawGame(ctx);
-            if (this.state === 'paused') {
+            if (this.state === 'paused' && !(window.GameVolt && GameVolt.ui.isPaused())) {
                 this.drawPaused(ctx);
             }
         } else if (this.state === 'stageclear') {

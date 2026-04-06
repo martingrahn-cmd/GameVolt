@@ -560,6 +560,10 @@ window.addEventListener("pauseNokia", () => {
 // Expose audioNeoSFX globally for game.js to use
 window.audioNeoSFX = audioNeoSFX;
 
+// Expose audioNeo globally for SDK pause menu volume control
+window._snakeAudioNeo = audioNeo;
+window._snakeMusicVolume = 0.7; // default music volume
+
 // Global audio unlock on any user interaction (for stubborn browsers)
 let globalUnlockDone = false;
 function globalAudioUnlock() {

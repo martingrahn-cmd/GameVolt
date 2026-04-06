@@ -1833,12 +1833,21 @@ export class OneStrokeApp {
   onKeyDown(event) {
     const key = event.key;
     if (key === "Escape") {
+      // SDK pause menu handles its own ESC-to-close internally
+      if (window.GameVolt?.ui?.isPaused()) return;
+
       if (this.isLevelSelectOpen()) {
         this.closeLevelSelect();
         return;
       }
       if (!this.winModalEl.classList.contains("hidden")) {
         this.hideModal();
+        return;
+      }
+
+      // Open SDK pause menu when actively solving a puzzle
+      if (this.isGameplayHubView() && this.state.status === "playing") {
+        this.togglePauseMenu();
         return;
       }
     }
@@ -1850,6 +1859,9 @@ export class OneStrokeApp {
     if (!this.isGameplayHubView()) {
       return;
     }
+
+    // Block gameplay keys while paused
+    if (window.GameVolt?.ui?.isPaused()) return;
 
     if (key === "Backspace") {
       event.preventDefault();
@@ -1899,6 +1911,7 @@ export class OneStrokeApp {
     if (this.state.status !== "playing") {
       return;
     }
+    if (window.GameVolt?.ui?.isPaused()) return;
     if (event.pointerType === "mouse" && event.button !== 0) {
       return;
     }
@@ -4082,6 +4095,38 @@ export class OneStrokeApp {
       const moves = Math.max(0, this.state.path.length - 1);
       this.liveMovesEl.textContent = `${moves} moves`;
     }
+  }
+
+  // ── SDK Pause Menu ─────────────────────────────────────────
+
+  togglePauseMenu() {
+    if (!window.GameVolt?.ui) return;
+    GameVolt.ui.pauseMenu({
+      musicVolume: 0,
+      sfxVolume: 0,
+      onPause: () => {
+        this.stopDrag();
+        this.stopLiveTimer();
+      },
+      onResume: () => {
+        if (this.state.status === "playing") {
+          this.startLiveTimer();
+        }
+      },
+      onRestart: () => {
+        this.resetLevel();
+      },
+      onQuit: () => {
+        this.stopDrag();
+        this.stopLiveTimer();
+        if (this.state.mode === "challenge") {
+          this.abortMatch();
+          this.setHubView("multiplayer");
+        } else {
+          this.setHubView("single-player");
+        }
+      },
+    });
   }
 
   hideModal() {
