@@ -823,6 +823,130 @@
     }, 2800);
   }
 
+  // --------------------------------------------------------
+  // Pause Menu (injected DOM)
+  // --------------------------------------------------------
+
+  var pauseEl = null;
+  var pauseCallbacks = null;
+  var pauseVisible = false;
+
+  function createPauseMenu() {
+    if (pauseEl) return;
+    pauseEl = document.createElement('div');
+    pauseEl.id = 'gv-pause';
+    pauseEl.innerHTML =
+      '<div class="gv-pause-backdrop"></div>' +
+      '<div class="gv-pause-card">' +
+        '<div class="gv-pause-title">PAUSED</div>' +
+        '<button class="gv-pause-btn gv-pause-resume" data-action="resume">RESUME</button>' +
+        '<button class="gv-pause-btn" data-action="restart">RESTART</button>' +
+        '<div class="gv-pause-slider-group">' +
+          '<label class="gv-pause-label">Music</label>' +
+          '<input type="range" class="gv-pause-slider" id="gv-music-slider" min="0" max="100" value="50">' +
+          '<span class="gv-pause-val" id="gv-music-val">50%</span>' +
+        '</div>' +
+        '<div class="gv-pause-slider-group">' +
+          '<label class="gv-pause-label">SFX</label>' +
+          '<input type="range" class="gv-pause-slider" id="gv-sfx-slider" min="0" max="100" value="50">' +
+          '<span class="gv-pause-val" id="gv-sfx-val">50%</span>' +
+        '</div>' +
+        '<button class="gv-pause-btn gv-pause-quit" data-action="quit">QUIT</button>' +
+      '</div>';
+
+    var css = document.createElement('style');
+    css.textContent =
+      '#gv-pause{position:fixed;inset:0;z-index:9990;display:none;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif}' +
+      '#gv-pause.open{display:flex}' +
+      '.gv-pause-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}' +
+      '.gv-pause-card{position:relative;background:#12122a;border:1px solid rgba(124,92,252,0.25);border-radius:16px;padding:28px 24px;width:260px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 30px rgba(124,92,252,0.1)}' +
+      '.gv-pause-title{text-align:center;font-size:1.4rem;font-weight:800;letter-spacing:4px;color:#f0f0ff;margin-bottom:4px}' +
+      '.gv-pause-btn{padding:12px;border:1px solid rgba(255,255,255,0.1);border-radius:10px;background:rgba(255,255,255,0.05);color:#e0e0f0;font-size:0.85rem;font-weight:700;letter-spacing:1.5px;cursor:pointer;transition:all .15s;font-family:inherit;text-align:center}' +
+      '.gv-pause-btn:hover{background:rgba(124,92,252,0.15);border-color:rgba(124,92,252,0.4);transform:translateY(-1px)}' +
+      '.gv-pause-resume{background:linear-gradient(135deg,#7c5cfc,#38bdf8);color:#fff;border-color:transparent}' +
+      '.gv-pause-resume:hover{opacity:0.9;transform:translateY(-1px)}' +
+      '.gv-pause-quit{color:#f47;border-color:rgba(255,68,119,0.2)}' +
+      '.gv-pause-quit:hover{background:rgba(255,68,119,0.1);border-color:rgba(255,68,119,0.4)}' +
+      '.gv-pause-slider-group{display:flex;align-items:center;gap:8px;padding:6px 4px}' +
+      '.gv-pause-label{font-size:0.72rem;font-weight:700;color:#888;letter-spacing:1px;width:42px;flex-shrink:0}' +
+      '.gv-pause-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,0.1);outline:none}' +
+      '.gv-pause-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#7c5cfc;cursor:pointer;box-shadow:0 0 6px rgba(124,92,252,0.4)}' +
+      '.gv-pause-slider::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#7c5cfc;cursor:pointer;border:none}' +
+      '.gv-pause-val{font-size:0.7rem;color:#888;width:32px;text-align:right}';
+    document.head.appendChild(css);
+    document.body.appendChild(pauseEl);
+
+    // Button events
+    pauseEl.querySelectorAll('.gv-pause-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var action = btn.dataset.action;
+        if (action === 'resume') closePauseMenu();
+        if (action === 'restart') { closePauseMenu(); if (pauseCallbacks && pauseCallbacks.onRestart) pauseCallbacks.onRestart(); }
+        if (action === 'quit') { closePauseMenu(); if (pauseCallbacks && pauseCallbacks.onQuit) pauseCallbacks.onQuit(); }
+      });
+    });
+
+    // Slider events
+    var musicSlider = document.getElementById('gv-music-slider');
+    var sfxSlider = document.getElementById('gv-sfx-slider');
+    var musicVal = document.getElementById('gv-music-val');
+    var sfxVal = document.getElementById('gv-sfx-val');
+
+    musicSlider.addEventListener('input', function() {
+      var v = parseInt(musicSlider.value) / 100;
+      musicVal.textContent = musicSlider.value + '%';
+      if (pauseCallbacks && pauseCallbacks.onMusicVolume) pauseCallbacks.onMusicVolume(v);
+    });
+    sfxSlider.addEventListener('input', function() {
+      var v = parseInt(sfxSlider.value) / 100;
+      sfxVal.textContent = sfxSlider.value + '%';
+      if (pauseCallbacks && pauseCallbacks.onSfxVolume) pauseCallbacks.onSfxVolume(v);
+    });
+
+    // Backdrop click = resume
+    pauseEl.querySelector('.gv-pause-backdrop').addEventListener('click', closePauseMenu);
+
+    // ESC to resume
+    document.addEventListener('keydown', function(e) {
+      if (pauseVisible && (e.key === 'Escape' || e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        closePauseMenu();
+      }
+    });
+  }
+
+  function openPauseMenu(opts) {
+    createPauseMenu();
+    pauseCallbacks = opts || {};
+    // Set slider values from current state
+    var musicSlider = document.getElementById('gv-music-slider');
+    var sfxSlider = document.getElementById('gv-sfx-slider');
+    if (opts.musicVolume !== undefined) {
+      musicSlider.value = Math.round(opts.musicVolume * 100);
+      document.getElementById('gv-music-val').textContent = musicSlider.value + '%';
+    }
+    if (opts.sfxVolume !== undefined) {
+      sfxSlider.value = Math.round(opts.sfxVolume * 100);
+      document.getElementById('gv-sfx-val').textContent = sfxSlider.value + '%';
+    }
+    // Hide restart if no callback
+    var restartBtn = pauseEl.querySelector('[data-action="restart"]');
+    restartBtn.style.display = opts.onRestart ? '' : 'none';
+    // Hide quit if no callback
+    var quitBtn = pauseEl.querySelector('[data-action="quit"]');
+    quitBtn.style.display = opts.onQuit ? '' : 'none';
+    pauseEl.classList.add('open');
+    pauseVisible = true;
+    if (pauseCallbacks.onPause) pauseCallbacks.onPause();
+  }
+
+  function closePauseMenu() {
+    if (!pauseEl) return;
+    pauseEl.classList.remove('open');
+    pauseVisible = false;
+    if (pauseCallbacks && pauseCallbacks.onResume) pauseCallbacks.onResume();
+  }
+
   var ui = {
     /**
      * Show an achievement toast with Crystal chime.
@@ -836,6 +960,31 @@
         toastQueue.push(trophy);
       }
       if (!toastActive) popToast();
+    },
+
+    /**
+     * Open the standardized pause menu.
+     * @param {object} opts
+     *   - musicVolume: 0-1 (current)
+     *   - sfxVolume: 0-1 (current)
+     *   - onResume: function() — called on resume
+     *   - onRestart: function() — called on restart (hidden if omitted)
+     *   - onQuit: function() — called on quit (hidden if omitted)
+     *   - onPause: function() — called when pause opens
+     *   - onMusicVolume: function(v) — called with 0-1 when slider changes
+     *   - onSfxVolume: function(v) — called with 0-1 when slider changes
+     */
+    pauseMenu: function(opts) {
+      if (pauseVisible) {
+        closePauseMenu();
+      } else {
+        openPauseMenu(opts || {});
+      }
+    },
+
+    /** Check if pause menu is currently open */
+    isPaused: function() {
+      return pauseVisible;
     }
   };
 
