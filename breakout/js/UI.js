@@ -182,13 +182,58 @@ export default class UIManager {
 
   togglePause() {
     if (this.game.state !== 'running' && !this.game.paused) return;
-    this.game.paused = !this.game.paused;
-    if (this.game.paused) {
-      this.pauseOverlay.classList.add('show');
-      this.pauseBtn.textContent = '\u25B6';
+
+    var self = this;
+    var audio = this.game.audio;
+
+    if (window.GameVolt) {
+      // SDK pause menu handles its own open/close toggle
+      this.game.paused = !this.game.paused;
+      if (this.game.paused) {
+        this.pauseBtn.textContent = '\u25B6';
+        GameVolt.ui.pauseMenu({
+          musicVolume: audio.musicMuted ? 0 : audio.musicVolume,
+          sfxVolume: audio.sfxMuted ? 0 : audio.sfxVolume,
+          onResume: function() {
+            self.game.paused = false;
+            self.pauseBtn.textContent = 'II';
+          },
+          onRestart: function() {
+            self.game.paused = false;
+            self.pauseBtn.textContent = 'II';
+            self.resetPGStats();
+            self.game.start();
+            self.hideOverlay();
+            gvPost('game_start', { mode: 'default' });
+            GameVoltTracker.start('Breakout');
+          },
+          onQuit: function() {
+            self.game.paused = false;
+            self.pauseBtn.textContent = 'II';
+            self.showMenu();
+          },
+          onMusicVolume: function(v) {
+            audio.setMusicVolume(v);
+          },
+          onSfxVolume: function(v) {
+            audio.setSfxVolume(v);
+          }
+        });
+      } else {
+        // Unpausing via togglePause (P key etc.) — close SDK menu
+        this.pauseBtn.textContent = 'II';
+        GameVolt.ui.pauseMenu(); // toggles closed
+      }
     } else {
-      this.pauseOverlay.classList.remove('show');
-      this.pauseBtn.textContent = 'II';
+      // Fallback: original pause overlay
+      this.game.paused = !this.game.paused;
+      if (this.game.paused) {
+        this.pauseOverlay.classList.add('show');
+        this.pauseBtn.textContent = '\u25B6';
+      } else {
+        this.pauseOverlay.classList.remove('show');
+        this.pauseBtn.textContent = 'II';
+      }
     }
   }
 

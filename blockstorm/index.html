@@ -691,12 +691,14 @@
 
     window.togglePauseOverlay = (show) => {
       if (show) {
-        updateToggleStates();
-        // Sätt resume som vald
-        resumeBtn.classList.add("selected");
-        quitBtn.classList.remove("selected");
-        pauseOverlay.classList.add("visible");
         currentScreen = 'pause';
+        // SDK pause menu handles its own overlay; only show old one as fallback
+        if (!window.GameVolt) {
+          updateToggleStates();
+          resumeBtn.classList.add("selected");
+          quitBtn.classList.remove("selected");
+          pauseOverlay.classList.add("visible");
+        }
       } else {
         pauseOverlay.classList.remove("visible");
         currentScreen = 'game';
@@ -845,9 +847,15 @@
       
       // PAUSE SCREEN
       if (currentScreen === 'pause') {
+        // When SDK pause menu is active, it handles its own keyboard (ESC/P).
+        // We only need to handle the old pause overlay keys as fallback.
+        if (window.GameVolt && GameVolt.ui.isPaused()) {
+          // SDK handles ESC/P internally; block game input during pause
+          return;
+        }
+        // Fallback: old pause overlay keyboard navigation
         if (key === "Tab" || key === "ArrowUp" || key === "ArrowDown") {
           e.preventDefault();
-          // Toggle mellan knapparna
           if (resumeBtn.classList.contains("selected")) {
             resumeBtn.classList.remove("selected");
             quitBtn.classList.add("selected");
@@ -858,7 +866,6 @@
         } else if (key === "Enter" || key === " ") {
           e.preventDefault();
           if (quitBtn.classList.contains("selected")) {
-            // Quit
             const g = window.PULSE_TETRIS;
             if (g) {
               pauseOverlay.classList.remove("visible");
@@ -869,7 +876,6 @@
               window.showGameOver(g.score);
             }
           } else {
-            // Resume
             const g = window.PULSE_TETRIS;
             if (g) g.togglePause();
           }

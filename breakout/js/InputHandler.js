@@ -7,7 +7,7 @@ export default class InputHandler {
     window.addEventListener('touchstart', (e) => this.handleUnlock(e), {passive: false});
     window.addEventListener('touchmove', (e) => this.onMove(e), {passive: false});
     window.addEventListener('touchend', (e) => {
-      if (e.target.closest('#overlay, #pause-overlay, #pause-btn')) return;
+      if (e.target.closest('#overlay, #pause-overlay, #pause-btn, #gv-pause')) return;
       if (e.cancelable) e.preventDefault();
     }, {passive: false});
 
@@ -37,8 +37,8 @@ export default class InputHandler {
         if (e.key === 'Escape') { e.preventDefault(); if (ui) ui.showMenu(); return; }
       }
 
-      // Tab switching (menu, gameover, or paused): 1-5
-      if (state === 'menu' || state === 'gameover' || this.game.paused) {
+      // Tab switching (menu, gameover, or paused): 1-5 (skip if SDK pause is open)
+      if (state === 'menu' || state === 'gameover' || (this.game.paused && !(window.GameVolt && GameVolt.ui.isPaused()))) {
         var tabKeys = { '1': 'play', '2': 'scores', '3': 'trophies', '4': 'guide', '5': 'settings' };
         if (tabKeys[e.key]) { if (ui) ui.switchTab(tabKeys[e.key]); return; }
       }
@@ -65,6 +65,8 @@ export default class InputHandler {
 
       // Pause
       if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && state === 'running') {
+        // SDK pause menu handles its own ESC/P and calls preventDefault()
+        if (e.defaultPrevented) return;
         e.preventDefault();
         if (ui) ui.togglePause();
       }
@@ -89,7 +91,7 @@ export default class InputHandler {
 
   handleUnlock(e) {
     // Don't prevent default on UI button clicks
-    if (e.cancelable && !e.target.closest('#overlay, #pause-overlay, #pause-btn, .gv-btn, .tab-btn, .setting-toggle')) {
+    if (e.cancelable && !e.target.closest('#overlay, #pause-overlay, #pause-btn, #gv-pause, .gv-btn, .tab-btn, .setting-toggle')) {
       e.preventDefault();
     }
 
@@ -100,7 +102,7 @@ export default class InputHandler {
     }
 
     // Skip game actions if user clicked a UI element
-    if (e.target.closest('#overlay, #pause-overlay, #pause-btn')) return;
+    if (e.target.closest('#overlay, #pause-overlay, #pause-btn, #gv-pause')) return;
 
     this.onPress(e);
   }
@@ -117,7 +119,7 @@ export default class InputHandler {
 
   onMove(e) {
     // Let overlay handle its own touch events (scroll etc.)
-    if (e.target.closest('#overlay, #pause-overlay')) return;
+    if (e.target.closest('#overlay, #pause-overlay, #gv-pause')) return;
     if (e.cancelable) e.preventDefault();
     if (this.game.state !== 'running' || this.game.paused) return;
 

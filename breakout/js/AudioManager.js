@@ -2,7 +2,8 @@ export default class AudioManager {
   constructor(game) {
     this.game = game;
     this.sounds = {};
-    this.musicVolume = 0.7;
+    this.musicVolume = parseFloat(localStorage.getItem('bo_music_vol')) || 0.7;
+    this.sfxVolume = parseFloat(localStorage.getItem('bo_sfx_vol')) || 0.85;
 
     // Separate mute states (persisted)
     this.sfxMuted = localStorage.getItem('bo_sfx') === '0';
@@ -52,7 +53,7 @@ export default class AudioManager {
   loadSfx(name, path) {
     const audio = new Audio(path);
     audio.preload = 'auto'; 
-    audio.volume = 0.85; 
+    audio.volume = this.sfxVolume;
     audio.onerror = () => console.warn(`Saknas: ${path}`);
     this.sounds[name] = audio;
   }
@@ -121,6 +122,43 @@ export default class AudioManager {
     }, stepTime);
   }
 
+  setMusicVolume(v) {
+    this.musicVolume = Math.max(0, Math.min(1, v));
+    localStorage.setItem('bo_music_vol', this.musicVolume);
+    // Update currently playing music players
+    this.musicPlayers.forEach(p => {
+      if (!p.paused) p.volume = this.musicVolume;
+    });
+    // Unmute/mute based on volume
+    if (this.musicVolume > 0 && this.musicMuted) {
+      this.musicMuted = false;
+      localStorage.setItem('bo_music', '1');
+      this.startMusicFlow();
+    } else if (this.musicVolume === 0 && !this.musicMuted) {
+      this.musicMuted = true;
+      localStorage.setItem('bo_music', '0');
+      this.musicPlayers.forEach(p => { p.pause(); p.currentTime = 0; });
+      this.isCrossfading = false;
+    }
+  }
+
+  setSfxVolume(v) {
+    this.sfxVolume = Math.max(0, Math.min(1, v));
+    localStorage.setItem('bo_sfx_vol', this.sfxVolume);
+    // Update all loaded SFX
+    for (let name in this.sounds) {
+      this.sounds[name].volume = this.sfxVolume;
+    }
+    // Unmute/mute based on volume
+    if (this.sfxVolume > 0 && this.sfxMuted) {
+      this.sfxMuted = false;
+      localStorage.setItem('bo_sfx', '1');
+    } else if (this.sfxVolume === 0 && !this.sfxMuted) {
+      this.sfxMuted = true;
+      localStorage.setItem('bo_sfx', '0');
+    }
+  }
+
   play(name) {
     if (this.sfxMuted) return;
     if (name === 'music') return;
@@ -155,7 +193,7 @@ export default class AudioManager {
         const s = this.sounds['ball_launch'];
         s.volume = 0;
         s.play().then(() => {
-            s.pause(); s.volume=0.85;
+            s.pause(); s.volume=this.sfxVolume;
         }).catch(()=>{});
     }
   }

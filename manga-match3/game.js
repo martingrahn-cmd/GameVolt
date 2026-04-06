@@ -110,6 +110,11 @@ class MangaMatch3 {
     this.pauseBtn = document.getElementById("pauseBtn");
     this.pauseOverlayEl = document.getElementById("pauseOverlay");
     this.pauseBtn.addEventListener("click", () => this.togglePause());
+    // Hide old pause overlay permanently when SDK provides its own
+    if (window.GameVolt) {
+      this.pauseOverlayEl.style.display = "none";
+    }
+    // Fallback pause overlay buttons (used when SDK is not loaded)
     document.getElementById("pauseResumeBtn").addEventListener("click", () => this.resumeGame());
     document.getElementById("pauseRestartBtn").addEventListener("click", () => { this.resumeGame(); this.resetCurrentLevel(); });
     document.getElementById("pauseMapBtn").addEventListener("click", () => { this.resumeGame(); this.showLevelSelect(); });
@@ -120,6 +125,19 @@ class MangaMatch3 {
     this.boardEl.addEventListener("touchstart", (e) => this.onTouchStart(e), { passive: false });
     this.boardEl.addEventListener("touchmove", (e) => this.onTouchMove(e), { passive: false });
     this.boardEl.addEventListener("touchend", (e) => this.onTouchEnd(e));
+
+    // Keyboard pause: ESC or P toggles pause (SDK handles its own ESC/P for closing,
+    // but we need to handle the *opening* trigger)
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" || e.key === "p" || e.key === "P") {
+        // Only open pause if game is active and not already paused via SDK
+        if (window.GameVolt && GameVolt.ui.isPaused()) return; // SDK handles close internally
+        if (!this.gameShellEl.hidden && !this.levelComplete && !this.tutActive) {
+          e.preventDefault();
+          this.togglePause();
+        }
+      }
+    });
 
     this.initLevelPicker();
     this.initShop();
@@ -161,6 +179,7 @@ class MangaMatch3 {
     this.invalidateAllCells();
     this.fxLayerEl?.replaceChildren();
     this.paused = false;
+    if (window.GameVolt && GameVolt.ui.isPaused()) GameVolt.ui.pauseMenu(); // close SDK pause
     if (this.pauseOverlayEl) this.pauseOverlayEl.hidden = true;
     this.hideResultOverlay();
     this.hideLevelSelect();
@@ -435,7 +454,47 @@ class MangaMatch3 {
 
   /* ── Pause ── */
 
-  togglePause() { if (this.paused) this.resumeGame(); else this.pauseGame(); }
+  togglePause() {
+    if (window.GameVolt) {
+      // SDK pause menu: toggle via GameVolt.ui.pauseMenu()
+      if (GameVolt.ui.isPaused()) {
+        // SDK will call onResume callback which sets this.paused = false
+        GameVolt.ui.pauseMenu();
+      } else {
+        if (this.levelComplete) return;
+        this.paused = true;
+        this.clearHint();
+        sfx.uiClick();
+        GameVolt.ui.pauseMenu({
+          sfxVolume: sfx.volume,
+          onResume: () => {
+            this.paused = false;
+            sfx.uiClick();
+            this.scheduleHint();
+          },
+          onRestart: () => {
+            this.paused = false;
+            this.resetCurrentLevel();
+          },
+          onQuit: () => {
+            this.paused = false;
+            this.showMainMenu();
+          },
+          onSfxVolume: (v) => {
+            sfx.setVolume(v);
+          },
+          onMusicVolume: (v) => {
+            // No separate music — route to same SFX volume
+            sfx.setVolume(v);
+          },
+          onPause: () => {}
+        });
+      }
+      return;
+    }
+    // Fallback: old custom overlay
+    if (this.paused) this.resumeGame(); else this.pauseGame();
+  }
 
   pauseGame() {
     if (this.paused || this.levelComplete) return;

@@ -246,20 +246,68 @@ export class Game {
 
   togglePause() {
     if (this.gameOver) return;
-    
+
+    // If SDK pause menu is open and we're unpausing, toggle it closed
+    // (closePauseMenu fires onResume which unpauses the game engine)
+    if (this.paused && window.GameVolt && GameVolt.ui.isPaused()) {
+      GameVolt.ui.pauseMenu();
+      return;
+    }
+
+    // If SDK pause menu is available and we're pausing, use it
+    if (!this.paused && window.GameVolt) {
+      this.paused = true;
+      this.audio.pauseMusic();
+
+      const game = this;
+      GameVolt.ui.pauseMenu({
+        musicVolume: game.audio.musicVolume,
+        sfxVolume: game.audio.sfxVolume,
+        onResume: function() {
+          game.paused = false;
+          game.lastTime = performance.now();
+          requestAnimationFrame(game.loop);
+          game.audio.playMusic();
+          if (window.togglePauseOverlay) window.togglePauseOverlay(false);
+        },
+        onRestart: function() {
+          game.paused = false;
+          if (window.togglePauseOverlay) window.togglePauseOverlay(false);
+          game.restart();
+          game.audio.playMusic();
+        },
+        onQuit: function() {
+          game.paused = false;
+          game.running = false;
+          game.gameOver = true;
+          game.audio.stopMusic();
+          if (window.togglePauseOverlay) window.togglePauseOverlay(false);
+          if (window.showGameOver) window.showGameOver(game.score);
+        },
+        onMusicVolume: function(v) {
+          game.audio.setMusicVolume(v);
+        },
+        onSfxVolume: function(v) {
+          game.audio.setSfxVolume(v);
+        }
+      });
+
+      // Also notify old overlay system so currentScreen updates
+      if (window.togglePauseOverlay) window.togglePauseOverlay(true);
+      return;
+    }
+
+    // Fallback: old pause overlay (no SDK)
     this.paused = !this.paused;
-    
+
     if (this.paused) {
-      // Pausa musik
       this.audio.pauseMusic();
     } else {
-      // Återuppta spelet och musik
       this.lastTime = performance.now();
       requestAnimationFrame(this.loop);
       this.audio.playMusic();
     }
-    
-    // Meddela UI
+
     if (window.togglePauseOverlay) {
       window.togglePauseOverlay(this.paused);
     }
