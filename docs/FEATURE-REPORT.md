@@ -1,0 +1,295 @@
+# GameVolt – Feature-rapport
+
+> Genererad 2026-04-17. Prioriterar tillväxt, retention och monetisering. Respekterar existerande stack: vanilla JS, Supabase, GitHub Pages, optional SDK.
+
+---
+
+## Nuläge (2026-04-17)
+
+- 13 spel live, varav 6 med SDK (Breakout, Connect 4, HoverDash, Golden Glyphs, Sudoku, Axeluga)
+- SDK v1: auth (magic link + Google OAuth), cloud save, leaderboards, achievements
+- Portalen: spel-katalog, player-shell med sidebar, profil, leaderboards, kategorisidor
+- Supabase-schema redo för: favorites, ratings, daily_challenges, streaks
+- Saknas i UI: daily challenges, streaks, ratings, favorites, search, trending
+
+---
+
+## Quick wins (1–2 veckor)
+
+### 1. Login Nudge Popup
+**Vad:** När gäst triggar `leaderboard.submit()` eller `achievements.unlock()` → snygg popup: "You scored 1,234! Sign in to save it — you'd be #7 worldwide."
+**Varför:** Konverterar spelsug till login i rätt ögonblick. Kan 3–5× login-rate.
+**Insats:** S | **Impact:** High | **Beroenden:** SDK finns redan
+**Filer:** `sdk/gamevolt.js` (leaderboard/achievements-wrappers). Max 1/session via sessionStorage.
+
+### 2. Continue Playing-carousel
+**Vad:** Hem-sida visar de 5 spel användaren senast spelade (data finns redan i `gv_portal` localStorage via `js/gv-tracker.js`).
+**Insats:** S | **Impact:** High | **Beroenden:** Inga
+**Filer:** `index.html` — ny carousel ovanför game-griden.
+
+### 3. Favorites
+**Vad:** Hjärta-knapp i game bar. Egen `/favorites/`-sida.
+**Insats:** S | **Impact:** Medium | **Beroenden:** Schema finns (`favorites`-tabell)
+**Filer:** `sdk/gamevolt.js` (`GameVolt.favorites.toggle()`), `play/index.html`, `index.html`.
+
+### 4. Game Ratings (1–5 stjärnor)
+**Vad:** Post-game popup eller knapp i game bar. Visa snitt på game-kort.
+**Insats:** S | **Impact:** Medium (SEO + discovery) | **Beroenden:** `ratings`-tabell finns
+**Bonus:** Gifter AggregateRating-schema mening (se SEO-rapport).
+
+### 5. "NEW"-badge + senaste-aktivitet-widget
+**Vad:** Badge på spel yngre än 14 dagar. Liten widget: "HoverDash fick 100 plays idag".
+**Insats:** S | **Impact:** Medium | **Beroenden:** `games.created_at`, `games.play_count`
+
+### 6. Search & filter
+**Vad:** Sökfält i hem + play. Filter: kategori, svårighetsgrad.
+**Insats:** M | **Impact:** Medium-High
+**Filer:** `js/gv-search.js` finns redan — expandera. Lägg `difficulty` i GAMES-config.
+
+### 7. Supabase email customization
+**Vad:** Snygg HTML-template för magic link.
+**Insats:** S (enbart Supabase-dashboard)
+**Impact:** +3–8 % CTR på login-email.
+
+---
+
+## Engagement & retention (2–4 veckor)
+
+### 8. Daily Challenges Live UI
+**Vad:** Globalt dagligt uppdrag ("Score 5000 in Snake today"). Toast när klar. Reward: streak-bonus.
+**Insats:** M | **Impact:** High (drives DAU)
+**Beroenden:** `daily_challenges` + `daily_completions` schema finns
+**Filer:** `sdk/gamevolt.js` (`challenge`-objekt), `play/index.html` sidebar, `index.html` widget.
+
+### 9. Streak Tracking & Milestones
+**Vad:** "🔥 7 Day Streak" på profil. Milestones: 7, 30, 100 dagar → exklusiv trophy/avatar.
+**Insats:** M | **Impact:** High
+**Beroenden:** `profiles.current_streak`, `profiles.longest_streak` finns
+
+### 10. Achievement-progress i sidebar
+**Vad:** "12/31 Trophies · 80% Bronze" live medan man spelar.
+**Insats:** M | **Impact:** Medium
+**Beroenden:** postMessage + SDK achievements finns
+
+### 11. Leaderboard-varianter (weekly / monthly / per-mode)
+**Vad:** Tabs: "All Time", "This Week", "This Month". Snake (3 modes) → separat per mode.
+**Insats:** M | **Impact:** High (förnyar kompetenterna)
+**Beroenden:** `scores.mode` + `scores.created_at` finns
+
+### 12. Weekly email digest
+**Vad:** "Din vecka på GameVolt: 5 spel, 12 trophies, rank +23 på HoverDash."
+**Insats:** M | **Impact:** High (+3–7 % weekly return)
+**Beroenden:** Supabase Edge Function + opt-in preference på profil
+
+### 13. Related Games i player
+**Vad:** "You might also like" 3 relevanta spel i sidebar eller under iframe på mobil.
+**Insats:** S-M | **Impact:** Medium (minskar bounce)
+**Synergi:** Stöttar även SEO-rekommendationen om internlänkar.
+
+---
+
+## Social & community (4–8 veckor)
+
+### 14. Friends-system
+**Vad:** Vänner, vännerstopscores i sidebar, notifieringar när vän slår ditt record.
+**Insats:** L | **Impact:** High (kompetenslås-in)
+**Ny tabell:** `friendships(requester_id, recipient_id, status)`
+
+### 15. Public Player Profiles
+**Vad:** `/player/[username]/` med avatar, trophies, top scores, favoriter. Delbar URL.
+**Insats:** M | **Impact:** Medium (sharing-driver)
+
+### 16. Activity Feed på hem
+**Vad:** "🏆 Alex tog Gold på Connect 4 · 🎮 Sam spelar HoverDash · 📈 Sudoku +45 % denna vecka"
+**Insats:** L | **Impact:** High (FOMO + social proof)
+**Teknik:** Supabase Realtime eller polling var 30 s.
+
+### 17. Comments per spel
+**Vad:** Enkel textcomment på spelsida. Max 500 tecken. Senaste 5 visas.
+**Insats:** M-L | **Impact:** Medium
+**Ny tabell:** `game_comments`
+
+### 18. Game Submission Portal
+**Vad:** Externa devs submittar HTML5-spel. Checklist + moderation queue.
+**Insats:** L-XL | **Impact:** Very High (exponentiell tillväxt)
+**Defererad till Phase 4** — kräver moderation-workflow.
+
+---
+
+## Discovery & personalization
+
+### 19. Trending / Most Played sort
+**Vad:** Hem-tabs: "All", "Trending", "Top Rated", "New".
+**Insats:** M | **Impact:** High (koncentrerar trafik)
+**Beroenden:** `games.play_count` existerar
+
+### 20. Avatar-system
+**Vad:** Preset-galleri med 20+ avatarer. Unlockable: platinum på ett spel → exklusiv avatar.
+**Insats:** M | **Impact:** Medium
+**Data:** `profiles.avatar_id` + `profiles.unlocked_cosmetics` (JSON)
+
+### 21. Dark/Light tema
+**Vad:** Toggle i header. Sparas i localStorage, respektera `prefers-color-scheme`.
+**Insats:** S-M | **Impact:** Low-Medium (QoL)
+**Redan nu:** CSS-variabler finns, enkel add.
+
+---
+
+## Monetisering (start efter 10k DAU)
+
+### 22. Rewarded Video Ads
+**Vad:** Optional: "Watch 15s ad for +1 life / +50 coins." Spelar-initierad.
+**Insats:** L | **Impact:** Medium ($400–800/mån initialt)
+**Partner:** AdMob eller Poki/CrazyGames nätverk
+**Golden Glyphs har redan ad-abstraktion** — använd som template.
+
+### 23. Cosmetic skins
+**Vad:** Avatar-skins och trail-effekter, låses via trophies eller $1–3 köp.
+**Insats:** M | **Impact:** Low-Medium
+
+### 24. Tip jar / Ko-fi
+**Vad:** "❤️ Support GameVolt"-knapp i footer.
+**Insats:** M (Stripe/Ko-fi integration) | **Impact:** Low men ren marginal
+
+### 25. Premium Battle Pass
+**Status:** Defererad till Phase 5. Cosmetic-only för att undvika pay-to-win.
+
+---
+
+## Technical & polish
+
+### 26. PWA install prompt + offline mode
+**Vad:** "Install GameVolt" banner. Cache game-assets så de fungerar offline.
+**Insats:** M | **Impact:** Medium-High (hem-skärm = fler daily opens)
+**Filer:** `manifest.json` finns. `sw.js` finns — utöka cache-strategi.
+
+### 27. Accessibility / colorblind mode
+**Vad:** Toggle för deuteranopi/protanopi/tritanopi palette. Keyboard-only stöd.
+**Insats:** M-L (per spel) | **Impact:** Medium (8 % av män är färgblinda)
+
+### 28. A/B testing framework
+**Vad:** Liten utility `runABTest(name, variants)` + localStorage-bucketing + GA4-tagg.
+**Insats:** M | **Impact:** Medium (möjliggör fortsatt optimering)
+
+### 29. Admin analytics dashboard
+**Vad:** `/admin/` (lösenordsskyddad): DAU, topp-spel, retention, revenue.
+**Insats:** L | **Impact:** Medium (datadrivna beslut)
+
+---
+
+## SDK v2 & migration
+
+### 30. SDK rollout till resterande 6 spel
+**Spel:** TapRush, BlockStorm, Solitaire, Snake, Gravity Well, Manga Match.
+**Insats:** S per spel (2–4 h) | **Impact:** High (cloud save + leaderboard för 46 % av katalogen)
+**Parallellt arbete** — behöver inte vänta på feature-utveckling.
+
+### 31. Auto-migration vid första login
+**Vad:** Gäst-data (localStorage) → cloud sker tyst, visa bara toast "Synced!".
+**Insats:** S-M | **Impact:** High (noll dataförlust vid signup)
+**Status:** Logik finns i SDK; säkerställ att alla spel anropar `save.registerMigration()`.
+
+### 32. Cross-game stats på profil
+**Vad:** "🎮 847 games · ⏱️ 42h · 🏆 Top 5 % på 3 spel" — aggregate från scores-tabellen.
+**Insats:** M | **Impact:** Medium
+**Beroenden:** `total_play_time_seconds` i `profiles` finns
+
+---
+
+## Content (6–12 veckor)
+
+### 33. Guides & strategy-sidor
+**Vad:** `/guides/`-hub med 10–15 long-tail-artiklar. Stödjer även SEO-rapport.
+**Insats:** M (författande) | **Impact:** Medium (SEO + retention)
+
+### 34. Blogg / Dev Diary
+**Vad:** `/blog/` med månatlig post: nya spel, champion-spotlights, postmortems.
+**Insats:** M (infrastructure) + löpande författande | **Impact:** Medium (SEO + community)
+
+### 35. Game Guides (user-generated wiki)
+**Vad:** Users kan skriva guider, community röstar.
+**Insats:** L | **Impact:** Medium | **Defererad** tills playerbasen är större.
+
+---
+
+## Prioriteringsmatris
+
+| # | Feature | Impact | Insats | Ratio |
+|---|---------|--------|--------|-------|
+| 1 | Login Nudge | ⭐⭐⭐⭐⭐ | S | 5.0 |
+| 2 | Continue Playing | ⭐⭐⭐⭐⭐ | S | 5.0 |
+| 3 | Favorites | ⭐⭐⭐⭐ | S | 4.0 |
+| 4 | Game Ratings | ⭐⭐⭐⭐ | S | 4.0 |
+| 5 | SDK rollout (6 spel) | ⭐⭐⭐⭐⭐ | S×6 | 4.0 |
+| 6 | Daily Challenges UI | ⭐⭐⭐⭐⭐ | M | 4.0 |
+| 7 | Streak Tracking | ⭐⭐⭐⭐⭐ | M | 4.0 |
+| 8 | Search & Filter | ⭐⭐⭐⭐ | M | 3.5 |
+| 9 | Trending Sort | ⭐⭐⭐⭐ | M | 3.5 |
+| 10 | Related Games | ⭐⭐⭐ | S | 3.0 |
+| 11 | Leaderboard Variants | ⭐⭐⭐⭐ | M | 3.0 |
+| 12 | Email Digest | ⭐⭐⭐⭐ | M | 3.0 |
+| 13 | PWA Install | ⭐⭐⭐⭐ | M | 3.0 |
+| 14 | Friends | ⭐⭐⭐⭐⭐ | L | 2.5 |
+| 15 | Public Profiles | ⭐⭐⭐ | M | 2.5 |
+| 16 | Activity Feed | ⭐⭐⭐⭐ | L | 2.0 |
+| 17 | Rewarded Ads | ⭐⭐⭐ | L | 1.5 |
+
+---
+
+## 90-dagars roadmap
+
+### Månad 1 – Quick wins + SDK-rollout
+- Vecka 1–2: Login Nudge, Continue Playing, Favorites, Ratings
+- Vecka 3–4: Daily Challenges UI, Streak Tracking, Search & Filter
+- Parallellt: SDK till TapRush, BlockStorm, Solitaire
+
+**Förväntat:** +20–30 % login rate, bättre daily return, 92 % av katalogen SDK-klar.
+
+### Månad 2 – Engagement & social
+- Vecka 5–6: Trending sort, Achievement progress, Leaderboard-varianter, Related Games
+- Vecka 7–8: Friends-system (backend), Public Profiles, Email Digest
+- Parallellt: SDK till Snake, Gravity Well, Manga Match (100 % SDK)
+
+**Förväntat:** +15–25 % session-längd, viral/word-of-mouth, konkurrensmoment.
+
+### Månad 3 – Monetisering & polish
+- Vecka 9–10: Rewarded Ads, Avatar Cosmetics, PWA install, Accessibility
+- Vecka 11–12: Comments, Tip Jar, Email customization, Dark/Light theme
+
+**Förväntat:** First revenue ($500–1100/mån), stronger community, polerad UX.
+
+---
+
+## Deferade (post-90-dagar)
+
+- Real-time Activity Feed
+- Game Submission Portal
+- User-generated Game Guides
+- Blogg / Dev Diary (kan dock starta tidigare om tid finns)
+- Analytics Dashboard
+- A/B testing
+- Premium Battle Pass (revisit vid 50k+ MAU)
+
+---
+
+## Förväntade outcomes (90 dagar)
+
+| Metric | Nu | Mål |
+|--------|----|-----|
+| Login rate | 5–8 % | 15–20 % |
+| DAU | baseline | +40–60 % |
+| Session-längd | baseline | +30–50 % |
+| 7-day retention | baseline | +15–25 % |
+| Revenue | 0 kr | $500–1100 / mån |
+| SDK-coverage | 46 % | 100 % |
+
+---
+
+## Noter till Martin
+
+1. **Parallellisera SDK-rollout** — vänta inte på nya features. 6 spel utan SDK = hälften av katalogen.
+2. **Börja med Login Nudge** — en SDK-ändring ger effekt i alla spel samtidigt.
+3. **Mät efter månad 1** — låt data styra månad 2–3.
+4. **Moderations-budget** — comments/reviews/guides kräver review. Batch 1×/vecka räcker länge.
+5. **Mobil-först i varje test** — alla nya komponenter måste fungera i iframe på telefon.
+6. **Community = moat** — friends/streaks/leaderboards gör det smärtsamt att lämna.
