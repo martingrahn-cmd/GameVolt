@@ -16,11 +16,11 @@
 
 ## Quick wins (1–2 veckor)
 
-### 1. Login Nudge Popup
-**Vad:** När gäst triggar `leaderboard.submit()` eller `achievements.unlock()` → snygg popup: "You scored 1,234! Sign in to save it — you'd be #7 worldwide."
-**Varför:** Konverterar spelsug till login i rätt ögonblick. Kan 3–5× login-rate.
-**Insats:** S | **Impact:** High | **Beroenden:** SDK finns redan
-**Filer:** `sdk/gamevolt.js` (leaderboard/achievements-wrappers). Max 1/session via sessionStorage.
+### 1. Login Nudge Popup ✅ IMPLEMENTERAD (2026-04-17)
+**Vad:** När gäst anropar `leaderboard.submit()` visas en mjuk bottom-toast: "You scored 1,234! Sign in to save it to the leaderboard." Klick på "Sign in" öppnar befintliga login-modalen. Den väntande poängen submitteras automatiskt när användaren loggar in under samma session.
+**Beteende:** Max 1 nudge per session (sessionStorage-flagga). Auto-dismissar efter 15 sek. Dismiss-knapp. Fallback-text om score är 0 eller saknas.
+**Filer:** `sdk/gamevolt.js` — nudge-DOM, `showNudge()`, `pendingSubmission`, `flushPendingSubmission()`, `leaderboard.submit()` + `notifyStateChange()`-hook.
+**Påbyggnader (future):** Visa estimerad rank ("You'd be #7 worldwide!"), trophy-variant vid `achievements.unlock()` för platinum/gold, milestone-trigger (första game over, 10:e run).
 
 ### 2. Continue Playing-carousel
 **Vad:** Hem-sida visar de 5 spel användaren senast spelade (data finns redan i `gv_portal` localStorage via `js/gv-tracker.js`).
