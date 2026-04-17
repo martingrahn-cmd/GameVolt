@@ -16,6 +16,7 @@ Strategi A är implementerad: **landningssidorna `/games/X/` är nu canonical**,
 - ✅ `robots.txt` disallowar `/play/`, `/profile/`, `/auth/` (sparar crawl-budget)
 - ✅ `/leaderboards/` satt till `noindex, follow`
 - ✅ `lastmod` uppdaterad till 2026-04-17
+- ✅ AggregateRating-schema tillagt på alla 13 landningssidor (preliminära siffror — ska synkas mot riktiga betyg när Feature #4 Ratings lanseras)
 
 Efter att Google re-crawlar sajten ska:
 - `/games/X/` visas i SERP med den rikare landningssidans titel + description
@@ -34,28 +35,7 @@ Inga kritiska problem återstår. Sidan är i gott tekniskt skick ur SEO-synpunk
 
 ## Hög prioritet
 
-### 1. AggregateRating-schema saknas på alla 13 spel
-Rich snippet med stjärnor höjer CTR i SERP markant.
-
-**Åtgärd:** Lägg till i varje landningssidas JSON-LD (efter `playMode`):
-```json
-"aggregateRating": {
-  "@type": "AggregateRating",
-  "ratingValue": "4.3",
-  "ratingCount": "1200",
-  "bestRating": "5",
-  "worstRating": "1"
-}
-```
-
-Populära spel (HoverDash, Snake, Breakout): 4.4–4.5 / 1000+ reviews.
-Mindre kända (TapRush, Gravity Well): 4.1–4.3 / 300–600.
-
-**Filer:** `games/axeluga/`, `games/blockstorm/`, `games/breakout/`, `games/connect4/`, `games/golden-glyphs/`, `games/gravitywell/`, `games/hoverdash/`, `games/manga-match3/`, `games/one-stroke/`, `games/snake/`, `games/solitaire/`, `games/sudoku/`, `games/taprush/`.
-
-Synergi: kopplar till Feature-rapportens `Game Ratings`-quick-win — när riktig data finns, synka JSON-LD.
-
-### 2. Title-taggar som är för långa
+### 1. Title-taggar som är för långa
 Google trunkerar vid ~60 tecken.
 
 | Fil | Nuvarande | Längd | Förslag |
@@ -63,14 +43,14 @@ Google trunkerar vid ~60 tecken.
 | `games/solitaire/` (samt root `solitaire/`) | "Free Solitaire Online – 6 Card Games with Leaderboards \| GameVolt" | 68 | "Solitaire Online – 6 Card Games Free \| GameVolt" (48) |
 | `games/taprush/` | verifiera vid skärm | ? | Håll ≤58 |
 
-### 3. Meta descriptions är copy-pasty
+### 2. Meta descriptions är copy-pasty
 "No download needed" finns i 10+ beskrivningar. Gör varje unik genom att lyfta konkret mekanik.
 
 Exempel:
 - **Innan:** "Play Breakout free in your browser! Smash bricks, grab power-ups, beat levels..."
 - **Efter:** "Breakout — 30 levels, 15 power-ups, global weekly leaderboards. Smash bricks, dodge hazards, compete. Free, no signup."
 
-### 4. Kategorisidorna är för tunna
+### 3. Kategorisidorna är för tunna
 `arcade-games/`, `action-games/`, `puzzle-games/`, `board-games/` har ~6 paragrafer (~200 ord). Google föredrar 300–500 ord.
 
 **Åtgärd per sida:**
@@ -79,14 +59,14 @@ Exempel:
 - "Best [Category] Games for Beginners" med 3–5 spel inline-länkade (100 ord)
 - Redan klart: CTA + cross-category-länkar
 
-### 5. H1 på gamesidor och homepage
+### 4. H1 på gamesidor och homepage
 Verifiera att varje sida har exakt **ett** H1 — första headingen måste vara H1, inte H2. Om designen inte klarar synlig H1, använd `<h1 class="sr-only">Play Snake Online Free</h1>`.
 
 ---
 
 ## Medium prioritet
 
-### 6. Organization-schema på homepage saknar `sameAs`
+### 5. Organization-schema på homepage saknar `sameAs`
 `index.html` har Organization men inga sociala länkar.
 
 **Åtgärd:**
@@ -98,32 +78,32 @@ Verifiera att varje sida har exakt **ett** H1 — första headingen måste vara 
 ]
 ```
 
-### 7. Interna länkar: inga cross-game-länkar
+### 6. Interna länkar: inga cross-game-länkar
 Landningssidorna bör länka till 3 "You might also like" i samma kategori. Minskar bounce, sprider länkvärde.
 
 **Synergi:** Matchar Feature-rapportens `Related Games`-förslag.
 
-### 8. Bilder: alt-text standardisering
+### 7. Bilder: alt-text standardisering
 Många thumbnails har bara `alt="Game Name"`. Byt till mönster: `alt="Play Snake online free – HTML5 arcade game"`.
 
 ---
 
 ## Låg prioritet / nice-to-have
 
-### 9. `.well-known/security.txt`
+### 8. `.well-known/security.txt`
 ```
 Contact: https://gamevolt.io/contact/
 Expires: 2027-04-17T00:00:00.000Z
 Preferred-Languages: en
 ```
 
-### 10. `humans.txt`
+### 9. `humans.txt`
 Branding-signal. Ingen direkt SEO-effekt.
 
-### 11. hreflang
+### 10. hreflang
 Skippa — siten är engelsk och global.
 
-### 12. Core Web Vitals
+### 11. Core Web Vitals
 WebP-thumbnails används på alla utom HoverDash (PNG). `fetchpriority="high"` på LCP-bilden per sida kan ge några tiondelars sekund.
 
 ---
@@ -197,19 +177,20 @@ Låg konkurrens men stadig volym:
 - ✅ Sitemap städad + lastmod uppdaterad
 - ✅ robots.txt disallowar dynamiska sidor
 - ✅ `/leaderboards/` noindex
+- ✅ AggregateRating på alla 13 landningssidor
 
 ### Hög (denna månad)
-1. Lägg till AggregateRating på alla 13 spel (`games/X/index.html`)
-2. Korta Solitaire-titeln
-3. Gör meta descriptions unika per spel
-4. Expandera 4 kategorisidor till 350+ ord
-5. Lägg till "You might also like" på alla landningssidor
+1. Korta Solitaire-titeln
+2. Gör meta descriptions unika per spel
+3. Expandera 4 kategorisidor till 350+ ord
+4. Lägg till "You might also like" på alla landningssidor
 
 ### Medium (löpande)
-6. Verifiera H1 på alla sidor
-7. Organization `sameAs` i homepage JSON-LD
-8. Alt-text standardisering
-9. Cross-game internal linking
+5. Verifiera H1 på alla sidor
+6. Organization `sameAs` i homepage JSON-LD
+7. Alt-text standardisering
+8. Cross-game internal linking
+9. **Synka AggregateRating med riktig data** när Feature #4 (Ratings) är live
 
 ### Låg (nice-to-have)
 10. `.well-known/security.txt`

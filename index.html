@@ -2513,7 +2513,7 @@
         // Add "Last played" indicator to game cards (before the play button)
         document.querySelectorAll('.game-card').forEach(function(card) {
             var href = card.getAttribute('href');
-            var match = href && href.match(/game=(\w+)/);
+            var match = href && href.match(/game=([\w-]+)/);
             if (!match) return;
             var gameData = GVTracker.getGameData(match[1]);
             if (!gameData) return;
@@ -2548,7 +2548,7 @@
         Object.keys(GAME_DATA).forEach(function(id) {
             var d = GVTracker.getGameData(id);
             if (d && d.totalPlayTimeMs > 0) {
-                all.push({ id: id, playTime: d.totalPlayTimeMs, sessions: d.sessionCount || 1 });
+                all.push({ id: id, playTime: d.totalPlayTimeMs, sessions: d.sessions || 1 });
             }
         });
         if (all.length < 3) return;
@@ -2687,7 +2687,7 @@
 
             document.querySelectorAll('.game-card').forEach(function(card) {
                 var href = card.getAttribute('href');
-                var match = href && href.match(/game=(\w+)/);
+                var match = href && href.match(/game=([\w-]+)/);
                 if (!match) return;
                 var gameId = match[1];
                 var scores = byGame[gameId];
