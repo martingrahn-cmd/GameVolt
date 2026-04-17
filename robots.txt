@@ -3,6 +3,8 @@ Allow: /
 Disallow: /game/
 Disallow: /tag/
 Disallow: /rest/
+Disallow: /play/
+Disallow: /profile/
+Disallow: /auth/
 
 Sitemap: https://gamevolt.io/sitemap.xml
-Sitemap: https://gamevolt.io/sitemap-v2.xml
