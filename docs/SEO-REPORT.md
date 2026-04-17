@@ -20,6 +20,10 @@ Strategi A är implementerad: **landningssidorna `/games/X/` är nu canonical**,
 - ✅ Solitaire-titel kortad till 48 tecken på root-sidan (landningssidan var redan OK)
 - ✅ Alla 13 meta descriptions unika och konkreta (tog bort "No download required"-upprepningen, lyfter spel-specifika mekaniker)
 - ✅ 4 kategorisidor expanderade till ~400 ord med nya sektioner (content, play-style guide, why-play benefits)
+- ✅ "You might also like"-sektioner verifierade — alla 13 landningssidor har redan 4 relaterade spel per sida
+- ✅ H1 verifierad på alla indexerade sidor — homepage, landningssidor, kategorisidor, `/games/`-hub, om/kontakt/privacy har alla exakt en H1
+- ✅ Organization `sameAs` tillagd i homepage JSON-LD (github repo som bootstrap; utöka när sociala profiler finns)
+- ✅ Alt-text standardiserad till "Play X online free"-mönster på hemsidan (29 game cards) och puzzle-games (2 kvarvarande)
 
 Efter att Google re-crawlar sajten ska:
 - `/games/X/` visas i SERP med den rikare landningssidans titel + description
@@ -38,51 +42,39 @@ Inga kritiska problem återstår. Sidan är i gott tekniskt skick ur SEO-synpunk
 
 ## Hög prioritet
 
-### 1. H1 på gamesidor och homepage
-Verifiera att varje sida har exakt **ett** H1 — första headingen måste vara H1, inte H2. Om designen inte klarar synlig H1, använd `<h1 class="sr-only">Play Snake Online Free</h1>`.
+Inga högprio-åtgärder återstår just nu. Nästa SEO-lyft kommer från innehållsstrategin (guider + blogg).
 
 ---
 
 ## Medium prioritet
 
-### 2. Organization-schema på homepage saknar `sameAs`
-`index.html` har Organization men inga sociala länkar.
+### 1. H1-hygien på root-game-sidor
+Root-sidor som `sudoku/`, `manga-match3/`, `golden-glyphs/` har flera H1 (UI-element + SEO-rubrik). Eftersom de är canonical-kopplade till `/games/X/` är SEO-påverkan låg, men tillgänglighet och framtida refactor underlättas om varje sida har exakt en H1.
 
-**Åtgärd:**
-```json
-"sameAs": [
-  "https://twitter.com/gamevolt",
-  "https://youtube.com/@gamevolt",
-  "https://github.com/martingrahn-cmd/gamevolt"
-]
-```
+### 2. Alt-text på root-sidor
+Root-sidornas "Related Games" använder fortfarande korta alt-taggar (`alt="Solitaire"`, `alt="BlockStorm"`). Samma standardisering som på hemsidan kan rullas ut när det finns tid — inte kritiskt eftersom de är canonical-elsewhere.
 
-### 3. Interna länkar: inga cross-game-länkar
-Landningssidorna bör länka till 3 "You might also like" i samma kategori. Minskar bounce, sprider länkvärde.
-
-**Synergi:** Matchar Feature-rapportens `Related Games`-förslag.
-
-### 4. Bilder: alt-text standardisering
-Många thumbnails har bara `alt="Game Name"`. Byt till mönster: `alt="Play Snake online free – HTML5 arcade game"`.
+### 3. Utöka Organization `sameAs`
+Nu har vi bara GitHub-repot. När officiella sociala profiler (Twitter/X, YouTube, Instagram) skapas, lägg till dem i `index.html` Organization-blocket för starkare Knowledge Graph-signal.
 
 ---
 
 ## Låg prioritet / nice-to-have
 
-### 8. `.well-known/security.txt`
+### 1. `.well-known/security.txt`
 ```
 Contact: https://gamevolt.io/contact/
 Expires: 2027-04-17T00:00:00.000Z
 Preferred-Languages: en
 ```
 
-### 9. `humans.txt`
+### 2. `humans.txt`
 Branding-signal. Ingen direkt SEO-effekt.
 
-### 10. hreflang
+### 3. hreflang
 Skippa — siten är engelsk och global.
 
-### 11. Core Web Vitals
+### 4. Core Web Vitals
 WebP-thumbnails används på alla utom HoverDash (PNG). `fetchpriority="high"` på LCP-bilden per sida kan ge några tiondelars sekund.
 
 ---
@@ -162,23 +154,22 @@ Låg konkurrens men stadig volym:
 - ✅ 4 kategorisidor expanderade till ~400 ord
 
 ### Hög (denna månad)
-1. Lägg till "You might also like" på alla landningssidor
+Inga högprio-åtgärder återstår.
 
 ### Medium (löpande)
-5. Verifiera H1 på alla sidor
-6. Organization `sameAs` i homepage JSON-LD
-7. Alt-text standardisering
-8. Cross-game internal linking
-9. **Synka AggregateRating med riktig data** när Feature #4 (Ratings) är live
+1. H1-hygien på root-game-sidor (flera H1 på sudoku/manga-match3/golden-glyphs)
+2. Alt-text standardisering på root-game-sidors "Related Games"-sektioner
+3. Utöka Organization `sameAs` när sociala profiler skapas
+4. **Synka AggregateRating med riktig data** när Feature #4 (Ratings) är live
 
 ### Låg (nice-to-have)
-10. `.well-known/security.txt`
-11. `humans.txt`
-12. `fetchpriority="high"` på LCP-bilder
+5. `.well-known/security.txt`
+6. `humans.txt`
+7. `fetchpriority="high"` på LCP-bilder
 
 ### Innehållsspåret (6–9 mån)
-13. Bygg 10–15 guider i `/guides/`
-14. Starta månatlig `/blog/`-post
+8. Bygg 10–15 guider i `/guides/`
+9. Starta månatlig `/blog/`-post
 
 ---
 
