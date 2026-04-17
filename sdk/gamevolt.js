@@ -177,6 +177,93 @@
   }
 
   // --------------------------------------------------------
+  // Login Nudge (bottom toast for guest score submissions)
+  // --------------------------------------------------------
+
+  var pendingSubmission = null; // { score, mode, gameId }
+  var nudgeEl = null;
+  var nudgeTimer = null;
+
+  function createNudge() {
+    if (nudgeEl) return;
+    nudgeEl = document.createElement('div');
+    nudgeEl.id = 'gv-nudge';
+    nudgeEl.setAttribute('role', 'status');
+    nudgeEl.setAttribute('aria-live', 'polite');
+    nudgeEl.innerHTML =
+      '<div class="gv-nudge-body">' +
+        '<div class="gv-nudge-text">' +
+          '<strong class="gv-nudge-title">Nice run!</strong>' +
+          '<span class="gv-nudge-sub">Sign in to save your progress</span>' +
+        '</div>' +
+        '<button class="gv-nudge-cta" type="button">Sign in</button>' +
+        '<button class="gv-nudge-close" type="button" aria-label="Dismiss">&times;</button>' +
+      '</div>';
+
+    var css = document.createElement('style');
+    css.textContent =
+      '#gv-nudge{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(140%);z-index:99998;max-width:420px;width:calc(100% - 32px);transition:transform .3s cubic-bezier(.2,.8,.2,1);font-family:system-ui,-apple-system,sans-serif;pointer-events:none}' +
+      '#gv-nudge.show{transform:translateX(-50%) translateY(0);pointer-events:auto}' +
+      '.gv-nudge-body{display:flex;align-items:center;gap:12px;background:#1a1a2e;border:1px solid rgba(0,229,255,0.35);border-radius:10px;padding:12px 14px;box-shadow:0 8px 28px rgba(0,0,0,0.55)}' +
+      '.gv-nudge-text{flex:1;min-width:0;color:#fff}' +
+      '.gv-nudge-title{display:block;font-size:14px;font-weight:700;color:#00e5ff;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.gv-nudge-sub{display:block;font-size:12px;color:#aab;margin-top:2px}' +
+      '.gv-nudge-cta{background:#00e5ff;color:#000;border:none;border-radius:6px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;letter-spacing:.3px}' +
+      '.gv-nudge-cta:hover{background:#33ecff}' +
+      '.gv-nudge-close{background:none;border:none;color:#888;cursor:pointer;font-size:20px;line-height:1;padding:0 4px}' +
+      '.gv-nudge-close:hover{color:#fff}' +
+      '@media (max-width:420px){.gv-nudge-body{padding:10px 12px;gap:8px}.gv-nudge-cta{padding:7px 10px;font-size:12px}}';
+    document.head.appendChild(css);
+    document.body.appendChild(nudgeEl);
+
+    nudgeEl.querySelector('.gv-nudge-cta').onclick = function() {
+      hideNudge();
+      openModal();
+    };
+    nudgeEl.querySelector('.gv-nudge-close').onclick = hideNudge;
+  }
+
+  function showNudge(score) {
+    try {
+      if (sessionStorage.getItem('gv_nudge_shown')) return;
+      sessionStorage.setItem('gv_nudge_shown', '1');
+    } catch (e) {}
+    createNudge();
+    var title = nudgeEl.querySelector('.gv-nudge-title');
+    var sub = nudgeEl.querySelector('.gv-nudge-sub');
+    if (typeof score === 'number' && score > 0) {
+      title.textContent = 'You scored ' + score.toLocaleString() + '!';
+      sub.textContent = 'Sign in to save it to the leaderboard';
+    } else {
+      title.textContent = 'Keep playing?';
+      sub.textContent = 'Sign in to save your scores and trophies';
+    }
+    // Force reflow before toggling class so the transition plays
+    void nudgeEl.offsetWidth;
+    nudgeEl.classList.add('show');
+    if (nudgeTimer) clearTimeout(nudgeTimer);
+    nudgeTimer = setTimeout(hideNudge, 15000);
+  }
+
+  function hideNudge() {
+    if (!nudgeEl) return;
+    nudgeEl.classList.remove('show');
+    if (nudgeTimer) { clearTimeout(nudgeTimer); nudgeTimer = null; }
+  }
+
+  function flushPendingSubmission() {
+    if (!pendingSubmission || !currentUser || !sb) return;
+    var p = pendingSubmission;
+    pendingSubmission = null;
+    sb.from('scores').insert({
+      user_id: currentUser.id,
+      game_id: p.gameId,
+      mode: p.mode || 'default',
+      score: p.score
+    }).then(function() {}).catch(function() {});
+  }
+
+  // --------------------------------------------------------
   // Profile helper
   // --------------------------------------------------------
 
@@ -385,8 +472,18 @@
 
   var leaderboard = {
     submit: function(score, opts) {
-      if (!currentUser || !sb) return Promise.resolve(); // Guest: no-op
       opts = opts || {};
+      if (!currentUser || !sb) {
+        // Guest: stash score in memory and nudge them to sign in.
+        // If they log in during this session, flushPendingSubmission() submits it.
+        pendingSubmission = {
+          score: score,
+          mode: opts.mode || 'default',
+          gameId: currentGameId
+        };
+        showNudge(score);
+        return Promise.resolve();
+      }
       return sb.from('scores').insert({
         user_id: currentUser.id,
         game_id: currentGameId,
@@ -1140,6 +1237,8 @@
 
   function notifyStateChange() {
     updateWidget();
+    flushPendingSubmission();
+    hideNudge();
     var user = auth.getUser();
     for (var i = 0; i < stateChangeCallbacks.length; i++) {
       try { stateChangeCallbacks[i](user); } catch (e) {}
