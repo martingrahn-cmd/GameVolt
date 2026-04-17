@@ -1,87 +1,48 @@
 # GameVolt – Buggrapport
 
-> Genererad 2026-04-17. Enbart buggar som är **verifierade i kod** och som faktiskt är trasiga just nu. Förbättringsförslag, polish, pågående migrationer och arkitekturdiskussioner hör hemma i FEATURE-REPORT.md eller SEO-REPORT.md.
+> Uppdaterad 2026-04-17. Alla tre verifierade buggar är nu åtgärdade.
 
 ---
 
-## Bekräftade buggar
+## Åtgärdade buggar
 
-### 1. Regex missar bindestreck i game IDs
-- **Severity:** High (funktionellt trasigt)
-- **Filer:** `index.html:2516` och `index.html:2690`
-- **Kod:**
-  ```js
-  var match = href && href.match(/game=(\w+)/);
-  ```
-- **Symptom:** `\w` matchar inte bindestreck. Länkar till `/play/?game=manga-match3`, `/play/?game=golden-glyphs` och `/play/?game=one-stroke` extraherar slugen felaktigt (matchar bara "manga", "golden", "one").
-- **Konsekvens:** "Senast spelad"-indikatorer visas inte på dessa tre spel, och trending-sektionen räknar inte deras plays.
-- **Fix:** Byt till `/game=([\w-]+)/` på båda raderna.
+### ✅ 1. Regex missar bindestreck i game IDs
+- **Filer:** `index.html:2516, 2690`
+- **Fix:** Bytte `/game=(\w+)/` till `/game=([\w-]+)/` på båda raderna.
+- **Effekt:** "Senast spelad"-indikatorer och trending-listan fungerar nu för `manga-match3`, `golden-glyphs` och `one-stroke`.
 
-### 2. Property-namn stämmer inte: `sessionCount` vs `sessions`
-- **Severity:** High (funktionellt trasigt)
+### ✅ 2. Property-namn stämmer inte: `sessionCount` vs `sessions`
 - **Fil:** `index.html:2551`
-- **Kod:**
-  ```js
-  all.push({ id: id, playTime: d.totalPlayTimeMs, sessions: d.sessionCount || 1 });
-  ```
-- **Rotorsak:** `js/gv-tracker.js:31,44` skriver propertyn `sessions`, inte `sessionCount`. `d.sessionCount` är alltid `undefined` → fallback `|| 1`.
-- **Konsekvens:** Trending-listan visar alltid 1 session per spel. Sorteringen är i praktiken baserad enbart på `playTime`, inte på vad koden ser ut att göra.
-- **Fix:** Läs rätt property:
-  ```js
-  sessions: d.sessions || 1
-  ```
+- **Fix:** `d.sessionCount` → `d.sessions` så att värdet som `js/gv-tracker.js` faktiskt skriver hämtas korrekt.
+- **Effekt:** Trending-sorteringen är nu baserad på både playtime och korrekt antal sessions.
 
-### 3. postMessage-listeners saknar origin-kontroll
-- **Severity:** Medium (säkerhet — inte aktivt exploiterbar men en öppen dörr)
-- **Fil:** `play/index.html:859-872`
-- **Kod:**
-  ```js
-  window.addEventListener('message', function(event) {
-    if (event.data && event.data.type === 'gamevolt_ga4' && typeof gtag === 'function') {
-      gtag('event', event.data.event, event.data.params || {});
-    }
-  });
-
-  window.addEventListener('message', function(event) {
-    if (!event.data || event.data.type !== 'gamevolt') return;
-    // ...
-  });
-  ```
-- **Symptom:** En crafted parent-sida kan embedda `play/index.html` i sin egen iframe och skicka fake GA4-events eller scores. Kräver visserligen att någon embeddar GameVolt och skickar medvetet, men tröskeln är noll.
-- **Fix:** Kontrollera källan innan data används:
-  ```js
-  window.addEventListener('message', function(event) {
-    if (event.origin !== window.location.origin) return;
-    // ...
-  });
-  ```
-  Och/eller verifiera `event.source === iframe.contentWindow` för game-listenern.
+### ✅ 3. postMessage-listeners saknade origin-kontroll
+- **Fil:** `play/index.html:858-867`
+- **Fix:** La till `if (event.origin !== window.location.origin) return;` överst i båda listenersarna (GA4-forwarder och game-event-listenern).
+- **Effekt:** External origins kan inte längre injicera fake events, scores eller achievements.
 
 ---
 
 ## Sammanfattning
 
-| # | Severity | Fil | Fix-storlek |
-|---|----------|-----|-------------|
-| 1 | High | `index.html:2516,2690` | 1 tecken per rad |
-| 2 | High | `index.html:2551` | Byt properta |
-| 3 | Medium | `play/index.html:859,866` | 2 rader |
+| # | Fil | Status |
+|---|-----|--------|
+| 1 | `index.html:2516, 2690` | ✅ Fixad |
+| 2 | `index.html:2551` | ✅ Fixad |
+| 3 | `play/index.html:858-867` | ✅ Fixad |
 
-Tre buggar. Samtliga kan fixas på under 10 minuter.
+Totalt: **3/3 verifierade buggar åtgärdade.**
 
 ---
 
-## Vad som inte är med (och varför)
+## Rekommenderade uppföljningar (inte buggar, men värda noll-stund)
 
-Första versionen av rapporten listade 21 punkter. Efter en strikt omvärdering togs följande bort:
+Dessa togs bort från den första rapporten eftersom de inte är trasiga just nu, men finns som polish:
 
-- **Hårdkodade Supabase-credentials** — anon-nyckeln är designad att vara publik, RLS är skyddet. Ingen bugg.
-- **postMessage med target `'*'`** — anti-pattern men ingen aktiv sårbarhet så länge alla parter är samma origin.
-- **`/games/X/` dubbletter + sitemap-inkonsekvens** — pågående migration, dokumenterad i `GAMEVOLT-SEO-CLEANUP.md`. Hör hemma i SEO-rapporten (där finns den).
-- **Service worker cachar inte thumbnails / saknar cache-busting** — medvetna arkitekturval, inte fel. Kan förbättras men är inte trasigt.
-- **`loadSidebarLeaderboard()` utan retry** — graceful degradation, inte bugg.
-- **HoverDash PNG istället för WebP** — stilistisk inkonsekvens, inte bugg.
-- **GA4-listener saknas på `/profile/`** — profilsidan embeddar inte spel idag. Skulle vara relevant om/när den gör det.
-- **Alt-text, casing, `/leaderboards/` robots-tagg** — hör hemma i SEO-rapporten (där finns de).
-- **Supabase-credentials på fyra platser** — DRY-polish, inte bugg.
-- **404-sidan** — design-val (easter egg), inte bugg.
+- Samla Supabase-credentials i `/js/gv-config.js` istället för fyra olika filer
+- Cache-busting för SDK-uppdateringar (bump `CACHE_NAME` i `sw.js` vid deploy)
+- Retry/fallback på `loadSidebarLeaderboard()` vid nätverksfel
+- Byt HoverDash OG-image från `.png` till `.webp`
+- Standardisera alt-text på thumbnails
+
+Ingen av dessa blockerar användare idag.
