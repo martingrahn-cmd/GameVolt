@@ -620,6 +620,93 @@
   };
 
   // --------------------------------------------------------
+  // FAVORITES module
+  // --------------------------------------------------------
+  // Guests store favorites in localStorage under GV_FAV_KEY.
+  // Logged-in users use the `favorites` Supabase table.
+  // On login, any guest favorites are merged up to the cloud.
+
+  var GV_FAV_KEY = 'gv_favorites';
+
+  function loadLocalFavorites() {
+    try {
+      var raw = localStorage.getItem(GV_FAV_KEY);
+      if (!raw) return [];
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+
+  function saveLocalFavorites(arr) {
+    try { localStorage.setItem(GV_FAV_KEY, JSON.stringify(arr)); } catch (e) {}
+  }
+
+  function flushPendingFavorites() {
+    if (!currentUser || !sb) return;
+    var local = loadLocalFavorites();
+    if (!local.length) return;
+    var rows = local.map(function(gameId) {
+      return { user_id: currentUser.id, game_id: gameId };
+    });
+    sb.from('favorites').upsert(rows, { onConflict: 'user_id,game_id', ignoreDuplicates: true })
+      .then(function(res) {
+        if (!res.error) {
+          // Clear local list once merged; source of truth is now cloud.
+          saveLocalFavorites([]);
+        }
+      })
+      .catch(function() {});
+  }
+
+  var favorites = {
+    is: function(gameId) {
+      gameId = gameId || currentGameId;
+      if (!gameId) return Promise.resolve(false);
+      if (!currentUser || !sb) {
+        return Promise.resolve(loadLocalFavorites().indexOf(gameId) !== -1);
+      }
+      return sb.from('favorites').select('game_id')
+        .eq('user_id', currentUser.id).eq('game_id', gameId).maybeSingle()
+        .then(function(res) { return !!(res && res.data); })
+        .catch(function() { return false; });
+    },
+
+    toggle: function(gameId) {
+      gameId = gameId || currentGameId;
+      if (!gameId) return Promise.resolve(false);
+      if (!currentUser || !sb) {
+        var local = loadLocalFavorites();
+        var idx = local.indexOf(gameId);
+        if (idx === -1) { local.push(gameId); saveLocalFavorites(local); return Promise.resolve(true); }
+        local.splice(idx, 1); saveLocalFavorites(local);
+        return Promise.resolve(false);
+      }
+      return favorites.is(gameId).then(function(isFav) {
+        if (isFav) {
+          return sb.from('favorites').delete()
+            .eq('user_id', currentUser.id).eq('game_id', gameId)
+            .then(function() { return false; });
+        }
+        return sb.from('favorites').insert({ user_id: currentUser.id, game_id: gameId })
+          .then(function() { return true; });
+      }).catch(function() { return false; });
+    },
+
+    list: function() {
+      if (!currentUser || !sb) {
+        return Promise.resolve(loadLocalFavorites());
+      }
+      return sb.from('favorites').select('game_id').eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false })
+        .then(function(res) {
+          if (res.error || !res.data) return [];
+          return res.data.map(function(r) { return r.game_id; });
+        })
+        .catch(function() { return []; });
+    }
+  };
+
+  // --------------------------------------------------------
   // CHALLENGE module (async multiplayer)
   // --------------------------------------------------------
 
@@ -1238,6 +1325,7 @@
   function notifyStateChange() {
     updateWidget();
     flushPendingSubmission();
+    flushPendingFavorites();
     hideNudge();
     var user = auth.getUser();
     for (var i = 0; i < stateChangeCallbacks.length; i++) {
@@ -1261,6 +1349,7 @@
     save: save,
     leaderboard: leaderboard,
     achievements: achievements,
+    favorites: favorites,
     challenge: challenge,
     ui: ui
   };

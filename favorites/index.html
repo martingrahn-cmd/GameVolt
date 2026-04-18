@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Favorites — GameVolt</title>
+    <meta name="description" content="Your favorite GameVolt games in one place. Works offline as a guest, syncs across devices when you sign in.">
+    <meta name="robots" content="noindex, follow">
+    <link rel="canonical" href="https://gamevolt.io/favorites/">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #7c5cfc; --primary-light: #a78bfa;
+            --accent-blue: #38bdf8; --accent: #06d6a0; --heart: #ff4d6d;
+            --bg-body: #0f1221; --bg-surface: #181c30;
+            --bg-card: rgba(25, 30, 55, 0.7); --bg-card-hover: rgba(35, 42, 75, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.04);
+            --bg-gradient: linear-gradient(135deg, #7c5cfc 0%, #38bdf8 50%, #06d6a0 100%);
+            --text-bright: #f0f0ff; --text-medium: #a0a4c0; --text-muted: #626580;
+            --border-subtle: rgba(124, 92, 252, 0.15); --border-glow: rgba(124, 92, 252, 0.3);
+            --glow-primary: 0 0 20px rgba(124, 92, 252, 0.3);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --shadow-card-hover: 0 12px 40px rgba(124, 92, 252, 0.2), 0 4px 24px rgba(0, 0, 0, 0.3);
+            --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 24px;
+        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Nunito', sans-serif; background: var(--bg-body); color: var(--text-bright); min-height: 100vh; line-height: 1.6; }
+        body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 92, 252, 0.15), transparent), radial-gradient(ellipse 60% 40% at 80% 50%, rgba(56, 189, 248, 0.07), transparent); pointer-events: none; z-index: 0; }
+        body > * { position: relative; z-index: 1; }
+
+        header { background: rgba(15, 18, 33, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; z-index: 100; }
+        .header-content { max-width: 1200px; margin: 0 auto; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+        .logo-icon { width: 44px; height: 44px; background: var(--bg-gradient); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; box-shadow: var(--glow-primary); }
+        .logo-text { font-family: 'Fredoka', sans-serif; font-size: 1.75rem; font-weight: 700; background: var(--bg-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .nav-links { display: flex; gap: 8px; }
+        .nav-link { padding: 8px 16px; color: var(--text-medium); text-decoration: none; font-weight: 600; border-radius: var(--radius-sm); transition: all 0.2s; }
+        .nav-link:hover { background: var(--bg-glass); color: var(--primary-light); }
+
+        .breadcrumb { max-width: 1200px; margin: 0 auto; padding: 16px 24px 0; font-size: 0.85rem; color: var(--text-muted); }
+        .breadcrumb a { color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+        .breadcrumb a:hover { color: var(--primary-light); }
+        .breadcrumb span { margin: 0 8px; }
+
+        .fav-hero { padding: 40px 24px 24px; text-align: center; }
+        .fav-hero h1 { font-family: 'Fredoka', sans-serif; font-size: 2.25rem; font-weight: 700; margin-bottom: 10px; background: linear-gradient(135deg, #fff 0%, #ffb3c4 50%, #ff4d6d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .fav-hero p { font-size: 1rem; color: var(--text-medium); max-width: 600px; margin: 0 auto; }
+
+        main { max-width: 1200px; margin: 0 auto; padding: 24px 24px 48px; }
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+        .game-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; text-decoration: none; color: inherit; box-shadow: var(--shadow-card); transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; position: relative; animation: fadeInUp 0.4s ease-out both; }
+        .game-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-card-hover); border-color: var(--border-glow); background: var(--bg-card-hover); }
+        .game-thumbnail { aspect-ratio: 16/9; background: var(--bg-surface); overflow: hidden; position: relative; }
+        .game-thumbnail::after { content: ''; position: absolute; inset: auto 0 0 0; height: 40%; background: linear-gradient(to top, rgba(25, 30, 55, 0.8), transparent); z-index: 1; pointer-events: none; }
+        .game-thumbnail img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .game-card:hover .game-thumbnail img { transform: scale(1.06); }
+        .game-info { padding: 16px 18px 18px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .game-title { font-family: 'Fredoka', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text-bright); }
+        .game-category { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .unfav-btn {
+            position: absolute; top: 10px; right: 10px; z-index: 2;
+            width: 34px; height: 34px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(15, 18, 33, 0.75); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 77, 109, 0.4); border-radius: 50%;
+            color: var(--heart); cursor: pointer; transition: all 0.2s;
+        }
+        .unfav-btn:hover { background: rgba(255, 77, 109, 0.2); transform: scale(1.08); }
+        .unfav-btn svg { fill: currentColor; }
+
+        .empty-state { text-align: center; padding: 80px 24px; background: var(--bg-card); border: 1px dashed var(--border-subtle); border-radius: var(--radius-xl); }
+        .empty-state .heart { font-size: 3.5rem; margin-bottom: 16px; filter: drop-shadow(0 0 16px rgba(255, 77, 109, 0.5)); }
+        .empty-state h2 { font-family: 'Fredoka', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--text-bright); margin-bottom: 8px; }
+        .empty-state p { color: var(--text-medium); max-width: 420px; margin: 0 auto 20px; }
+        .empty-state .cta { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: var(--bg-gradient); color: white; text-decoration: none; border-radius: var(--radius-md); font-weight: 700; box-shadow: var(--glow-primary); transition: transform 0.2s; }
+        .empty-state .cta:hover { transform: translateY(-2px); }
+
+        .fav-hint { margin-top: 32px; padding: 16px 20px; background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: var(--text-muted); font-size: 0.85rem; text-align: center; }
+        .fav-hint a { color: var(--primary-light); text-decoration: none; }
+        .fav-hint a:hover { text-decoration: underline; }
+
+        footer { background: var(--bg-surface); border-top: 1px solid var(--border-subtle); padding: 32px 24px; margin-top: 60px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+        footer a { color: var(--text-muted); text-decoration: none; margin: 0 12px; }
+        footer a:hover { color: var(--primary-light); }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+            .header-content { padding: 12px 16px; }
+            .nav-links { display: none; }
+            .logo-text { font-size: 1.5rem; }
+            .fav-hero { padding: 28px 16px 20px; }
+            .fav-hero h1 { font-size: 1.7rem; }
+            main { padding: 16px 16px 32px; }
+            .games-grid { grid-template-columns: 1fr; gap: 14px; }
+            .empty-state { padding: 56px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="/" class="logo">
+                <div class="logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+                <span class="logo-text">GameVolt</span>
+            </a>
+            <nav class="nav-links">
+                <a href="/#games" class="nav-link">Games</a>
+                <a href="/favorites/" class="nav-link">Favorites</a>
+                <a href="/about/" class="nav-link">About</a>
+                <a href="/contact/" class="nav-link">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <nav class="breadcrumb">
+        <a href="/">Home</a> <span>/</span> My Favorites
+    </nav>
+
+    <section class="fav-hero">
+        <h1>My Favorites</h1>
+        <p>Your favorite games, one tap away. Saved locally as a guest — syncs across devices when you sign in.</p>
+    </section>
+
+    <main>
+        <div id="favGrid" class="games-grid" style="display:none;"></div>
+
+        <div id="favEmpty" class="empty-state" style="display:none;">
+            <div class="heart">&#9829;</div>
+            <h2>No favorites yet</h2>
+            <p>Tap the heart in the game bar while you're playing to pin a game here. Your picks will be one click away from your next session.</p>
+            <a href="/#games" class="cta">Browse games &rarr;</a>
+        </div>
+
+        <p id="favHint" class="fav-hint" style="display:none;">
+            Playing as a guest — favorites live in this browser only.
+            <a href="#" id="favSignInLink">Sign in</a> to sync across devices.
+        </p>
+    </main>
+
+    <footer>
+        <a href="/">Home</a>
+        <a href="/about/">About</a>
+        <a href="/contact/">Contact</a>
+        <a href="/privacy/">Privacy</a>
+        <div style="margin-top:12px">&copy; GameVolt. Made with love in Sweden.</div>
+    </footer>
+
+    <script src="/js/gv-tracker.js"></script>
+    <script src="/sdk/gamevolt.js"></script>
+    <script>
+      (function() {
+        var GAMES = {
+          snake:           { name: "Snake Neo",     category: "Arcade",   thumb: "/assets/thumbnails/snake.webp" },
+          breakout:        { name: "Breakout",      category: "Arcade",   thumb: "/assets/thumbnails/breakout.webp" },
+          taprush:         { name: "Tap Rush",      category: "Arcade",   thumb: "/assets/thumbnails/taprush.webp" },
+          solitaire:       { name: "Solitaire",     category: "Board",    thumb: "/assets/thumbnails/solitaire.webp" },
+          connect4:        { name: "Connect 4",     category: "Board",    thumb: "/assets/thumbnails/connect4-thumbnail.webp" },
+          blockstorm:      { name: "BlockStorm",    category: "Puzzle",   thumb: "/assets/thumbnails/blockstorm.webp" },
+          hoverdash:       { name: "HoverDash",     category: "Action",   thumb: "/hoverdash/og-image.png" },
+          axeluga:         { name: "Axeluga",       category: "Action",   thumb: "/assets/thumbnails/axeluga.webp" },
+          gravitywell:     { name: "Gravity Well",  category: "Arcade",   thumb: "/assets/thumbnails/gravitywell.webp" },
+          sudoku:          { name: "Sudoku",        category: "Puzzle",   thumb: "/assets/thumbnails/sudoku.webp" },
+          "manga-match3":  { name: "Manga Match",   category: "Puzzle",   thumb: "/assets/thumbnails/manga-match3.webp" },
+          "golden-glyphs": { name: "Golden Glyphs", category: "Puzzle",   thumb: "/assets/thumbnails/golden-glyphs.webp" },
+          "one-stroke":    { name: "One Stroke",    category: "Puzzle",   thumb: "/assets/thumbnails/one-stroke.webp" }
+        };
+
+        var gridEl = document.getElementById('favGrid');
+        var emptyEl = document.getElementById('favEmpty');
+        var hintEl = document.getElementById('favHint');
+        var signInLink = document.getElementById('favSignInLink');
+
+        signInLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (window.GameVolt && GameVolt.auth) GameVolt.auth.login();
+        });
+
+        function getListViaSdk() {
+          if (window.GameVolt && GameVolt.favorites) {
+            return GameVolt.favorites.list();
+          }
+          // No SDK: read localStorage directly
+          try {
+            var raw = localStorage.getItem('gv_favorites');
+            var arr = raw ? JSON.parse(raw) : [];
+            return Promise.resolve(Array.isArray(arr) ? arr : []);
+          } catch (e) {
+            return Promise.resolve([]);
+          }
+        }
+
+        function removeFavorite(gameId, cardEl) {
+          var done = function() {
+            cardEl.style.transition = 'opacity .2s, transform .2s';
+            cardEl.style.opacity = '0';
+            cardEl.style.transform = 'scale(0.95)';
+            setTimeout(function() {
+              cardEl.remove();
+              if (!gridEl.children.length) render([]);
+            }, 180);
+          };
+          if (window.GameVolt && GameVolt.favorites) {
+            GameVolt.favorites.toggle(gameId).then(done);
+          } else {
+            try {
+              var arr = JSON.parse(localStorage.getItem('gv_favorites') || '[]');
+              var idx = arr.indexOf(gameId);
+              if (idx !== -1) arr.splice(idx, 1);
+              localStorage.setItem('gv_favorites', JSON.stringify(arr));
+            } catch (e) {}
+            done();
+          }
+        }
+
+        function render(ids) {
+          // Hint visibility: show to guests only
+          var isGuest = !(window.GameVolt && GameVolt.auth && GameVolt.auth.getUser && GameVolt.auth.getUser());
+          hintEl.style.display = isGuest ? 'block' : 'none';
+
+          gridEl.innerHTML = '';
+          if (!ids.length) {
+            gridEl.style.display = 'none';
+            emptyEl.style.display = 'block';
+            return;
+          }
+          emptyEl.style.display = 'none';
+          gridEl.style.display = 'grid';
+
+          ids.forEach(function(id) {
+            var meta = GAMES[id];
+            if (!meta) return;
+            var card = document.createElement('a');
+            card.className = 'game-card';
+            card.href = '/play/?game=' + id;
+            card.innerHTML =
+              '<button class="unfav-btn" type="button" aria-label="Remove from favorites" title="Remove from favorites">' +
+                '<svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' +
+              '</button>' +
+              '<div class="game-thumbnail"><img src="' + meta.thumb + '" alt="Play ' + meta.name + ' online free" loading="lazy"></div>' +
+              '<div class="game-info">' +
+                '<div class="game-category">' + meta.category + '</div>' +
+                '<h2 class="game-title">' + meta.name + '</h2>' +
+              '</div>';
+            card.querySelector('.unfav-btn').addEventListener('click', function(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              removeFavorite(id, card);
+            });
+            gridEl.appendChild(card);
+          });
+        }
+
+        function loadAndRender() {
+          getListViaSdk().then(render);
+        }
+
+        // Initial load
+        loadAndRender();
+
+        // Re-render when auth state changes (guest → signed in migrates via SDK)
+        if (window.GameVolt && GameVolt.onReady) {
+          GameVolt.onReady(function() {
+            GameVolt.init('favorites');
+            if (GameVolt.auth && GameVolt.auth.onStateChange) {
+              GameVolt.auth.onStateChange(function() { loadAndRender(); });
+            }
+          });
+        }
+      })();
+    </script>
+</body>
+</html>

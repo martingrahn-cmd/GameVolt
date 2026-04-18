@@ -212,6 +212,37 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .gv-fav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-medium);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+      padding: 0;
+    }
+    .gv-fav-btn:hover {
+      background: rgba(255, 77, 109, 0.12);
+      color: #ff4d6d;
+    }
+    .gv-fav-btn.favorited {
+      color: #ff4d6d;
+    }
+    .gv-fav-btn.favorited .gv-fav-icon {
+      fill: currentColor;
+    }
+    .gv-fav-btn.pulse {
+      transform: scale(1.15);
+    }
+    @media (max-width: 500px) {
+      .gv-fav-btn { width: 28px; height: 28px; }
+      .gv-fav-btn svg { width: 14px; height: 14px; }
+    }
+
     .gv-fullscreen-btn {
       background: rgba(124, 92, 252, 0.2);
       border: 1px solid rgba(124, 92, 252, 0.35);
@@ -652,6 +683,9 @@
         </div>
         <div class="gv-bar-right">
           <span class="gv-session-time" id="sessionTime"></span>
+          <button class="gv-fav-btn" id="favBtn" title="Add to favorites" aria-label="Add to favorites" aria-pressed="false">
+            <svg class="gv-fav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
           <button class="gv-fullscreen-btn" id="fullscreenBtn" title="Fullscreen">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
             <span>Fullscreen</span>
@@ -694,9 +728,56 @@
     const catEl = document.getElementById('gameCategory');
     const grid = document.getElementById('sidebarGrid');
     const fsBtn = document.getElementById('fullscreenBtn');
+    const favBtn = document.getElementById('favBtn');
     const gameArea = document.getElementById('gameArea');
     const sessionTimeEl = document.getElementById('sessionTime');
     const rotateOverlay = document.getElementById('rotateOverlay');
+
+    // ── Favorites ──
+    function refreshFavButton() {
+      if (!currentGame || !favBtn) return;
+      var apply = function(isFav) {
+        favBtn.classList.toggle('favorited', !!isFav);
+        favBtn.setAttribute('aria-pressed', isFav ? 'true' : 'false');
+        favBtn.title = isFav ? 'Remove from favorites' : 'Add to favorites';
+        favBtn.setAttribute('aria-label', favBtn.title);
+      };
+      if (window.GameVolt && GameVolt.favorites) {
+        GameVolt.favorites.is(currentGame).then(apply);
+        return;
+      }
+      try {
+        var arr = JSON.parse(localStorage.getItem('gv_favorites') || '[]');
+        apply(arr.indexOf(currentGame) !== -1);
+      } catch (e) { apply(false); }
+    }
+
+    if (favBtn) {
+      favBtn.addEventListener('click', function() {
+        if (!currentGame) return;
+        favBtn.classList.add('pulse');
+        setTimeout(function() { favBtn.classList.remove('pulse'); }, 180);
+        if (window.GameVolt && GameVolt.favorites) {
+          GameVolt.favorites.toggle(currentGame).then(function(newState) {
+            favBtn.classList.toggle('favorited', newState);
+            favBtn.setAttribute('aria-pressed', newState ? 'true' : 'false');
+            favBtn.title = newState ? 'Remove from favorites' : 'Add to favorites';
+            favBtn.setAttribute('aria-label', favBtn.title);
+          });
+          return;
+        }
+        // Fallback without SDK: localStorage only
+        try {
+          var arr = JSON.parse(localStorage.getItem('gv_favorites') || '[]');
+          var idx = arr.indexOf(currentGame);
+          var added = idx === -1;
+          if (added) arr.push(currentGame); else arr.splice(idx, 1);
+          localStorage.setItem('gv_favorites', JSON.stringify(arr));
+          favBtn.classList.toggle('favorited', added);
+          favBtn.setAttribute('aria-pressed', added ? 'true' : 'false');
+        } catch (e) {}
+      });
+    }
 
     let currentGame = null;
     let sessionStart = null;
@@ -755,6 +836,7 @@
       frame.onload = function() { frame.focus(); };
 
       renderSidebar(key);
+      refreshFavButton();
 
       const url = '/play/?game=' + key;
       if (window.location.search !== '?game=' + key) {
@@ -938,6 +1020,8 @@
           if (profileLink) profileLink.style.display = 'none';
           gvCurrentUserId = null;
         }
+        // Refresh favorites state when auth changes (cloud <-> local)
+        refreshFavButton();
       });
     }
 
