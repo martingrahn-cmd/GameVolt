@@ -31,10 +31,11 @@
 - `index.html:2467-2514` — JS som hämtar `getRecentlyPlayed(4)` och renderar kort
 **Förbättringar möjliga senare:** sync med Supabase för cross-device continue, "remove from history"-knapp, max 8 istället för 4 i bred viewport.
 
-### 3. Favorites
-**Vad:** Hjärta-knapp i game bar. Egen `/favorites/`-sida.
-**Insats:** S | **Impact:** Medium | **Beroenden:** Schema finns (`favorites`-tabell)
-**Filer:** `sdk/gamevolt.js` (`GameVolt.favorites.toggle()`), `play/index.html`, `index.html`.
+### 3. Favorites ✅ IMPLEMENTERAD (2026-04-17)
+**Vad:** Hjärta-knapp i spelarens game bar togglar favorit för aktuellt spel. Egen `/favorites/`-sida listar allt i ett rutnät med remove-knapp per kort och tom-state om användaren inte favoriserat något.
+**SDK-API:** `GameVolt.favorites.is(gameId?)`, `GameVolt.favorites.toggle(gameId?)`, `GameVolt.favorites.list()`.
+**Backend:** `favorites`-tabell i Supabase (user_id + game_id PK). Gäster lagrar i `gv_favorites` localStorage. På login migreras local → cloud via `flushPendingFavorites()` (upsert ignoreDuplicates), sedan rensas lokal lista.
+**Filer:** `sdk/gamevolt.js` (favorites-modul + state-hook), `play/index.html` (heart-btn + CSS + handler), `favorites/index.html` (ny sida, noindex), `index.html` (footer-länk).
 
 ### 4. Game Ratings (1–5 stjärnor)
 **Vad:** Post-game popup eller knapp i game bar. Visa snitt på game-kort.
