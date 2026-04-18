@@ -22,10 +22,14 @@
 **Filer:** `sdk/gamevolt.js` — nudge-DOM, `showNudge()`, `pendingSubmission`, `flushPendingSubmission()`, `leaderboard.submit()` + `notifyStateChange()`-hook.
 **Påbyggnader (future):** Visa estimerad rank ("You'd be #7 worldwide!"), trophy-variant vid `achievements.unlock()` för platinum/gold, milestone-trigger (första game over, 10:e run).
 
-### 2. Continue Playing-carousel
-**Vad:** Hem-sida visar de 5 spel användaren senast spelade (data finns redan i `gv_portal` localStorage via `js/gv-tracker.js`).
-**Insats:** S | **Impact:** High | **Beroenden:** Inga
-**Filer:** `index.html` — ny carousel ovanför game-griden.
+### 2. Continue Playing-carousel ✅ REDAN IMPLEMENTERAD
+**Vad:** Hem-sida visar de 4 spel användaren senast spelade, sorterat på `lastPlayed`. Varje kort visar thumbnail (med hover-video-preview för spel som har `preview.mp4`), spelets namn, tid sen senast (`3h ago`) och total speltid. Sektionen gömd automatiskt om användaren inte har spelat något än.
+**Filer som redan existerar:**
+- `js/gv-tracker.js` — lagrar sessioner i `gv_portal` localStorage (`startSession`/`endSession`/`recordEvent`/`getRecentlyPlayed`)
+- `play/index.html:23, 731-893` — startar/slutar sessioner via postMessage + pagehide
+- `index.html:1778-1783` + `:1230-1299` — HTML + CSS
+- `index.html:2467-2514` — JS som hämtar `getRecentlyPlayed(4)` och renderar kort
+**Förbättringar möjliga senare:** sync med Supabase för cross-device continue, "remove from history"-knapp, max 8 istället för 4 i bred viewport.
 
 ### 3. Favorites
 **Vad:** Hjärta-knapp i game bar. Egen `/favorites/`-sida.
