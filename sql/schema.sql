@@ -352,19 +352,25 @@ $$ LANGUAGE sql STABLE;
 -- Seed: games registry
 -- ============================================================
 INSERT INTO games (id, title, thumbnail_url) VALUES
-  ('breakout',   'Breakout',    '/assets/thumbnails/breakout.webp'),
-  ('hoverdash',  'HoverDash',   '/hoverdash/og-image.png'),
-  ('snake',      'Snake Neo',   '/assets/thumbnails/snake.webp'),
-  ('blockstorm', 'BlockStorm',  '/assets/thumbnails/blockstorm.webp'),
-  ('solitaire',  'Solitaire',   '/assets/thumbnails/solitaire.webp'),
-  ('connect4',   'Connect 4',   '/assets/thumbnails/connect4.webp'),
-  ('clickrush',  'ClickRush',   '/assets/thumbnails/clickrush.webp'),
-  ('axeluga',    'Axeluga',     '/assets/thumbnails/axeluga.webp'),
-  ('gravitywell','Gravity Well', '/assets/thumbnails/gravitywell.webp'),
-  ('sudoku',     'Sudoku',      '/assets/thumbnails/sudoku.webp'),
-  ('manga-match3','Manga Match', '/assets/thumbnails/manga-match3.webp'),
-  ('golden-glyphs','Golden Glyphs', '/assets/thumbnails/golden-glyphs.webp')
+  ('breakout',    'Breakout',      '/assets/thumbnails/breakout.webp'),
+  ('hoverdash',   'HoverDash',     '/hoverdash/og-image.png'),
+  ('snake',       'Snake Neo',     '/assets/thumbnails/snake.webp'),
+  ('blockstorm',  'BlockStorm',    '/assets/thumbnails/blockstorm.webp'),
+  ('solitaire',   'Solitaire',     '/assets/thumbnails/solitaire.webp'),
+  ('connect4',    'Connect 4',     '/assets/thumbnails/connect4-thumbnail.webp'),
+  ('taprush',     'Tap Rush',      '/assets/thumbnails/taprush.webp'),
+  ('axeluga',     'Axeluga',       '/assets/thumbnails/axeluga.webp'),
+  ('gravitywell', 'Gravity Well',  '/assets/thumbnails/gravitywell.webp'),
+  ('sudoku',      'Sudoku',        '/assets/thumbnails/sudoku.webp'),
+  ('manga-match3','Manga Match',   '/assets/thumbnails/manga-match3.webp'),
+  ('golden-glyphs','Golden Glyphs','/assets/thumbnails/golden-glyphs.webp'),
+  ('one-stroke',  'One Stroke',    '/assets/thumbnails/one-stroke.webp')
 ON CONFLICT (id) DO NOTHING;
+
+-- Legacy alias: early builds used 'clickrush' for what is now 'taprush'.
+-- The row is left out of the canonical list above; drop it only if you've
+-- verified no historical rows depend on it.
+-- DELETE FROM games WHERE id = 'clickrush';
 
 -- ============================================================
 -- Seed: achievement definitions (for trophy leaderboard tier breakdown)
