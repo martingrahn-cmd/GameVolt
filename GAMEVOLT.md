@@ -53,7 +53,7 @@ Last verified by auditing the code on 2026-04-17.
 | # | Game | Status | SDK |
 |---|---|---|---|
 | 1 | Breakout | ✅ Live | ✅ Full |
-| 2 | TapRush | ✅ Live | ❌ Not yet |
+| 2 | TapRush | ✅ Live | ✅ Full (31 trophies, added 2026-04-17) |
 | 3 | BlockStorm (Tetris) | ✅ Live | ✅ Full |
 | 4 | Solitaire Collection | ✅ Live | ⚠️ init only on some variants; no leaderboard / achievements / migration |
 | 5 | Snake Neo (3 modes) | ✅ Live | ❌ Not yet |
@@ -67,7 +67,7 @@ Last verified by auditing the code on 2026-04-17.
 | 13 | Golden Glyphs | ✅ Live | ✅ Full |
 | 14 | One Stroke | ✅ Live | ✅ Full |
 
-**Remaining work:** SDK rollout to Snake and TapRush; full integration (leaderboard + achievements + migration) for the Solitaire variants.
+**Remaining work:** SDK rollout to Snake; full integration (leaderboard + achievements + migration) for the Solitaire variants.
 
 ---
 
@@ -364,7 +364,7 @@ Spec, rebranding, Supabase, SDK v1, HoverDash pilot — all done.
 
 ### Phase 2 — Engagement (in progress)
 SDK + leaderboards + profile page done. Breakout & Connect 4 integrated.
-- [ ] Roll out SDK to remaining games (TapRush, Snake; Solitaire variants still need leaderboard + achievements + migration)
+- [ ] Roll out SDK to remaining games (Snake; Solitaire variants still need leaderboard + achievements + migration)
 - [ ] Submit HoverDash to Poki (clean version without SDK)
 - [ ] Submit HoverDash to CrazyGames (clean version without SDK)
 
@@ -409,7 +409,7 @@ HoverDash (and future games) target multiple platforms from one codebase:
 
 ### Remaining
 - [ ] Decide: redirect pulsegames.eu → gamevolt.io, or let it expire
-- [ ] Roll out SDK to remaining games (TapRush, Snake; Solitaire variants still need leaderboard + achievements + migration)
+- [ ] Roll out SDK to remaining games (Snake; Solitaire variants still need leaderboard + achievements + migration)
 - [ ] Update GameMonetize developer profile with new URL
 - [ ] Update portal submissions / social media with new URL
 

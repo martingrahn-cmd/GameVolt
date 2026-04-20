@@ -94,6 +94,9 @@
 }
 </script>
 
+<!-- GameVolt SDK: leaderboard + trophies + cloud save (loads before game script) -->
+<script src="/sdk/gamevolt.js"></script>
+
 <style>
 :root{
   --bg1:#062129; --bg2:#0a2f3a; --grid:#0f2b33; --neon:#00ffe0;
@@ -395,6 +398,7 @@ let hiscore=Number(localStorage.getItem('taprushreflex_hs')||'0');
 hiscoreEl.textContent=hiscore.toString().padStart(3,'0');
 const activeTargets=[];let allowSpawning=false,levelStats=[],targetIdCounter=0;
 let dualLastTime=0,dualLastId=null;
+let trLevelHadBomb=false; // cleared each level, set when a bomb is clicked
 
 // GA4 Game Event Tracker
 var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
@@ -402,6 +406,208 @@ start:function(n){this.gameName=n;this.startTime=Date.now();this.hasTracked30s=f
 end:function(o){o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'});if(this.timerInterval)clearInterval(this.timerInterval);},
 _checkMilestones:function(){if(!this.startTime)return;var t=(Date.now()-this.startTime)/1000;if(t>=30&&!this.hasTracked30s){this.hasTracked30s=true;this._send('game_play_30s',{game_name:this.gameName});}if(t>=60&&!this.hasTracked60s){this.hasTracked60s=true;this._send('game_play_60s',{game_name:this.gameName});}},
 _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}if(typeof gtag==='function'){gtag('event',n,p);return;}}};
+
+/* ============================================================
+ * GameVolt SDK Integration — leaderboard + trophies + cloud save
+ * Everything is guarded by `if (window.GameVolt)` so the game
+ * still runs if the SDK fails to load (Poki/CrazyGames builds).
+ * ============================================================ */
+
+const TR_STATS_KEY = 'taprush_stats';
+const TR_TROPHIES_KEY = 'taprush_trophies';
+
+// 31 trophies: 15 bronze, 10 silver, 5 gold, 1 platinum.
+const TR_TROPHIES = [
+  // ── Bronze (15) — natural play ──
+  { id:'first-play',   tier:'bronze', title:'First Run',        desc:'Play your first Tap Rush game' },
+  { id:'first-tap',    tier:'bronze', title:'First Tap',        desc:'Hit your first target' },
+  { id:'score-25',     tier:'bronze', title:'Warming Up',       desc:'Score 25 points in one game' },
+  { id:'score-50',     tier:'bronze', title:'Finding Rhythm',   desc:'Score 50 points in one game' },
+  { id:'score-100',    tier:'bronze', title:'Century',          desc:'Score 100 points in one game' },
+  { id:'level-2',      tier:'bronze', title:'Level Up',         desc:'Reach level 2' },
+  { id:'level-3',      tier:'bronze', title:'Climbing',         desc:'Reach level 3' },
+  { id:'first-power',  tier:'bronze', title:'Power Hungry',     desc:'Grab a power-up (+3)' },
+  { id:'first-life',   tier:'bronze', title:'Extra Life',       desc:'Grab a life heart' },
+  { id:'first-dual',   tier:'bronze', title:'Dual Hit',         desc:'Land your first DUAL HIT bonus' },
+  { id:'first-combo',  tier:'bronze', title:'In the Zone',      desc:'Land a COMBO x2' },
+  { id:'combo-5',      tier:'bronze', title:'Hot Streak',       desc:'Land a COMBO x5' },
+  { id:'games-5',      tier:'bronze', title:'Regular',          desc:'Play 5 games' },
+  { id:'games-10',     tier:'bronze', title:'Dedicated',        desc:'Play 10 games' },
+  { id:'no-bomb-level',tier:'bronze', title:'Clean Run',        desc:'Complete a level without clicking a bomb' },
+  // ── Silver (10) — skill & dedication ──
+  { id:'score-150',    tier:'silver', title:'Hustler',          desc:'Score 150 in one game' },
+  { id:'score-200',    tier:'silver', title:'Marksman',         desc:'Score 200 in one game' },
+  { id:'score-250',    tier:'silver', title:'Sharpshooter',     desc:'Score 250 in one game' },
+  { id:'level-5',      tier:'silver', title:'Halfway There',    desc:'Reach level 5' },
+  { id:'level-7',      tier:'silver', title:'Advanced',         desc:'Reach level 7' },
+  { id:'combo-10',     tier:'silver', title:'Unstoppable',      desc:'Land a COMBO x10' },
+  { id:'games-25',     tier:'silver', title:'Tap Rush Fan',     desc:'Play 25 games' },
+  { id:'react-500',    tier:'silver', title:'Quick Fingers',    desc:'Best reaction under 500 ms' },
+  { id:'react-400',    tier:'silver', title:'Reflexes',         desc:'Best reaction under 400 ms' },
+  { id:'total-1000',   tier:'silver', title:'Points Collector', desc:'1,000 total points across all games' },
+  // ── Gold (5) — hardcore ──
+  { id:'score-300',    tier:'gold',   title:'Elite',            desc:'Score 300 in one game' },
+  { id:'score-400',    tier:'gold',   title:'Legend',           desc:'Score 400 in one game' },
+  { id:'level-10',     tier:'gold',   title:'Level 10 Club',    desc:'Reach level 10' },
+  { id:'react-300',    tier:'gold',   title:'Lightning',        desc:'Best reaction under 300 ms' },
+  { id:'combo-15',     tier:'gold',   title:'Combo King',       desc:'Land a COMBO x15' },
+  // ── Platinum (1) ──
+  { id:'taprush-master', tier:'platinum', title:'Tap Rush Master', desc:'Unlock all other trophies' }
+];
+
+function trLoadStats() {
+  try { return JSON.parse(localStorage.getItem(TR_STATS_KEY) || '{}') || {}; } catch (e) { return {}; }
+}
+function trSaveStats(s) {
+  try { localStorage.setItem(TR_STATS_KEY, JSON.stringify(s)); } catch (e) {}
+}
+function trLoadTrophies() {
+  try {
+    var raw = localStorage.getItem(TR_TROPHIES_KEY);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch (e) { return new Set(); }
+}
+function trSaveTrophies(set) {
+  try { localStorage.setItem(TR_TROPHIES_KEY, JSON.stringify([...set])); } catch (e) {}
+}
+
+const trStats = trLoadStats();
+const trTrophies = trLoadTrophies();
+
+function trIncr(key, amount) {
+  amount = amount == null ? 1 : amount;
+  trStats[key] = (trStats[key] || 0) + amount;
+  trSaveStats(trStats);
+}
+function trMax(key, value) {
+  value = Number(value) || 0;
+  if (value > (trStats[key] || 0)) { trStats[key] = value; trSaveStats(trStats); }
+}
+function trMin(key, value) {
+  value = Number(value);
+  if (!isFinite(value) || value <= 0) return;
+  if (!trStats[key] || value < trStats[key]) { trStats[key] = value; trSaveStats(trStats); }
+}
+
+function trPost(action, payload) {
+  try {
+    if (window.parent !== window) {
+      window.parent.postMessage({
+        type: 'gamevolt', action: action, gameId: 'taprush', payload: payload || {}
+      }, '*');
+    }
+  } catch (e) {}
+}
+
+function trUnlock(id) {
+  if (trTrophies.has(id)) return false;
+  trTrophies.add(id);
+  trSaveTrophies(trTrophies);
+  var meta = TR_TROPHIES.find(function(t) { return t.id === id; });
+  if (window.GameVolt) {
+    try { GameVolt.achievements.unlock(id); } catch (e) {}
+  }
+  trPost('achievement', {
+    id: id,
+    name: meta ? meta.title : id,
+    tier: meta ? meta.tier : 'bronze'
+  });
+  return true;
+}
+
+function trCheckAchievements() {
+  var checks = {
+    'first-play':   function() { return (trStats.gamesPlayed || 0) >= 1; },
+    'first-tap':    function() { return (trStats.totalTaps || 0) >= 1; },
+    'score-25':     function() { return (trStats.bestScore || 0) >= 25; },
+    'score-50':     function() { return (trStats.bestScore || 0) >= 50; },
+    'score-100':    function() { return (trStats.bestScore || 0) >= 100; },
+    'score-150':    function() { return (trStats.bestScore || 0) >= 150; },
+    'score-200':    function() { return (trStats.bestScore || 0) >= 200; },
+    'score-250':    function() { return (trStats.bestScore || 0) >= 250; },
+    'score-300':    function() { return (trStats.bestScore || 0) >= 300; },
+    'score-400':    function() { return (trStats.bestScore || 0) >= 400; },
+    'level-2':      function() { return (trStats.maxLevel || 0) >= 2; },
+    'level-3':      function() { return (trStats.maxLevel || 0) >= 3; },
+    'level-5':      function() { return (trStats.maxLevel || 0) >= 5; },
+    'level-7':      function() { return (trStats.maxLevel || 0) >= 7; },
+    'level-10':     function() { return (trStats.maxLevel || 0) >= 10; },
+    'first-power':  function() { return (trStats.powerUps || 0) >= 1; },
+    'first-life':   function() { return (trStats.livesGrabbed || 0) >= 1; },
+    'first-dual':   function() { return (trStats.dualHits || 0) >= 1; },
+    'first-combo':  function() { return (trStats.maxCombo || 0) >= 2; },
+    'combo-5':      function() { return (trStats.maxCombo || 0) >= 5; },
+    'combo-10':     function() { return (trStats.maxCombo || 0) >= 10; },
+    'combo-15':     function() { return (trStats.maxCombo || 0) >= 15; },
+    'games-5':      function() { return (trStats.gamesPlayed || 0) >= 5; },
+    'games-10':     function() { return (trStats.gamesPlayed || 0) >= 10; },
+    'games-25':     function() { return (trStats.gamesPlayed || 0) >= 25; },
+    'no-bomb-level':function() { return (trStats.cleanLevels || 0) >= 1; },
+    'react-500':    function() { return trStats.bestReaction && trStats.bestReaction <= 500; },
+    'react-400':    function() { return trStats.bestReaction && trStats.bestReaction <= 400; },
+    'react-300':    function() { return trStats.bestReaction && trStats.bestReaction <= 300; },
+    'total-1000':   function() { return (trStats.totalScore || 0) >= 1000; }
+  };
+  for (var i = 0; i < TR_TROPHIES.length; i++) {
+    var t = TR_TROPHIES[i];
+    if (t.id === 'taprush-master') continue;
+    if (trTrophies.has(t.id)) continue;
+    var fn = checks[t.id];
+    if (fn && fn()) trUnlock(t.id);
+  }
+  // Platinum: unlocks when all 30 others are unlocked
+  if (!trTrophies.has('taprush-master') && trTrophies.size >= TR_TROPHIES.length - 1) {
+    trUnlock('taprush-master');
+  }
+}
+
+// Initialize SDK + register migration so guest progress syncs on login
+if (window.GameVolt) {
+  try { GameVolt.init('taprush'); } catch (e) {}
+  try {
+    GameVolt.save.registerMigration({
+      keys: ['taprushreflex_hs', TR_STATS_KEY, TR_TROPHIES_KEY],
+      merge: function(local, cloud) {
+        var localHs = Number((local && local['taprushreflex_hs']) || 0);
+        var localStats = (local && local[TR_STATS_KEY]) || {};
+        var localTrophies = (local && local[TR_TROPHIES_KEY]) || [];
+        var mergedStats = Object.assign({}, (cloud && cloud.stats) || {});
+        // bestScore — take max of legacy key, local stats and cloud
+        mergedStats.bestScore = Math.max(localHs, localStats.bestScore || 0, mergedStats.bestScore || 0);
+        // Other numeric stats — take max (everything is a "best ever")
+        Object.keys(localStats).forEach(function(k) {
+          if (k === 'bestReaction' || k === 'bestScore') return;
+          var l = localStats[k], c = mergedStats[k];
+          if (typeof l === 'number' && typeof c === 'number') mergedStats[k] = Math.max(l, c);
+          else if (l !== undefined) mergedStats[k] = l;
+        });
+        // bestReaction — take MIN (lower is better)
+        var lr = localStats.bestReaction, cr = mergedStats.bestReaction;
+        if (lr && cr) mergedStats.bestReaction = Math.min(lr, cr);
+        else if (lr) mergedStats.bestReaction = lr;
+        // Trophies — union
+        var cloudTrophies = Array.isArray(cloud && cloud.unlocked) ? cloud.unlocked : [];
+        var mergedTrophies = cloudTrophies.slice();
+        localTrophies.forEach(function(id) {
+          if (mergedTrophies.indexOf(id) === -1) mergedTrophies.push(id);
+        });
+        return { stats: mergedStats, unlocked: mergedTrophies };
+      },
+      getScores: function(data) {
+        var s = (data && data[TR_STATS_KEY]) || {};
+        var hs = Number((data && data['taprushreflex_hs']) || 0);
+        var best = Math.max(hs, s.bestScore || 0);
+        return best > 0 ? [{ score: best, mode: 'default' }] : [];
+      },
+      getAchievements: function(data) {
+        var ids = (data && data[TR_TROPHIES_KEY]) || [];
+        if (!Array.isArray(ids)) return [];
+        return ids.map(function(id) { return { id: id, unlocked_at: Date.now() }; });
+      }
+    });
+  } catch (e) {}
+}
+
 
 /* ===== Helpers ===== */
 function getCSSNumber(varName, fallback){
@@ -558,23 +764,28 @@ function spawnOne(){
     const now=performance.now(), rt=now-tObj.shownAt;
 
     if(type!=='bomb'){ reactionTimes.push(rt); levelStats.push({type,time:rt});
-      avgEl.textContent=fmt(avg(reactionTimes)); bestReaction=Math.min(bestReaction,rt); bestEl.textContent=fmt(bestReaction); }
+      avgEl.textContent=fmt(avg(reactionTimes)); bestReaction=Math.min(bestReaction,rt); bestEl.textContent=fmt(bestReaction);
+      trIncr('totalTaps'); trMin('bestReaction', rt); }
 
-    if(now-lastClickTime<600){ combo++; showCombo(`COMBO x${combo}`);} else combo=1; lastClickTime=now;
+    if(now-lastClickTime<600){ combo++; showCombo(`COMBO x${combo}`); trMax('maxCombo', combo); } else combo=1; lastClickTime=now;
 
     if(type==='normal'){ score+=1; roundClicks++; popupAt(el,'+1','good'); if(AC) fx_click(); }
-    else if(type==='power'){ score+=3; roundClicks++; popupAt(el,'+3','p3'); if(AC) fx_power(); }
-    else if(type==='life'){ lives=Math.min(9,lives+1); roundClicks++; livesEl.textContent=String(lives); popupAt(el,'❤️ +1','life'); if(AC) fx_life(); }
+    else if(type==='power'){ score+=3; roundClicks++; popupAt(el,'+3','p3'); if(AC) fx_power(); trIncr('powerUps'); }
+    else if(type==='life'){ lives=Math.min(9,lives+1); roundClicks++; livesEl.textContent=String(lives); popupAt(el,'❤️ +1','life'); if(AC) fx_life(); trIncr('livesGrabbed'); }
     else if(type==='bomb'){ whiteflash.style.display='block'; setTimeout(()=>whiteflash.style.display='none',130);
       lives=Math.max(0,lives-1); livesEl.textContent=String(lives); popupAt(el,'💣 -1','bad'); if(AC) fx_bomb();
+      trLevelHadBomb = true;
       if(lives<=0){ removeTarget(tObj); endGame(); return; } }
 
     // Dual-hit bonus (if two non-bomb clicks within 400ms)
     if(type!=='bomb'){
       if(dualLastTime && (now-dualLastTime<=400) && dualLastId!==tObj.id){
         score+=2; popupAt(el,'DUAL HIT! +2','dual'); dualLastTime=0; dualLastId=null;
+        trIncr('dualHits');
       } else { dualLastTime=now; dualLastId=tObj.id; }
     }
+
+    trCheckAchievements();
 
     scoreEl.textContent=pad3(score); updateProgress(); removeTarget(tObj);
 
@@ -607,6 +818,11 @@ function showLevelSummary(){ active=false;
   sumCore.innerHTML=`Avg Reaction: <b>${avgL}</b><br>Fastest: <b>${bestL}</b>`;
   moreStats.innerHTML=levelStats.map((x,i)=>`${i+1}. ${x.type.toUpperCase()} — ${fmt(x.time)}`).join('<br>');
   toggleStats.textContent='Show More Stats ▼'; moreStats.style.display='none'; levelSummary.style.display='block';
+  // Trophy tracking: clean level + max level reached so far
+  if (!trLevelHadBomb) trIncr('cleanLevels');
+  trMax('maxLevel', level);
+  trCheckAchievements();
+  trPost('level_complete', { level: level });
 }
 toggleStats.onclick=()=>{ const s=moreStats.style; if(s.display==='none'){ s.display='block'; toggleStats.textContent='Hide Stats ▲'; } else { s.display='none'; toggleStats.textContent='Show More Stats ▼'; } };
 
@@ -645,6 +861,7 @@ function proceedToNextLevel() {
   levelStats  = [];
   active      = true;
   allowSpawning = true;
+  trLevelHadBomb = false; // reset clean-level tracker for the new level
 
   // ✅ Öka nivån och uppdatera HUD innan skylten visas
   level++;
@@ -721,6 +938,9 @@ function showLevelIntro(level, done) {
 /* ===== Start / End / Countdown ===== */
 function startGame() {
   GameVoltTracker.start('TapRush');
+  trIncr('gamesPlayed');
+  trCheckAchievements();
+  trPost('game_start', {});
   // Säkerställ rent läge
   levelSummary.style.display = 'none';
   levelIntro.style.display   = "none";
@@ -731,6 +951,7 @@ function startGame() {
   bestReaction = Infinity; combo = 0;
   lastClickTime = 0; levelStats = [];
   dualLastTime = 0; dualLastId = null;
+  trLevelHadBomb = false;
   scoreEl.textContent = '000';
   livesEl.textContent = '5';
   levelEl.textContent = '1';
@@ -788,10 +1009,23 @@ function endGame(){
   GameVoltTracker.end({score:score,level:level,outcome:'lose'});
   active=false; allowSpawning=false; [...activeTargets].forEach(t=>removeTarget(t)); music_stop();
 
-  if(score>hiscore){ hiscore=score; saveHiScore(score); }
+  const wasNewHigh = score > hiscore;
+  if(wasNewHigh){ hiscore=score; saveHiScore(score); }
   const avgMs=avg(reactionTimes);
   summaryEl.innerHTML=`Score:<b>${score}</b><br>Level:<b>${level}</b><br>Avg:${reactionTimes.length?fmt(avgMs):'–'}<br>Best:${isFinite(bestReaction)?fmt(bestReaction):'–'}<br>High:${hiscore}`;
   gameoverEl.style.display='block';
+
+  // GameVolt: track session stats, submit to leaderboard, run trophy checks
+  trMax('bestScore', score);
+  trMax('maxLevel', level);
+  trIncr('totalScore', score);
+  if (isFinite(bestReaction)) trMin('bestReaction', bestReaction);
+  trCheckAchievements();
+  if (window.GameVolt) {
+    try { GameVolt.leaderboard.submit(score, { mode: 'default' }); } catch (e) {}
+  }
+  trPost('game_over', { score: score, mode: 'default' });
+  if (wasNewHigh) trPost('high_score', { score: score, mode: 'default' });
 }
 gameoverEl.addEventListener('click', startGame);
 

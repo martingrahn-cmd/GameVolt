@@ -191,13 +191,12 @@
 ### 30. SDK rollout till resterande spel
 **Uppdaterad status (2026-04-17 efter kod-audit):** Tabellen i GAMEVOLT.md var inaktuell. Verkligheten:
 
-- **Fullt integrerade (10 spel):** Breakout, Connect 4, BlockStorm, HoverDash, Axeluga, Gravity Well, Sudoku, Golden Glyphs, One Stroke, Manga Match (sista `registerMigration` tillagd 2026-04-17).
+- **Fullt integrerade (11 spel):** Breakout, Connect 4, BlockStorm, HoverDash, Axeluga, Gravity Well, Sudoku, Golden Glyphs, One Stroke, Manga Match, TapRush (alla med 31 trophies, leaderboard, cloud save-migration).
 - **Partiella (1):** Solitaire — `init` finns på freecell-varianten, men ingen variant har leaderboard / achievements / registerMigration.
-- **Saknas helt (2):** Snake, TapRush.
+- **Saknas helt (1):** Snake.
 
 **Återstående arbete:**
 - **Snake** (30–45 min): init + score-submit + trophies + registerMigration. Hög impact (populärt spel, 3 modes = 3 leaderboards).
-- **TapRush** (30–45 min): samma.
 - **Solitaire** (1–2 h): lägg leaderboard + achievements + registerMigration på varje variant (Klondike, FreeCell, Spider, Pyramid, TriPeaks, Golf). Per-variant leaderboards via `mode`.
 
 Parallellt arbete — kan spridas över flera sessioner.
@@ -238,7 +237,7 @@ Parallellt arbete — kan spridas över flera sessioner.
 | 2 | Continue Playing | ⭐⭐⭐⭐⭐ | S | 5.0 |
 | 3 | Favorites | ⭐⭐⭐⭐ | S | 4.0 |
 | 4 | Game Ratings | ⭐⭐⭐⭐ | S | 4.0 |
-| 5 | SDK rollout (Snake, TapRush, Solitaire) | ⭐⭐⭐⭐⭐ | S×3 | 4.0 |
+| 5 | SDK rollout (Snake, Solitaire) | ⭐⭐⭐⭐⭐ | S×2 | 4.0 |
 | 6 | Daily Challenges UI | ⭐⭐⭐⭐⭐ | M | 4.0 |
 | 7 | Streak Tracking | ⭐⭐⭐⭐⭐ | M | 4.0 |
 | 8 | Search & Filter | ⭐⭐⭐⭐ | M | 3.5 |
