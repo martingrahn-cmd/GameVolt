@@ -707,6 +707,94 @@
   };
 
   // --------------------------------------------------------
+  // RATING module (1–5 stars)
+  // --------------------------------------------------------
+  // Guests store their own ratings in localStorage as
+  //   { "<game-id>": 1..5 }.  On login they are upserted to
+  // the `ratings` Supabase table (PK: user_id + game_id).
+  // getAggregate() reads every rating row for the game and
+  // averages client-side — fine for this scale; swap to an
+  // RPC (get_rating_aggregate) once per-game volume grows.
+
+  var GV_RATING_KEY = 'gv_ratings';
+
+  function loadLocalRatings() {
+    try {
+      var raw = localStorage.getItem(GV_RATING_KEY);
+      if (!raw) return {};
+      var obj = JSON.parse(raw);
+      return (obj && typeof obj === 'object' && !Array.isArray(obj)) ? obj : {};
+    } catch (e) { return {}; }
+  }
+
+  function saveLocalRatings(obj) {
+    try { localStorage.setItem(GV_RATING_KEY, JSON.stringify(obj)); } catch (e) {}
+  }
+
+  function flushPendingRatings() {
+    if (!currentUser || !sb) return;
+    var local = loadLocalRatings();
+    var ids = Object.keys(local);
+    if (!ids.length) return;
+    var rows = ids.map(function(gid) {
+      return { user_id: currentUser.id, game_id: gid, rating: local[gid] };
+    });
+    sb.from('ratings').upsert(rows, { onConflict: 'user_id,game_id' })
+      .then(function(res) {
+        if (!res.error) saveLocalRatings({});
+      })
+      .catch(function() {});
+  }
+
+  var rating = {
+    submit: function(value, gameId) {
+      gameId = gameId || currentGameId;
+      value = Math.max(1, Math.min(5, Math.round(Number(value) || 0)));
+      if (!gameId || !value) return Promise.resolve(null);
+      if (!currentUser || !sb) {
+        var local = loadLocalRatings();
+        local[gameId] = value;
+        saveLocalRatings(local);
+        return Promise.resolve(value);
+      }
+      return sb.from('ratings').upsert(
+        { user_id: currentUser.id, game_id: gameId, rating: value },
+        { onConflict: 'user_id,game_id' }
+      ).then(function(res) {
+        if (res.error) return null;
+        return value;
+      }).catch(function() { return null; });
+    },
+
+    get: function(gameId) {
+      gameId = gameId || currentGameId;
+      if (!gameId) return Promise.resolve(null);
+      if (!currentUser || !sb) {
+        return Promise.resolve(loadLocalRatings()[gameId] || null);
+      }
+      return sb.from('ratings').select('rating')
+        .eq('user_id', currentUser.id).eq('game_id', gameId).maybeSingle()
+        .then(function(res) { return (res && res.data) ? res.data.rating : null; })
+        .catch(function() { return null; });
+    },
+
+    getAggregate: function(gameId) {
+      gameId = gameId || currentGameId;
+      if (!gameId || !sb) return Promise.resolve({ avg: 0, count: 0 });
+      return sb.from('ratings').select('rating').eq('game_id', gameId)
+        .then(function(res) {
+          var rows = (res && res.data) ? res.data : [];
+          var count = rows.length;
+          if (!count) return { avg: 0, count: 0 };
+          var sum = 0;
+          for (var i = 0; i < count; i++) sum += rows[i].rating;
+          return { avg: sum / count, count: count };
+        })
+        .catch(function() { return { avg: 0, count: 0 }; });
+    }
+  };
+
+  // --------------------------------------------------------
   // CHALLENGE module (async multiplayer)
   // --------------------------------------------------------
 
@@ -1326,6 +1414,7 @@
     updateWidget();
     flushPendingSubmission();
     flushPendingFavorites();
+    flushPendingRatings();
     hideNudge();
     var user = auth.getUser();
     for (var i = 0; i < stateChangeCallbacks.length; i++) {
@@ -1350,6 +1439,7 @@
     leaderboard: leaderboard,
     achievements: achievements,
     favorites: favorites,
+    rating: rating,
     challenge: challenge,
     ui: ui
   };
