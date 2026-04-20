@@ -364,7 +364,7 @@ Spec, rebranding, Supabase, SDK v1, HoverDash pilot — all done.
 
 ### Phase 2 — Engagement (in progress)
 SDK + leaderboards + profile page done. Breakout & Connect 4 integrated.
-- [ ] Roll out SDK to remaining games (TapRush, Snake; Solitaire variants still need leaderboard + achievements + migration)
+- [ ] Roll out SDK to remaining games (Snake; Solitaire variants still need leaderboard + achievements + migration)
 - [ ] Submit HoverDash to Poki (clean version without SDK)
 - [ ] Submit HoverDash to CrazyGames (clean version without SDK)
 
@@ -409,7 +409,7 @@ HoverDash (and future games) target multiple platforms from one codebase:
 
 ### Remaining
 - [ ] Decide: redirect pulsegames.eu → gamevolt.io, or let it expire
-- [ ] Roll out SDK to remaining games (TapRush, Snake; Solitaire variants still need leaderboard + achievements + migration)
+- [ ] Roll out SDK to remaining games (Snake; Solitaire variants still need leaderboard + achievements + migration)
 - [ ] Update GameMonetize developer profile with new URL
 - [ ] Update portal submissions / social media with new URL
 
