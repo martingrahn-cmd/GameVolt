@@ -37,10 +37,14 @@
 **Backend:** `favorites`-tabell i Supabase (user_id + game_id PK). Gäster lagrar i `gv_favorites` localStorage. På login migreras local → cloud via `flushPendingFavorites()` (upsert ignoreDuplicates), sedan rensas lokal lista.
 **Filer:** `sdk/gamevolt.js` (favorites-modul + state-hook), `play/index.html` (heart-btn + CSS + handler), `favorites/index.html` (ny sida, noindex), `index.html` (footer-länk).
 
-### 4. Game Ratings (1–5 stjärnor)
-**Vad:** Post-game popup eller knapp i game bar. Visa snitt på game-kort.
-**Insats:** S | **Impact:** Medium (SEO + discovery) | **Beroenden:** `ratings`-tabell finns
-**Bonus:** Gifter AggregateRating-schema mening (se SEO-rapport).
+### 4. Game Ratings (1–5 stjärnor) ✅ IMPLEMENTERAD (2026-04-17)
+**Vad:** 5-stjärnors rating-widget i `/play/`-sidebaren. Hover-preview, klick submittar, optimistic UI uppdaterar direkt. Visar antingen "Your rating: X/5 · Avg Y (N)" för den som betygsatt eller "Avg Y · N ratings" / "Be the first to rate" för andra.
+**SDK-API:** `GameVolt.rating.submit(value, gameId?)`, `GameVolt.rating.get(gameId?)`, `GameVolt.rating.getAggregate(gameId?)`.
+**Backend:** `ratings`-tabell i Supabase (user_id + game_id PK, rating 1–5). Gäster lagrar `gv_ratings` som `{gameId: value}` i localStorage. På login kör `flushPendingRatings()` en upsert med `onConflict: user_id,game_id` och rensar den lokala listan.
+**Aggregering:** `getAggregate()` SELECT:ar alla rating-rader för speltet och genomsnittar klient-side. Fungerar för nuvarande skala — byt till en `get_rating_aggregate(p_game_id)` RPC när ett spel passerar ~10k betyg.
+**Filer:** `sdk/gamevolt.js` (rating-modul + flush-hook), `play/index.html` (ny sidebar-sektion, CSS för stjärnor, widget-JS).
+
+**Uppföljning för SEO-synk:** JSON-LD `aggregateRating` i `games/X/index.html` är idag statiska estimat (se SEO-REPORT). När riktig data ackumuleras, bygg ett enkelt Node-script som läser Supabase-aggregaten och skriver nya värden in i JSON-LD-blocken. Kan köras manuellt eller som pre-commit-hook. Inte bråttom — börjar ge mening när varje spel har 20+ riktiga betyg.
 
 ### 5. "NEW"-badge + senaste-aktivitet-widget
 **Vad:** Badge på spel yngre än 14 dagar. Liten widget: "HoverDash fick 100 plays idag".

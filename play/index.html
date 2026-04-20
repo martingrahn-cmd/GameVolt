@@ -417,6 +417,20 @@
     }
     .gv-lb-link:hover { background: rgba(124, 92, 252, 0.1); }
 
+    /* ── Rating widget ── */
+    .gv-rating { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+    .gv-stars { display: flex; gap: 2px; }
+    .gv-star {
+      background: none; border: none; padding: 2px 3px;
+      font-size: 1.35rem; line-height: 1;
+      color: rgba(255,255,255,0.22);
+      cursor: pointer; transition: color 0.15s, transform 0.1s;
+    }
+    .gv-star:hover { transform: scale(1.12); }
+    .gv-star.active { color: #ffc83d; text-shadow: 0 0 10px rgba(255,200,61,0.45); }
+    .gv-rating-meta { font-size: 0.75rem; color: var(--text-muted); }
+    .gv-rating-meta strong { color: var(--text-bright); font-weight: 700; }
+
     /* ── Tablet & Mobile (iPad portrait is 768–810px) ── */
     @media (max-width: 1024px) {
       :root {
@@ -701,6 +715,19 @@
         <div id="sidebarLbList"></div>
         <a href="/leaderboards/" class="gv-lb-link" id="sidebarLbLink">Full Leaderboard →</a>
       </div>
+      <div class="gv-sidebar-section" id="sidebarRatingSection" style="display:none">
+        <div class="gv-sidebar-title">Rate this game</div>
+        <div class="gv-rating">
+          <div class="gv-stars" id="ratingStars" role="radiogroup" aria-label="Rate this game">
+            <button type="button" class="gv-star" data-v="1" aria-label="1 star">&#9733;</button>
+            <button type="button" class="gv-star" data-v="2" aria-label="2 stars">&#9733;</button>
+            <button type="button" class="gv-star" data-v="3" aria-label="3 stars">&#9733;</button>
+            <button type="button" class="gv-star" data-v="4" aria-label="4 stars">&#9733;</button>
+            <button type="button" class="gv-star" data-v="5" aria-label="5 stars">&#9733;</button>
+          </div>
+          <div class="gv-rating-meta" id="ratingMeta"></div>
+        </div>
+      </div>
       <div class="gv-sidebar-title">More Games</div>
       <div class="gv-sidebar-grid" id="sidebarGrid"></div>
     </aside>
@@ -779,6 +806,103 @@
       });
     }
 
+    // ── Rating widget ──
+    const ratingSection = document.getElementById('sidebarRatingSection');
+    const ratingStarsEl = document.getElementById('ratingStars');
+    const ratingMetaEl = document.getElementById('ratingMeta');
+    const starEls = ratingStarsEl ? Array.prototype.slice.call(ratingStarsEl.querySelectorAll('.gv-star')) : [];
+    let userRating = 0;
+    let aggregate = { avg: 0, count: 0 };
+
+    function renderStars(previewValue) {
+      const v = previewValue != null ? previewValue : userRating;
+      starEls.forEach(function(el, i) {
+        el.classList.toggle('active', i < v);
+      });
+    }
+
+    function renderRatingMeta() {
+      if (!ratingMetaEl) return;
+      if (userRating) {
+        var extra = aggregate.count ? ' · Avg <strong>' + aggregate.avg.toFixed(1) + '</strong> (' + aggregate.count + ')' : '';
+        ratingMetaEl.innerHTML = 'Your rating: <strong>' + userRating + '/5</strong>' + extra;
+      } else if (aggregate.count) {
+        ratingMetaEl.innerHTML = 'Avg <strong>' + aggregate.avg.toFixed(1) + '</strong> · ' + aggregate.count + ' rating' + (aggregate.count === 1 ? '' : 's');
+      } else {
+        ratingMetaEl.innerHTML = 'Be the first to rate';
+      }
+    }
+
+    function refreshRatingWidget(gameId) {
+      if (!ratingSection || !gameId) return;
+      ratingSection.style.display = 'block';
+      userRating = 0;
+      aggregate = { avg: 0, count: 0 };
+      renderStars();
+      ratingMetaEl.textContent = 'Loading…';
+
+      if (window.GameVolt && GameVolt.rating) {
+        GameVolt.rating.get(gameId).then(function(r) {
+          userRating = r || 0;
+          renderStars();
+          renderRatingMeta();
+        });
+        GameVolt.rating.getAggregate(gameId).then(function(agg) {
+          aggregate = agg || { avg: 0, count: 0 };
+          renderRatingMeta();
+        });
+      } else {
+        // Fallback: read guest rating from localStorage, no aggregate without SDK
+        try {
+          var raw = localStorage.getItem('gv_ratings');
+          var obj = raw ? JSON.parse(raw) : {};
+          userRating = (obj && obj[gameId]) || 0;
+        } catch (e) {}
+        renderStars();
+        renderRatingMeta();
+      }
+    }
+
+    starEls.forEach(function(el) {
+      el.addEventListener('mouseenter', function() {
+        renderStars(parseInt(el.dataset.v, 10));
+      });
+      el.addEventListener('focus', function() {
+        renderStars(parseInt(el.dataset.v, 10));
+      });
+      el.addEventListener('click', function() {
+        if (!currentGame) return;
+        var v = parseInt(el.dataset.v, 10);
+        // Optimistic UI
+        userRating = v;
+        renderStars();
+        renderRatingMeta();
+        if (window.GameVolt && GameVolt.rating) {
+          GameVolt.rating.submit(v, currentGame).then(function(saved) {
+            if (saved && window.GameVolt.rating.getAggregate) {
+              GameVolt.rating.getAggregate(currentGame).then(function(agg) {
+                aggregate = agg || aggregate;
+                renderRatingMeta();
+              });
+            }
+          });
+        } else {
+          // Fallback: save to localStorage without SDK
+          try {
+            var raw = localStorage.getItem('gv_ratings');
+            var obj = raw ? JSON.parse(raw) : {};
+            if (typeof obj !== 'object' || Array.isArray(obj)) obj = {};
+            obj[currentGame] = v;
+            localStorage.setItem('gv_ratings', JSON.stringify(obj));
+          } catch (e) {}
+        }
+      });
+    });
+
+    if (ratingStarsEl) {
+      ratingStarsEl.addEventListener('mouseleave', function() { renderStars(); });
+    }
+
     let currentGame = null;
     let sessionStart = null;
     let sessionTimerInterval = null;
@@ -837,6 +961,7 @@
 
       renderSidebar(key);
       refreshFavButton();
+      refreshRatingWidget(key);
 
       const url = '/play/?game=' + key;
       if (window.location.search !== '?game=' + key) {
@@ -1020,8 +1145,9 @@
           if (profileLink) profileLink.style.display = 'none';
           gvCurrentUserId = null;
         }
-        // Refresh favorites state when auth changes (cloud <-> local)
+        // Refresh favorites + rating state when auth changes (cloud <-> local)
         refreshFavButton();
+        if (currentGame) refreshRatingWidget(currentGame);
       });
     }
 
