@@ -188,10 +188,19 @@
 
 ## SDK v2 & migration
 
-### 30. SDK rollout till resterande 6 spel
-**Spel:** TapRush, BlockStorm, Solitaire, Snake, Gravity Well, Manga Match.
-**Insats:** S per spel (2–4 h) | **Impact:** High (cloud save + leaderboard för 46 % av katalogen)
-**Parallellt arbete** — behöver inte vänta på feature-utveckling.
+### 30. SDK rollout till resterande spel
+**Uppdaterad status (2026-04-17 efter kod-audit):** Tabellen i GAMEVOLT.md var inaktuell. Verkligheten:
+
+- **Fullt integrerade (10 spel):** Breakout, Connect 4, BlockStorm, HoverDash, Axeluga, Gravity Well, Sudoku, Golden Glyphs, One Stroke, Manga Match (sista `registerMigration` tillagd 2026-04-17).
+- **Partiella (1):** Solitaire — `init` finns på freecell-varianten, men ingen variant har leaderboard / achievements / registerMigration.
+- **Saknas helt (2):** Snake, TapRush.
+
+**Återstående arbete:**
+- **Snake** (30–45 min): init + score-submit + trophies + registerMigration. Hög impact (populärt spel, 3 modes = 3 leaderboards).
+- **TapRush** (30–45 min): samma.
+- **Solitaire** (1–2 h): lägg leaderboard + achievements + registerMigration på varje variant (Klondike, FreeCell, Spider, Pyramid, TriPeaks, Golf). Per-variant leaderboards via `mode`.
+
+Parallellt arbete — kan spridas över flera sessioner.
 
 ### 31. Auto-migration vid första login
 **Vad:** Gäst-data (localStorage) → cloud sker tyst, visa bara toast "Synced!".
@@ -229,7 +238,7 @@
 | 2 | Continue Playing | ⭐⭐⭐⭐⭐ | S | 5.0 |
 | 3 | Favorites | ⭐⭐⭐⭐ | S | 4.0 |
 | 4 | Game Ratings | ⭐⭐⭐⭐ | S | 4.0 |
-| 5 | SDK rollout (6 spel) | ⭐⭐⭐⭐⭐ | S×6 | 4.0 |
+| 5 | SDK rollout (Snake, TapRush, Solitaire) | ⭐⭐⭐⭐⭐ | S×3 | 4.0 |
 | 6 | Daily Challenges UI | ⭐⭐⭐⭐⭐ | M | 4.0 |
 | 7 | Streak Tracking | ⭐⭐⭐⭐⭐ | M | 4.0 |
 | 8 | Search & Filter | ⭐⭐⭐⭐ | M | 3.5 |
@@ -250,14 +259,14 @@
 ### Månad 1 – Quick wins + SDK-rollout
 - Vecka 1–2: Login Nudge, Continue Playing, Favorites, Ratings
 - Vecka 3–4: Daily Challenges UI, Streak Tracking, Search & Filter
-- Parallellt: SDK till TapRush, BlockStorm, Solitaire
+- Parallellt: SDK till TapRush, Snake (BlockStorm + Solitaire partial behöver också kompletteras)
 
 **Förväntat:** +20–30 % login rate, bättre daily return, 92 % av katalogen SDK-klar.
 
 ### Månad 2 – Engagement & social
 - Vecka 5–6: Trending sort, Achievement progress, Leaderboard-varianter, Related Games
 - Vecka 7–8: Friends-system (backend), Public Profiles, Email Digest
-- Parallellt: SDK till Snake, Gravity Well, Manga Match (100 % SDK)
+- Parallellt: SDK-komplettering till Solitaire-varianterna (100 % SDK täckning)
 
 **Förväntat:** +15–25 % session-längd, viral/word-of-mouth, konkurrensmoment.
 
@@ -296,7 +305,7 @@
 
 ## Noter till Martin
 
-1. **Parallellisera SDK-rollout** — vänta inte på nya features. 6 spel utan SDK = hälften av katalogen.
+1. **Parallellisera SDK-rollout** — vänta inte på nya features. Snake + TapRush + Solitaire-varianter är enda spelen utan full integration.
 2. **Börja med Login Nudge** — en SDK-ändring ger effekt i alla spel samtidigt.
 3. **Mät efter månad 1** — låt data styra månad 2–3.
 4. **Moderations-budget** — comments/reviews/guides kräver review. Batch 1×/vecka räcker länge.
