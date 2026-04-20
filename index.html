@@ -1782,6 +1782,14 @@
             <div class="continue-grid" id="continueGrid"></div>
         </div>
 
+        <div id="favoritesSection" class="continue-section" style="display:none;">
+            <div class="section-header">
+                <h2 class="section-title">Your Favorites</h2>
+                <a href="/favorites/" class="section-link" style="font-size:0.85rem;color:var(--text-muted);text-decoration:none;">View all &rarr;</a>
+            </div>
+            <div class="continue-grid" id="favoritesGrid"></div>
+        </div>
+
         <div class="powered-section">
             <div class="section-header">
                 <h2 class="section-title">Just Launched</h2>
@@ -2527,6 +2535,81 @@
             var btn = card.querySelector('.play-btn');
             if (btn) btn.parentNode.insertBefore(indicator, btn);
         });
+    })();
+
+    // Your Favorites section — pulls from GameVolt.favorites (cloud when signed in,
+    // localStorage when guest). Hidden when empty; refreshes on auth state change.
+    (function() {
+        var FAV_META = {
+            snake:           { name: "Snake Neo",     thumb: "/assets/thumbnails/snake.webp" },
+            breakout:        { name: "Breakout",      thumb: "/assets/thumbnails/breakout.webp", preview: "/breakout/preview.mp4" },
+            taprush:         { name: "Tap Rush",      thumb: "/assets/thumbnails/taprush.webp" },
+            solitaire:       { name: "Solitaire",     thumb: "/assets/thumbnails/solitaire.webp" },
+            connect4:        { name: "Connect 4",     thumb: "/assets/thumbnails/connect4-thumbnail.webp" },
+            blockstorm:      { name: "BlockStorm",    thumb: "/assets/thumbnails/blockstorm.webp", preview: "/blockstorm/preview.mp4" },
+            hoverdash:       { name: "HoverDash",     thumb: "/hoverdash/og-image.png", preview: "/hoverdash/preview.mp4" },
+            axeluga:         { name: "Axeluga",       thumb: "/assets/thumbnails/axeluga.webp" },
+            gravitywell:     { name: "Gravity Well",  thumb: "/assets/thumbnails/gravitywell.webp", preview: "/gravitywell/preview.mp4" },
+            sudoku:          { name: "Sudoku",        thumb: "/assets/thumbnails/sudoku.webp" },
+            "manga-match3":  { name: "Manga Match",   thumb: "/assets/thumbnails/manga-match3.webp", preview: "/manga-match3/preview.mp4" },
+            "golden-glyphs": { name: "Golden Glyphs", thumb: "/assets/thumbnails/golden-glyphs.webp", preview: "/golden-glyphs/preview.mp4" },
+            "one-stroke":    { name: "One Stroke",    thumb: "/assets/thumbnails/one-stroke.webp", preview: "/one-stroke/preview.mp4" }
+        };
+        var section = document.getElementById('favoritesSection');
+        var grid = document.getElementById('favoritesGrid');
+        if (!section || !grid) return;
+
+        function getIds() {
+            if (window.GameVolt && GameVolt.favorites) {
+                return GameVolt.favorites.list();
+            }
+            try {
+                var raw = localStorage.getItem('gv_favorites');
+                var arr = raw ? JSON.parse(raw) : [];
+                return Promise.resolve(Array.isArray(arr) ? arr : []);
+            } catch (e) { return Promise.resolve([]); }
+        }
+
+        function render(ids) {
+            if (!ids || !ids.length) {
+                section.style.display = 'none';
+                grid.innerHTML = '';
+                return;
+            }
+            var html = ids.slice(0, 8).map(function(id) {
+                var meta = FAV_META[id];
+                if (!meta) return '';
+                var previewAttr = meta.preview ? ' data-preview="' + meta.preview + '"' : '';
+                var videoEl = meta.preview ? '<video class="preview-video" muted loop playsinline preload="none"></video>' : '';
+                return '<a href="/play/?game=' + id + '" class="continue-card"' + previewAttr + '>' +
+                    '<div class="continue-thumb">' +
+                        '<img src="' + meta.thumb + '" alt="Play ' + meta.name + ' online free" loading="lazy">' +
+                        videoEl +
+                    '</div>' +
+                    '<div class="continue-info">' +
+                        '<div class="continue-name">' + meta.name + '</div>' +
+                        '<div class="continue-meta" style="color:#ff4d6d;">&#9829; Favorite</div>' +
+                    '</div>' +
+                '</a>';
+            }).filter(Boolean).join('');
+            if (!html) { section.style.display = 'none'; return; }
+            grid.innerHTML = html;
+            section.style.display = 'block';
+            if (window.initVideoPreview) initVideoPreview(grid);
+        }
+
+        function refresh() { getIds().then(render); }
+
+        // Initial render
+        refresh();
+
+        // Re-render when auth state changes (covers guest -> signed in migration)
+        if (window.GameVolt && GameVolt.auth && GameVolt.auth.onStateChange) {
+            GameVolt.auth.onStateChange(function() {
+                // Small delay lets flushPendingFavorites() finish uploading local favs
+                setTimeout(refresh, 400);
+            });
+        }
     })();
 
     // Trending section — most played games based on local tracker data
