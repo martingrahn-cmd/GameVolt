@@ -47,25 +47,27 @@ When writing code for this project, follow these rules:
 
 ## Game Catalog
 
-| # | Game | Status | SDK integrated |
+Status legend: ✅ = init + leaderboard + achievements + registerMigration, ⚠️ = partial, ❌ = not yet.
+Last verified by auditing the code on 2026-04-17.
+
+| # | Game | Status | SDK |
 |---|---|---|---|
-| 1 | Breakout | ✅ Live | ✅ Yes |
+| 1 | Breakout | ✅ Live | ✅ Full |
 | 2 | TapRush | ✅ Live | ❌ Not yet |
-| 3 | BlockStorm (Tetris) | ✅ Live | ❌ Not yet |
-| 4 | Solitaire Collection | ✅ Live | ❌ Not yet |
+| 3 | BlockStorm (Tetris) | ✅ Live | ✅ Full |
+| 4 | Solitaire Collection | ✅ Live | ⚠️ init only on some variants; no leaderboard / achievements / migration |
 | 5 | Snake Neo (3 modes) | ✅ Live | ❌ Not yet |
-| 6 | Connect 4 | ✅ Live | ✅ Yes |
-| 7 | Flappy Bird (404 page) | ✅ Live | ❌ Not yet |
-| 8 | HoverDash | ✅ Live | ✅ Yes (pilot) |
-| 9 | Axeluga | ✅ Live | ❌ Not yet |
-| 10 | Gravity Well | ✅ Live | ❌ Not yet |
-| 11 | Sudoku | ✅ Live | ✅ Yes |
-| 12 | Manga Match | ✅ Live | ❌ Not yet |
-| 13 | Golden Glyphs | ✅ Live | ✅ Yes |
+| 6 | Connect 4 | ✅ Live | ✅ Full |
+| 7 | Flappy Bird (404 page) | ✅ Live | ❌ Not yet (not planned) |
+| 8 | HoverDash | ✅ Live | ✅ Full (pilot) |
+| 9 | Axeluga | ✅ Live | ✅ Full |
+| 10 | Gravity Well | ✅ Live | ✅ Full |
+| 11 | Sudoku | ✅ Live | ✅ Full |
+| 12 | Manga Match | ✅ Live | ✅ Full (registerMigration added 2026-04-17) |
+| 13 | Golden Glyphs | ✅ Live | ✅ Full |
+| 14 | One Stroke | ✅ Live | ✅ Full |
 
-**HoverDash was the pilot game for SDK integration.** SDK is now also integrated in Breakout and Connect 4.
-
-*Note: Update this table as games are completed and SDK is integrated.*
+**Remaining work:** SDK rollout to Snake and TapRush; full integration (leaderboard + achievements + migration) for the Solitaire variants.
 
 ---
 
@@ -362,7 +364,7 @@ Spec, rebranding, Supabase, SDK v1, HoverDash pilot — all done.
 
 ### Phase 2 — Engagement (in progress)
 SDK + leaderboards + profile page done. Breakout & Connect 4 integrated.
-- [ ] Roll out SDK to remaining games (TapRush, BlockStorm, Solitaire, Snake, Axeluga)
+- [ ] Roll out SDK to remaining games (TapRush, Snake; Solitaire variants still need leaderboard + achievements + migration)
 - [ ] Submit HoverDash to Poki (clean version without SDK)
 - [ ] Submit HoverDash to CrazyGames (clean version without SDK)
 
@@ -407,7 +409,7 @@ HoverDash (and future games) target multiple platforms from one codebase:
 
 ### Remaining
 - [ ] Decide: redirect pulsegames.eu → gamevolt.io, or let it expire
-- [ ] Roll out SDK to remaining games (TapRush, BlockStorm, Solitaire, Snake, Axeluga)
+- [ ] Roll out SDK to remaining games (TapRush, Snake; Solitaire variants still need leaderboard + achievements + migration)
 - [ ] Update GameMonetize developer profile with new URL
 - [ ] Update portal submissions / social media with new URL
 

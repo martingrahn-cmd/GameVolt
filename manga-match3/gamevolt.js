@@ -151,6 +151,51 @@ function syncLocalTrophies() {
 function init() {
   if (window.GameVolt) {
     try { window.GameVolt.init("manga-match3"); } catch {}
+
+    // Register migration so guest progress + trophies sync to Supabase
+    // on first login. The SDK reads these localStorage keys, calls merge()
+    // against any existing cloud save, then submits scores + trophies.
+    try {
+      window.GameVolt.save.registerMigration({
+        keys: [STATS_KEY, UNLOCKED_KEY],
+        merge: function (local, cloud) {
+          var localStats = (local && local[STATS_KEY]) || {};
+          var localUnlocked = (local && local[UNLOCKED_KEY]) || [];
+          if (!cloud || typeof cloud !== "object") {
+            return { stats: localStats, unlocked: localUnlocked };
+          }
+          var mergedStats = Object.assign({}, cloud.stats || {});
+          Object.keys(localStats).forEach(function (k) {
+            var lv = localStats[k];
+            var cv = mergedStats[k];
+            if (typeof lv === "number" && typeof cv === "number") {
+              mergedStats[k] = Math.max(lv, cv);
+            } else if (lv !== undefined) {
+              mergedStats[k] = lv;
+            }
+          });
+          var cloudUnlocked = Array.isArray(cloud.unlocked) ? cloud.unlocked : [];
+          var mergedUnlocked = cloudUnlocked.slice();
+          localUnlocked.forEach(function (id) {
+            if (mergedUnlocked.indexOf(id) === -1) mergedUnlocked.push(id);
+          });
+          return { stats: mergedStats, unlocked: mergedUnlocked };
+        },
+        getScores: function (data) {
+          var s = (data && data[STATS_KEY]) || {};
+          var best = Number(s.maxStageScore) || 0;
+          return best > 0 ? [{ score: best, mode: "default" }] : [];
+        },
+        getAchievements: function (data) {
+          var ids = (data && data[UNLOCKED_KEY]) || [];
+          if (!Array.isArray(ids)) return [];
+          return ids.map(function (id) {
+            return { id: id, unlocked_at: Date.now() };
+          });
+        },
+      });
+    } catch {}
+
     window.GameVolt.auth.onStateChange((user) => {
       if (user) syncLocalTrophies();
     });
