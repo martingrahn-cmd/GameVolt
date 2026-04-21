@@ -160,7 +160,7 @@ Inga högprio-åtgärder återstår.
 1. H1-hygien på root-game-sidor (flera H1 på sudoku/manga-match3/golden-glyphs)
 2. Alt-text standardisering på root-game-sidors "Related Games"-sektioner
 3. Utöka Organization `sameAs` när sociala profiler skapas
-4. **Synka AggregateRating med riktig data** — Ratings-backenden är live (2026-04-17). Skriv ett Node-script som frågar Supabase `ratings`-tabellen per spel, beräknar avg/count, och ersätter det statiska `aggregateRating`-blocket i respektive `games/X/index.html`. Kör manuellt (eller pre-commit) när varje spel har ~20+ riktiga betyg.
+4. **Synka AggregateRating med riktig data** — Ratings-backenden är live och sync-skriptet finns i `scripts/sync-aggregate-ratings.js`. Kör `node scripts/sync-aggregate-ratings.js` från repo-root när varje spel har några ratings (default `MIN_COUNT=5` per spel, sätt `MIN_COUNT=1` för att tvinga). Skriptet skriver över det statiska `aggregateRating`-blocket i respektive `games/X/index.html`. Committa sedan ändringarna manuellt. Kan automatiseras via GitHub Action cron senare.
 
 ### Låg (nice-to-have)
 5. `.well-known/security.txt`
