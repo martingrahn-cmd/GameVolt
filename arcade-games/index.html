@@ -11,9 +11,9 @@
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Arcade Games — Free Online | GameVolt</title>
-    <meta name="description" content="Play free arcade games online in your browser. Snake, Breakout and more classic arcade hits. No downloads, no signups – just instant retro fun.">
-    <meta name="keywords" content="free arcade games, online arcade games, classic arcade games, browser arcade games, retro games online, play arcade games free">
+    <title>Free Browser Arcade Games — Original Indie Titles | GameVolt.io</title>
+    <meta name="description" content="Original indie arcade games, free in your browser. Snake, Breakout, HoverDash, Tap Rush, Gravity Well — pixel-perfect classics and neon reimaginings. No download, no signup.">
+    <meta name="keywords" content="free arcade games, browser arcade games, indie arcade games, classic arcade games, retro browser games, online arcade, snake browser, breakout browser, free arcade online">
     <meta name="author" content="GameVolt">
     <meta name="robots" content="index, follow">
 
@@ -42,8 +42,8 @@
     {
         "@context": "https://schema.org",
         "@type": "CollectionPage",
-        "name": "Free Arcade Games Online",
-        "description": "Play free arcade games online in your browser. Classic hits like Snake and Breakout with no downloads required.",
+        "name": "Free Browser Arcade Games — Original Indie Titles",
+        "description": "Original indie arcade games — Snake, Breakout, HoverDash, Tap Rush, Gravity Well — playable free in any browser. No downloads, no signups, no ads.",
         "url": "https://gamevolt.io/arcade-games/",
         "isPartOf": { "@type": "WebSite", "name": "GameVolt", "url": "https://gamevolt.io/" },
         "mainEntity": {
@@ -51,16 +51,37 @@
             "itemListElement": [
                 {
                     "@type": "VideoGame", "position": 1, "name": "Snake Neo",
-                    "description": "Classic Snake with 3 visual modes",
+                    "description": "Classic Snake with three modes — Nokia 3310 nostalgia, synthwave Neo, 16-bit Fruit Chain",
                     "url": "https://gamevolt.io/games/snake/",
-                    "genre": ["Arcade", "Retro"], "gamePlatform": "Web Browser",
+                    "genre": ["Arcade", "Retro", "Classic"], "gamePlatform": "Web Browser",
                     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
                 },
                 {
                     "@type": "VideoGame", "position": 2, "name": "Breakout",
-                    "description": "Classic brick-breaker arcade game with power-ups and multiple levels",
+                    "description": "Brick-breaker with multi-level progression, power-ups and 31 trophies",
                     "url": "https://gamevolt.io/games/breakout/",
                     "genre": ["Arcade", "Classic"], "gamePlatform": "Web Browser",
+                    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+                },
+                {
+                    "@type": "VideoGame", "position": 3, "name": "HoverDash",
+                    "description": "Neon lane runner — three lanes, power-ups, coin chase",
+                    "url": "https://gamevolt.io/games/hoverdash/",
+                    "genre": ["Arcade", "Runner"], "gamePlatform": "Web Browser",
+                    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+                },
+                {
+                    "@type": "VideoGame", "position": 4, "name": "Tap Rush",
+                    "description": "Reaction game — tap targets, dodge bombs, build combos",
+                    "url": "https://gamevolt.io/games/taprush/",
+                    "genre": ["Arcade", "Reflex"], "gamePlatform": "Web Browser",
+                    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+                },
+                {
+                    "@type": "VideoGame", "position": 5, "name": "Gravity Well",
+                    "description": "Physics arcade — control a black hole, dodge antimatter across 5 waves",
+                    "url": "https://gamevolt.io/games/gravitywell/",
+                    "genre": ["Arcade", "Physics"], "gamePlatform": "Web Browser",
                     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
                 }
             ]
@@ -118,7 +139,10 @@
         .category-hero p { font-size: 1.1rem; color: var(--text-medium); max-width: 600px; margin: 0 auto; }
 
         main { max-width: 1200px; margin: 0 auto; padding: 24px 24px 48px; }
-        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-bottom: 48px; }
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        .grid-section-title { font-family: 'Fredoka', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-bright); margin: 24px 0 16px; display: flex; align-items: center; gap: 10px; }
+        .grid-section-title .grid-section-icon { font-size: 1.4rem; }
+        .grid-section-title:first-of-type { margin-top: 0; }
         .game-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; text-decoration: none; color: inherit; box-shadow: var(--shadow-card); transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; backdrop-filter: blur(10px); animation: fadeInUp 0.5s ease-out both; }
         .game-card:nth-child(1) { animation-delay: 0.05s; }
         .game-card:nth-child(2) { animation-delay: 0.1s; }
@@ -205,14 +229,15 @@
     </section>
 
     <main>
+        <h2 class="grid-section-title"><span class="grid-section-icon">🕹️</span> Classic Arcade</h2>
         <div class="games-grid">
             <a href="/play/?game=snake" class="game-card">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/snake.webp" alt="Play Snake Online Free" fetchpriority="high">
                 </div>
                 <div class="game-info">
-                    <h2 class="game-title">Snake Neo</h2>
-                    <p class="game-description">Classic Snake with three unique modes – Nokia 3310 nostalgia, synthwave Neo, and 16-bit Fruit Chain.</p>
+                    <h3 class="game-title">Snake Neo</h3>
+                    <p class="game-description">Three modes — Nokia 3310 monochrome nostalgia, synthwave Neo with combo trails, and a colorful 16-bit Fruit Chain. Pixel-perfect retro feel with modern polish, leaderboards and 31 trophies.</p>
                     <div class="game-tags">
                         <span class="tag">Arcade</span>
                         <span class="tag">Retro</span>
@@ -227,12 +252,66 @@
                     <img src="/assets/thumbnails/breakout.webp" alt="Play Breakout Online Free" loading="lazy">
                 </div>
                 <div class="game-info">
-                    <h2 class="game-title">Breakout</h2>
-                    <p class="game-description">Smash bricks with your paddle and ball. Grab power-ups, beat levels, chase high scores!</p>
+                    <h3 class="game-title">Breakout</h3>
+                    <p class="game-description">Brick-breaker with smooth physics, multi-level progression and 15 unique power-ups. A built-in music DJ system layers tracks as you go. Global leaderboards and 31 unlockable trophies.</p>
                     <div class="game-tags">
                         <span class="tag">Arcade</span>
                         <span class="tag">Classic</span>
                         <span class="tag">Power-ups</span>
+                    </div>
+                    <span class="play-btn">&#9654; Play Now</span>
+                </div>
+            </a>
+        </div>
+
+        <h2 class="grid-section-title"><span class="grid-section-icon">🏃</span> Endless Runners</h2>
+        <div class="games-grid">
+            <a href="/play/?game=hoverdash" class="game-card">
+                <div class="game-thumbnail">
+                    <img src="/hoverdash/og-image.png" alt="Play HoverDash Online Free" loading="lazy">
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">HoverDash</h3>
+                    <p class="game-description">Neon lane runner with synthwave aesthetic. Dodge obstacles across three lanes, collect coins, grab boosts. Wave-based difficulty curve, daily challenges, and a global leaderboard.</p>
+                    <div class="game-tags">
+                        <span class="tag">Runner</span>
+                        <span class="tag">Neon</span>
+                        <span class="tag">Reflexes</span>
+                    </div>
+                    <span class="play-btn">&#9654; Play Now</span>
+                </div>
+            </a>
+        </div>
+
+        <h2 class="grid-section-title"><span class="grid-section-icon">⚡</span> Reaction &amp; Physics</h2>
+        <div class="games-grid">
+            <a href="/play/?game=taprush" class="game-card">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/taprush.webp" alt="Play Tap Rush Online Free" loading="lazy">
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Tap Rush</h3>
+                    <p class="game-description">Tap targets as fast as you can, avoid the bombs, build combos for higher scores. Touch-optimised for mobile, perfect for short bursts. Tracks best reaction time and 31 trophies.</p>
+                    <div class="game-tags">
+                        <span class="tag">Reflex</span>
+                        <span class="tag">Quick Play</span>
+                        <span class="tag">Combos</span>
+                    </div>
+                    <span class="play-btn">&#9654; Play Now</span>
+                </div>
+            </a>
+
+            <a href="/play/?game=gravitywell" class="game-card">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/gravitywell.webp" alt="Play Gravity Well Online Free" loading="lazy">
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Gravity Well</h3>
+                    <p class="game-description">Physics-based space arcade. You're a black hole — absorb cosmic particles, dodge antimatter across five increasingly intense waves. Calm, hypnotic, and surprisingly tense in late game.</p>
+                    <div class="game-tags">
+                        <span class="tag">Physics</span>
+                        <span class="tag">Space</span>
+                        <span class="tag">Atmospheric</span>
                     </div>
                     <span class="play-btn">&#9654; Play Now</span>
                 </div>

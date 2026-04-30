@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-PY073ZX38N');
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO -->
+  <title>Play Nokia 3310 Snake Online — Pixel-Perfect Browser Recreation | GameVolt.io</title>
+  <meta name="description" content="Play the original Nokia 3310 Snake online for free. Pixel-perfect monochrome graphics, original speed, no download. Just like the 1999 phone you remember.">
+  <meta name="keywords" content="nokia 3310 snake, nokia snake online, classic nokia snake, retro snake game, 1999 snake game, nokia 3310 game, monochrome snake">
+  <meta name="author" content="GameVolt">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0f1923">
+
+  <link rel="canonical" href="https://gamevolt.io/snake/nokia-3310/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gamevolt.io/snake/nokia-3310/">
+  <meta property="og:title" content="Play Nokia 3310 Snake Online — Pixel-Perfect Browser Recreation">
+  <meta property="og:description" content="The original Nokia 3310 Snake, recreated pixel-perfect for the browser. Monochrome graphics, original speed, free to play.">
+  <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/snake.webp">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="GameVolt">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Play Nokia 3310 Snake Online — Pixel-Perfect Recreation">
+  <meta name="twitter:description" content="The original 1999 Nokia 3310 Snake. Pixel-perfect, monochrome, free to play in your browser.">
+  <meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/snake.webp">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- VideoGame schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Nokia 3310 Snake",
+    "alternateName": "Snake (Nokia)",
+    "description": "Pixel-perfect browser recreation of the original 1999 Nokia 3310 Snake game. Monochrome graphics, chunky pixels, original speed curve, and the same wraparound-free gameplay that made it the most-played game of its era.",
+    "url": "https://gamevolt.io/snake/nokia-3310/",
+    "image": "https://gamevolt.io/assets/thumbnails/snake.webp",
+    "genre": ["Arcade", "Retro", "Classic"],
+    "gamePlatform": ["Web Browser", "Mobile", "Desktop"],
+    "operatingSystem": "Any (Browser-based)",
+    "applicationCategory": "Game",
+    "inLanguage": "en",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Organization", "name": "GameVolt", "url": "https://gamevolt.io" },
+    "publisher": { "@type": "Organization", "name": "GameVolt" },
+    "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+    "playMode": "SinglePlayer"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://gamevolt.io/"},
+      {"@type": "ListItem", "position": 2, "name": "Snake", "item": "https://gamevolt.io/games/snake/"},
+      {"@type": "ListItem", "position": 3, "name": "Nokia 3310 Snake"}
+    ]
+  }
+  </script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --primary: #7c5cfc; --primary-light: #a78bfa;
+      --accent-blue: #38bdf8; --accent: #06d6a0;
+      --bg-body: #0f1221; --bg-surface: #181c30;
+      --bg-card: rgba(25, 30, 55, 0.7);
+      --bg-glass: rgba(255, 255, 255, 0.04);
+      --bg-gradient: linear-gradient(135deg, #7c5cfc 0%, #38bdf8 50%, #06d6a0 100%);
+      --nokia-green: #9bbc0f;
+      --nokia-dark: #0f380f;
+      --text-bright: #f0f0ff; --text-medium: #a0a4c0; --text-muted: #626580;
+      --border-subtle: rgba(124, 92, 252, 0.15); --border-glow: rgba(124, 92, 252, 0.3);
+      --glow-primary: 0 0 20px rgba(124, 92, 252, 0.3);
+      --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+      --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 24px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Nunito', sans-serif; background: var(--bg-body); color: var(--text-bright); min-height: 100vh; line-height: 1.65; }
+    body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124, 92, 252, 0.15), transparent), radial-gradient(ellipse 60% 40% at 80% 50%, rgba(56, 189, 248, 0.07), transparent); pointer-events: none; z-index: 0; }
+    body > * { position: relative; z-index: 1; }
+
+    header { background: rgba(15, 18, 33, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-subtle); position: sticky; top: 0; z-index: 100; }
+    .header-content { max-width: 1100px; margin: 0 auto; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo-icon { width: 44px; height: 44px; background: var(--bg-gradient); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; box-shadow: var(--glow-primary); }
+    .logo-text { font-family: 'Fredoka', sans-serif; font-size: 1.75rem; font-weight: 700; background: var(--bg-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-link { padding: 8px 16px; color: var(--text-medium); text-decoration: none; font-weight: 600; border-radius: var(--radius-sm); transition: all 0.2s; }
+    .nav-link:hover { background: var(--bg-glass); color: var(--primary-light); }
+
+    .breadcrumb { max-width: 1100px; margin: 0 auto; padding: 16px 24px 0; font-size: 0.85rem; color: var(--text-muted); }
+    .breadcrumb a { color: var(--text-muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--primary-light); }
+    .breadcrumb span { margin: 0 8px; }
+
+    main { max-width: 880px; margin: 0 auto; padding: 24px; }
+
+    .hero { text-align: center; padding: 32px 0 8px; }
+    .hero h1 { font-family: 'Fredoka', sans-serif; font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; margin-bottom: 16px; background: linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #9bbc0f 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.2; }
+    .hero p.lede { font-size: 1.05rem; color: var(--text-medium); max-width: 620px; margin: 0 auto; }
+
+    .play-cta-block { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 32px 0 40px; }
+    .play-cta { display: inline-flex; align-items: center; gap: 12px; background: var(--bg-gradient); color: white; text-decoration: none; padding: 16px 36px; border-radius: var(--radius-md); font-weight: 700; font-size: 1.05rem; letter-spacing: 0.5px; box-shadow: var(--glow-primary); transition: transform 0.2s, box-shadow 0.2s; }
+    .play-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(124, 92, 252, 0.4); }
+    .play-cta-hint { font-size: 0.85rem; color: var(--text-muted); }
+
+    article { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 36px; backdrop-filter: blur(10px); }
+    article h2 { font-family: 'Fredoka', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--text-bright); margin: 28px 0 12px; }
+    article h2:first-child { margin-top: 0; }
+    article p { color: var(--text-medium); font-size: 0.98rem; margin-bottom: 14px; }
+    article a { color: var(--primary-light); text-decoration: none; }
+    article a:hover { text-decoration: underline; }
+    article strong { color: var(--text-bright); }
+
+    .nokia-screen { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px; margin: 24px auto; padding: 28px; max-width: 320px; background: var(--nokia-green); border: 6px solid #4d4d4d; border-radius: 20px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5), inset 0 0 0 4px var(--nokia-green); font-family: monospace; color: var(--nokia-dark); text-align: center; }
+    .nokia-screen .nokia-title { font-size: 0.78rem; letter-spacing: 2px; text-transform: uppercase; }
+    .nokia-screen .nokia-snake { font-size: 1.3rem; line-height: 1; letter-spacing: -2px; word-spacing: 0; padding: 12px 0; }
+    .nokia-screen .nokia-score { font-size: 0.78rem; letter-spacing: 2px; }
+
+    .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin: 16px 0; }
+    .control-card { background: var(--bg-glass); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 18px; }
+    .control-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+    .control-card .keys { font-family: 'Fredoka', sans-serif; font-size: 1rem; color: var(--text-bright); font-weight: 600; margin-top: 4px; }
+
+    .secondary-cta { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 24px; }
+    .secondary-cta a { background: var(--bg-glass); border: 1px solid var(--border-subtle); color: var(--text-medium); padding: 10px 20px; border-radius: var(--radius-md); text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; }
+    .secondary-cta a:hover { border-color: var(--border-glow); color: var(--primary-light); }
+
+    footer { background: var(--bg-surface); border-top: 1px solid var(--border-subtle); padding: 32px 24px; margin-top: 60px; text-align: center; color: var(--text-muted); font-size: 0.85rem; }
+    footer a { color: var(--text-muted); text-decoration: none; margin: 0 12px; }
+    footer a:hover { color: var(--primary-light); }
+
+    @media (max-width: 700px) {
+      .header-content { padding: 12px 16px; }
+      .nav-links { display: none; }
+      .logo-text { font-size: 1.5rem; }
+      main { padding: 16px; }
+      article { padding: 24px 20px; }
+      .hero { padding: 16px 0 4px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">
+        <div class="logo-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+        <span class="logo-text">GameVolt</span>
+      </a>
+      <nav class="nav-links">
+        <a href="/#games" class="nav-link">Games</a>
+        <a href="/about/" class="nav-link">About</a>
+        <a href="/contact/" class="nav-link">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <nav class="breadcrumb">
+    <a href="/">Home</a> <span>/</span> <a href="/games/snake/">Snake</a> <span>/</span> Nokia 3310 Snake
+  </nav>
+
+  <main>
+    <section class="hero">
+      <h1>Play Nokia 3310 Snake Online — Free, No Download</h1>
+      <p class="lede">A pixel-perfect browser recreation of the original 1999 Nokia 3310 Snake. Monochrome graphics, chunky pixels, the same speed curve and the same single-step movement that made it the most-played video game of its era.</p>
+    </section>
+
+    <div class="play-cta-block">
+      <a class="play-cta" href="/games/snake/">▶&nbsp; Play Nokia Mode</a>
+      <span class="play-cta-hint">Opens Snake Neo — pick <strong>Nokia Mode</strong> from the menu</span>
+    </div>
+
+    <article>
+      <h2>What makes this Nokia 3310 Snake</h2>
+      <p>This isn't a generic Snake clone with a green theme. It's an honest recreation of <strong>Snake II</strong>, the version pre-installed on every Nokia 3310 from 2000 onwards. We matched the parts that mattered:</p>
+      <ul style="margin:0 0 14px 22px;color:var(--text-medium);">
+        <li><strong>Monochrome screen palette</strong> — the same olive-green LCD background and dark-pixel snake the phone used.</li>
+        <li><strong>Single-step movement</strong> — one cell per tick. No diagonal moves, no smooth interpolation, no momentum.</li>
+        <li><strong>Original speed curve</strong> — slow at start, ratchets up every few foods, identical to the rate the phone increased.</li>
+        <li><strong>Hard walls</strong> — touching the edge is game over, the way it always was. No wraparound shortcut.</li>
+        <li><strong>Chunky pixel snake</strong> — each segment is a fat square, not a line, exactly like the original.</li>
+      </ul>
+
+      <div class="nokia-screen" aria-hidden="true">
+        <div class="nokia-title">Snake II</div>
+        <div class="nokia-snake">▮▮▮▮▮▯&nbsp;&nbsp;&nbsp;&nbsp;◇</div>
+        <div class="nokia-score">Score: 0023</div>
+      </div>
+
+      <h2>A short history of Nokia 3310 Snake</h2>
+      <p>The original <strong>Snake</strong> shipped on the Nokia 6110 in 1997. It was small, addictive, and had to fit in roughly 2 KB of phone memory. When the <strong>Nokia 3310</strong> launched in 2000, it bundled <strong>Snake II</strong> — the same core game with new mazes and a wrap-around toggle for the brave. Over <strong>126 million</strong> 3310s shipped, making it one of the most successful phones ever made and Snake one of the most-played games on the planet.</p>
+      <p>For a generation, <strong>Snake on a Nokia</strong> was the first video game they played in a queue, on a bus, or under a desk during a boring meeting. It's why "snake game" still means a green screen and a chunky pixel snake to so many people, even if you grew up with smartphones afterwards.</p>
+
+      <h2>Why this version, not the others</h2>
+      <p>Search "snake game online" and you'll get hundreds of versions. Most try to dress the game up — neon colors, smooth WebGL trails, power-ups, multiplayer. Those are fun, but they aren't <em>Nokia</em>. Our Snake Neo collection includes a synthwave Neo mode and a 16-bit Fruit Chain mode for that itch — but Nokia Mode is the one that actually feels like the phone.</p>
+      <p>Specifically, we kept the things most online recreations skip:</p>
+      <ul style="margin:0 0 14px 22px;color:var(--text-medium);">
+        <li>The slow tick rate at the start of a game.</li>
+        <li>The deliberate one-direction-per-tick input model (you can't queue 90° flicks).</li>
+        <li>Wall collisions as game over, not wrap-around.</li>
+        <li>Score tracking in single-digit increments per food, not "100 points per dot".</li>
+      </ul>
+      <p>Touch controls work too — swipe up/down/left/right and the snake turns. On desktop, use the arrow keys or WASD.</p>
+
+      <h2>Controls</h2>
+      <div class="controls-grid">
+        <div class="control-card">
+          <div class="label">Desktop</div>
+          <div class="keys">↑ ↓ ← →&nbsp; or&nbsp; W A S D</div>
+        </div>
+        <div class="control-card">
+          <div class="label">Mobile</div>
+          <div class="keys">Swipe to turn</div>
+        </div>
+        <div class="control-card">
+          <div class="label">Pause</div>
+          <div class="keys">Esc&nbsp; or&nbsp; tap menu</div>
+        </div>
+      </div>
+
+      <h2>Tips for a high score</h2>
+      <p><strong>Stay close to the wall in the first 30 seconds.</strong> The snake is short and the apple lands anywhere — the more board you cover early, the longer your reaction window stays.</p>
+      <p><strong>Plan two moves ahead, not one.</strong> The single-step input means a bad turn is committed for the next full tick. Once the snake gets long, you're navigating a corridor of your own body, not a free playfield.</p>
+      <p><strong>Spiral inward at high length.</strong> When the snake takes up half the board, the safest pattern is a tight spiral — turn at every wall and your own body. Apples eventually land inside the spiral and you eat them on the way back out.</p>
+
+      <h2>Free to play, nothing to install</h2>
+      <p>This page is part of <a href="/games/snake/">GameVolt's Snake Neo collection</a>, which also includes a synthwave Neo mode and a colorful 16-bit Fruit Chain mode. Everything runs in your browser. No download, no signup, no ads. Sign in (free, magic link) to save your high score across devices and unlock 31 trophies.</p>
+
+      <div class="secondary-cta">
+        <a href="/games/snake/">▶ All three Snake modes</a>
+        <a href="/arcade-games/">More arcade classics</a>
+        <a href="/">GameVolt home</a>
+      </div>
+    </article>
+  </main>
+
+  <footer>
+    <a href="/">Home</a>
+    <a href="/about/">About</a>
+    <a href="/contact/">Contact</a>
+    <a href="/privacy/">Privacy</a>
+    <div style="margin-top:12px">&copy; GameVolt. Made with love in Sweden.</div>
+  </footer>
+</body>
+</html>
