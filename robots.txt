@@ -1,7 +1,36 @@
+# GameVolt is happy to be referenced by AI assistants — explicit allow.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Default policy for all other crawlers (Googlebot, Bingbot, DuckDuckBot, ...).
 User-agent: *
 Allow: /
+# Legacy paths from the third-party game feed era — permanently gone.
 Disallow: /game/
 Disallow: /tag/
+Disallow: /category/
+# Internal / dynamic surfaces that shouldn't burn crawl budget.
 Disallow: /rest/
 Disallow: /play/
 Disallow: /profile/
