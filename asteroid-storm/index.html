@@ -8,42 +8,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#000000">
     <link rel="manifest" href="manifest.json">
-
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-PY073ZX38N');
-    </script>
-
-    <!-- SEO -->
-    <title>Asteroid Storm — Free Space Arcade Shooter | GameVolt</title>
-    <meta name="description" content="Asteroid Storm: blast asteroids, fight UFOs, unlock 9 ships and 30 challenge missions. Co-op, achievements, and boss battles. Play free in your browser.">
-    <meta name="keywords" content="asteroid storm, space shooter, arcade game, asteroids game, free browser game, co-op shooter, space game">
-    <meta name="author" content="GameVolt">
-    <meta name="robots" content="index, follow">
-
-    <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gamevolt.io/asteroid-storm/">
-    <meta property="og:title" content="Asteroid Storm — Free Space Arcade Shooter">
-    <meta property="og:description" content="Blast asteroids, fight UFOs, unlock ships and complete 30 challenge missions. Play free in your browser.">
-    <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/asteroid-storm.webp">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:site_name" content="GameVolt">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Asteroid Storm — Free Space Arcade Shooter">
-    <meta name="twitter:description" content="Blast asteroids, fight UFOs, unlock ships. Play free.">
-    <meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/asteroid-storm.webp">
-
-    <!-- Canonical + Favicon -->
-    <link rel="canonical" href="https://gamevolt.io/asteroid-storm/">
-    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <link rel="icon" type="image/png" href="assets/icon-512.png">
+    <title>Asteroid Storm</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -2663,23 +2629,6 @@
     <script>
         console.log('Three.js loaded, version:', typeof THREE !== 'undefined' ? 'available' : 'NOT FOUND');
     </script>
-
-    <!-- GameVolt postMessage bridge + GA4 tracker -->
-    <script>
-    function gvPost(action, payload) {
-      if (window.parent !== window) {
-        try { window.parent.postMessage({ type: 'gamevolt', action: action, gameId: 'asteroid-storm', payload: payload || {} }, '*'); } catch(e) {}
-      }
-    }
-    var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
-    start:function(n){this.gameName=n;this.startTime=Date.now();this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',{game_name:n});if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
-    end:function(o){o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'});if(this.timerInterval)clearInterval(this.timerInterval);},
-    _checkMilestones:function(){if(!this.startTime)return;var t=(Date.now()-this.startTime)/1000;if(t>=30&&!this.hasTracked30s){this.hasTracked30s=true;this._send('game_play_30s',{game_name:this.gameName});}if(t>=60&&!this.hasTracked60s){this.hasTracked60s=true;this._send('game_play_60s',{game_name:this.gameName});}},
-    _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}if(typeof gtag==='function'){gtag('event',n,p);return;}}};
-    if(window.parent!==window){var s=document.getElementById('seo-content');if(s)s.style.display='none';}
-    </script>
-    <!-- GameVolt SDK -->
-    <script src="/sdk/gamevolt.js"></script>
 
     <!-- Game Scripts -->
     <script src="js/settings.js"></script>
