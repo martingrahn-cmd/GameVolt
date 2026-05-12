@@ -1,0 +1,2710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-PY073ZX38N');
+    </script>
+
+    <!-- SEO -->
+    <title>Asteroid Storm — Free Space Arcade Shooter | GameVolt</title>
+    <meta name="description" content="Asteroid Storm: blast asteroids, fight UFOs, unlock 9 ships and 30 challenge missions. Co-op, achievements, and boss battles. Play free in your browser.">
+    <meta name="keywords" content="asteroid storm, space shooter, arcade game, asteroids game, free browser game, co-op shooter, space game">
+    <meta name="author" content="GameVolt">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://gamevolt.io/asteroid-storm/">
+    <meta property="og:title" content="Asteroid Storm — Free Space Arcade Shooter">
+    <meta property="og:description" content="Blast asteroids, fight UFOs, unlock ships and complete 30 challenge missions. Play free in your browser.">
+    <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/asteroid-storm.webp">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="GameVolt">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Asteroid Storm — Free Space Arcade Shooter">
+    <meta name="twitter:description" content="Blast asteroids, fight UFOs, unlock ships. Play free.">
+    <meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/asteroid-storm.webp">
+
+    <!-- Canonical + Favicon -->
+    <link rel="canonical" href="https://gamevolt.io/asteroid-storm/">
+    <link rel="icon" type="image/png" href="/assets/favicon.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%; height: 100%;
+            background: #000;
+            font-family: 'Press Start 2P', monospace;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            width: 100%; height: 100%;
+            position: relative;
+        }
+
+        /* ── CRT effects (disabled — dimmed the image too much) ── */
+
+        /* ── Glitch effect (applied to text randomly) ── */
+        @keyframes glitch {
+            0%, 90%, 100% { transform: none; text-shadow: 0 0 8px rgba(0,255,255,0.5); }
+            92% { transform: translate(-2px, 1px); text-shadow: 2px 0 #ff0040, -2px 0 #00ff88; }
+            94% { transform: translate(1px, -1px); text-shadow: -2px 0 #ff0040, 2px 0 #00ff88; }
+            96% { transform: translate(0); text-shadow: 0 0 8px rgba(0,255,255,0.5); }
+        }
+
+        /* ── Cockpit frame corners ── */
+        .cockpit-corner {
+            position: absolute;
+            width: 200px; height: 200px;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .cockpit-corner svg { width: 100%; height: 100%; }
+
+        .corner-tl { top: 0; left: 0; }
+        .corner-tr { top: 0; right: 0; transform: scaleX(-1); }
+        .corner-bl { bottom: 0; left: 0; transform: scaleY(-1); }
+        .corner-br { bottom: 0; right: 0; transform: scale(-1, -1); }
+
+        /* ── Edge bars connecting corners ── */
+        .edge-bar {
+            position: absolute;
+            z-index: 19;
+            pointer-events: none;
+        }
+        .edge-top {
+            top: 0; left: 200px; right: 200px; height: 3px;
+            background: linear-gradient(90deg, rgba(0,255,255,0.2), rgba(0,255,255,0.05) 30%, rgba(0,255,255,0.05) 70%, rgba(0,255,255,0.2));
+        }
+        .edge-bottom {
+            bottom: 0; left: 200px; right: 200px; height: 3px;
+            background: linear-gradient(90deg, rgba(0,255,255,0.2), rgba(0,255,255,0.05) 30%, rgba(0,255,255,0.05) 70%, rgba(0,255,255,0.2));
+        }
+        .edge-left {
+            top: 200px; bottom: 200px; left: 0; width: 3px;
+            background: linear-gradient(180deg, rgba(0,255,255,0.2), rgba(0,255,255,0.05) 30%, rgba(0,255,255,0.05) 70%, rgba(0,255,255,0.2));
+        }
+        .edge-right {
+            top: 200px; bottom: 200px; right: 0; width: 3px;
+            background: linear-gradient(180deg, rgba(0,255,255,0.2), rgba(0,255,255,0.05) 30%, rgba(0,255,255,0.05) 70%, rgba(0,255,255,0.2));
+        }
+
+        /* ── Top bar ── */
+        #hudTop {
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: flex-start;
+            gap: 0;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        .hud-panel {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(0,255,255,0.2);
+            border-top: none;
+            padding: 6px 14px;
+            color: #00ffff;
+            font-size: 8px;
+            text-shadow: 0 0 6px rgba(0,255,255,0.5);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .hud-panel-score {
+            border-radius: 0 0 4px 4px;
+            font-size: 12px;
+            padding: 8px 24px 10px;
+            border-left: 1px solid rgba(0,255,255,0.3);
+            border-right: 1px solid rgba(0,255,255,0.3);
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .hud-panel-side {
+            border-radius: 0 0 4px 4px;
+            font-size: 7px;
+            padding: 6px 10px 8px;
+            opacity: 0.8;
+        }
+
+        #hudScore { color: #00ffff; }
+        @keyframes score-milestone {
+            0%   { transform: scale(1); color: #00ffff; text-shadow: 0 0 6px rgba(0,255,255,0.6); }
+            18%  { transform: scale(1.4); color: #ffcc44; text-shadow: 0 0 28px rgba(255,204,68,1), 0 0 56px rgba(255,150,40,0.7); }
+            55%  { transform: scale(1.15); color: #ffeb88; text-shadow: 0 0 18px rgba(255,220,120,0.9); }
+            100% { transform: scale(1); color: #00ffff; text-shadow: 0 0 6px rgba(0,255,255,0.6); }
+        }
+        #hudScore.milestone {
+            animation: score-milestone 0.85s ease-out;
+        }
+
+        /* ── Bottom left: lives panel ── */
+        #hudBottomLeft {
+            position: absolute;
+            bottom: 12px; left: 12px;
+            z-index: 30;
+            pointer-events: none;
+            background: linear-gradient(0deg, rgba(0,20,40,0.8) 0%, rgba(0,8,16,0.5) 100%);
+            border: 1px solid rgba(0,255,255,0.2);
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 14px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* P2 row sits just above P1 row */
+        #hudP2 {
+            position: absolute;
+            bottom: 56px; left: 12px;
+            z-index: 30;
+            pointer-events: none;
+            background: linear-gradient(0deg, rgba(40,0,30,0.8) 0%, rgba(20,0,16,0.5) 100%);
+            border: 1px solid rgba(255,68,221,0.25);
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 14px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .life-pip-p2 {
+            background: #ff44dd !important;
+            border-color: rgba(255,68,221,0.6) !important;
+            box-shadow: 0 0 8px #ff44dd, 0 0 2px #ff44dd inset !important;
+        }
+        .life-pip-p2.lost {
+            background: rgba(100,0,60,0.3) !important;
+            border-color: rgba(255,0,170,0.25) !important;
+            box-shadow: none !important;
+        }
+
+        /* Revive countdown indicator */
+        #reviveIndicator {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) translateY(80px);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            color: #ff44dd;
+            text-shadow: 0 0 10px currentColor;
+            letter-spacing: 3px;
+            z-index: 60;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .life-pip {
+            width: 14px; height: 14px;
+            background: #00ffff;
+            border: 1px solid rgba(0,255,255,0.6);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            box-shadow: 0 0 8px #00ffff, 0 0 2px #00ffff inset;
+            transition: all 0.3s;
+        }
+        .life-pip.lost {
+            background: rgba(100,0,0,0.3);
+            border-color: rgba(255,0,0,0.25);
+            box-shadow: none;
+        }
+
+        /* ── Reactive HUD states ── */
+        @keyframes last-life-pulse {
+            0%   { box-shadow: 0 0 8px #ff2222, 0 0 2px #ff2222 inset; background: #ff4444; }
+            50%  { box-shadow: 0 0 16px #ff0000, 0 0 6px #ff0000 inset; background: #ff0000; }
+            100% { box-shadow: 0 0 8px #ff2222, 0 0 2px #ff2222 inset; background: #ff4444; }
+        }
+        .life-pip.last-life {
+            background: #ff4444;
+            border-color: rgba(255,0,0,0.8);
+            animation: last-life-pulse 0.8s ease-in-out infinite;
+        }
+        #hudBottomLeft.danger {
+            border-color: rgba(255,50,50,0.4);
+            box-shadow: 0 0 12px rgba(255,0,0,0.15) inset;
+            transition: border-color 0.5s, box-shadow 0.5s;
+        }
+        @keyframes combo-pop {
+            0%   { transform: scale(1); }
+            30%  { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        #hudCombo.combo-pop {
+            animation: combo-pop 0.25s ease-out;
+        }
+        #hudTop.boss-active .hud-panel {
+            border-color: rgba(255,140,40,0.4);
+            transition: border-color 0.8s;
+        }
+        #hudTop.boss-active .hud-panel-score {
+            border-left-color: rgba(255,140,40,0.5);
+            border-right-color: rgba(255,140,40,0.5);
+        }
+        #hudBottomLeft.invulnerable {
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .life-label {
+            color: rgba(0,255,255,0.5);
+            font-size: 9px;
+            letter-spacing: 3px;
+            margin-right: 4px;
+        }
+
+        /* ── Bottom right: power-up panel ── */
+        #hudBottomRight {
+            position: absolute;
+            bottom: 12px; right: 12px;
+            z-index: 30;
+            pointer-events: none;
+            text-align: right;
+        }
+
+        #hudPowerup {
+            background: linear-gradient(0deg, rgba(0,20,40,0.8) 0%, rgba(0,8,16,0.5) 100%);
+            border: 1px solid rgba(255,102,0,0.3);
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            padding: 8px 16px 10px;
+            color: #ff6600;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-shadow: 0 0 8px rgba(255,102,0,0.5);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #hudPowerupTimer {
+            display: block;
+            height: 2px;
+            background: #ff6600;
+            margin-top: 6px;
+            border-radius: 1px;
+            box-shadow: 0 0 6px #ff6600;
+            transition: width 0.3s linear;
+        }
+
+        /* ── Shield indicator ── */
+        #hudShield {
+            background: linear-gradient(0deg, rgba(0,40,10,0.7) 0%, rgba(0,15,5,0.4) 100%);
+            border: 1px solid rgba(0,255,0,0.25);
+            border-radius: 6px;
+            padding: 5px 12px;
+            margin-bottom: 6px;
+            color: #00ff00;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(0,255,0,0.6);
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+        }
+
+        /* ── Left side: mini radar / decoration ── */
+        #hudLeftDeco {
+            position: absolute;
+            top: 50%; left: 12px;
+            transform: translateY(-50%);
+            z-index: 25;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .deco-bar {
+            width: 4px;
+            background: rgba(0,255,255,0.15);
+            border-radius: 2px;
+            transition: height 0.3s, background 0.3s;
+        }
+
+        /* ── Right side: threat meter ── */
+        #hudRightDeco {
+            position: absolute;
+            top: 50%; right: 12px;
+            transform: translateY(-50%);
+            z-index: 25;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+        }
+        .threat-bar {
+            height: 3px;
+            background: rgba(255,60,0,0.15);
+            border-radius: 2px;
+            transition: width 0.5s, background 0.5s;
+        }
+
+        /* ── Center combo text ── */
+        /* comboText moved into hudTop bar — see #hudCombo */
+
+        /* ── Power-up pickup notification ── */
+        #pickupNotify {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            letter-spacing: 4px;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.5s, top 0.5s;
+        }
+
+        /* ── Game Over ── */
+        #gameOverScreen {
+            position: absolute;
+            width: 100%; height: 100%;
+            background: #050810;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0,255,255,0.5);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Cinematic artwork layer behind the text. Set background-image to
+         * an existing file (assets/gameover/wreckage.jpg) and it shows up;
+         * if the file is missing, the panel stays on the solid base color
+         * above so the screen still reads. */
+        #gameOverArtwork {
+            position: absolute;
+            inset: 0;
+            background-image: url('assets/gameover/wreckage.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: brightness(0.55) saturate(0.85);
+            z-index: 0;
+            transform-origin: center;
+            animation: gameover-pan 25s ease-in-out infinite alternate;
+        }
+        @keyframes gameover-pan {
+            0%   { transform: scale(1.05) translate(-1%,  1%); }
+            100% { transform: scale(1.15) translate( 2%, -2%); }
+        }
+        /* Soft vignette + scanlines on top of the artwork so text reads */
+        #gameOverScreen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at center,
+                    transparent 25%,
+                    rgba(0,0,0,0.55) 75%,
+                    rgba(0,0,0,0.85) 100%),
+                repeating-linear-gradient(
+                    to bottom,
+                    rgba(0,0,0,0) 0,
+                    rgba(0,0,0,0) 2px,
+                    rgba(0,0,0,0.12) 3px,
+                    rgba(0,0,0,0) 4px);
+            z-index: 1;
+            pointer-events: none;
+        }
+        #gameOverScreen > *:not(#gameOverArtwork) { position: relative; z-index: 2; }
+
+        #gameOverScreen.show {
+            display: flex;
+            animation: gameover-fade-in 0.95s ease-out forwards;
+        }
+        @keyframes gameover-fade-in {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        #gameOverScreen h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #ff0040;
+            text-shadow: 0 0 20px rgba(255,0,64,0.7), 3px 3px 0 #440011;
+            letter-spacing: 6px;
+            animation: glitch 4s infinite;
+        }
+        #gameOverScreen .go-line {
+            width: 200px; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,102,0,0.5), transparent);
+            margin: 10px 0 20px;
+        }
+
+        #gameOverScreen p {
+            font-size: 8px;
+            margin: 6px 0;
+            letter-spacing: 2px;
+        }
+        #gameOverScreen .go-score {
+            font-size: 16px;
+            color: #00ffff;
+            margin: 12px 0 4px;
+        }
+        #gameOverScreen #highScoreLine {
+            font-size: 8px;
+            color: rgba(255,204,0,0.85);
+            text-shadow: 0 0 10px rgba(255,204,0,0.5);
+            letter-spacing: 3px;
+            margin-top: 8px;
+        }
+        #gameOverScreen #newHighScore {
+            display: none;
+            font-size: 10px;
+            color: #ffcc00;
+            text-shadow: 0 0 14px rgba(255,204,0,0.9), 2px 2px 0 #553300;
+            letter-spacing: 4px;
+            margin-top: 8px;
+            animation: blink-slow 1s infinite;
+        }
+
+        #gameOverScreen .go-menu {
+            margin-top: 28px;
+            min-width: 280px;
+            transition: opacity 0.4s;
+        }
+        #gameOverScreen .go-hint {
+            margin-top: 18px;
+            font-size: 6px;
+            letter-spacing: 3px;
+            color: rgba(0,255,255,0.4);
+            transition: opacity 0.4s;
+        }
+        /* Locked state — first ~0.8s after death, no input accepted */
+        #gameOverScreen.locked .go-menu,
+        #gameOverScreen.locked .go-hint {
+            opacity: 0.25;
+            pointer-events: none;
+        }
+        #gameOverScreen.locked .gameover-item.selected {
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        /* ── CRT scanlines (subtle horizontal stripes) ── */
+        #scanlines {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 90;
+            background: repeating-linear-gradient(
+                to bottom,
+                rgba(0, 0, 0, 0) 0,
+                rgba(0, 0, 0, 0) 2px,
+                rgba(0, 0, 0, 0.13) 3px,
+                rgba(0, 0, 0, 0) 4px
+            );
+            mix-blend-mode: multiply;
+            opacity: 0.6;
+        }
+
+        /* ── Vignette (darken edges) ── */
+        #vignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 91;
+            background: radial-gradient(ellipse at center,
+                transparent 45%,
+                rgba(0, 0, 0, 0.25) 75%,
+                rgba(0, 0, 0, 0.55) 100%);
+        }
+
+        /* ── CRT flicker (very subtle global brightness wobble) ── */
+        #crtFlicker {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 92;
+            background: rgba(40, 80, 120, 0.04);
+            mix-blend-mode: screen;
+            animation: crt-flicker 5s steps(40, end) infinite;
+        }
+        @keyframes crt-flicker {
+            0%, 100% { opacity: 0.55; }
+            5%       { opacity: 0.85; }
+            12%      { opacity: 0.4; }
+            17%      { opacity: 0.7; }
+            33%      { opacity: 0.55; }
+            45%      { opacity: 0.9; }
+            48%      { opacity: 0.5; }
+            70%      { opacity: 0.65; }
+            85%      { opacity: 0.55; }
+        }
+
+        /* ── Hit damage vignette ── */
+        #hitVignette {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 95;
+            opacity: 0;
+            background: radial-gradient(ellipse at center,
+                transparent 35%,
+                rgba(255, 0, 30, 0.35) 70%,
+                rgba(255, 0, 30, 0.85) 100%);
+            mix-blend-mode: screen;
+        }
+        @keyframes hit-vignette-flash {
+            0%   { opacity: 0; }
+            8%   { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        #hitVignette.flash {
+            animation: hit-vignette-flash 0.3s ease-out forwards;
+        }
+
+        /* ── Bomb white-out flash (whole screen) ── */
+        #bombFlash {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 96;
+            opacity: 0;
+            background: radial-gradient(circle at center,
+                rgba(255, 240, 200, 0.95) 0%,
+                rgba(255, 200, 110, 0.7) 25%,
+                rgba(255, 110, 40, 0.35) 55%,
+                rgba(255, 60, 20, 0) 80%);
+            mix-blend-mode: screen;
+        }
+        @keyframes bomb-flash {
+            0%   { opacity: 0; }
+            5%   { opacity: 1; }
+            40%  { opacity: 0.4; }
+            100% { opacity: 0; }
+        }
+        #bombFlash.flash {
+            animation: bomb-flash 0.7s ease-out forwards;
+        }
+
+        /* ── Gamepad debug ── */
+        #gamepadOverlay {
+            position: absolute;
+            bottom: 60px; left: 10px;
+            color: #00ffcc;
+            font-family: monospace;
+            font-size: 11px;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 12px;
+            border-radius: 6px;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* ── Loading ── */
+        #loadingMessage {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 9998;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        #loadingMessage .load-title {
+            color: #00ffff;
+            font-size: 20px;
+            text-shadow: 0 0 20px rgba(0,255,255,0.8), 0 0 40px rgba(0,255,255,0.3);
+            letter-spacing: 8px;
+            animation: title-shimmer 3s ease-in-out infinite;
+        }
+        #loadingMessage .load-bar-track {
+            width: 200px; height: 3px;
+            background: rgba(0,255,255,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        #loadingMessage .load-bar-fill {
+            width: 30%;
+            height: 100%;
+            background: #00ffff;
+            box-shadow: 0 0 8px #00ffff;
+            border-radius: 2px;
+            animation: load-sweep 1.5s ease-in-out infinite;
+        }
+        @keyframes load-sweep {
+            0%   { width: 10%; margin-left: 0; }
+            50%  { width: 40%; margin-left: 30%; }
+            100% { width: 10%; margin-left: 90%; }
+        }
+        #loadingMessage .load-hint {
+            color: rgba(0,255,255,0.3);
+            font-size: 7px;
+            letter-spacing: 4px;
+        }
+
+        /* ── CRT flicker for retro feel ── */
+        @keyframes flicker {
+            0%, 88%, 100% { opacity: 1; }
+            89% { opacity: 0.7; }
+            90% { opacity: 0.9; }
+            91% { opacity: 0.6; transform: translateX(1px); }
+            92% { opacity: 1; transform: none; }
+        }
+        .edge-bar {
+            animation: flicker 5s infinite;
+        }
+        .cockpit-corner {
+            animation: corner-flicker 5s infinite;
+        }
+        @keyframes corner-flicker {
+            0%, 88%, 100% { opacity: 1; }
+            89% { opacity: 0.7; }
+            90% { opacity: 0.9; }
+            91% { opacity: 0.6; }
+            92% { opacity: 1; }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* ── Pause Screen ── */
+        #pauseScreen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #050810;
+            z-index: 150;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        /* Cinematic pause artwork — set background-image to an existing
+         * file (assets/pause/standby.jpg) and it shows up; missing file
+         * falls back to the dark base so the panel still reads. */
+        #pauseArtwork {
+            position: absolute;
+            inset: 0;
+            background-image: url('assets/pause/standby.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: brightness(0.45) saturate(0.85);
+            z-index: 0;
+            transform-origin: center;
+            animation: pause-pan 30s ease-in-out infinite alternate;
+        }
+        @keyframes pause-pan {
+            0%   { transform: scale(1.04) translate( 1%, -1%); }
+            100% { transform: scale(1.12) translate(-2%,  1%); }
+        }
+        #pauseScreen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at center,
+                    transparent 30%,
+                    rgba(0,0,0,0.55) 78%,
+                    rgba(0,0,0,0.85) 100%),
+                repeating-linear-gradient(
+                    to bottom,
+                    rgba(0,0,0,0) 0,
+                    rgba(0,0,0,0) 2px,
+                    rgba(0,0,0,0.10) 3px,
+                    rgba(0,0,0,0) 4px);
+            z-index: 1;
+            pointer-events: none;
+        }
+        #pauseScreen > *:not(#pauseArtwork) {
+            position: relative;
+            z-index: 2;
+        }
+        .pause-title {
+            font-size: 20px;
+            color: #00ffff;
+            text-shadow: 0 0 15px rgba(0,255,255,0.6), 2px 2px 0 #003344;
+            letter-spacing: 6px;
+            animation: blink-slow 2s infinite;
+        }
+
+        /* ── Mobile layout ── */
+        .touch-device #hudBottomLeft {
+            bottom: auto;
+            top: 8px;
+            left: 8px;
+            border-radius: 0 0 8px 8px;
+            border-top: none;
+            border-bottom: 1px solid rgba(0,255,255,0.2);
+        }
+        .touch-device #hudBottomRight {
+            bottom: auto;
+            top: 8px;
+            right: 8px;
+        }
+        .touch-device #hudP2 {
+            bottom: auto;
+            top: 48px;
+        }
+        .touch-device .cockpit-corner {
+            display: none;
+        }
+        .touch-device .edge-bar {
+            display: none;
+        }
+        .touch-device #hudLeftDeco,
+        .touch-device #hudRightDeco {
+            display: none !important;
+        }
+        /* ── Mobile: comprehensive touch overrides ── */
+
+        /* Hide desktop-only elements */
+        .touch-device [data-mode="fullscreen"],
+        .touch-device #fullscreenBtn,
+        .touch-device .go-hint,
+        .touch-device .hangar-hint,
+        .touch-device .menu-footer,
+        .touch-device .cockpit-corner,
+        .touch-device .edge-bar,
+        .touch-device #hudLeftDeco,
+        .touch-device #hudRightDeco {
+            display: none !important;
+        }
+
+        /* Touch-friendly tap targets on ALL interactive items */
+        .touch-device .menu-item,
+        .touch-device .pause-item,
+        .touch-device .gameover-item,
+        .touch-device .remap-row {
+            padding: 14px 20px;
+            min-height: 48px;
+            touch-action: manipulation;
+        }
+        .touch-device .menu-items {
+            min-width: auto;
+            width: 90vw;
+            max-width: 500px;
+        }
+        .touch-device .trophy-card {
+            padding: 12px 14px;
+            min-height: 60px;
+            touch-action: manipulation;
+        }
+        .touch-device .hs-tab {
+            padding: 10px 16px;
+            min-height: 40px;
+            touch-action: manipulation;
+        }
+
+        /* Scaled text for mobile */
+        .touch-device .settings-title,
+        .touch-device .pause-title { font-size: 14px; }
+        .touch-device .menu-title { font-size: 22px; }
+        .touch-device .menu-title-accent { font-size: 28px; }
+
+        /* ALL screens scrollable + top-aligned on mobile */
+        .touch-device #mainMenu,
+        .touch-device #settingsScreen,
+        .touch-device #challengeSelectScreen,
+        .touch-device #achievementsScreen,
+        .touch-device #highscoresScreen,
+        .touch-device #howToPlayScreen,
+        .touch-device #remapScreen,
+        .touch-device #pauseScreen,
+        .touch-device #gameOverScreen,
+        .touch-device #worldsScreen,
+        .touch-device #hangarScreen {
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch;
+            justify-content: flex-start !important;
+            padding-top: 3vh;
+            padding-bottom: 3vh;
+        }
+        /* Inner lists: no max-height cap, let parent scroll */
+        .touch-device #challengeList,
+        .touch-device #trophyGrid,
+        .touch-device #highscoreList {
+            max-height: none;
+            overflow-y: visible;
+            touch-action: pan-y;
+            pointer-events: auto;
+        }
+        .touch-device .trophy-cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        /* How-to-play: single column on mobile */
+        .touch-device .howto-grid {
+            flex-direction: column;
+            gap: 16px;
+        }
+        .touch-device .howto-col {
+            min-width: auto;
+            width: 100%;
+        }
+
+        /* Hide co-op on mobile (no second player on touch) */
+        .touch-device [data-mode="coop"] {
+            display: none;
+        }
+
+        /* Hangar on mobile: vertical stack, canvas top, info + buttons below */
+        .touch-device #hangarScreen {
+            flex-direction: column !important;
+        }
+        .touch-device #hangarCanvas {
+            position: relative !important;
+            width: 80vw !important;
+            height: 50vh !important;
+            flex-shrink: 0;
+            margin: 0 auto;
+        }
+        .touch-device #hangarOverlay {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 16px;
+            flex: 1;
+        }
+        .touch-device .hangar-top {
+            position: relative;
+            top: auto; left: auto;
+            transform: none;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .touch-device .hangar-bottom {
+            position: relative;
+            bottom: auto; left: auto; right: auto;
+            transform: none;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .touch-device .hangar-info {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .touch-device .hangar-actions {
+            flex-direction: column;
+            gap: 6px;
+            width: 90vw;
+            max-width: 400px;
+        }
+        /* Prev/next ship browse buttons (mobile only) */
+        .hangar-browse-btns {
+            display: none;
+        }
+        .touch-device .hangar-browse-btns {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 10px;
+        }
+        .hangar-browse-btn {
+            width: 48px; height: 48px;
+            border: 2px solid rgba(0,255,255,0.4);
+            border-radius: 8px;
+            background: rgba(0,255,255,0.06);
+            color: rgba(0,255,255,0.7);
+            font-size: 18px;
+            font-family: 'Press Start 2P', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+            cursor: pointer;
+        }
+        .hangar-browse-btn:active {
+            background: rgba(0,255,255,0.2);
+            border-color: rgba(0,255,255,0.7);
+        }
+
+        /* Game over: wider buttons */
+        .touch-device #gameOverScreen {
+            padding-top: 6vh;
+        }
+        .touch-device .go-menu {
+            width: 80vw;
+            max-width: 400px;
+        }
+
+        /* Media query fallback if .touch-device class isn't set */
+        @media (pointer: coarse) and (max-width: 1024px) {
+            #challengeSelectScreen, #achievementsScreen, #highscoresScreen,
+            #pauseScreen, #gameOverScreen, #mainMenu, #settingsScreen, #worldsScreen {
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            .menu-item, .pause-item, .gameover-item {
+                min-height: 48px;
+                touch-action: manipulation;
+            }
+        }
+
+        /* Portrait lock overlay */
+        #portraitOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 99999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            font-family: 'Press Start 2P', monospace;
+            color: rgba(0,255,255,0.7);
+        }
+        #portraitOverlay .rotate-icon {
+            font-size: 48px;
+            animation: rotate-hint 2s ease-in-out infinite;
+        }
+        #portraitOverlay .rotate-text {
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(0,255,255,0.4);
+        }
+        @keyframes rotate-hint {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-20deg); }
+            75% { transform: rotate(20deg); }
+        }
+        @media (orientation: portrait) {
+            .touch-device #portraitOverlay {
+                display: flex;
+            }
+        }
+
+        /* ── Screen transitions ── */
+        @keyframes screen-fade-in {
+            0%   { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .screen-transition {
+            animation: screen-fade-in 0.25s ease-out;
+        }
+
+        /* ── Menu ambient effects ── */
+
+        /* Floating star particles — CSS-only, layered behind menu content */
+        @keyframes star-drift {
+            0%   { transform: translateY(0) translateX(0); opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
+        }
+        .menu-stars {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .menu-stars span {
+            position: absolute;
+            bottom: -10px;
+            width: 2px; height: 2px;
+            background: rgba(0,255,255,0.5);
+            border-radius: 50%;
+            box-shadow: 0 0 4px rgba(0,255,255,0.3);
+            animation: star-drift linear infinite;
+        }
+
+        /* Title shimmer — light sweep across text */
+        @keyframes title-shimmer {
+            0%   { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        .settings-title, .menu-title {
+            background-image: linear-gradient(
+                90deg,
+                rgba(0,255,255,0) 0%,
+                rgba(0,255,255,0.15) 45%,
+                rgba(255,255,255,0.25) 50%,
+                rgba(0,255,255,0.15) 55%,
+                rgba(0,255,255,0) 100%
+            );
+            background-size: 200% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            animation: title-shimmer 8s ease-in-out infinite;
+        }
+
+        /* Divider line breathing glow */
+        @keyframes line-breathe {
+            0%, 100% { opacity: 0.6; box-shadow: 0 0 6px rgba(0,255,255,0.1); }
+            50%      { opacity: 1.0; box-shadow: 0 0 12px rgba(0,255,255,0.25); }
+        }
+
+        /* Menu item stagger fade-in */
+        @keyframes menu-fade-in {
+            0%   { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Main Menu ── */
+        #mainMenu, #settingsScreen, #worldsScreen, #challengeSelectScreen, #achievementsScreen, #highscoresScreen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0,8,20,0.55) 0%, rgba(0,0,0,0.75) 100%);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #challengeSelectScreen, #achievementsScreen, #highscoresScreen, #worldsScreen {
+            justify-content: flex-start;
+            padding-top: 3vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .menu-title {
+            font-size: 32px;
+            color: #00ffff;
+            text-shadow: 0 0 30px rgba(0,255,255,0.8), 0 0 60px rgba(0,255,255,0.3), 3px 3px 0 #003344;
+            letter-spacing: 6px;
+            text-align: center;
+            line-height: 1.6;
+            animation: glitch 6s infinite;
+        }
+        .menu-title-accent {
+            color: #ff6600;
+            text-shadow: 0 0 30px rgba(255,102,0,0.8), 0 0 60px rgba(255,102,0,0.3), 3px 3px 0 #442200;
+            font-size: 38px;
+        }
+
+        .menu-subtitle {
+            color: rgba(0,255,255,0.35);
+            font-size: 8px;
+            letter-spacing: 6px;
+            margin-top: 8px;
+        }
+
+        .menu-line {
+            width: 250px; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,255,255,0.4), transparent);
+            margin: 25px 0;
+            animation: line-breathe 4s ease-in-out infinite;
+        }
+
+        .menu-items {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 460px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 24px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            position: relative;
+        }
+        .menu-item:hover, .menu-item.selected {
+            background: rgba(0,255,255,0.06);
+            border-color: rgba(0,255,255,0.3);
+            box-shadow: 0 0 15px rgba(0,255,255,0.1);
+        }
+        .menu-item:hover .menu-item-label, .menu-item.selected .menu-item-label {
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0,255,255,0.6);
+        }
+        .menu-item:hover .menu-item-icon, .menu-item.selected .menu-item-icon {
+            color: #ff6600;
+            text-shadow: 0 0 8px rgba(255,102,0,0.6);
+        }
+
+        .menu-item-icon {
+            font-size: 10px;
+            color: rgba(0,255,255,0.2);
+            width: 20px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .menu-item-label {
+            font-size: 12px;
+            color: rgba(0,255,255,0.8);
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(0,255,255,0.3);
+            transition: all 0.2s;
+        }
+        .menu-item-desc {
+            font-size: 8px;
+            color: rgba(0,255,255,0.3);
+            letter-spacing: 1px;
+            margin-left: auto;
+        }
+        .menu-item.locked {
+            opacity: 0.3;
+            cursor: default;
+            pointer-events: none;
+        }
+        .menu-item.locked:hover, .menu-item.locked.selected {
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+        .mission-desc {
+            font-size: 7px;
+            color: rgba(0,255,255,0.25);
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+        .mission-row {
+            display: grid;
+            grid-template-columns: 24px 1fr auto;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        .mission-row .menu-item-icon {
+            width: auto;
+            text-align: center;
+        }
+        .mission-row .menu-item-label {
+            white-space: nowrap;
+        }
+        .mission-row .menu-item-status {
+            font-size: 8px;
+            color: rgba(0,255,255,0.3);
+            letter-spacing: 1px;
+            text-align: right;
+            min-width: 110px;
+        }
+
+        /* ── Highscore list ── */
+        .hs-tab {
+            font-size: 8px;
+            letter-spacing: 2px;
+            padding: 6px 14px;
+            border: 1px solid rgba(0,255,255,0.2);
+            border-radius: 4px;
+            color: rgba(0,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .hs-tab.active, .hs-tab:hover {
+            color: #00ffff;
+            border-color: rgba(0,255,255,0.5);
+            background: rgba(0,255,255,0.08);
+        }
+        .hs-row {
+            display: grid;
+            grid-template-columns: 30px 1fr 80px 80px;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(0,255,255,0.06);
+            font-size: 8px;
+            letter-spacing: 1px;
+            color: rgba(0,255,255,0.5);
+            align-items: center;
+        }
+        .hs-row.header {
+            color: rgba(0,255,255,0.3);
+            font-size: 7px;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0,255,255,0.15);
+        }
+        .hs-row .hs-rank {
+            color: rgba(0,255,255,0.3);
+            text-align: center;
+        }
+        .hs-row .hs-score {
+            color: #00ffff;
+            text-shadow: 0 0 6px rgba(0,255,255,0.4);
+        }
+        .hs-row:first-of-type:not(.header) .hs-rank { color: #ffd700; }
+        .hs-row:first-of-type:not(.header) .hs-score { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.5); }
+        .hs-row .hs-stats {
+            font-size: 7px;
+            color: rgba(0,255,255,0.25);
+        }
+        .hs-empty {
+            text-align: center;
+            color: rgba(0,255,255,0.2);
+            font-size: 8px;
+            letter-spacing: 2px;
+            padding: 24px;
+        }
+
+        /* ── Trophy Grid ── */
+        #trophyGrid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 65vh;
+            overflow-y: auto;
+            padding: 4px 8px 4px 4px;
+            width: 100%;
+            max-width: 680px;
+        }
+        .trophy-section-header {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            padding: 8px 0 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-top: 4px;
+        }
+        .trophy-section-header.bronze   { color: #cd7f32; border-color: rgba(205,127,50,0.3); }
+        .trophy-section-header.silver   { color: #c0c0c0; border-color: rgba(192,192,192,0.3); }
+        .trophy-section-header.gold     { color: #ffd700; border-color: rgba(255,215,0,0.3); }
+        .trophy-section-header.platinum { color: #b4ffff; border-color: rgba(180,255,255,0.3); }
+        .trophy-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .trophy-card {
+            background: rgba(0,20,40,0.6);
+            border: 1px solid rgba(0,255,255,0.12);
+            border-radius: 6px;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.2s;
+            min-height: 70px;
+        }
+        .trophy-card.unlocked {
+            border-color: rgba(0,255,255,0.3);
+            background: rgba(0,30,50,0.7);
+        }
+        .trophy-card.trophy-locked {
+            opacity: 0.4;
+        }
+        .trophy-card.unlocked:hover, .trophy-card.unlocked.selected {
+            border-color: rgba(0,255,255,0.5);
+            box-shadow: 0 0 12px rgba(0,255,255,0.15);
+        }
+        .trophy-card.trophy-locked.selected {
+            border-color: rgba(0,255,255,0.25);
+            opacity: 0.55;
+        }
+        .trophy-card.selected .trophy-card-name {
+            color: #00ffff;
+            text-shadow: 0 0 8px rgba(0,255,255,0.5);
+        }
+        .trophy-card-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .trophy-card-icon {
+            font-size: 16px;
+            min-width: 20px;
+            text-align: center;
+        }
+        .trophy-card-name {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            line-height: 1.6;
+            color: rgba(0,255,255,0.8);
+        }
+        .trophy-card-desc {
+            font-size: 7px;
+            color: rgba(0,255,255,0.3);
+            letter-spacing: 1px;
+            line-height: 1.5;
+        }
+        .mission-card-number {
+            font-size: 8px;
+            color: rgba(0,255,255,0.4);
+            letter-spacing: 2px;
+            margin-bottom: 1px;
+        }
+        .trophy-card-tier {
+            font-size: 7px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-top: 2px;
+        }
+        .trophy-card-tier.bronze   { color: #cd7f32; }
+        .trophy-card-tier.silver   { color: #c0c0c0; }
+        .trophy-card-tier.gold     { color: #ffd700; }
+        .trophy-card-tier.platinum { color: #b4ffff; }
+
+        /* ── Trophy Toast ── */
+        #trophy-toast {
+            position: fixed;
+            bottom: -80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0a0a18ee;
+            border: 1px solid #ffd70066;
+            border-radius: 10px;
+            padding: 10px 20px;
+            z-index: 9999;
+            transition: bottom .5s cubic-bezier(.34, 1.56, .64, 1);
+            box-shadow: 0 0 30px #ffd70033;
+            pointer-events: none;
+        }
+        #trophy-toast.show { bottom: 24px; }
+        #trophy-toast-icon { font-size: 28px; }
+        #trophy-toast-label {
+            font-size: 9px; color: #ffd700;
+            letter-spacing: 3px; font-weight: 700;
+        }
+        #trophy-toast-tier {
+            font-size: 9px; font-weight: 700; letter-spacing: 2px;
+        }
+        #trophy-toast-tier.bronze   { color: #cd7f32; }
+        #trophy-toast-tier.silver   { color: #c0c0c0; }
+        #trophy-toast-tier.gold     { color: #ffd700; }
+        #trophy-toast-tier.platinum { color: #b4ffff; }
+        #trophy-toast-name {
+            font-size: 14px; color: #fff;
+            font-weight: 700; letter-spacing: 1px;
+        }
+
+        .menu-footer {
+            margin-top: 30px;
+            font-size: 6px;
+            color: rgba(0,255,255,0.25);
+            letter-spacing: 2px;
+            animation: blink-slow 2s infinite;
+        }
+        @keyframes blink-slow {
+            0%, 45%, 55%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .menu-key {
+            color: rgba(0,255,255,0.4);
+            border: 1px solid rgba(0,255,255,0.15);
+            padding: 2px 5px;
+            border-radius: 2px;
+            font-size: 6px;
+        }
+
+        /* ── Settings ── */
+        .settings-title {
+            font-size: 16px;
+            color: #00ffff;
+            text-shadow: 0 0 12px rgba(0,255,255,0.5), 2px 2px 0 #003344;
+            letter-spacing: 4px;
+        }
+        .settings-section {
+            margin: 14px 0;
+            min-width: 300px;
+        }
+        .settings-label {
+            font-size: 7px;
+            color: rgba(255,102,0,0.5);
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+        .settings-row {
+            font-size: 7px;
+            color: rgba(0,255,255,0.5);
+            letter-spacing: 1px;
+            padding: 3px 0;
+        }
+        .settings-key {
+            color: rgba(0,255,255,0.7);
+            border: 1px solid rgba(0,255,255,0.15);
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 6px;
+            margin-right: 4px;
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+        }
+        /* ── Hangar (full-screen 3D scene + overlay) ── */
+        #hangarScreen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 200;
+            display: none;
+            overflow: hidden;
+        }
+        #hangarScreen.show { display: block; }
+
+        #hangarCanvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #hangarOverlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+            padding: 30px;
+        }
+
+        .hangar-top {
+            text-align: center;
+            pointer-events: none;
+        }
+        .hangar-top .settings-title {
+            text-shadow: 0 0 16px rgba(0,255,255,0.7), 2px 2px 0 #002233;
+        }
+        .hangar-top .menu-line {
+            margin: 12px auto 0;
+        }
+
+        .hangar-bottom {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            pointer-events: auto;
+        }
+
+        .hangar-info {
+            text-align: center;
+            background: linear-gradient(180deg, rgba(0,20,40,0.55) 0%, rgba(0,8,16,0.4) 100%);
+            border: 1px solid rgba(0,255,255,0.2);
+            border-radius: 6px;
+            padding: 14px 32px 16px;
+            backdrop-filter: blur(2px);
+            min-width: 360px;
+            box-shadow: 0 0 20px rgba(0,255,255,0.08);
+        }
+        .hangar-counter {
+            font-size: 6px;
+            color: rgba(0,255,255,0.4);
+            letter-spacing: 3px;
+            margin-bottom: 8px;
+        }
+        .hangar-name {
+            font-size: 22px;
+            color: #00ffff;
+            text-shadow: 0 0 16px rgba(0,255,255,0.8), 2px 2px 0 #003344;
+            letter-spacing: 6px;
+            margin-bottom: 8px;
+        }
+        .hangar-desc {
+            font-size: 8px;
+            color: rgba(0,255,255,0.55);
+            letter-spacing: 1px;
+            max-width: 500px;
+            line-height: 1.7;
+            margin: 0 auto;
+        }
+        .hangar-equipped {
+            display: none;
+            margin-top: 8px;
+            font-size: 7px;
+            color: #00ff88;
+            letter-spacing: 3px;
+            text-shadow: 0 0 8px rgba(0,255,136,0.7);
+        }
+        .hangar-equipped.show { display: block; }
+
+        .hangar-actions {
+            min-width: 320px;
+        }
+        .hangar-actions .menu-item {
+            background: rgba(0,20,40,0.5);
+            backdrop-filter: blur(2px);
+        }
+
+        .hangar-hint {
+            font-size: 6px;
+            color: rgba(0,255,255,0.4);
+            letter-spacing: 2px;
+            text-shadow: 0 0 4px rgba(0,255,255,0.3);
+        }
+
+        /* ── How To Play ── */
+        #howToPlayScreen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0,10,30,0.95) 0%, rgba(0,0,0,0.98) 100%);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 20px 20px;
+            overflow-y: auto;
+        }
+        #howToPlayScreen.show { display: flex; }
+
+        .howto-grid {
+            display: flex;
+            gap: 30px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .howto-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 260px;
+        }
+        .howto-section {
+            background: rgba(0,20,40,0.4);
+            border: 1px solid rgba(0,255,255,0.15);
+            border-radius: 4px;
+            padding: 12px 16px;
+        }
+        .howto-header {
+            font-size: 8px;
+            color: rgba(0,255,255,0.7);
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 6px currentColor;
+        }
+        .howto-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 7px;
+            color: rgba(0,255,255,0.55);
+            letter-spacing: 1px;
+            padding: 3px 0;
+        }
+        .howto-key {
+            color: rgba(0,255,255,0.85);
+            border: 1px solid rgba(0,255,255,0.25);
+            padding: 3px 7px;
+            border-radius: 2px;
+            font-size: 7px;
+            min-width: 80px;
+            text-align: center;
+            display: inline-block;
+        }
+        .howto-tip {
+            font-size: 7px;
+            color: rgba(255,200,100,0.6);
+            letter-spacing: 1px;
+            padding: 3px 0;
+            line-height: 1.5;
+        }
+        .howto-hint {
+            font-size: 6px;
+            color: rgba(0,255,255,0.4);
+            letter-spacing: 1px;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        /* ── Pre-game splash ── */
+        #preGameSplash {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 250;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Press Start 2P', monospace;
+        }
+        #preGameSplash.show { display: flex; }
+        .splash-inner {
+            background: linear-gradient(180deg, rgba(0,30,60,0.85) 0%, rgba(0,10,20,0.7) 100%);
+            border: 1px solid rgba(0,255,255,0.3);
+            border-radius: 6px;
+            padding: 30px 50px;
+            text-align: center;
+            min-width: 360px;
+            box-shadow: 0 0 30px rgba(0,255,255,0.15);
+        }
+        .splash-title {
+            font-size: 18px;
+            color: #00ffff;
+            text-shadow: 0 0 12px rgba(0,255,255,0.6), 2px 2px 0 #003344;
+            letter-spacing: 6px;
+            margin-bottom: 8px;
+        }
+        .splash-line {
+            width: 80%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,255,255,0.4), transparent);
+            margin: 8px auto 16px;
+        }
+        .splash-row {
+            font-size: 8px;
+            color: rgba(0,255,255,0.7);
+            letter-spacing: 2px;
+            margin: 6px 0;
+        }
+        .splash-row.p2 {
+            color: rgba(255,68,221,0.8);
+        }
+        .splash-key {
+            color: #00ffff;
+            border: 1px solid rgba(0,255,255,0.3);
+            padding: 2px 6px;
+            font-size: 7px;
+            margin: 0 4px;
+            border-radius: 2px;
+        }
+        .splash-row.p2 .splash-key {
+            color: #ff44dd;
+            border-color: rgba(255,68,221,0.4);
+        }
+        .splash-hint {
+            margin-top: 18px;
+            font-size: 7px;
+            color: rgba(0,255,255,0.4);
+            letter-spacing: 2px;
+            animation: blink-slow 1.4s infinite;
+        }
+
+        /* ── Remap controller screen ── */
+        #remapScreen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, rgba(0,10,30,0.95) 0%, rgba(0,0,0,0.98) 100%);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 30px 20px;
+            overflow-y: auto;
+        }
+        #remapScreen.show { display: flex; }
+
+        .remap-controller-wrap {
+            margin: 12px 0;
+        }
+        .remap-controller {
+            width: 320px;
+            max-width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 12px rgba(0,255,255,0.25));
+        }
+        .remap-controller [data-input].active {
+            fill: rgba(0,255,255,0.5) !important;
+            stroke: #00ffff !important;
+            filter: drop-shadow(0 0 6px #00ffff);
+        }
+        .remap-controller [data-input].pulse {
+            animation: remapPulse 0.6s ease-out;
+        }
+        @keyframes remapPulse {
+            0%   { fill: rgba(255,255,0,0.9); stroke: #ffff00; }
+            100% { fill: rgba(0,40,60,0.6);   stroke: rgba(0,255,255,0.5); }
+        }
+
+        .remap-prompt {
+            font-size: 9px;
+            color: #ffff00;
+            text-shadow: 0 0 8px rgba(255,255,0,0.6);
+            letter-spacing: 2px;
+            min-height: 14px;
+            margin: 6px 0 14px;
+        }
+
+        .remap-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 14px;
+            min-width: 320px;
+        }
+        .remap-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            cursor: pointer;
+            outline: none;
+        }
+        .remap-row.selected {
+            background: rgba(0,255,255,0.08);
+            border-color: rgba(0,255,255,0.4);
+            box-shadow: 0 0 8px rgba(0,255,255,0.2);
+        }
+        .remap-row.capturing {
+            background: rgba(255,255,0,0.1);
+            border-color: rgba(255,255,0,0.6);
+            box-shadow: 0 0 12px rgba(255,255,0,0.3);
+            animation: capturePulse 1s infinite;
+        }
+        @keyframes capturePulse {
+            0%, 100% { box-shadow: 0 0 12px rgba(255,255,0,0.3); }
+            50%      { box-shadow: 0 0 18px rgba(255,255,0,0.6); }
+        }
+        .remap-action-label {
+            font-size: 8px;
+            color: rgba(0,255,255,0.7);
+            letter-spacing: 1px;
+            min-width: 110px;
+        }
+        .remap-binding-list {
+            flex: 1;
+            font-size: 7px;
+            color: rgba(0,255,255,0.5);
+            letter-spacing: 1px;
+            text-align: right;
+        }
+
+        /* ── Settings sliders ── */
+        .settings-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 10px;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            cursor: pointer;
+            outline: none;
+        }
+        .settings-slider-row.selected {
+            background: rgba(0,255,255,0.08);
+            border-color: rgba(0,255,255,0.4);
+            box-shadow: 0 0 8px rgba(0,255,255,0.2);
+        }
+        .settings-slider-label {
+            font-size: 7px;
+            color: rgba(0,255,255,0.6);
+            letter-spacing: 1px;
+            min-width: 50px;
+        }
+        .settings-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            background: rgba(0,255,255,0.15);
+            border: 1px solid rgba(0,255,255,0.3);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+        .settings-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #00ffff;
+            border: 1px solid #00ffff;
+            border-radius: 0;
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(0,255,255,0.6);
+        }
+        .settings-slider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #00ffff;
+            border: 1px solid #00ffff;
+            border-radius: 0;
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(0,255,255,0.6);
+        }
+        .settings-slider-value {
+            font-size: 7px;
+            color: rgba(0,255,255,0.7);
+            min-width: 30px;
+            text-align: right;
+        }
+
+        /* ── Fullscreen button ── */
+        #fullscreenBtn {
+            position: absolute;
+            top: 12px; right: 12px;
+            z-index: 40;
+            background: rgba(0,20,40,0.7);
+            border: 1px solid rgba(0,255,255,0.25);
+            color: #00ffff;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-shadow: 0 0 6px rgba(0,255,255,0.5);
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        #fullscreenBtn:hover {
+            background: rgba(0,255,255,0.1);
+            border-color: #00ffff;
+            box-shadow: 0 0 12px rgba(0,255,255,0.3);
+        }
+
+        /* ── Mute indicator (M) ── */
+        #muteIndicator {
+            position: absolute;
+            top: 14px; right: 130px;
+            z-index: 40;
+            background: rgba(40,0,0,0.7);
+            border: 1px solid rgba(255,80,80,0.5);
+            color: #ff6666;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            text-shadow: 0 0 6px rgba(255,80,80,0.6);
+            letter-spacing: 2px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        #muteIndicator.show {
+            opacity: 1;
+        }
+
+        /* ── High score badge in menu items ── */
+        .menu-item-best {
+            font-size: 6px;
+            color: rgba(255,204,0,0.7);
+            text-shadow: 0 0 6px rgba(255,204,0,0.4);
+            letter-spacing: 2px;
+            margin-left: 12px;
+        }
+        .menu-item:hover .menu-item-best, .menu-item.selected .menu-item-best {
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255,204,0,0.8);
+        }
+
+        .settings-gp-status {
+            margin-top: 10px;
+            font-size: 6px;
+            color: rgba(0,255,255,0.25);
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Portrait mode lock overlay (mobile only) -->
+    <div id="portraitOverlay">
+        <div class="rotate-icon">📱</div>
+        <div class="rotate-text">ROTATE DEVICE</div>
+    </div>
+
+    <div id="gameContainer">
+
+        <!-- CRT effects (disabled — dimmed the image too much)
+        <div id="scanlines"></div>
+        <div id="vignette"></div>
+        <div id="crtFlicker"></div>
+        -->
+
+        <!-- Fullscreen button -->
+        <button id="fullscreenBtn" title="Toggle fullscreen (F)">FULLSCREEN</button>
+
+        <!-- Mute indicator (M to toggle) -->
+        <div id="muteIndicator" title="Press M to unmute">MUTED</div>
+
+        <!-- Ship material debug panel (press K to toggle) -->
+        <div id="shipDebugPanel" style="
+            display: none;
+            position: fixed; top: 60px; right: 10px;
+            z-index: 9999;
+            width: 340px; max-height: 80vh; overflow-y: auto;
+            background: rgba(0, 10, 20, 0.92);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            font: 11px/1.3 monospace;
+            padding: 10px;
+            box-shadow: 0 0 15px rgba(0,255,255,0.3);
+        ">
+            <div style="font-size:13px; margin-bottom:8px; letter-spacing:1px;">
+                SHIP MATERIAL DEBUG
+                <span style="float:right; opacity:0.6;">[K to close]</span>
+            </div>
+            <div id="shipDebugContent"></div>
+        </div>
+
+        <!-- Cockpit frame corners (bigger, more detailed) -->
+        <div class="cockpit-corner corner-tl">
+            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0 L200 0 L200 6 L50 6 L6 50 L6 200 L0 200 Z" fill="rgba(0,15,30,0.7)" stroke="rgba(0,255,255,0.25)" stroke-width="1"/>
+                <path d="M10 55 L10 200" stroke="rgba(0,255,255,0.12)" stroke-width="1"/>
+                <path d="M14 60 L14 160" stroke="rgba(0,255,255,0.06)" stroke-width="1"/>
+                <path d="M55 10 L200 10" stroke="rgba(0,255,255,0.12)" stroke-width="1"/>
+                <path d="M60 14 L160 14" stroke="rgba(0,255,255,0.06)" stroke-width="1"/>
+                <circle cx="28" cy="28" r="3" fill="rgba(0,255,255,0.4)"/>
+                <circle cx="28" cy="28" r="6" fill="none" stroke="rgba(0,255,255,0.15)" stroke-width="1"/>
+                <!-- Tech detail lines -->
+                <rect x="20" y="70" width="3" height="8" rx="1" fill="rgba(0,255,255,0.2)"/>
+                <rect x="20" y="85" width="3" height="12" rx="1" fill="rgba(0,255,255,0.15)"/>
+                <rect x="20" y="104" width="3" height="6" rx="1" fill="rgba(0,255,255,0.1)"/>
+                <rect x="70" y="20" width="8" height="3" rx="1" fill="rgba(0,255,255,0.2)"/>
+                <rect x="85" y="20" width="14" height="3" rx="1" fill="rgba(0,255,255,0.15)"/>
+                <rect x="106" y="20" width="6" height="3" rx="1" fill="rgba(0,255,255,0.1)"/>
+                <!-- Corner bracket -->
+                <path d="M30 40 L40 30" stroke="rgba(0,255,255,0.2)" stroke-width="1"/>
+                <path d="M6 50 L20 36" stroke="rgba(0,255,255,0.1)" stroke-width="1" stroke-dasharray="2 3"/>
+            </svg>
+        </div>
+        <div class="cockpit-corner corner-tr">
+            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0 L200 0 L200 6 L50 6 L6 50 L6 200 L0 200 Z" fill="rgba(0,15,30,0.7)" stroke="rgba(0,255,255,0.25)" stroke-width="1"/>
+                <path d="M10 55 L10 200" stroke="rgba(0,255,255,0.12)" stroke-width="1"/>
+                <path d="M14 60 L14 160" stroke="rgba(0,255,255,0.06)" stroke-width="1"/>
+                <path d="M55 10 L200 10" stroke="rgba(0,255,255,0.12)" stroke-width="1"/>
+                <path d="M60 14 L160 14" stroke="rgba(0,255,255,0.06)" stroke-width="1"/>
+                <circle cx="28" cy="28" r="3" fill="rgba(0,255,255,0.4)"/>
+                <circle cx="28" cy="28" r="6" fill="none" stroke="rgba(0,255,255,0.15)" stroke-width="1"/>
+                <rect x="20" y="70" width="3" height="8" rx="1" fill="rgba(0,255,255,0.2)"/>
+                <rect x="20" y="85" width="3" height="12" rx="1" fill="rgba(0,255,255,0.15)"/>
+                <rect x="20" y="104" width="3" height="6" rx="1" fill="rgba(0,255,255,0.1)"/>
+                <rect x="70" y="20" width="8" height="3" rx="1" fill="rgba(0,255,255,0.2)"/>
+                <rect x="85" y="20" width="14" height="3" rx="1" fill="rgba(0,255,255,0.15)"/>
+                <rect x="106" y="20" width="6" height="3" rx="1" fill="rgba(0,255,255,0.1)"/>
+                <path d="M30 40 L40 30" stroke="rgba(0,255,255,0.2)" stroke-width="1"/>
+            </svg>
+        </div>
+        <div class="cockpit-corner corner-bl">
+            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0 L200 0 L200 6 L50 6 L6 50 L6 200 L0 200 Z" fill="rgba(0,15,30,0.7)" stroke="rgba(0,255,255,0.25)" stroke-width="1"/>
+                <path d="M10 55 L10 200" stroke="rgba(0,255,255,0.12)" stroke-width="1"/>
+                <path d="M14 60 L14 160" stroke="rgba(0,255,255,0.06)" stroke-width="1"/>
+                <path d="M55 10 L200 10" stroke="rgba(0,255,255,0.12)" stroke-width="1"/>
+                <path d="M60 14 L160 14" stroke="rgba(0,255,255,0.06)" stroke-width="1"/>
+                <circle cx="28" cy="28" r="3" fill="rgba(0,255,255,0.4)"/>
+                <circle cx="28" cy="28" r="6" fill="none" stroke="rgba(0,255,255,0.15)" stroke-width="1"/>
+                <rect x="20" y="70" width="3" height="8" rx="1" fill="rgba(0,255,255,0.2)"/>
+                <rect x="20" y="85" width="3" height="12" rx="1" fill="rgba(0,255,255,0.15)"/>
+                <rect x="70" y="20" width="8" height="3" rx="1" fill="rgba(0,255,255,0.2)"/>
+                <rect x="85" y="20" width="14" height="3" rx="1" fill="rgba(0,255,255,0.15)"/>
+            </svg>
+        </div>
+        <div class="cockpit-corner corner-br">
+            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0 L200 0 L200 6 L50 6 L6 50 L6 200 L0 200 Z" fill="rgba(0,15,30,0.7)" stroke="rgba(0,255,255,0.25)" stroke-width="1"/>
+                <path d="M10 55 L10 200" stroke="rgba(0,255,255,0.12)" stroke-width="1"/>
+                <path d="M14 60 L14 160" stroke="rgba(0,255,255,0.06)" stroke-width="1"/>
+                <path d="M55 10 L200 10" stroke="rgba(0,255,255,0.12)" stroke-width="1"/>
+                <path d="M60 14 L160 14" stroke="rgba(0,255,255,0.06)" stroke-width="1"/>
+                <circle cx="28" cy="28" r="3" fill="rgba(0,255,255,0.4)"/>
+                <circle cx="28" cy="28" r="6" fill="none" stroke="rgba(0,255,255,0.15)" stroke-width="1"/>
+                <rect x="20" y="70" width="3" height="8" rx="1" fill="rgba(0,255,255,0.2)"/>
+                <rect x="20" y="85" width="3" height="12" rx="1" fill="rgba(0,255,255,0.15)"/>
+                <rect x="70" y="20" width="8" height="3" rx="1" fill="rgba(0,255,255,0.2)"/>
+                <rect x="85" y="20" width="14" height="3" rx="1" fill="rgba(0,255,255,0.15)"/>
+            </svg>
+        </div>
+
+        <!-- Edge bars connecting corners -->
+        <div class="edge-bar edge-top"></div>
+        <div class="edge-bar edge-bottom"></div>
+        <div class="edge-bar edge-left"></div>
+        <div class="edge-bar edge-right"></div>
+
+        <!-- Left side deco bars (audio visualizer style) -->
+        <div id="hudLeftDeco"></div>
+
+        <!-- Right side threat meter -->
+        <div id="hudRightDeco"></div>
+
+        <!-- Top HUD bar -->
+        <div id="hudTop">
+            <div class="hud-panel hud-panel-side" id="hudLevel">LVL 1</div>
+            <div class="hud-panel hud-panel-score" id="hudScore">0</div>
+            <div class="hud-panel hud-panel-side" id="hudCombo" style="color:#ffff00; text-shadow: 0 0 8px rgba(255,255,0,0.6);"></div>
+        </div>
+
+        <!-- Bottom left: lives -->
+        <div id="hudBottomLeft">
+            <span class="life-label">P1</span>
+            <div id="p1LivesContainer" style="display:flex; gap:4px;"></div>
+            <div id="hudTeleport" style="margin-left:12px; display:flex; align-items:center; gap:4px;">
+                <span style="color:rgba(0,255,255,0.5); font-size:9px; letter-spacing:2px;">WARP</span>
+                <div id="teleportBar" style="width:40px; height:4px; background:rgba(0,255,255,0.15); border-radius:2px; overflow:hidden;">
+                    <div id="teleportFill" style="width:100%; height:100%; background:#00ffff; box-shadow:0 0 6px #00ffff; border-radius:2px; transition:width 0.2s;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom left row 2: P2 lives (only shown in co-op) -->
+        <div id="hudP2" style="display:none;">
+            <span class="life-label" style="color:rgba(255,68,221,0.6);">P2</span>
+            <div id="p2LivesContainer" style="display:flex; gap:4px;"></div>
+            <div id="hudTeleportP2" style="margin-left:12px; display:flex; align-items:center; gap:4px;">
+                <span style="color:rgba(255,68,221,0.5); font-size:9px; letter-spacing:2px;">WARP</span>
+                <div style="width:40px; height:4px; background:rgba(255,68,221,0.15); border-radius:2px; overflow:hidden;">
+                    <div id="teleportFillP2" style="width:100%; height:100%; background:#ff44dd; box-shadow:0 0 6px #ff44dd; border-radius:2px; transition:width 0.2s;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revive timer indicator (centered above HUD) -->
+        <div id="reviveIndicator"></div>
+
+        <!-- Bottom right: P1 power-up + shield -->
+        <div id="hudBottomRight">
+            <div id="hudShield">P1 SHIELD</div>
+            <div id="hudPowerup">
+                <span id="hudPowerupLabel"></span>
+                <div id="hudPowerupTimer"></div>
+            </div>
+        </div>
+
+        <!-- Bottom right row 2: P2 power-up + shield (co-op only) -->
+        <div id="hudBottomRightP2" style="display:none; position:absolute; bottom:56px; right:12px; z-index:30; pointer-events:none; text-align:right;">
+            <div id="hudShieldP2" style="font-size:8px; letter-spacing:2px; color:#ff44dd; text-shadow:0 0 8px rgba(255,68,221,0.6); opacity:0; margin-bottom:4px;">P2 SHIELD</div>
+            <div id="hudPowerupP2" style="opacity:0; border:1px solid rgba(255,68,221,0.3); border-radius:4px; padding:6px 10px; font-size:8px; letter-spacing:2px; color:#ff44dd;">
+                <span id="hudPowerupLabelP2"></span>
+                <div id="hudPowerupTimerP2" style="width:0; height:2px; background:#ff44dd; border-radius:1px; margin-top:4px; transition:width 0.3s;"></div>
+            </div>
+        </div>
+
+        <!-- Center combo burst -->
+        <div id="comboBurst" style="
+            position:absolute; top:30%; left:50%; transform:translate(-50%,-50%);
+            z-index:35; pointer-events:none; font-family:'Press Start 2P',monospace;
+            font-size:28px; letter-spacing:6px; opacity:0;
+            transition: opacity 0.15s, transform 0.3s;
+        "></div>
+
+        <!-- Center notifications -->
+        <div id="pickupNotify"></div>
+
+        <!-- Pause Menu -->
+        <div id="pauseScreen" style="display:none;">
+            <div id="pauseArtwork"></div>
+            <div class="pause-title">PAUSED</div>
+            <div class="menu-line"></div>
+            <div class="menu-items">
+                <div class="menu-item pause-item" data-action="resume" tabindex="0">
+                    <span class="menu-item-icon">&#9658;</span>
+                    <span class="menu-item-label">RESUME</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+                <div class="menu-item pause-item" data-action="howtoplay" tabindex="0">
+                    <span class="menu-item-icon">?</span>
+                    <span class="menu-item-label">HOW TO PLAY</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+                <div class="menu-item pause-item" data-action="restart" tabindex="0">
+                    <span class="menu-item-icon">&#8635;</span>
+                    <span class="menu-item-label">RESTART</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+                <div class="menu-item pause-item" data-action="mainmenu" tabindex="0">
+                    <span class="menu-item-icon">&#9664;</span>
+                    <span class="menu-item-label">MAIN MENU</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over -->
+        <div id="gameOverScreen">
+            <div id="gameOverArtwork"></div>
+            <h1>GAME OVER</h1>
+            <div class="go-line"></div>
+            <p class="go-score" id="finalScore">0</p>
+            <p id="waveReached">LEVEL 1</p>
+            <div id="goStats" style="font-size:8px; color:rgba(0,255,255,0.5); letter-spacing:2px; line-height:2.2; margin:8px 0;"></div>
+            <div id="goRank" style="font-size:32px; letter-spacing:6px; margin:4px 0;"></div>
+            <p id="highScoreLine"></p>
+            <p id="newHighScore">NEW HIGH SCORE!</p>
+            <div class="menu-items go-menu">
+                <div class="menu-item gameover-item" data-action="restart" tabindex="0">
+                    <span class="menu-item-icon">&#8635;</span>
+                    <span class="menu-item-label">RESTART</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+                <div class="menu-item gameover-item" data-action="mainmenu" tabindex="0">
+                    <span class="menu-item-icon">&#9664;</span>
+                    <span class="menu-item-label">MAIN MENU</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+            </div>
+            <p class="go-hint" id="goHint">&#8593;&#8595; SELECT &nbsp;&nbsp; ENTER CONFIRM</p>
+        </div>
+
+        <!-- Hit damage vignette (red screen-edge flash on player hit) -->
+        <div id="hitVignette"></div>
+        <div id="bombFlash"></div>
+
+        <!-- Gamepad debug -->
+        <!-- Debug overlay (disabled for release)
+        <div id="gamepadOverlay">
+            <div style="margin-bottom:4px; color:#ffff00;">GAMEPAD DEBUG</div>
+            <div id="gpStatus">No gamepad</div>
+            <div id="gpAxes"></div>
+            <div id="gpButtons"></div>
+            <div id="gpInput"></div>
+        </div>
+        -->
+
+        <!-- Main Menu -->
+        <div id="mainMenu">
+            <div class="menu-title">ASTEROID<br><span class="menu-title-accent">STORM</span></div>
+            <div class="menu-subtitle">NAVIGATE THE VOID</div>
+            <div class="menu-line"></div>
+            <div class="menu-items">
+                <div class="menu-item" data-mode="campaign" tabindex="0" style="padding:18px 24px; margin-bottom:6px;">
+                    <span class="menu-item-icon" style="font-size:14px;">&#9658;</span>
+                    <span class="menu-item-label" style="font-size:16px; letter-spacing:5px;">ARCADE</span>
+                </div>
+                <div class="menu-item" data-mode="coop" tabindex="0">
+                    <span class="menu-item-icon">&#9650;&#9650;</span>
+                    <span class="menu-item-label">CO-OP</span>
+                </div>
+                <div class="menu-item" data-mode="challenges" tabindex="0">
+                    <span class="menu-item-icon">&#9670;</span>
+                    <span class="menu-item-label">CHALLENGES</span>
+                    <span class="menu-item-desc">30 missions</span>
+                </div>
+                <div class="menu-item" data-mode="achievements" tabindex="0">
+                    <span class="menu-item-icon">&#9733;</span>
+                    <span class="menu-item-label">ACHIEVEMENTS</span>
+                    <span class="menu-item-desc" id="menuTrophyInfo"></span>
+                </div>
+                <div class="menu-item" data-mode="highscores" tabindex="0">
+                    <span class="menu-item-icon">&#9650;</span>
+                    <span class="menu-item-label">HIGHSCORES</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+                <div class="menu-line" style="margin:12px 0;"></div>
+                <div class="menu-item" data-mode="hangar" tabindex="0">
+                    <span class="menu-item-icon">&#9670;</span>
+                    <span class="menu-item-label">HANGAR</span>
+                    <span class="menu-item-desc" id="menuShipInfo"></span>
+                </div>
+                <div class="menu-item" data-mode="worlds" tabindex="0">
+                    <span class="menu-item-icon">&#9788;</span>
+                    <span class="menu-item-label">WORLDS</span>
+                    <span class="menu-item-desc" id="menuWorldInfo"></span>
+                </div>
+                <div class="menu-line" style="margin:12px 0;"></div>
+                <div class="menu-item" data-mode="howtoplay" tabindex="0">
+                    <span class="menu-item-icon">?</span>
+                    <span class="menu-item-label">HOW TO PLAY</span>
+                </div>
+                <div class="menu-item" data-mode="settings" tabindex="0">
+                    <span class="menu-item-icon">&#9881;</span>
+                    <span class="menu-item-label">SETTINGS</span>
+                </div>
+                <div class="menu-item" data-mode="fullscreen" tabindex="0">
+                    <span class="menu-item-icon">&#9635;</span>
+                    <span class="menu-item-label">FULLSCREEN</span>
+                </div>
+            </div>
+            <div class="menu-footer">
+                <span class="menu-key">ARROWS</span> NAVIGATE &nbsp;&nbsp;
+                <span class="menu-key">ENTER</span> SELECT &nbsp;&nbsp;
+                <span class="menu-key">GAMEPAD</span> SUPPORTED
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settingsScreen" style="display:none;">
+            <div class="settings-title">SETTINGS</div>
+            <div class="menu-line"></div>
+            <div class="settings-section">
+                <div class="settings-label">KEYBOARD</div>
+                <div class="settings-row"><span class="settings-key">ARROWS</span> Steer / Thrust / Brake</div>
+                <div class="settings-row"><span class="settings-key">SPACE</span> Shoot</div>
+                <div class="settings-row"><span class="settings-key">SHIFT / X</span> Teleport</div>
+            </div>
+            <div class="settings-section">
+                <div class="settings-label">GAMEPAD</div>
+                <div class="settings-row"><span class="settings-key">D-PAD / STICK</span> Steer</div>
+                <div class="settings-row"><span class="settings-key">R2</span> Thrust</div>
+                <div class="settings-row"><span class="settings-key">L2</span> Brake</div>
+                <div class="settings-row"><span class="settings-key">A / B</span> Shoot</div>
+                <div class="settings-row"><span class="settings-key">X / Y</span> Teleport</div>
+                <div id="settingsGPStatus" class="settings-gp-status">No gamepad detected</div>
+            </div>
+            <div class="settings-section">
+                <div class="settings-label">SOUND</div>
+                <div class="menu-item settings-slider-row" data-control="slider" data-action="music" tabindex="0">
+                    <span class="settings-slider-label">MUSIC</span>
+                    <input type="range" id="musicSlider" class="settings-slider" min="0" max="100" value="100">
+                    <span class="settings-slider-value" id="musicSliderValue">100</span>
+                </div>
+                <div class="menu-item settings-slider-row" data-control="slider" data-action="sfx" tabindex="0">
+                    <span class="settings-slider-label">SFX</span>
+                    <input type="range" id="sfxSlider" class="settings-slider" min="0" max="100" value="100">
+                    <span class="settings-slider-value" id="sfxSliderValue">100</span>
+                </div>
+                <div class="settings-row" style="margin-top:8px; opacity:0.5;">
+                    <span class="settings-key">M</span> Mute toggle
+                </div>
+            </div>
+            <div class="menu-items">
+                <div class="menu-item" data-mode="remap" tabindex="0">
+                    <span class="menu-item-icon">&#9881;</span>
+                    <span class="menu-item-label">REMAP CONTROLLER</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+                <div class="menu-item" data-mode="remapkb" tabindex="0">
+                    <span class="menu-item-icon">&#9000;</span>
+                    <span class="menu-item-label">REMAP KEYBOARD</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+                <div class="menu-item" data-mode="back" tabindex="0">
+                    <span class="menu-item-icon">&#9664;</span>
+                    <span class="menu-item-label">BACK</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+            </div>
+            <div class="settings-section" style="margin-top:20px;">
+                <div class="settings-label">CREDITS</div>
+                <div class="settings-row" style="opacity:0.4; line-height:1.8;">
+                    VIPER: akushal_hin &middot;
+                    RAPTOR: Rae The Red Panda &middot;
+                    X-WING: Ti Kawamoto &middot;
+                    CORSAIR &amp; PHANTOM: mastjie
+                    <br>All via Poly Pizza &middot; CC-BY 3.0
+                </div>
+            </div>
+        </div>
+
+        <!-- Worlds selection screen -->
+        <div id="worldsScreen" style="display:none;">
+            <div class="settings-title">WORLDS</div>
+            <div class="menu-subtitle" style="margin-bottom:12px;">Choose your battlefield</div>
+            <div class="menu-line"></div>
+            <div class="menu-items" id="worldsList"></div>
+        </div>
+
+        <!-- Challenge select screen -->
+        <div id="challengeSelectScreen" style="display:none;">
+            <div class="settings-title">CHALLENGES</div>
+            <div class="menu-line" style="margin-bottom:8px;"></div>
+            <div id="challengeList" style="display:flex; flex-direction:column; gap:16px; max-height:70vh; overflow-y:auto; padding:4px 8px 4px 4px; width:100%; max-width:680px;"></div>
+        </div>
+
+        <!-- Achievements screen -->
+        <div id="achievementsScreen" style="display:none;">
+            <div class="settings-title">ACHIEVEMENTS</div>
+            <div class="menu-subtitle" id="trophyProgress" style="margin-bottom:12px;"></div>
+            <div class="menu-line"></div>
+            <div id="trophyGrid"></div>
+            <div style="margin-top:16px;">
+                <div class="menu-item" data-mode="back" tabindex="0">
+                    <span class="menu-item-icon">&#9664;</span>
+                    <span class="menu-item-label">BACK</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Highscores screen -->
+        <div id="highscoresScreen" style="display:none;">
+            <div class="settings-title">HIGHSCORES</div>
+            <div class="menu-subtitle" style="margin-bottom:12px;">Top 10 per mode</div>
+            <div class="menu-line"></div>
+            <div id="highscoreTabs" style="display:flex; gap:8px; margin-bottom:12px;"></div>
+            <div id="highscoreList" style="width:100%; max-width:500px;"></div>
+            <div style="margin-top:16px;">
+                <div class="menu-item" data-mode="back" tabindex="0">
+                    <span class="menu-item-icon">&#9664;</span>
+                    <span class="menu-item-label">BACK</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trophy toast notification -->
+        <div id="trophy-toast">
+            <div id="trophy-toast-icon"></div>
+            <div>
+                <div id="trophy-toast-label">TROPHY UNLOCKED</div>
+                <div id="trophy-toast-tier" class="bronze"></div>
+                <div id="trophy-toast-name"></div>
+            </div>
+        </div>
+
+        <!-- Mission objective HUD (shown during challenge gameplay) -->
+        <div id="hudObjective" style="
+            display: none;
+            position: absolute;
+            top: 48px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            pointer-events: none;
+            text-align: center;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 20px;
+            border: 1px solid rgba(0,255,255,0.2);
+            border-radius: 6px;
+        ">
+            <div id="objectiveTitle" style="
+                font-size: 8px; color: rgba(255,204,0,0.9);
+                letter-spacing: 3px; margin-bottom: 6px;
+                text-shadow: 0 0 6px rgba(255,204,0,0.5);
+            "></div>
+            <div id="objectiveText" style="
+                font-size: 12px; color: #00ffff;
+                text-shadow: 0 0 10px rgba(0,255,255,0.6);
+                letter-spacing: 2px;
+            "></div>
+            <div id="objectiveBar" style="
+                width: 160px; height: 3px; margin: 6px auto 0;
+                background: rgba(0,255,255,0.15); border-radius: 2px;
+                overflow: hidden;
+            ">
+                <div id="objectiveFill" style="
+                    width: 0%; height: 100%;
+                    background: #00ffff; border-radius: 2px;
+                    box-shadow: 0 0 6px #00ffff;
+                    transition: width 0.3s;
+                "></div>
+            </div>
+            <div id="objectiveTime" style="
+                font-size: 7px; color: rgba(255,100,100,0.7);
+                letter-spacing: 2px; margin-top: 4px;
+            "></div>
+        </div>
+
+        <!-- Mission complete/fail splash (auto-continue overlay) -->
+        <div id="missionSplash" style="
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 110;
+            pointer-events: none;
+            font-family: 'Press Start 2P', monospace;
+        ">
+            <div style="
+                position: absolute; top: 50%; left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+            ">
+                <div id="splashResult" style="
+                    font-size: 22px; letter-spacing: 6px;
+                    margin-bottom: 16px;
+                    color: #00ffcc;
+                    text-shadow: 0 0 15px currentColor;
+                "></div>
+                <div id="splashScore" style="
+                    font-size: 10px; color: #00ffff;
+                    letter-spacing: 2px; margin-bottom: 12px;
+                "></div>
+                <div id="splashStats" style="
+                    font-size: 7px; color: rgba(0,255,255,0.6);
+                    letter-spacing: 2px; line-height: 2.2;
+                    margin-bottom: 16px;
+                "></div>
+                <div id="splashRank" style="
+                    font-size: 36px; letter-spacing: 8px;
+                    margin-bottom: 16px;
+                    text-shadow: 0 0 30px currentColor;
+                "></div>
+                <div id="splashNext" style="
+                    font-size: 28px; color: rgba(255,255,255,0.8);
+                    letter-spacing: 4px;
+                    text-shadow: 0 0 20px rgba(255,255,255,0.5);
+                "></div>
+            </div>
+        </div>
+
+        <!-- Remap controller screen -->
+        <!-- Keyboard remap screen -->
+        <div id="remapKbScreen" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:radial-gradient(ellipse at center, rgba(0,8,20,0.55) 0%, rgba(0,0,0,0.75) 100%); z-index:200; display:none; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:3vh; overflow-y:auto; -webkit-overflow-scrolling:touch;">
+            <div class="settings-title">REMAP KEYBOARD</div>
+            <div class="menu-line"></div>
+            <div id="kbRemapTabs" style="display:flex; gap:8px; margin-bottom:12px;"></div>
+            <div id="kbRemapList" style="width:100%; max-width:500px;"></div>
+            <div id="kbRemapCapture" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:300; display:none; flex-direction:column; align-items:center; justify-content:center; font-family:'Press Start 2P',monospace;">
+                <div style="color:#ffcc00; font-size:12px; letter-spacing:4px; text-shadow:0 0 15px rgba(255,204,0,0.6);">PRESS A KEY</div>
+                <div id="kbRemapAction" style="color:rgba(0,255,255,0.5); font-size:8px; letter-spacing:3px; margin-top:12px;"></div>
+                <div style="color:rgba(255,255,255,0.3); font-size:7px; letter-spacing:2px; margin-top:20px;">ESC TO CANCEL</div>
+            </div>
+            <div class="menu-items" style="margin-top:12px;">
+                <div class="menu-item" data-mode="resetkb" tabindex="0">
+                    <span class="menu-item-icon">&#8635;</span>
+                    <span class="menu-item-label">RESET TO DEFAULT</span>
+                </div>
+                <div class="menu-item" data-mode="back" tabindex="0">
+                    <span class="menu-item-icon">&#9664;</span>
+                    <span class="menu-item-label">BACK</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="remapScreen" style="display:none;">
+            <div class="settings-title">REMAP</div>
+            <div class="menu-line"></div>
+            <div id="remapControllerName" class="settings-gp-status">No gamepad detected</div>
+
+            <!-- Wireframe controller silhouette -->
+            <div class="remap-controller-wrap">
+                <svg viewBox="0 0 400 240" class="remap-controller">
+                    <!-- Body shell -->
+                    <path d="M 80 60 Q 50 60 40 100 L 30 180 Q 30 200 60 200 L 100 200 Q 120 200 130 180 L 140 150 L 260 150 L 270 180 Q 280 200 300 200 L 340 200 Q 370 200 370 180 L 360 100 Q 350 60 320 60 L 250 60 Q 220 60 210 75 L 200 90 L 190 75 Q 180 60 150 60 Z"
+                          fill="rgba(0,20,40,0.6)" stroke="rgba(0,255,255,0.4)" stroke-width="1.5"/>
+
+                    <!-- Left stick (axis 0/1) -->
+                    <circle data-input="axis-0" cx="85" cy="120" r="14" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <circle data-input="axis-0-dot" cx="85" cy="120" r="4" fill="rgba(0,255,255,0.6)"/>
+
+                    <!-- D-pad -->
+                    <rect data-input="button-12" x="138" y="105" width="14" height="14" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <rect data-input="button-13" x="138" y="135" width="14" height="14" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <rect data-input="button-14" x="123" y="120" width="14" height="14" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <rect data-input="button-15" x="153" y="120" width="14" height="14" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+
+                    <!-- Right stick -->
+                    <circle data-input="axis-2" cx="245" cy="160" r="14" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <circle data-input="axis-2-dot" cx="245" cy="160" r="4" fill="rgba(0,255,255,0.6)"/>
+
+                    <!-- Face buttons (A, B, X, Y) -->
+                    <circle data-input="button-0" cx="305" cy="135" r="9" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <text data-input="button-0-label" x="305" y="139" text-anchor="middle" fill="rgba(0,255,255,0.7)" font-size="9" font-family="Press Start 2P">A</text>
+
+                    <circle data-input="button-1" cx="325" cy="115" r="9" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <text data-input="button-1-label" x="325" y="119" text-anchor="middle" fill="rgba(0,255,255,0.7)" font-size="9" font-family="Press Start 2P">B</text>
+
+                    <circle data-input="button-2" cx="285" cy="115" r="9" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <text data-input="button-2-label" x="285" y="119" text-anchor="middle" fill="rgba(0,255,255,0.7)" font-size="9" font-family="Press Start 2P">X</text>
+
+                    <circle data-input="button-3" cx="305" cy="95" r="9" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <text data-input="button-3-label" x="305" y="99" text-anchor="middle" fill="rgba(0,255,255,0.7)" font-size="9" font-family="Press Start 2P">Y</text>
+
+                    <!-- Shoulders (LB / RB) -->
+                    <rect data-input="button-4" x="55" y="50" width="40" height="10" rx="3" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <rect data-input="button-5" x="305" y="50" width="40" height="10" rx="3" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+
+                    <!-- Triggers (LT / RT) -->
+                    <rect data-input="button-6" x="55" y="32" width="40" height="14" rx="3" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <text data-input="button-6-label" x="75" y="43" text-anchor="middle" fill="rgba(0,255,255,0.6)" font-size="7" font-family="Press Start 2P">LT</text>
+                    <rect data-input="button-7" x="305" y="32" width="40" height="14" rx="3" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1.2"/>
+                    <text data-input="button-7-label" x="325" y="43" text-anchor="middle" fill="rgba(0,255,255,0.6)" font-size="7" font-family="Press Start 2P">RT</text>
+
+                    <!-- Back / Start -->
+                    <rect data-input="button-8" x="160" y="95" width="20" height="6" rx="2" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1"/>
+                    <rect data-input="button-9" x="220" y="95" width="20" height="6" rx="2" fill="rgba(0,40,60,0.6)" stroke="rgba(0,255,255,0.5)" stroke-width="1"/>
+                </svg>
+            </div>
+
+            <div id="remapPrompt" class="remap-prompt"></div>
+
+            <div class="remap-list" id="remapList">
+                <!-- Filled in by JS -->
+            </div>
+
+            <div class="menu-items">
+                <div class="menu-item" data-mode="reset" tabindex="0">
+                    <span class="menu-item-icon">&#8635;</span>
+                    <span class="menu-item-label">RESET TO DEFAULTS</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+                <div class="menu-item" data-mode="back" tabindex="0">
+                    <span class="menu-item-icon">&#9664;</span>
+                    <span class="menu-item-label">BACK</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hangar — pick your ship -->
+        <div id="hangarScreen" style="display:none;">
+            <!-- Full-screen 3D scene of the hangar interior -->
+            <canvas id="hangarCanvas"></canvas>
+
+            <!-- UI overlay on top of the canvas -->
+            <div id="hangarOverlay">
+                <div class="hangar-top">
+                    <div class="settings-title">HANGAR</div>
+                    <div class="menu-line"></div>
+                </div>
+
+                <div class="hangar-bottom">
+                    <div class="hangar-info">
+                        <div class="hangar-counter" id="hangarCounter">1 / 1</div>
+                        <div class="hangar-name" id="hangarShipName">SCOUT</div>
+                        <div class="hangar-desc" id="hangarShipDesc">The standard fighter.</div>
+                        <div class="hangar-equipped" id="hangarEquipped">EQUIPPED</div>
+                    </div>
+
+                    <div class="hangar-browse-btns">
+                        <div class="hangar-browse-btn" id="hangarPrev">&#9664;</div>
+                        <div class="hangar-browse-btn" id="hangarNext">&#9654;</div>
+                    </div>
+                    <div class="menu-items hangar-actions">
+                        <div class="menu-item" data-mode="equip" tabindex="0">
+                            <span class="menu-item-icon">&#10003;</span>
+                            <span class="menu-item-label">EQUIP THIS SHIP</span>
+                            <span class="menu-item-desc"></span>
+                        </div>
+                        <div class="menu-item" data-mode="back" tabindex="0">
+                            <span class="menu-item-icon">&#9664;</span>
+                            <span class="menu-item-label">BACK</span>
+                            <span class="menu-item-desc"></span>
+                        </div>
+                    </div>
+
+                    <div class="hangar-hint">&larr; &rarr; BROWSE &nbsp;&middot;&nbsp; ENTER EQUIP &nbsp;&middot;&nbsp; ESC BACK</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How To Play screen -->
+        <div id="howToPlayScreen" style="display:none;">
+            <div class="settings-title">HOW TO PLAY</div>
+            <div class="menu-line"></div>
+
+            <div class="howto-grid">
+                <div class="howto-col">
+                    <div class="howto-section">
+                        <div class="howto-header" style="color:#00ffff;">PLAYER 1 — KEYBOARD</div>
+                        <div class="howto-row"><span class="howto-key">&larr; &rarr;</span> Rotate</div>
+                        <div class="howto-row"><span class="howto-key">&uarr;</span> Thrust</div>
+                        <div class="howto-row"><span class="howto-key">&darr;</span> Brake</div>
+                        <div class="howto-row"><span class="howto-key">/ &nbsp; .</span> Shoot</div>
+                        <div class="howto-row"><span class="howto-key">R-SHIFT</span> Warp</div>
+                        <div class="howto-row"><span class="howto-key">ESC</span> Pause</div>
+                    </div>
+                    <div class="howto-section">
+                        <div class="howto-header" style="color:#ff44dd;">PLAYER 2 — KEYBOARD (CO-OP)</div>
+                        <div class="howto-row"><span class="howto-key">A &nbsp; D</span> Rotate</div>
+                        <div class="howto-row"><span class="howto-key">W</span> Thrust</div>
+                        <div class="howto-row"><span class="howto-key">S</span> Brake</div>
+                        <div class="howto-row"><span class="howto-key">SPACE</span> Shoot</div>
+                        <div class="howto-row"><span class="howto-key">L-SHIFT</span> Warp</div>
+                        <div class="howto-hint" style="margin-top:8px;">Controls can be remapped in Settings</div>
+                    </div>
+                </div>
+
+                <div class="howto-col">
+                    <div class="howto-section">
+                        <div class="howto-header">GAMEPAD (P1 OR P2)</div>
+                        <div class="howto-row"><span class="howto-key">D-PAD / STICK</span> Rotate</div>
+                        <div class="howto-row"><span class="howto-key">R2 / RT</span> Thrust</div>
+                        <div class="howto-row"><span class="howto-key">L2 / LT</span> Brake</div>
+                        <div class="howto-row"><span class="howto-key">A / B</span> Shoot</div>
+                        <div class="howto-row"><span class="howto-key">X / Y</span> Warp</div>
+                        <div class="howto-row"><span class="howto-key">START</span> Pause</div>
+                        <div class="howto-hint">P1 = first connected gamepad &middot; P2 = second gamepad</div>
+                    </div>
+
+                    <div class="howto-section">
+                        <div class="howto-header" style="color:#ffaa00;">TIPS</div>
+                        <div class="howto-tip">&bull; Pink supply drones drop power-ups when shot</div>
+                        <div class="howto-tip">&bull; Teleport finds the safest spot on screen</div>
+                        <div class="howto-tip">&bull; In co-op, fly close to a downed teammate to revive</div>
+                        <div class="howto-tip">&bull; Asteroids wrap around the screen edges</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-items">
+                <div class="menu-item" data-mode="back" tabindex="0">
+                    <span class="menu-item-icon">&#9664;</span>
+                    <span class="menu-item-label">BACK</span>
+                    <span class="menu-item-desc"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pre-game splash overlay (controls reminder shown briefly when starting a mode) -->
+        <div id="preGameSplash" style="display:none;">
+            <div class="splash-inner">
+                <div class="splash-title" id="splashTitle">CAMPAIGN</div>
+                <div class="splash-line"></div>
+                <div id="splashContent"></div>
+                <div class="splash-hint" id="splashHint">PRESS ANY BUTTON TO BEGIN</div>
+            </div>
+        </div>
+
+        <div id="loadingMessage">
+            <div class="load-title">ASTEROID STORM</div>
+            <div class="load-bar-track"><div class="load-bar-fill"></div></div>
+            <div class="load-hint">LOADING</div>
+        </div>
+    </div>
+
+    <!-- Three.js local -->
+    <script src="lib/three.min.js"></script>
+    <script src="lib/GLTFLoader.js"></script>
+    <script src="lib/meshopt_decoder.js"></script>
+    <script src="lib/CopyShader.js"></script>
+    <script src="lib/LuminosityHighPassShader.js"></script>
+    <script src="lib/EffectComposer.js"></script>
+    <script src="lib/RenderPass.js"></script>
+    <script src="lib/ShaderPass.js"></script>
+    <script src="lib/UnrealBloomPass.js"></script>
+    <script>
+        console.log('Three.js loaded, version:', typeof THREE !== 'undefined' ? 'available' : 'NOT FOUND');
+    </script>
+
+    <!-- GameVolt postMessage bridge + GA4 tracker -->
+    <script>
+    function gvPost(action, payload) {
+      if (window.parent !== window) {
+        try { window.parent.postMessage({ type: 'gamevolt', action: action, gameId: 'asteroid-storm', payload: payload || {} }, '*'); } catch(e) {}
+      }
+    }
+    var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
+    start:function(n){this.gameName=n;this.startTime=Date.now();this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',{game_name:n});if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
+    end:function(o){o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'});if(this.timerInterval)clearInterval(this.timerInterval);},
+    _checkMilestones:function(){if(!this.startTime)return;var t=(Date.now()-this.startTime)/1000;if(t>=30&&!this.hasTracked30s){this.hasTracked30s=true;this._send('game_play_30s',{game_name:this.gameName});}if(t>=60&&!this.hasTracked60s){this.hasTracked60s=true;this._send('game_play_60s',{game_name:this.gameName});}},
+    _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}if(typeof gtag==='function'){gtag('event',n,p);return;}}};
+    if(window.parent!==window){var s=document.getElementById('seo-content');if(s)s.style.display='none';}
+    </script>
+    <!-- GameVolt SDK -->
+    <script src="/sdk/gamevolt.js"></script>
+
+    <!-- Game Scripts -->
+    <script src="js/settings.js"></script>
+    <script src="js/highscores.js"></script>
+    <script src="js/worlds.js"></script>
+    <script src="js/challenges.js"></script>
+    <script src="js/achievements.js"></script>
+    <script src="js/keyboard-bindings.js"></script>
+    <script src="js/touch-controls.js"></script>
+    <script src="js/boss-asteroid.js"></script>
+    <script src="js/physics.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/asteroid.js"></script>
+    <script src="js/powerups.js"></script>
+    <script src="js/projectile.js"></script>
+    <script src="js/ufo.js"></script>
+    <script src="js/ships.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/hangar.js"></script>
+    <script src="js/waves.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/gamepad-bindings.js"></script>
+    <script src="js/menu.js"></script>
+    <script src="js/background.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

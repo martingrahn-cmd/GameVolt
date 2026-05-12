@@ -101,6 +101,18 @@
     <priority>0.8</priority>
   </url>
 
+  <url>
+    <loc>https://gamevolt.io/games/asteroid-storm/</loc>
+    <lastmod>2026-05-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://gamevolt.io/asteroid-storm/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- Solitaire variants (separate content — not part of landing-page pattern) -->
   <url>
     <loc>https://gamevolt.io/solitaire/klondike.html</loc>

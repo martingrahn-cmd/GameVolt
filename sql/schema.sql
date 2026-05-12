@@ -364,7 +364,8 @@ INSERT INTO games (id, title, thumbnail_url) VALUES
   ('sudoku',      'Sudoku',        '/assets/thumbnails/sudoku.webp'),
   ('manga-match3','Manga Match',   '/assets/thumbnails/manga-match3.webp'),
   ('golden-glyphs','Golden Glyphs','/assets/thumbnails/golden-glyphs.webp'),
-  ('one-stroke',  'One Stroke',    '/assets/thumbnails/one-stroke.webp')
+  ('one-stroke',  'One Stroke',    '/assets/thumbnails/one-stroke.webp'),
+  ('asteroid-storm','Asteroid Storm','/assets/thumbnails/asteroid-storm.webp')
 ON CONFLICT (id) DO NOTHING;
 
 -- Legacy alias: early builds used 'clickrush' for what is now 'taprush'.
@@ -699,5 +700,40 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   ('golden-glyphs-ach_ta_10000',       'golden-glyphs', 'Time Lord',        'Score 10,000 in Time Attack',             '⌛', 'gold', 29),
   ('golden-glyphs-ach_daily_30',       'golden-glyphs', 'Loyal Player',     'Complete 30 daily challenges',            '📆', 'gold', 30),
   -- Golden Glyphs: Platinum (1)
-  ('golden-glyphs-ach_platinum',       'golden-glyphs', 'Golden Legend',    'Unlock all other achievements',           '👼', 'platinum', 31)
+  ('golden-glyphs-ach_platinum',       'golden-glyphs', 'Golden Legend',    'Unlock all other achievements',           '👼', 'platinum', 31),
+  -- Asteroid Storm: Bronze (15)
+  ('asteroid-storm-first_kill',       'asteroid-storm', 'First Blood',       'Destroy your first asteroid',              '☄️', 'bronze', 1),
+  ('asteroid-storm-score_1000',       'asteroid-storm', 'Getting Started',   'Reach 1,000 points',                       '🎯', 'bronze', 2),
+  ('asteroid-storm-score_5000',       'asteroid-storm', 'Marksman',          'Reach 5,000 points',                       '🎯', 'bronze', 3),
+  ('asteroid-storm-combo_5',          'asteroid-storm', 'Combo Rookie',      'Reach a 5x combo',                         '🔥', 'bronze', 4),
+  ('asteroid-storm-first_teleport',   'asteroid-storm', 'Blink',             'Use teleport for the first time',          '⚡', 'bronze', 5),
+  ('asteroid-storm-first_powerup',    'asteroid-storm', 'Power Up',          'Pick up your first power-up',              '⬆️', 'bronze', 6),
+  ('asteroid-storm-survive_60',       'asteroid-storm', 'Survivor',          'Survive 60 seconds in campaign',           '🛡️', 'bronze', 7),
+  ('asteroid-storm-ufo_kill',         'asteroid-storm', 'UFO Down',          'Destroy your first hostile UFO',           '🛸', 'bronze', 8),
+  ('asteroid-storm-shield_save',      'asteroid-storm', 'Close Call',        'Shield absorbs a hit',                     '💠', 'bronze', 9),
+  ('asteroid-storm-bomb_5',           'asteroid-storm', 'Blast Zone',        'Destroy 5+ asteroids with one bomb',       '💣', 'bronze', 10),
+  ('asteroid-storm-mission_1',        'asteroid-storm', 'Enlisted',          'Complete your first challenge mission',    '📋', 'bronze', 11),
+  ('asteroid-storm-mission_5',        'asteroid-storm', 'Recruit',           'Complete 5 challenge missions',            '📋', 'bronze', 12),
+  ('asteroid-storm-spread_kills_10',  'asteroid-storm', 'Fan Favorite',      'Destroy 10 asteroids with spread shot',   '🔫', 'bronze', 13),
+  ('asteroid-storm-homing_kills_10',  'asteroid-storm', 'Lock On',           'Destroy 10 asteroids with homing',        '🔫', 'bronze', 14),
+  ('asteroid-storm-railgun_kills_10', 'asteroid-storm', 'Railgunner',        'Destroy 10 asteroids with railgun',       '🔫', 'bronze', 15),
+  -- Asteroid Storm: Silver (10)
+  ('asteroid-storm-score_25000',      'asteroid-storm', 'Sharpshooter',      'Reach 25,000 points',                      '⭐', 'silver', 16),
+  ('asteroid-storm-combo_15',         'asteroid-storm', 'Combo Master',      'Reach a 20x combo',                        '🔥', 'silver', 17),
+  ('asteroid-storm-survive_180',      'asteroid-storm', 'Iron Will',         'Survive 5 minutes in campaign',            '🛡️', 'silver', 18),
+  ('asteroid-storm-ufo_kills_10',     'asteroid-storm', 'Saucer Slayer',     'Destroy 10 hostile UFOs (career)',         '🛸', 'silver', 19),
+  ('asteroid-storm-boss_kill',        'asteroid-storm', 'Titan Slayer',      'Defeat a boss asteroid',                   '👑', 'silver', 20),
+  ('asteroid-storm-mission_15',       'asteroid-storm', 'Veteran',           'Complete 15 challenge missions',           '🎖️', 'silver', 21),
+  ('asteroid-storm-no_damage_60',     'asteroid-storm', 'Untouchable',       'Survive 90s without taking damage',        '✨', 'silver', 22),
+  ('asteroid-storm-asteroids_500',    'asteroid-storm', 'Rock Crusher',      'Destroy 1,000 asteroids (career)',         '💎', 'silver', 23),
+  ('asteroid-storm-all_ships',        'asteroid-storm', 'Fleet Commander',   'Play campaign with all 6 ships',           '🚀', 'silver', 24),
+  ('asteroid-storm-speed_run',        'asteroid-storm', 'Speed Demon',       'Reach 10,000 points in under 60 seconds', '⏱️', 'silver', 25),
+  -- Asteroid Storm: Gold (5)
+  ('asteroid-storm-score_100000',     'asteroid-storm', 'Legend',            'Reach 200,000 points',                     '🏆', 'gold', 26),
+  ('asteroid-storm-combo_25',         'asteroid-storm', 'Combo God',         'Reach a 35x combo',                        '🔥', 'gold', 27),
+  ('asteroid-storm-mission_30',       'asteroid-storm', 'Mission Complete',  'Complete all 30 challenge missions',       '🏅', 'gold', 28),
+  ('asteroid-storm-survive_300',      'asteroid-storm', 'Endurance',         'Survive 8 minutes in campaign',            '🛡️', 'gold', 29),
+  ('asteroid-storm-asteroids_2000',   'asteroid-storm', 'Asteroid Annihilator','Destroy 5,000 asteroids (career)',       '💎', 'gold', 30),
+  -- Asteroid Storm: Platinum (1)
+  ('asteroid-storm-platinum',         'asteroid-storm', 'Storm Chaser',      'Unlock all 30 trophies',                   '🌟', 'platinum', 31)
 ON CONFLICT (id) DO NOTHING;

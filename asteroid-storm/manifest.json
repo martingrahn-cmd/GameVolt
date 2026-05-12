@@ -1,0 +1,18 @@
+{
+    "name": "Asteroid Storm",
+    "short_name": "Asteroid Storm",
+    "start_url": ".",
+    "display": "fullscreen",
+    "orientation": "landscape",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "description": "Arcade space shooter with challenges, achievements, and co-op",
+    "icons": [
+        {
+            "src": "media/cover.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ]
+}
