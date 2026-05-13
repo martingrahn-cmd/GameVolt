@@ -1326,6 +1326,8 @@
     if (widget) return;
     // Don't show widget inside iframe (parent page has its own login UI)
     if (window.self !== window.top) return;
+    // Don't show widget on portal pages that have their own login button
+    if (document.getElementById('gv-login-btn')) return;
     widget = document.createElement('div');
     widget.id = 'gv-user-widget';
     widget.innerHTML =
