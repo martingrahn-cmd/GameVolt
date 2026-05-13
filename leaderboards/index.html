@@ -687,6 +687,7 @@
 
         function initSDK() {
             if (!window.GameVolt) return;
+            GameVolt.init('leaderboards');
             var user = GameVolt.auth.getUser();
             if (user) onAuth(user);
             GameVolt.auth.onStateChange(function(ev, session) {
