@@ -1985,9 +1985,10 @@ class Game {
         }
         const best = (typeof Highscores !== 'undefined') ? Highscores.get(this.gameMode) : 0;
 
-        // Submit to GameVolt leaderboard
+        // Submit to GameVolt leaderboard (always use 'default' mode for the
+        // global leaderboard — local highscores keep per-mode granularity)
         if (window.GameVolt) {
-            GameVolt.leaderboard.submit(this.ui.score, { mode: this.gameMode || 'default' });
+            GameVolt.leaderboard.submit(this.ui.score, { mode: 'default' });
         }
 
         // Notify portal via postMessage
