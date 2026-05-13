@@ -307,6 +307,11 @@ class Game {
             if (ship) Achievements.addShipUsed(ship.id);
         }
 
+        // Restart play-time tracker for new run
+        if (typeof GameVoltTracker !== 'undefined') {
+            GameVoltTracker.start('AsteroidStorm');
+        }
+
         // Show touch controls on mobile
         if (this.touchControls) this.touchControls.show();
 
@@ -1980,6 +1985,21 @@ class Game {
         }
         const best = (typeof Highscores !== 'undefined') ? Highscores.get(this.gameMode) : 0;
 
+        // Submit to GameVolt leaderboard
+        if (window.GameVolt) {
+            GameVolt.leaderboard.submit(this.ui.score, { mode: this.gameMode || 'default' });
+        }
+
+        // Notify portal via postMessage
+        if (typeof gvPost === 'function') {
+            gvPost('game_over', { score: this.ui.score, mode: this.gameMode, wave: this.waves ? this.waves.getDifficulty() : 0 });
+        }
+
+        // End play-time tracking
+        if (typeof GameVoltTracker !== 'undefined' && GameVoltTracker.startTime) {
+            GameVoltTracker.end({ score: this.ui.score, outcome: 'game_over' });
+        }
+
         // Hold on the explosion + shard spread for ~1.3s before fading the
         // game-over screen in. Music takes over earlier so its swell
         // carries into the modal reveal.
@@ -2731,6 +2751,60 @@ function initGame() {
             if (game.audio && game.audio.muted) {
                 const ind = document.getElementById('muteIndicator');
                 if (ind) ind.classList.add('show');
+            }
+
+            // ===== GameVolt SDK integration =====
+            if (window.GameVolt) {
+                GameVolt.init('asteroid-storm');
+                GameVolt.save.registerMigration({
+                    keys: ['astroidStorm.highscores', 'astroidStorm.achievements', 'astroidStorm.achievementStats'],
+                    merge: function(local, cloud) {
+                        // Highscores: merge per-mode top-10 lists
+                        var lh = local['astroidStorm.highscores'] || {};
+                        var ch = cloud || {};
+                        var merged = {};
+                        var allModes = new Set(Object.keys(lh).concat(Object.keys(ch)));
+                        allModes.forEach(function(mode) {
+                            var localEntries = Array.isArray(lh[mode]) ? lh[mode] : (typeof lh[mode] === 'number' && lh[mode] > 0 ? [{ score: lh[mode], date: null, stats: null }] : []);
+                            var cloudEntries = Array.isArray(ch[mode]) ? ch[mode] : (typeof ch[mode] === 'number' && ch[mode] > 0 ? [{ score: ch[mode], date: null, stats: null }] : []);
+                            var all = localEntries.concat(cloudEntries);
+                            all.sort(function(a, b) { return b.score - a.score; });
+                            // Deduplicate by score+date
+                            var seen = {};
+                            merged[mode] = all.filter(function(e) {
+                                var key = e.score + '|' + (e.date || '');
+                                if (seen[key]) return false;
+                                seen[key] = true;
+                                return true;
+                            }).slice(0, 10);
+                        });
+                        return merged;
+                    },
+                    getScores: function(local) {
+                        var hs = local['astroidStorm.highscores'];
+                        if (!hs) return [];
+                        var scores = [];
+                        for (var mode in hs) {
+                            var entries = Array.isArray(hs[mode]) ? hs[mode] : [];
+                            if (entries.length > 0) {
+                                scores.push({ score: entries[0].score, mode: mode });
+                            }
+                        }
+                        return scores;
+                    },
+                    getAchievements: function(local) {
+                        var achs = local['astroidStorm.achievements'];
+                        if (!achs || typeof achs !== 'object') return [];
+                        return Object.keys(achs).map(function(id) {
+                            return { id: id, unlocked_at: achs[id] };
+                        });
+                    }
+                });
+            }
+
+            // Start play-time tracker
+            if (typeof GameVoltTracker !== 'undefined') {
+                GameVoltTracker.start('AsteroidStorm');
             }
 
             console.log('✓ Asteroid Storm initialized successfully!');
