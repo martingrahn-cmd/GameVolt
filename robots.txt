@@ -30,6 +30,8 @@ Allow: /
 Disallow: /game/
 Disallow: /tag/
 Disallow: /category/
+# Duplicate game URLs — canonical versions live at /[name]/
+Disallow: /games/
 # Internal / dynamic surfaces that shouldn't burn crawl budget.
 Disallow: /rest/
 Disallow: /play/
