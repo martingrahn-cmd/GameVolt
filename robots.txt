@@ -26,10 +26,8 @@ Allow: /
 # Default policy for all other crawlers (Googlebot, Bingbot, DuckDuckBot, ...).
 User-agent: *
 Allow: /
-# Legacy paths from the third-party game feed era — permanently gone.
-Disallow: /game/
-Disallow: /tag/
-Disallow: /category/
+# Legacy paths return 410 Gone via Cloudflare Worker — allow crawl so Google sees the 410.
+# /game/, /tag/, /category/
 # Duplicate game URLs — canonical versions live at /[name]/
 Disallow: /games/
 # Internal / dynamic surfaces that shouldn't burn crawl budget.
