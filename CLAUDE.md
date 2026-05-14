@@ -18,7 +18,7 @@ This is **GameVolt.io** (rebranded from PulseGames.eu) — a curated HTML5 game 
 
 ## Current Priority
 
-1. Roll out SDK to remaining games (TapRush, BlockStorm, Solitaire, Snake, Axeluga)
+1. SDK rollout: done for all games except Snake & Solitaire (init only, missing leaderboard + migration)
 2. Submit HoverDash to Poki / CrazyGames
 3. Daily challenges & streak tracking
 4. Ratings, favorites, community features
