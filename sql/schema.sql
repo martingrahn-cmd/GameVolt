@@ -365,7 +365,8 @@ INSERT INTO games (id, title, thumbnail_url) VALUES
   ('manga-match3','Manga Match',   '/assets/thumbnails/manga-match3.webp'),
   ('golden-glyphs','Golden Glyphs','/assets/thumbnails/golden-glyphs.webp'),
   ('one-stroke',  'One Stroke',    '/assets/thumbnails/one-stroke.webp'),
-  ('asteroid-storm','Asteroid Storm','/assets/thumbnails/asteroid-storm.webp')
+  ('asteroid-storm','Asteroid Storm','/assets/thumbnails/asteroid-storm.webp'),
+  ('minesweeper', 'Minesweeper',   '/assets/thumbnails/minesweeper.webp')
 ON CONFLICT (id) DO NOTHING;
 
 -- Legacy alias: early builds used 'clickrush' for what is now 'taprush'.
@@ -735,5 +736,41 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   ('asteroid-storm-survive_300',      'asteroid-storm', 'Endurance',         'Survive 8 minutes in campaign',            '🛡️', 'gold', 29),
   ('asteroid-storm-asteroids_2000',   'asteroid-storm', 'Asteroid Annihilator','Destroy 5,000 asteroids (career)',       '💎', 'gold', 30),
   -- Asteroid Storm: Platinum (1)
-  ('asteroid-storm-platinum',         'asteroid-storm', 'Storm Chaser',      'Unlock all 30 trophies',                   '🌟', 'platinum', 31)
+  ('asteroid-storm-platinum',         'asteroid-storm', 'Storm Chaser',      'Unlock all 30 trophies',                   '🌟', 'platinum', 31),
+
+  -- Minesweeper: Bronze (15)
+  ('minesweeper-first_win',       'minesweeper', 'First Clear',         'Win your first game',                 '🏆', 'bronze', 1),
+  ('minesweeper-easy_clear',      'minesweeper', 'Easy Peasy',          'Win on Easy',                         '🟢', 'bronze', 2),
+  ('minesweeper-medium_clear',    'minesweeper', 'Stepping Up',         'Win on Medium',                       '🟡', 'bronze', 3),
+  ('minesweeper-hard_clear',      'minesweeper', 'Brave Heart',         'Win on Hard',                         '🔴', 'bronze', 4),
+  ('minesweeper-first_flag',      'minesweeper', 'Red Flag',            'Place your first flag',               '🚩', 'bronze', 5),
+  ('minesweeper-daily_first',     'minesweeper', 'Daily Debut',         'Complete your first Daily',           '📅', 'bronze', 6),
+  ('minesweeper-games_10',        'minesweeper', 'Getting Started',     'Play 10 games',                       '🎮', 'bronze', 7),
+  ('minesweeper-games_25',        'minesweeper', 'Regular',             'Play 25 games',                       '🕹️', 'bronze', 8),
+  ('minesweeper-wins_5',          'minesweeper', 'Handful',             'Win 5 games',                         '🖐️', 'bronze', 9),
+  ('minesweeper-wins_10',         'minesweeper', 'Double Digits',       'Win 10 games',                        '🔟', 'bronze', 10),
+  ('minesweeper-streak_3',        'minesweeper', 'Hat Trick',           'Win 3 games in a row',                '🎩', 'bronze', 11),
+  ('minesweeper-cascade_20',      'minesweeper', 'Chain Reaction',      'Reveal 20+ cells in one click',       '💥', 'bronze', 12),
+  ('minesweeper-speed_easy_60',   'minesweeper', 'Quick Clear',         'Win Easy under 60 seconds',           '💨', 'bronze', 13),
+  ('minesweeper-daily_3',         'minesweeper', 'Three-Peat',          '3-day Daily streak',                  '📆', 'bronze', 14),
+  ('minesweeper-endurance',       'minesweeper', 'Patience',            'Win a game over 5 minutes',           '🐢', 'bronze', 15),
+  -- Minesweeper: Silver (10)
+  ('minesweeper-speed_easy_30',   'minesweeper', 'Speed Demon',         'Win Easy under 30 seconds',           '⚡', 'silver', 16),
+  ('minesweeper-speed_med_120',   'minesweeper', 'Efficient Sweep',     'Win Medium under 2 minutes',          '🧹', 'silver', 17),
+  ('minesweeper-no_flags',        'minesweeper', 'Flagless Victory',    'Win without placing any flags',       '🎯', 'silver', 18),
+  ('minesweeper-games_50',        'minesweeper', 'Dedicated',           'Play 50 games',                       '🎖️', 'silver', 19),
+  ('minesweeper-games_100',       'minesweeper', 'Centurion',           'Play 100 games',                      '💯', 'silver', 20),
+  ('minesweeper-wins_25',         'minesweeper', 'Sharpshooter',        'Win 25 games',                        '🎯', 'silver', 21),
+  ('minesweeper-streak_5',        'minesweeper', 'On Fire',             'Win 5 games in a row',                '🔥', 'silver', 22),
+  ('minesweeper-all_modes',       'minesweeper', 'Well Rounded',        'Win on all three difficulties',       '🌐', 'silver', 23),
+  ('minesweeper-daily_7',         'minesweeper', 'Weekly Ritual',       '7-day Daily streak',                  '🗓️', 'silver', 24),
+  ('minesweeper-cascade_40',      'minesweeper', 'Avalanche',           'Reveal 40+ cells in one click',       '🌊', 'silver', 25),
+  -- Minesweeper: Gold (5)
+  ('minesweeper-speed_easy_15',   'minesweeper', 'Lightning',           'Win Easy under 15 seconds',           '⚡', 'gold', 26),
+  ('minesweeper-speed_hard_300',  'minesweeper', 'Hard & Fast',         'Win Hard under 5 minutes',            '🏎️', 'gold', 27),
+  ('minesweeper-wins_100',        'minesweeper', 'Mine Master',         'Win 100 games',                       '👑', 'gold', 28),
+  ('minesweeper-streak_10',       'minesweeper', 'Unstoppable',         'Win 10 games in a row',               '⭐', 'gold', 29),
+  ('minesweeper-daily_30',        'minesweeper', 'Monthly Devotion',    '30-day Daily streak',                 '📆', 'gold', 30),
+  -- Minesweeper: Platinum (1)
+  ('minesweeper-completionist',   'minesweeper', 'Completionist',       'Unlock all 30 other trophies',        '💎', 'platinum', 31)
 ON CONFLICT (id) DO NOTHING;

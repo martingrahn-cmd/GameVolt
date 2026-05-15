@@ -1,0 +1,2286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PY073ZX38N');
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#7c5cfc">
+<meta name="author" content="GameVolt">
+<meta name="robots" content="index, follow">
+
+<title>Minesweeper — Daily Challenge, No-Guess Mode | GameVolt.io</title>
+<meta name="description" content="Play Minesweeper free online — Easy, Medium and Hard boards plus a daily challenge and no-guess mode. Global leaderboards, 31 trophies, no download.">
+<meta name="keywords" content="minesweeper, minesweeper online, free minesweeper, play minesweeper, minesweeper game, daily minesweeper, no guess minesweeper, classic minesweeper, browser minesweeper, gamevolt">
+
+<link rel="canonical" href="https://gamevolt.io/minesweeper/">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gamevolt.io/minesweeper/">
+<meta property="og:site_name" content="GameVolt">
+<meta property="og:title" content="Minesweeper — Daily Challenge, No-Guess Mode | GameVolt.io">
+<meta property="og:description" content="Classic Minesweeper with a daily challenge, no-guess mode, leaderboards and 31 trophies. Clear the board without hitting a mine!">
+<meta property="og:image" content="https://gamevolt.io/assets/thumbnails/minesweeper.webp">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Minesweeper — Free Online Puzzle | GameVolt">
+<meta name="twitter:description" content="Classic Minesweeper with daily challenge, no-guess mode, leaderboards and trophies.">
+<meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/minesweeper.webp">
+
+<!-- Schema.org structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Minesweeper",
+  "alternateName": "GameVolt Minesweeper",
+  "description": "Classic Minesweeper online — clear the board without hitting a mine. Easy, Medium and Hard difficulties, a daily challenge, optional no-guess mode, global leaderboards and 31 trophies.",
+  "url": "https://gamevolt.io/minesweeper/",
+  "image": "https://gamevolt.io/assets/thumbnails/minesweeper.webp",
+  "genre": ["Puzzle", "Logic", "Strategy"],
+  "gamePlatform": "Web Browser",
+  "operatingSystem": "Any",
+  "applicationCategory": "Game",
+  "playMode": "SinglePlayer",
+  "inLanguage": "en",
+  "author": { "@type": "Organization", "name": "GameVolt", "url": "https://gamevolt.io/" },
+  "publisher": { "@type": "Organization", "name": "GameVolt", "url": "https://gamevolt.io/" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gamevolt.io/" },
+    { "@type": "ListItem", "position": 2, "name": "Puzzle Games", "item": "https://gamevolt.io/puzzle-games/" },
+    { "@type": "ListItem", "position": 3, "name": "Minesweeper", "item": "https://gamevolt.io/minesweeper/" }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1228;--bg2:#171d38;--bg3:#1e2545;
+  --text:#c8cce0;--text-dim:#7b82a8;--text-bright:#f0f2ff;
+  --accent:#7c5cfc;--accent-glow:rgba(124,92,252,0.3);
+  --cyan:#2de4ff;--green:#39ff7f;--red:#ff4a6d;--orange:#ff9f1c;--yellow:#ffc84a;--blue:#4da6ff;
+  --panel:#fff8eb;--panel-text:#1a1e33;
+  --cell-size:36px;--gap:2px;--radius:5px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;overflow:hidden}
+body{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  user-select:none;-webkit-user-select:none;
+  background:linear-gradient(145deg,#0f1228 0%,#161e3a 50%,#1a1835 100%)
+}
+
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+#fxCanvas{position:fixed;inset:0;z-index:50;pointer-events:none}
+
+/* Menu */
+#menu{
+  display:flex;flex-direction:column;align-items:center;gap:1.25rem;padding:2rem 1.5rem;
+  z-index:10;position:relative;max-width:380px;width:100%;margin:0 auto
+}
+#menuGrid{display:none}
+
+/* Title area */
+.menu-title{display:flex;flex-direction:column;align-items:center;gap:0.5rem;margin-bottom:0.25rem}
+.menu-title h1{
+  font-family:'Inter',sans-serif;font-size:2rem;font-weight:800;color:var(--text-bright);
+  letter-spacing:-0.02em;opacity:0;animation:menuFadeIn 0.5s 0.05s ease-out forwards
+}
+.menu-title .subtitle{
+  color:var(--text-dim);font-size:0.82rem;font-weight:400;
+  opacity:0;animation:menuFadeIn 0.5s 0.15s ease-out forwards
+}
+.mine-icons{display:none}
+.menu-divider{
+  width:36px;height:3px;background:linear-gradient(90deg,var(--cyan),var(--accent));border-radius:2px;
+  opacity:0;animation:menuFadeIn 0.4s 0.2s ease-out forwards
+}
+
+/* Buttons */
+.menu-buttons{display:flex;flex-direction:column;gap:0.55rem;width:100%}
+.diff-btn,.daily-btn{
+  background:var(--bg3);border:1px solid rgba(255,255,255,0.06);color:var(--text-bright);
+  padding:0.9rem 1.2rem;border-radius:12px;cursor:pointer;font-size:0.95rem;font-family:'Inter',sans-serif;
+  transition:all 0.2s ease;display:flex;justify-content:space-between;align-items:center;
+  position:relative;overflow:hidden;
+  opacity:0;transform:translateY(8px);
+  border-left:3px solid transparent
+}
+.diff-btn:hover,.daily-btn:hover{background:#252c52;transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+.diff-btn:active,.daily-btn:active{transform:scale(0.98);box-shadow:none}
+.diff-btn .info{color:var(--text-dim);font-size:0.75rem}
+.diff-btn .diff-label,.daily-btn .daily-label{font-weight:600;position:relative;z-index:1}
+
+/* Color-coded left borders */
+.diff-btn[data-diff="easy"]{border-left-color:#39ff7f}
+.diff-btn[data-diff="medium"]{border-left-color:var(--yellow)}
+.diff-btn[data-diff="hard"]{border-left-color:var(--red)}
+
+/* Stagger entrance */
+.menu-buttons .daily-btn{animation:menuSlideIn 0.35s 0.25s ease-out forwards}
+.menu-buttons .diff-btn:nth-child(2){animation:menuSlideIn 0.35s 0.32s ease-out forwards}
+.menu-buttons .diff-btn:nth-child(3){animation:menuSlideIn 0.35s 0.39s ease-out forwards}
+.menu-buttons .diff-btn:nth-child(4){animation:menuSlideIn 0.35s 0.46s ease-out forwards}
+
+@keyframes menuSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes menuFadeIn{from{opacity:0}to{opacity:1}}
+
+/* Daily button */
+.daily-btn{border-left-color:var(--cyan);background:linear-gradient(135deg,#1e2545,#1a2548)}
+.daily-btn:hover{background:linear-gradient(135deg,#252c52,#222d55)}
+.daily-btn .info{color:var(--text-dim);font-size:0.73rem}
+.daily-btn .streak-badge{
+  background:rgba(45,228,255,0.1);border:1px solid rgba(45,228,255,0.2);border-radius:10px;
+  padding:0.12rem 0.5rem;font-size:0.65rem;font-family:'JetBrains Mono',monospace;color:var(--cyan)
+}
+.daily-btn.completed{opacity:0.5}
+.daily-btn.completed .daily-label::after{content:' ✓';color:var(--green)}
+
+/* Menu footer options */
+.menu-options{
+  display:flex;flex-direction:column;align-items:center;gap:0.5rem;width:100%;
+  opacity:0;animation:menuFadeIn 0.4s 0.55s ease-out forwards
+}
+.toggle-row{
+  display:flex;align-items:center;gap:0.5rem;font-size:0.8rem;color:var(--text-dim);cursor:pointer;
+  padding:0.55rem 1rem;border-radius:10px;background:var(--bg3);border:1px solid rgba(255,255,255,0.05);
+  width:100%;justify-content:center;transition:all 0.2s;min-height:44px
+}
+.toggle-row:hover{border-color:rgba(255,255,255,0.1);background:#252c52}
+.toggle-row input[type=checkbox]{display:none}
+.toggle-track{
+  width:34px;height:18px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);
+  border-radius:9px;position:relative;transition:all 0.2s;flex-shrink:0
+}
+.toggle-track::after{
+  content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;
+  background:var(--text-dim);border-radius:50%;transition:all 0.2s
+}
+.toggle-row input:checked+.toggle-track{background:rgba(45,228,255,0.2);border-color:rgba(45,228,255,0.4)}
+.toggle-row input:checked+.toggle-track::after{left:18px;background:var(--cyan)}
+.menu-links{display:flex;gap:0.4rem;width:100%}
+.stats-link{
+  flex:1;text-align:center;color:var(--text-dim);font-size:0.78rem;cursor:pointer;text-decoration:none;
+  padding:0.55rem 0.5rem;border-radius:10px;background:var(--bg3);border:1px solid rgba(255,255,255,0.05);
+  transition:all 0.2s;min-height:44px;display:flex;align-items:center;justify-content:center
+}
+.stats-link:hover{color:var(--text-bright);background:#252c52;border-color:rgba(255,255,255,0.1)}
+
+/* Game area */
+#game{display:none;flex-direction:column;align-items:center;gap:0.75rem;padding:0.5rem;width:100%;height:100%;z-index:10;position:relative}
+.hud{
+  display:flex;align-items:center;gap:1rem;padding:0.5rem 1rem;
+  background:var(--bg2);border:1px solid rgba(255,255,255,0.06);border-radius:8px;
+  font-family:'JetBrains Mono',monospace;font-size:1.1rem;min-width:280px;justify-content:space-between;
+  box-shadow:0 2px 15px rgba(0,0,0,0.3)
+}
+.hud-item{display:flex;align-items:center;gap:0.4rem}
+.hud-icon{font-size:1.2rem}
+.mine-count{color:var(--red);min-width:2.5ch;text-align:center;transition:transform 0.15s,color 0.3s}
+.mine-count.bump{animation:hudBump 0.3s cubic-bezier(0.4,0,0.2,1)}
+.timer{color:var(--cyan);min-width:4ch;text-align:center}
+.daily-badge{
+  font-size:0.6rem;background:rgba(255,224,102,0.15);color:var(--yellow);
+  padding:0.15rem 0.4rem;border-radius:4px;border:1px solid rgba(255,224,102,0.25);
+  text-transform:uppercase;letter-spacing:0.05em
+}
+.daily-badge.hidden{display:none}
+.face-btn{
+  background:var(--bg3);border:1px solid rgba(255,255,255,0.08);border-radius:6px;
+  padding:0.25rem 0.5rem;cursor:pointer;font-size:1.3rem;line-height:1;
+  transition:all 0.15s cubic-bezier(0.4,0,0.2,1)
+}
+.face-btn:hover{background:rgba(124,92,252,0.15);border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow)}
+.face-btn:active{transform:scale(0.85)}
+
+.board-wrapper{
+  flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;
+  width:100%;position:relative;touch-action:pan-x pan-y pinch-zoom
+}
+.board{
+  display:inline-grid;gap:var(--gap);padding:4px;
+  background:var(--bg2);border:1px solid rgba(124,92,252,0.1);border-radius:6px;
+  box-shadow:0 0 30px rgba(124,92,252,0.06),inset 0 0 30px rgba(0,0,0,0.2);
+  transition:transform 0.05s
+}
+.board.shake{animation:boardShake 0.4s cubic-bezier(0.36,0.07,0.19,0.97)}
+.board.shake-hard{animation:boardShakeHard 0.6s cubic-bezier(0.36,0.07,0.19,0.97)}
+
+.cell{
+  width:var(--cell-size);height:var(--cell-size);
+  background:var(--bg3);border:1px solid rgba(255,255,255,0.04);border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.9rem;
+  cursor:pointer;transition:background 0.12s,border-color 0.12s,box-shadow 0.12s;position:relative;
+  transform:translateZ(0)
+}
+.cell:hover:not(.revealed):not(.exploded){
+  background:rgba(124,92,252,0.15);border-color:rgba(124,92,252,0.35);
+  box-shadow:0 0 12px rgba(124,92,252,0.2),inset 0 0 8px rgba(124,92,252,0.08)
+}
+.cell:active:not(.revealed){transform:scale(0.9)}
+.cell.revealed{background:rgba(10,14,26,0.6);border-color:rgba(255,255,255,0.02);cursor:default}
+.cell.revealed:hover{background:rgba(10,14,26,0.6)}
+.cell.flagged{background:rgba(255,59,92,0.1);border-color:rgba(255,59,92,0.2);box-shadow:0 0 8px rgba(255,59,92,0.1)}
+.cell.flagged::after{content:'🚩';font-size:0.85em;animation:flagPop 0.35s cubic-bezier(0.34,1.56,0.64,1)}
+.cell.exploded{
+  background:rgba(255,59,92,0.35);border-color:var(--red);
+  box-shadow:0 0 20px rgba(255,59,92,0.4),inset 0 0 15px rgba(255,59,92,0.2);
+  animation:explodePulse 0.5s ease-out
+}
+.cell.mine-revealed{background:rgba(255,59,92,0.08);animation:mineAppear 0.3s ease-out}
+.cell.mine-wrong{background:rgba(255,59,92,0.15);border-color:rgba(255,59,92,0.3)}
+.cell .num{pointer-events:none;text-shadow:0 0 8px currentColor}
+.n1{color:#4da6ff}.n2{color:#39ff7f}.n3{color:#ff3b5c}.n4{color:#7c5cfc}
+.n5{color:#ff9f1c}.n6{color:#00e5ff}.n7{color:#e0e0e0}.n8{color:#6b7094}
+.cell.revealed .num{animation:numPop 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+
+/* Chord highlight — unrevealed neighbors glow when hovering a number */
+.cell.chord-source{background:rgba(124,92,252,0.15);box-shadow:inset 0 0 8px rgba(124,92,252,0.2)}
+.cell.chord-target{background:rgba(124,92,252,0.18);border-color:rgba(124,92,252,0.4);box-shadow:0 0 8px rgba(124,92,252,0.15)}
+
+/* Long-press fill indicator */
+.cell.lp-fill::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:rgba(255,59,92,0.2);
+  animation:lpFill 0.4s linear forwards;
+  pointer-events:none;z-index:1
+}
+@keyframes lpFill{
+  0%{clip-path:inset(100% 0 0 0)}
+  100%{clip-path:inset(0 0 0 0)}
+}
+
+.flag-toggle{
+  display:none;position:fixed;bottom:1.2rem;right:1.2rem;
+  width:56px;height:56px;border-radius:50%;
+  background:var(--bg2);border:2px solid rgba(255,255,255,0.08);
+  font-size:1.4rem;cursor:pointer;z-index:100;
+  transition:all 0.25s cubic-bezier(0.4,0,0.2,1);
+  box-shadow:0 4px 20px rgba(0,0,0,0.5)
+}
+.flag-toggle:active{transform:scale(0.9)}
+.flag-toggle.active{
+  background:rgba(255,59,92,0.2);border-color:var(--red);
+  box-shadow:0 0 20px rgba(255,59,92,0.3),0 4px 20px rgba(0,0,0,0.5);
+  animation:flagTogglePulse 1.5s ease-in-out infinite
+}
+.back-btn{
+  position:fixed;top:0.75rem;left:0.75rem;
+  background:var(--bg2);border:1px solid rgba(255,255,255,0.06);border-radius:6px;
+  color:var(--text-dim);padding:0.4rem 0.7rem;cursor:pointer;font-size:0.8rem;
+  font-family:'Inter',sans-serif;z-index:100;transition:all 0.2s
+}
+.back-btn:hover{color:var(--text-bright);border-color:var(--accent)}
+
+
+/* Shared modal base */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(10,14,26,0.9);
+  z-index:300;flex-direction:column;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px)
+}
+.modal-overlay.show{display:flex}
+.modal-box{
+  background:var(--bg2);border:1px solid rgba(255,255,255,0.06);border-radius:12px;
+  padding:1.5rem;max-width:420px;width:94%;max-height:85vh;overflow-y:auto;
+  animation:modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1)
+}
+.modal-box h2{font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--text-bright);text-align:center;margin-bottom:0.75rem}
+.modal-tabs{display:flex;gap:0.5rem;margin-bottom:1rem}
+.modal-tab{
+  flex:1;padding:0.4rem;background:var(--bg3);border:1px solid transparent;border-radius:6px;
+  color:var(--text-dim);cursor:pointer;font-size:0.7rem;text-align:center;
+  font-family:'JetBrains Mono',monospace;letter-spacing:0.08em;transition:all 0.2s
+}
+.modal-tab.active{border-color:var(--accent);color:var(--text-bright);box-shadow:0 0 10px var(--accent-glow)}
+.modal-tab:hover:not(.active){color:var(--text);border-color:rgba(255,255,255,0.1)}
+.modal-close{
+  margin-top:1rem;width:100%;padding:0.6rem;background:var(--bg3);border:1px solid rgba(255,255,255,0.08);
+  border-radius:6px;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:0.85rem
+}
+.modal-close:hover{border-color:var(--accent)}
+
+/* Stat cards with icons */
+.stat-cards{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem}
+.stat-card{
+  background:rgba(10,14,26,0.5);border:1px solid rgba(255,255,255,0.04);border-radius:8px;
+  padding:0.7rem 0.6rem;display:flex;align-items:center;gap:0.6rem;transition:all 0.2s
+}
+.stat-card:hover{border-color:rgba(124,92,252,0.2);background:rgba(124,92,252,0.03)}
+.stat-card-icon{font-size:1.3rem;min-width:1.6rem;text-align:center}
+.stat-card-body{display:flex;flex-direction:column}
+.stat-card-val{font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--text-bright);line-height:1.2}
+.stat-card-label{font-size:0.6rem;color:var(--text-dim);letter-spacing:0.04em}
+
+/* Section dividers */
+.modal-section{
+  font-size:0.6rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--text-dim);padding:0.6rem 0 0.3rem;margin-top:0.75rem;
+  border-bottom:1px solid rgba(255,255,255,0.04)
+}
+
+/* Career stat row */
+.career-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-top:0.5rem}
+.career-card{
+  text-align:center;padding:0.6rem 0.4rem;background:rgba(10,14,26,0.5);
+  border:1px solid rgba(255,255,255,0.03);border-radius:8px
+}
+.career-card-icon{font-size:1rem;margin-bottom:0.15rem}
+.career-card-val{font-family:'JetBrains Mono',monospace;font-size:0.95rem;color:var(--text-bright)}
+.career-card-label{font-size:0.55rem;color:var(--text-dim);margin-top:0.1rem}
+
+/* Highscore cards */
+.hs-list{display:flex;flex-direction:column;gap:0.35rem;margin-top:0.5rem}
+.hs-card{
+  display:grid;grid-template-columns:2.2rem 1fr auto auto;gap:0.5rem;align-items:center;
+  padding:0.55rem 0.7rem;background:rgba(10,14,26,0.5);border:1px solid rgba(255,255,255,0.03);
+  border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.75rem;transition:all 0.2s
+}
+.hs-card:hover{border-color:rgba(124,92,252,0.15);background:rgba(124,92,252,0.03)}
+.hs-card-rank{
+  font-size:0.8rem;font-weight:700;color:var(--text-dim);text-align:center
+}
+.hs-card-time{font-size:0.85rem;color:var(--cyan);text-shadow:0 0 6px rgba(0,229,255,0.2)}
+.hs-card-stat{font-size:0.6rem;color:var(--text-dim);text-align:right;display:flex;flex-direction:column;align-items:flex-end}
+.hs-card-stat span{color:var(--text);font-size:0.7rem}
+
+/* Gold/silver/bronze for top 3 */
+.hs-card.rank-1{border-color:rgba(255,215,0,0.2);background:rgba(255,215,0,0.03)}
+.hs-card.rank-1 .hs-card-rank{color:#ffd700;text-shadow:0 0 8px rgba(255,215,0,0.4)}
+.hs-card.rank-1 .hs-card-time{color:#ffd700;text-shadow:0 0 8px rgba(255,215,0,0.3)}
+.hs-card.rank-2{border-color:rgba(192,192,192,0.15);background:rgba(192,192,192,0.02)}
+.hs-card.rank-2 .hs-card-rank{color:#c0c0c0}
+.hs-card.rank-3{border-color:rgba(205,127,50,0.15);background:rgba(205,127,50,0.02)}
+.hs-card.rank-3 .hs-card-rank{color:#cd7f32}
+.hs-empty{text-align:center;color:var(--text-dim);font-size:0.7rem;padding:2rem 1rem;opacity:0.5;letter-spacing:0.05em}
+/* Animations */
+@keyframes flagPop{0%{transform:scale(0) rotate(-30deg)}60%{transform:scale(1.3) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes flagTogglePulse{0%,100%{box-shadow:0 0 20px rgba(255,59,92,0.3),0 4px 20px rgba(0,0,0,0.5)}50%{box-shadow:0 0 30px rgba(255,59,92,0.5),0 4px 20px rgba(0,0,0,0.5)}}
+@keyframes explodePulse{0%{transform:scale(1);box-shadow:0 0 0 rgba(255,59,92,0)}30%{transform:scale(1.25);box-shadow:0 0 30px rgba(255,59,92,0.6)}60%{transform:scale(0.95)}100%{transform:scale(1);box-shadow:0 0 20px rgba(255,59,92,0.4),inset 0 0 15px rgba(255,59,92,0.2)}}
+@keyframes mineAppear{0%{transform:scale(0) rotate(-90deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes numPop{0%{transform:scale(0);opacity:0}50%{transform:scale(1.4)}100%{transform:scale(1);opacity:1}}
+@keyframes revealFlip{0%{transform:rotateX(90deg) scale(0.8);opacity:0;background:var(--bg3)}40%{transform:rotateX(-10deg) scale(1.05)}100%{transform:rotateX(0) scale(1);opacity:1;background:rgba(10,14,26,0.6)}}
+@keyframes revealGlow{0%{box-shadow:0 0 15px rgba(124,92,252,0.4)}100%{box-shadow:none}}
+@keyframes sweep{from{background:rgba(57,255,127,0.25);box-shadow:0 0 12px rgba(57,255,127,0.3)}to{background:rgba(10,14,26,0.6);box-shadow:none}}
+@keyframes boardShake{0%,100%{transform:translate(0,0)}10%{transform:translate(-3px,1px)}20%{transform:translate(3px,-2px)}30%{transform:translate(-2px,3px)}40%{transform:translate(2px,-1px)}50%{transform:translate(-1px,2px)}60%{transform:translate(1px,-1px)}70%{transform:translate(-1px,1px)}80%{transform:translate(1px,0)}}
+@keyframes boardShakeHard{0%,100%{transform:translate(0,0)}5%{transform:translate(-6px,3px)}10%{transform:translate(5px,-4px)}15%{transform:translate(-5px,5px)}20%{transform:translate(4px,-3px)}30%{transform:translate(-3px,3px)}40%{transform:translate(3px,-2px)}50%{transform:translate(-2px,2px)}60%{transform:translate(2px,-1px)}70%{transform:translate(-1px,1px)}80%{transform:translate(1px,-1px)}}
+@keyframes hudBump{0%{transform:scale(1)}40%{transform:scale(1.3)}100%{transform:scale(1)}}
+@keyframes fadeSlideUp{0%{opacity:0;transform:translateY(15px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes modalIn{0%{opacity:0;transform:scale(0.9) translateY(10px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes winGlow{0%,100%{border-color:rgba(57,255,127,0.2);box-shadow:0 0 20px rgba(57,255,127,0.1)}50%{border-color:rgba(57,255,127,0.5);box-shadow:0 0 40px rgba(57,255,127,0.2)}}
+@keyframes loseFlash{0%{border-color:rgba(255,59,92,0.5);box-shadow:0 0 40px rgba(255,59,92,0.3)}100%{border-color:rgba(255,59,92,0.15);box-shadow:0 0 20px rgba(255,59,92,0.1)}}
+
+.cell.reveal-anim{animation:revealFlip 0.25s cubic-bezier(0.4,0,0.2,1),revealGlow 0.5s ease-out}
+.cell.sweep-anim{animation:sweep 0.6s ease-out}
+.board.win-glow{animation:winGlow 1.5s ease-in-out infinite}
+.board.lose-flash{animation:loseFlash 0.8s ease-out}
+
+/* End bar (replaces overlay + continue prompt) */
+.end-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(10,14,26,0.92);border-top:1px solid rgba(124,92,252,0.15);
+  backdrop-filter:blur(8px);
+  padding:0.75rem 1rem;z-index:150;
+  display:flex;align-items:center;justify-content:center;gap:1rem;
+  transform:translateY(100%);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 -4px 30px rgba(0,0,0,0.5)
+}
+.end-bar.show{transform:translateY(0)}
+.end-bar.win{border-color:rgba(57,255,127,0.25)}
+.end-bar.lose{border-color:rgba(255,59,92,0.25)}
+.end-bar-info{
+  font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--text-bright);
+  display:flex;align-items:center;gap:0.5rem
+}
+.end-bar-info .end-icon{font-size:1.2rem}
+.end-bar-info .end-detail{font-size:0.7rem;color:var(--text-dim)}
+.end-bar-actions{display:flex;gap:0.5rem}
+.end-btn{
+  padding:0.5rem 1.2rem;border-radius:6px;cursor:pointer;font-size:0.8rem;
+  font-family:'Inter',sans-serif;font-weight:600;border:none;
+  transition:all 0.2s cubic-bezier(0.4,0,0.2,1)
+}
+.end-btn:hover{transform:translateY(-1px)}
+.end-btn:active{transform:scale(0.97)}
+.end-btn.primary{background:var(--accent);color:#fff}
+.end-btn.primary:hover{box-shadow:0 0 15px var(--accent-glow)}
+.end-btn.secondary{background:var(--bg3);color:var(--text);border:1px solid rgba(255,255,255,0.08)}
+.end-btn.secondary:hover{border-color:var(--accent)}
+
+
+/* Trophy modal */
+#trophy-modal{
+  display:none;position:fixed;inset:0;background:rgba(10,14,26,0.9);
+  z-index:300;flex-direction:column;align-items:center;justify-content:center;
+  backdrop-filter:blur(6px)
+}
+#trophy-modal.show{display:flex}
+.trophy-box{
+  background:var(--bg2);border:1px solid rgba(255,255,255,0.06);border-radius:12px;
+  padding:1.5rem;max-width:520px;width:94%;max-height:85vh;overflow-y:auto;
+  animation:modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1)
+}
+.trophy-box h2{font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--text-bright);text-align:center;margin-bottom:0.25rem}
+.trophy-progress{font-size:0.75rem;color:var(--text-dim);text-align:center;margin-bottom:1rem;font-family:'JetBrains Mono',monospace}
+.trophy-section-header{
+  font-size:0.65rem;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;
+  padding:0.5rem 0 0.35rem;border-bottom:1px solid rgba(255,255,255,0.06);margin-top:0.75rem
+}
+.trophy-section-header.bronze{color:#cd7f32;border-color:rgba(205,127,50,0.2)}
+.trophy-section-header.silver{color:#c0c0c0;border-color:rgba(192,192,192,0.2)}
+.trophy-section-header.gold{color:#ffd700;border-color:rgba(255,215,0,0.2)}
+.trophy-section-header.platinum{color:#b4ffff;border-color:rgba(180,255,255,0.2)}
+.trophy-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-top:0.5rem}
+.trophy-card{
+  background:rgba(10,14,26,0.5);border:1px solid rgba(255,255,255,0.05);border-radius:6px;
+  padding:0.6rem 0.5rem;display:flex;flex-direction:column;gap:0.3rem;
+  transition:all 0.2s;min-height:68px
+}
+.trophy-card.unlocked{border-color:rgba(124,92,252,0.2);background:rgba(124,92,252,0.04)}
+.trophy-card.locked{opacity:0.35}
+.trophy-card.unlocked:hover{border-color:rgba(124,92,252,0.4);box-shadow:0 0 12px rgba(124,92,252,0.12)}
+.trophy-card-header{display:flex;align-items:center;gap:0.35rem}
+.trophy-card-icon{font-size:1rem;min-width:1.2rem;text-align:center}
+.trophy-card-name{font-size:0.6rem;font-weight:700;letter-spacing:0.08em;line-height:1.4;color:var(--text-bright)}
+.trophy-card.locked .trophy-card-name{color:var(--text-dim)}
+.trophy-card-desc{font-size:0.55rem;color:var(--text-dim);letter-spacing:0.04em;line-height:1.4}
+.trophy-card-tier{font-size:0.5rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;margin-top:auto}
+.trophy-card-tier.bronze{color:#cd7f32}
+.trophy-card-tier.silver{color:#c0c0c0}
+.trophy-card-tier.gold{color:#ffd700}
+.trophy-card-tier.platinum{color:#b4ffff}
+.trophy-close{
+  margin-top:1rem;width:100%;padding:0.6rem;background:var(--bg3);border:1px solid rgba(255,255,255,0.08);
+  border-radius:6px;color:var(--text);cursor:pointer;font-family:'Inter',sans-serif;font-size:0.85rem
+}
+.trophy-close:hover{border-color:var(--accent)}
+
+/* Standalone trophy toast (when no GameVolt SDK) */
+#trophy-toast{
+  position:fixed;bottom:-80px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:0.75rem;
+  background:rgba(10,14,26,0.95);border:1px solid rgba(255,215,0,0.3);border-radius:10px;
+  padding:0.6rem 1.2rem;z-index:9999;pointer-events:none;
+  transition:bottom 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 0 25px rgba(255,215,0,0.15)
+}
+#trophy-toast.show{bottom:1.5rem}
+#trophy-toast-icon{font-size:1.6rem}
+#trophy-toast-label{font-size:0.55rem;color:#ffd700;letter-spacing:0.2em;font-weight:700;font-family:'JetBrains Mono',monospace}
+#trophy-toast-tier{font-size:0.55rem;font-weight:700;letter-spacing:0.15em;font-family:'JetBrains Mono',monospace}
+#trophy-toast-tier.bronze{color:#cd7f32}
+#trophy-toast-tier.silver{color:#c0c0c0}
+#trophy-toast-tier.gold{color:#ffd700}
+#trophy-toast-tier.platinum{color:#b4ffff}
+#trophy-toast-name{font-size:0.95rem;color:var(--text-bright);font-weight:700;letter-spacing:0.04em}
+
+@media(max-width:600px){
+  .trophy-cards{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:380px){
+  .trophy-cards{grid-template-columns:1fr}
+}
+
+.hidden{display:none!important}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
+
+@media(max-width:600px){
+  :root{--cell-size:32px}
+  #menu h1{font-size:1.5rem}
+  .hud{font-size:0.9rem;padding:0.4rem 0.75rem;min-width:auto}
+  .flag-toggle{display:flex;align-items:center;justify-content:center}
+  #game{padding:0.25rem}
+}
+@media(max-width:400px){:root{--cell-size:28px}}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<canvas id="fxCanvas"></canvas>
+
+<!-- MENU -->
+<div id="menu">
+  <div id="menuGrid"></div>
+  <div class="menu-title">
+    <h1>Minesweeper</h1>
+    <p class="subtitle">Clear the board. Avoid the mines.</p>
+    <div class="menu-divider"></div>
+  </div>
+  <div class="menu-buttons">
+    <button class="daily-btn" id="dailyBtn">
+      <span class="daily-label">Daily Challenge</span>
+      <span class="info"><span class="streak-badge" id="dailyStreak">0 day streak</span></span>
+    </button>
+    <button class="diff-btn" data-diff="easy"><span class="diff-label">Easy</span><span class="info">9x9 · 10 mines</span></button>
+    <button class="diff-btn" data-diff="medium"><span class="diff-label">Medium</span><span class="info">16x16 · 40 mines</span></button>
+    <button class="diff-btn" data-diff="hard"><span class="diff-label">Hard</span><span class="info">30x16 · 99 mines</span></button>
+  </div>
+  <div class="menu-options">
+    <label class="toggle-row" id="noGuessToggle">
+      <input type="checkbox" id="noGuessCheck">
+      <span class="toggle-track"></span>
+      No-guess mode
+    </label>
+    <div class="menu-links">
+      <a class="stats-link" id="hsLink">Highscores</a>
+      <a class="stats-link" id="statsLink">Statistics</a>
+      <a class="stats-link" id="trophyLink">Achievements</a>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game">
+  <div class="hud">
+    <div class="hud-item"><span class="hud-icon">💣</span><span class="mine-count" id="mineCount">0</span></div>
+    <div class="hud-item">
+      <span class="daily-badge hidden" id="dailyBadge">daily</span>
+      <button class="face-btn" id="faceBtn">🙂</button>
+    </div>
+    <div class="hud-item"><span class="hud-icon">⏱</span><span class="timer" id="timer">0</span></div>
+  </div>
+  <div class="board-wrapper" id="boardWrapper">
+    <div class="board" id="board"></div>
+  </div>
+  <button class="back-btn" id="backBtn">← Menu</button>
+  <button class="flag-toggle" id="flagToggle">🚩</button>
+  <div class="end-bar" id="endBar">
+    <div class="end-bar-info">
+      <span class="end-icon" id="endIcon">😎</span>
+      <div>
+        <div id="endTitle">You Win!</div>
+        <div class="end-detail" id="endDetail"></div>
+      </div>
+    </div>
+    <div class="end-bar-actions">
+      <button class="end-btn primary" id="retryBtn">Play Again</button>
+      <button class="end-btn secondary" id="menuBtn">Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATS MODAL -->
+<div id="stats-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Statistics</h2>
+    <div class="modal-tabs" id="statsTabs">
+      <button class="modal-tab active" data-mode="easy">Easy</button>
+      <button class="modal-tab" data-mode="medium">Medium</button>
+      <button class="modal-tab" data-mode="hard">Hard</button>
+      <button class="modal-tab" data-mode="daily">Daily</button>
+    </div>
+    <div id="statsGrid"></div>
+    <button class="modal-close" id="statsClose">Close</button>
+  </div>
+</div>
+
+<!-- TROPHY MODAL -->
+<div id="trophy-modal">
+  <div class="trophy-box">
+    <h2>Achievements</h2>
+    <div class="trophy-progress" id="trophyProgress"></div>
+    <div id="trophyGrid"></div>
+    <button class="trophy-close" id="trophyClose">Close</button>
+  </div>
+</div>
+
+<!-- HIGHSCORES MODAL -->
+<div id="hs-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Highscores</h2>
+    <div class="modal-tabs" id="hsTabs">
+      <button class="modal-tab active" data-mode="easy">Easy</button>
+      <button class="modal-tab" data-mode="medium">Medium</button>
+      <button class="modal-tab" data-mode="hard">Hard</button>
+      <button class="modal-tab" data-mode="daily">Daily</button>
+    </div>
+    <div id="hsContent"></div>
+    <button class="modal-close" id="hsClose">Close</button>
+  </div>
+</div>
+
+<!-- TROPHY TOAST (standalone) -->
+<div id="trophy-toast">
+  <div id="trophy-toast-icon"></div>
+  <div>
+    <div id="trophy-toast-label">TROPHY UNLOCKED</div>
+    <div id="trophy-toast-tier"></div>
+    <div id="trophy-toast-name"></div>
+  </div>
+</div>
+
+<script src="/sdk/gamevolt.js"></script>
+<script>
+(function(){
+'use strict';
+
+// Portal postMessage bridge — lets the /play/ iframe wrapper track sessions, scores, achievements
+function gvPost(action, payload) {
+  if (window.parent !== window) {
+    try {
+      window.parent.postMessage({
+        type: 'gamevolt',
+        action: action,
+        gameId: 'minesweeper',
+        payload: payload || {}
+      }, '*');
+    } catch (e) {}
+  }
+}
+
+// ===== CONFIG =====
+const DIFFICULTIES = {
+  easy:   { cols: 9,  rows: 9,  mines: 10 },
+  medium: { cols: 16, rows: 16, mines: 40 },
+  hard:   { cols: 30, rows: 16, mines: 99 }
+};
+const DAILY_CFG = { cols: 16, rows: 16, mines: 40 }; // Medium difficulty
+
+const ACHIEVEMENTS = [
+  // ===== BRONZE (15) =====
+  { id:'first_win',       name:'First Clear',        icon:'🏆', tier:'bronze', desc:'Win your first game' },
+  { id:'easy_clear',      name:'Easy Peasy',         icon:'🟢', tier:'bronze', desc:'Win on Easy' },
+  { id:'medium_clear',    name:'Stepping Up',        icon:'🟡', tier:'bronze', desc:'Win on Medium' },
+  { id:'hard_clear',      name:'Brave Heart',        icon:'🔴', tier:'bronze', desc:'Win on Hard' },
+  { id:'first_flag',      name:'Red Flag',           icon:'🚩', tier:'bronze', desc:'Place your first flag' },
+  { id:'daily_first',     name:'Daily Debut',        icon:'📅', tier:'bronze', desc:'Complete your first Daily' },
+  { id:'games_10',        name:'Getting Started',    icon:'🎮', tier:'bronze', desc:'Play 10 games' },
+  { id:'games_25',        name:'Regular',            icon:'🕹️', tier:'bronze', desc:'Play 25 games' },
+  { id:'wins_5',          name:'Handful',            icon:'🖐️', tier:'bronze', desc:'Win 5 games' },
+  { id:'wins_10',         name:'Double Digits',      icon:'🔟', tier:'bronze', desc:'Win 10 games' },
+  { id:'streak_3',        name:'Hat Trick',          icon:'🎩', tier:'bronze', desc:'Win 3 games in a row' },
+  { id:'cascade_20',      name:'Chain Reaction',     icon:'💥', tier:'bronze', desc:'Reveal 20+ cells in one click' },
+  { id:'speed_easy_60',   name:'Quick Clear',        icon:'💨', tier:'bronze', desc:'Win Easy under 60 seconds' },
+  { id:'daily_3',         name:'Three-Peat',         icon:'📆', tier:'bronze', desc:'3-day Daily streak' },
+  { id:'endurance',       name:'Patience',           icon:'🐢', tier:'bronze', desc:'Win a game over 5 minutes' },
+
+  // ===== SILVER (10) =====
+  { id:'speed_easy_30',   name:'Speed Demon',        icon:'⚡', tier:'silver', desc:'Win Easy under 30 seconds' },
+  { id:'speed_med_120',   name:'Efficient Sweep',    icon:'🧹', tier:'silver', desc:'Win Medium under 2 minutes' },
+  { id:'no_flags',        name:'Flagless Victory',   icon:'🎯', tier:'silver', desc:'Win without placing any flags' },
+  { id:'games_50',        name:'Dedicated',          icon:'🎖️', tier:'silver', desc:'Play 50 games' },
+  { id:'games_100',       name:'Centurion',          icon:'💯', tier:'silver', desc:'Play 100 games' },
+  { id:'wins_25',         name:'Sharpshooter',       icon:'🎯', tier:'silver', desc:'Win 25 games' },
+  { id:'streak_5',        name:'On Fire',            icon:'🔥', tier:'silver', desc:'Win 5 games in a row' },
+  { id:'all_modes',       name:'Well Rounded',       icon:'🌐', tier:'silver', desc:'Win on all three difficulties' },
+  { id:'daily_7',         name:'Weekly Ritual',      icon:'🗓️', tier:'silver', desc:'7-day Daily streak' },
+  { id:'cascade_40',      name:'Avalanche',          icon:'🌊', tier:'silver', desc:'Reveal 40+ cells in one click' },
+
+  // ===== GOLD (5) =====
+  { id:'speed_easy_15',   name:'Lightning',          icon:'⚡', tier:'gold', desc:'Win Easy under 15 seconds' },
+  { id:'speed_hard_300',  name:'Hard & Fast',        icon:'🏎️', tier:'gold', desc:'Win Hard under 5 minutes' },
+  { id:'wins_100',        name:'Mine Master',        icon:'👑', tier:'gold', desc:'Win 100 games' },
+  { id:'streak_10',       name:'Unstoppable',        icon:'⭐', tier:'gold', desc:'Win 10 games in a row' },
+  { id:'daily_30',        name:'Monthly Devotion',   icon:'📆', tier:'gold', desc:'30-day Daily streak' },
+
+  // ===== PLATINUM (1) =====
+  { id:'completionist',   name:'Completionist',      icon:'💎', tier:'platinum', desc:'Unlock all other trophies' },
+];
+
+// ===== SEEDED PRNG (mulberry32) =====
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function getTodaySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
+}
+
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ===== NO-GUESS SOLVER =====
+function solverForNeighbors(r, c, numRows, numCols, fn) {
+  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
+    if(!dr && !dc) continue;
+    const nr=r+dr, nc=c+dc;
+    if(nr>=0 && nr<numRows && nc>=0 && nc<numCols) fn(nr, nc);
+  }
+}
+
+function isSolvable(testGrid, startR, startC, numRows, numCols) {
+  // Clone state
+  const st = [];
+  for(let r=0; r<numRows; r++) {
+    st[r] = [];
+    for(let c=0; c<numCols; c++) {
+      st[r][c] = { mine: testGrid[r][c].mine, count: testGrid[r][c].count, rev: false, flag: false };
+    }
+  }
+
+  // Flood-fill reveal from start
+  function reveal(r, c) {
+    if(r<0||r>=numRows||c<0||c>=numCols) return;
+    const s = st[r][c];
+    if(s.rev || s.flag || s.mine) return;
+    s.rev = true;
+    if(s.count === 0) {
+      solverForNeighbors(r, c, numRows, numCols, (nr, nc) => reveal(nr, nc));
+    }
+  }
+  reveal(startR, startC);
+
+  // Basic constraint propagation
+  function basicPass() {
+    let progress = false;
+    for(let r=0; r<numRows; r++) {
+      for(let c=0; c<numCols; c++) {
+        const s = st[r][c];
+        if(!s.rev || s.count === 0) continue;
+        let unrevealed = [], flagged = 0;
+        solverForNeighbors(r, c, numRows, numCols, (nr, nc) => {
+          if(st[nr][nc].flag) flagged++;
+          else if(!st[nr][nc].rev) unrevealed.push([nr, nc]);
+        });
+        if(unrevealed.length === 0) continue;
+        const remaining = s.count - flagged;
+        if(remaining === unrevealed.length) {
+          // All unrevealed are mines
+          for(const [ur,uc] of unrevealed) { st[ur][uc].flag = true; progress = true; }
+        } else if(remaining === 0) {
+          // All unrevealed are safe
+          for(const [ur,uc] of unrevealed) { reveal(ur, uc); progress = true; }
+        }
+      }
+    }
+    return progress;
+  }
+
+  // Tank solver: for boundary cells, enumerate valid assignments
+  function tankPass() {
+    // Find boundary unrevealed cells (adjacent to at least one revealed number)
+    const boundarySet = new Set();
+    for(let r=0; r<numRows; r++) {
+      for(let c=0; c<numCols; c++) {
+        if(st[r][c].rev || st[r][c].flag) continue;
+        let adj = false;
+        solverForNeighbors(r, c, numRows, numCols, (nr, nc) => {
+          if(st[nr][nc].rev && st[nr][nc].count > 0) adj = true;
+        });
+        if(adj) boundarySet.add(r * numCols + c);
+      }
+    }
+    if(boundarySet.size === 0 || boundarySet.size > 25) return false;
+
+    const boundary = Array.from(boundarySet).map(k => [Math.floor(k/numCols), k%numCols]);
+
+    // Get constraint cells: revealed numbers adjacent to boundary
+    const constraintSet = new Set();
+    for(const [br, bc] of boundary) {
+      solverForNeighbors(br, bc, numRows, numCols, (nr, nc) => {
+        if(st[nr][nc].rev && st[nr][nc].count > 0) constraintSet.add(nr * numCols + nc);
+      });
+    }
+    const constraints = Array.from(constraintSet).map(k => {
+      const cr = Math.floor(k/numCols), cc = k%numCols;
+      const s = st[cr][cc];
+      let flagged = 0;
+      const adjBoundary = [];
+      solverForNeighbors(cr, cc, numRows, numCols, (nr, nc) => {
+        if(st[nr][nc].flag) flagged++;
+        else if(!st[nr][nc].rev && boundarySet.has(nr*numCols+nc)) {
+          adjBoundary.push(boundary.findIndex(b => b[0]===nr && b[1]===nc));
+        }
+      });
+      return { remaining: s.count - flagged, indices: adjBoundary };
+    });
+
+    // Enumerate valid assignments via backtracking
+    const n = boundary.length;
+    const assignment = new Int8Array(n); // 0=unknown, 1=mine, -1=safe
+    const alwaysMine = new Uint8Array(n).fill(1);
+    const alwaysSafe = new Uint8Array(n).fill(1);
+    let validCount = 0;
+
+    function isConsistent(depth) {
+      for(const c of constraints) {
+        let mines = 0, unknowns = 0;
+        for(const idx of c.indices) {
+          if(idx > depth) unknowns++;
+          else if(assignment[idx] === 1) mines++;
+        }
+        if(mines > c.remaining) return false;
+        if(mines + unknowns < c.remaining) return false;
+      }
+      return true;
+    }
+
+    function enumerate(depth) {
+      if(validCount > 5000) return; // safety limit
+      if(depth === n) {
+        // Check all constraints satisfied
+        for(const c of constraints) {
+          let mines = 0;
+          for(const idx of c.indices) { if(assignment[idx] === 1) mines++; }
+          if(mines !== c.remaining) return;
+        }
+        validCount++;
+        for(let i=0; i<n; i++) {
+          if(assignment[i] !== 1) alwaysMine[i] = 0;
+          if(assignment[i] !== -1) alwaysSafe[i] = 0;
+        }
+        return;
+      }
+
+      // Try mine
+      assignment[depth] = 1;
+      if(isConsistent(depth)) enumerate(depth+1);
+      // Try safe
+      assignment[depth] = -1;
+      if(isConsistent(depth)) enumerate(depth+1);
+      assignment[depth] = 0;
+    }
+
+    enumerate(0);
+    if(validCount === 0) return false; // contradiction
+
+    let progress = false;
+    for(let i=0; i<n; i++) {
+      const [br, bc] = boundary[i];
+      if(alwaysMine[i]) { st[br][bc].flag = true; progress = true; }
+      if(alwaysSafe[i]) { reveal(br, bc); progress = true; }
+    }
+    return progress;
+  }
+
+  // Solve loop: basic → tank → basic → ...
+  let maxIter = 100;
+  while(maxIter-- > 0) {
+    if(basicPass()) continue;
+    if(!tankPass()) break;
+  }
+
+  // Check if fully solved
+  for(let r=0; r<numRows; r++) {
+    for(let c=0; c<numCols; c++) {
+      if(!st[r][c].mine && !st[r][c].rev) return false;
+    }
+  }
+  return true;
+}
+
+function generateBoard(numRows, numCols, numMines, safeR, safeC, rng) {
+  const rand = rng || Math.random;
+  const g = [];
+  for(let r=0; r<numRows; r++) {
+    g[r] = [];
+    for(let c=0; c<numCols; c++) g[r][c] = { mine:false, count:0 };
+  }
+
+  // Safe zone around first click
+  const safeCells = new Set();
+  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
+    const nr=safeR+dr, nc=safeC+dc;
+    if(nr>=0&&nr<numRows&&nc>=0&&nc<numCols) safeCells.add(nr*numCols+nc);
+  }
+
+  let placed = 0;
+  while(placed < numMines) {
+    const r = Math.floor(rand() * numRows);
+    const c = Math.floor(rand() * numCols);
+    if(g[r][c].mine || safeCells.has(r*numCols+c)) continue;
+    g[r][c].mine = true;
+    placed++;
+  }
+
+  for(let r=0; r<numRows; r++) {
+    for(let c=0; c<numCols; c++) {
+      if(g[r][c].mine) continue;
+      let count = 0;
+      solverForNeighbors(r, c, numRows, numCols, (nr,nc) => { if(g[nr][nc].mine) count++; });
+      g[r][c].count = count;
+    }
+  }
+  return g;
+}
+
+function generateNoGuessBoard(numRows, numCols, numMines, safeR, safeC, baseSeed) {
+  const maxAttempts = 200;
+  for(let attempt=0; attempt<maxAttempts; attempt++) {
+    const rng = baseSeed != null ? mulberry32(baseSeed + attempt) : null;
+    const g = generateBoard(numRows, numCols, numMines, safeR, safeC, rng);
+    // Require opening cascade (count=0 at start) + solvable
+    if(g[safeR][safeC].count === 0 && isSolvable(g, safeR, safeC, numRows, numCols)) return { grid: g, attempt };
+  }
+  // Fallback: relax opening requirement, just need solvable
+  for(let attempt=200; attempt<400; attempt++) {
+    const rng = baseSeed != null ? mulberry32(baseSeed + attempt) : null;
+    const g = generateBoard(numRows, numCols, numMines, safeR, safeC, rng);
+    if(isSolvable(g, safeR, safeC, numRows, numCols)) return { grid: g, attempt };
+  }
+  return { grid: generateBoard(numRows, numCols, numMines, safeR, safeC, baseSeed != null ? mulberry32(baseSeed) : null), attempt: -1 };
+}
+
+// ===== AUDIO ENGINE =====
+const SFX = {
+  ctx: null, muted: false,
+  _ctx() {
+    if(!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if(this.ctx.state === 'suspended') this.ctx.resume();
+    return this.ctx;
+  },
+  play(type) {
+    if(this.muted) return;
+    try {
+      const ctx = this._ctx(), t = ctx.currentTime, gain = ctx.createGain();
+      gain.connect(ctx.destination);
+      switch(type) {
+        case 'reveal': {
+          const o = ctx.createOscillator(); o.type='sine';
+          o.frequency.setValueAtTime(800+Math.random()*400,t);
+          o.frequency.exponentialRampToValueAtTime(200,t+0.08);
+          gain.gain.setValueAtTime(0.06,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+          o.connect(gain); o.start(t); o.stop(t+0.08); break;
+        }
+        case 'reveal-big': {
+          const o = ctx.createOscillator(); o.type='sine';
+          o.frequency.setValueAtTime(600,t); o.frequency.exponentialRampToValueAtTime(150,t+0.15);
+          gain.gain.setValueAtTime(0.08,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+          o.connect(gain); o.start(t); o.stop(t+0.15); break;
+        }
+        case 'flag': {
+          const o = ctx.createOscillator(); o.type='triangle';
+          o.frequency.setValueAtTime(1200,t); o.frequency.exponentialRampToValueAtTime(800,t+0.06);
+          gain.gain.setValueAtTime(0.08,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.06);
+          o.connect(gain); o.start(t); o.stop(t+0.06); break;
+        }
+        case 'unflag': {
+          const o = ctx.createOscillator(); o.type='triangle';
+          o.frequency.setValueAtTime(800,t); o.frequency.exponentialRampToValueAtTime(1200,t+0.06);
+          gain.gain.setValueAtTime(0.06,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.06);
+          o.connect(gain); o.start(t); o.stop(t+0.06); break;
+        }
+        case 'explode': {
+          const bs = ctx.sampleRate*0.3, buf = ctx.createBuffer(1,bs,ctx.sampleRate), d = buf.getChannelData(0);
+          for(let i=0;i<bs;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/bs,2);
+          const n = ctx.createBufferSource(); n.buffer=buf;
+          const ng = ctx.createGain(); ng.gain.setValueAtTime(0.15,t); ng.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+          n.connect(ng); ng.connect(ctx.destination); n.start(t); n.stop(t+0.3);
+          const o = ctx.createOscillator(); o.type='sine';
+          o.frequency.setValueAtTime(150,t); o.frequency.exponentialRampToValueAtTime(30,t+0.4);
+          gain.gain.setValueAtTime(0.2,t); gain.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+          o.connect(gain); o.start(t); o.stop(t+0.4); break;
+        }
+        case 'win': {
+          [523,659,784,1047].forEach((f,i) => {
+            const o = ctx.createOscillator(), g = ctx.createGain(); o.type='sine'; o.frequency.value=f;
+            g.gain.setValueAtTime(0,t+i*0.12); g.gain.linearRampToValueAtTime(0.1,t+i*0.12+0.03);
+            g.gain.exponentialRampToValueAtTime(0.001,t+i*0.12+0.4);
+            o.connect(g); g.connect(ctx.destination); o.start(t+i*0.12); o.stop(t+i*0.12+0.4);
+          });
+          const sh = ctx.createOscillator(), sg = ctx.createGain(); sh.type='sine'; sh.frequency.value=2093;
+          sg.gain.setValueAtTime(0,t+0.4); sg.gain.linearRampToValueAtTime(0.05,t+0.5);
+          sg.gain.exponentialRampToValueAtTime(0.001,t+1.2);
+          sh.connect(sg); sg.connect(ctx.destination); sh.start(t+0.4); sh.stop(t+1.2); break;
+        }
+      }
+    } catch(e) {}
+  }
+};
+
+// ===== PARTICLE SYSTEM =====
+const FX = {
+  canvas: document.getElementById('fxCanvas'), ctx: null,
+  particles: [], rings: [], floaters: [], active: false,
+  init() { this.ctx = this.canvas.getContext('2d'); this.resize(); window.addEventListener('resize', () => this.resize()); },
+  resize() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; },
+  start() { if(this.active) return; this.active = true; this._loop(); },
+  _loop() {
+    if(!this.active) return;
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    for(let i=this.particles.length-1; i>=0; i--) {
+      const p = this.particles[i];
+      p.x+=p.vx; p.y+=p.vy; p.vy+=p.gravity||0; p.life-=p.decay; p.rotation+=p.rotSpeed||0;
+      if(p.life<=0){this.particles.splice(i,1);continue;}
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rotation);
+      ctx.globalAlpha=Math.min(1,p.life*2);
+      if(p.type==='confetti'){ctx.fillStyle=p.color;const s=p.size*Math.min(1,p.life*3);ctx.fillRect(-s/2,-s*0.4,s,s*0.8);}
+      else if(p.type==='spark'){ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=8;const s=p.size*p.life;ctx.beginPath();ctx.arc(0,0,s,0,Math.PI*2);ctx.fill();}
+      else if(p.type==='debris'){ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=5;const s=p.size*p.life;ctx.fillRect(-s/2,-s/2,s,s);}
+      else if(p.type==='star'){ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=12;const s=p.size*Math.min(1,p.life*2);ctx.beginPath();for(let j=0;j<8;j++){const r=j%2===0?s:s*0.4;const a=j*Math.PI/4;ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}ctx.closePath();ctx.fill();}
+      ctx.restore();
+    }
+    for(let i=this.rings.length-1;i>=0;i--){
+      const r=this.rings[i]; r.radius+=r.speed; r.alpha-=r.fadeSpeed;
+      if(r.alpha<=0){this.rings.splice(i,1);continue;}
+      ctx.save();ctx.strokeStyle=r.color;ctx.lineWidth=r.width*r.alpha;ctx.globalAlpha=r.alpha;
+      ctx.shadowColor=r.color;ctx.shadowBlur=10;ctx.beginPath();ctx.arc(r.x,r.y,r.radius,0,Math.PI*2);ctx.stroke();ctx.restore();
+    }
+    for(let i=this.floaters.length-1;i>=0;i--){
+      const f=this.floaters[i]; f.y+=f.vy; f.life-=f.decay;
+      const progress=1-f.life, scale=progress<0.15?progress/0.15*1.4:1.4-(progress-0.15)*0.5;
+      if(f.life<=0){this.floaters.splice(i,1);continue;}
+      ctx.save();ctx.translate(f.x,f.y);ctx.scale(Math.max(0.1,scale),Math.max(0.1,scale));
+      ctx.globalAlpha=Math.min(1,f.life*3);ctx.font=`bold ${f.fontSize||14}px 'JetBrains Mono',monospace`;
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=f.color;ctx.shadowColor=f.color;ctx.shadowBlur=12;
+      ctx.fillText(f.text,0,0);ctx.restore();
+    }
+    if(this.particles.length||this.rings.length||this.floaters.length) requestAnimationFrame(()=>this._loop());
+    else this.active=false;
+  },
+  explode(x,y,count,colors,opts={}){
+    for(let i=0;i<count;i++){const angle=Math.random()*Math.PI*2;const speed=(opts.speed||4)+Math.random()*(opts.speedVar||4);
+    this.particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-(opts.upBias||2),gravity:opts.gravity||0.15,life:1.0,decay:opts.decay||(0.015+Math.random()*0.015),size:opts.size||(3+Math.random()*5),rotation:Math.random()*Math.PI*2,rotSpeed:(Math.random()-0.5)*0.3,color:colors[Math.floor(Math.random()*colors.length)],type:opts.type||'spark'});}
+    this.start();
+  },
+  ring(x,y,color,maxR){this.rings.push({x,y,radius:0,speed:maxR/12,alpha:0.8,fadeSpeed:0.06,color,width:3});this.start();},
+  confetti(x,y,count){
+    const colors=['#7c5cfc','#00e5ff','#39ff7f','#ff3b5c','#ff9f1c','#ffe066','#4da6ff'];
+    for(let i=0;i<count;i++){const angle=Math.random()*Math.PI*2;const speed=3+Math.random()*8;
+    this.particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-4,gravity:0.12,life:1.5,decay:0.008+Math.random()*0.006,size:4+Math.random()*5,rotation:Math.random()*Math.PI*2,rotSpeed:(Math.random()-0.5)*0.2,color:colors[Math.floor(Math.random()*colors.length)],type:'confetti'});}
+    this.start();
+  },
+  starBurst(x,y,count){
+    const colors=['#ffe066','#ffcc00','#fff'];
+    for(let i=0;i<count;i++){const angle=Math.random()*Math.PI*2;const speed=1+Math.random()*3;
+    this.particles.push({x:x+(Math.random()-0.5)*60,y:y+(Math.random()-0.5)*60,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-1,gravity:0.02,life:1.0,decay:0.01+Math.random()*0.01,size:3+Math.random()*4,rotation:Math.random()*Math.PI*2,rotSpeed:(Math.random()-0.5)*0.1,color:colors[Math.floor(Math.random()*colors.length)],type:'star'});}
+    this.start();
+  },
+  float(x,y,text,color,fontSize){this.floaters.push({x,y,text,color,fontSize:fontSize||14,vy:-1.5,life:1.0,decay:0.02});this.start();},
+  clear(){this.particles=[];this.rings=[];this.floaters=[];}
+};
+
+// ===== AMBIENT BG =====
+const BG = {
+  canvas: document.getElementById('bgCanvas'), ctx: null, particles: [],
+  init() {
+    this.ctx=this.canvas.getContext('2d'); this.resize(); window.addEventListener('resize',()=>this.resize());
+    const count=Math.min(40,Math.floor(window.innerWidth*window.innerHeight/25000));
+    for(let i=0;i<count;i++) this.particles.push({x:Math.random()*this.canvas.width,y:Math.random()*this.canvas.height,size:1+Math.random()*2,alpha:0.1+Math.random()*0.25,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,pulse:Math.random()*Math.PI*2,pulseSpeed:0.01+Math.random()*0.02,color:Math.random()>0.5?'#7c5cfc':'#00e5ff'});
+    this._loop();
+  },
+  resize(){this.canvas.width=window.innerWidth;this.canvas.height=window.innerHeight;},
+  _loop(){
+    const ctx=this.ctx; ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+    for(const p of this.particles){
+      p.x+=p.vx;p.y+=p.vy;p.pulse+=p.pulseSpeed;
+      if(p.x<0)p.x=this.canvas.width;if(p.x>this.canvas.width)p.x=0;
+      if(p.y<0)p.y=this.canvas.height;if(p.y>this.canvas.height)p.y=0;
+      const a=p.alpha*(0.6+0.4*Math.sin(p.pulse));
+      ctx.save();ctx.globalAlpha=a;ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=8;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.restore();
+    }
+    requestAnimationFrame(()=>this._loop());
+  }
+};
+
+// ===== MENU GRID (decorative animated background) =====
+let menuGridInterval = null;
+const MG_COLS = 12, MG_ROWS = 10;
+const MG_COLORS = ['#4da6ff','#39ff7f','#ff3b5c','#7c5cfc','#ff9f1c','#00e5ff','#e0e0e0','#6b7094'];
+
+function initMenuGrid() {
+  const g = document.getElementById('menuGrid');
+  g.style.gridTemplateColumns = `repeat(${MG_COLS}, 28px)`;
+  g.innerHTML = '';
+  for(let i = 0; i < MG_COLS * MG_ROWS; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'mg-cell';
+    g.appendChild(cell);
+  }
+  startMenuGridAnim();
+}
+
+function startMenuGridAnim() {
+  clearInterval(menuGridInterval);
+  // Initial random reveal burst
+  const cells = document.getElementById('menuGrid').children;
+  const total = MG_COLS * MG_ROWS;
+  const revealed = new Set();
+
+  // Reveal ~40% initially with stagger
+  for(let i = 0; i < Math.floor(total * 0.4); i++) {
+    const idx = Math.floor(Math.random() * total);
+    if(revealed.has(idx)) continue;
+    revealed.add(idx);
+    const delay = i * 30;
+    setTimeout(() => revealMenuCell(cells[idx]), delay);
+  }
+
+  // Continuous ambient animation
+  menuGridInterval = setInterval(() => {
+    const idx = Math.floor(Math.random() * total);
+    const cell = cells[idx];
+    if(revealed.has(idx)) {
+      // Un-reveal and re-reveal for shimmer effect
+      cell.className = 'mg-cell';
+      cell.innerHTML = '';
+      revealed.delete(idx);
+    } else {
+      revealMenuCell(cell);
+      revealed.add(idx);
+    }
+  }, 300);
+}
+
+function revealMenuCell(cell) {
+  const n = Math.random() < 0.35 ? 0 : Math.ceil(Math.random() * 4);
+  cell.className = 'mg-cell mg-revealed';
+  if(n > 0) {
+    cell.innerHTML = `<span class="num" style="color:${MG_COLORS[n-1]}">${n}</span>`;
+  } else {
+    cell.innerHTML = '';
+  }
+}
+
+function stopMenuGridAnim() {
+  clearInterval(menuGridInterval);
+  menuGridInterval = null;
+}
+
+// ===== STATE =====
+let grid = [], cols, rows, mineCount, difficulty;
+let revealed = 0, flagCount = 0, totalSafe = 0;
+let gameStarted = false, gameOver = false, won = false;
+let timerInterval = null, seconds = 0;
+let flagMode = false, usedFlags = false, firstClickDone = false, revealBatch = 0;
+let clickCount = 0, flagsPlaced = 0;
+let isDaily = false, noGuessEnabled = false;
+
+const SAVE_KEY = 'minesweeper_stats';
+const DAILY_KEY = 'minesweeper_daily';
+let stats = loadStats();
+let dailyData = loadDaily();
+let unlockedAchs = loadAchievements();
+
+// ===== DOM =====
+const $ = id => document.getElementById(id);
+const $menu=$('menu'), $game=$('game'), $board=$('board'), $boardWrapper=$('boardWrapper');
+const $mineCount=$('mineCount'), $timer=$('timer'), $faceBtn=$('faceBtn');
+const $endBar=$('endBar'), $endIcon=$('endIcon'), $endTitle=$('endTitle'), $endDetail=$('endDetail');
+const $retryBtn=$('retryBtn'), $menuBtn=$('menuBtn');
+const $backBtn=$('backBtn'), $flagToggle=$('flagToggle');
+const $statsLink=$('statsLink'), $statsModal=$('stats-modal'), $statsGrid=$('statsGrid');
+const $statsClose=$('statsClose'), $statsTabs=$('statsTabs');
+const $dailyBtn=$('dailyBtn'), $dailyStreak=$('dailyStreak'), $dailyBadge=$('dailyBadge');
+const $noGuessCheck=$('noGuessCheck');
+const $trophyLink=$('trophyLink'), $trophyModal=$('trophy-modal');
+const $hsLink=$('hsLink'), $hsModal=$('hs-modal'), $hsTabs=$('hsTabs'), $hsContent=$('hsContent'), $hsClose=$('hsClose');
+const $trophyGrid=$('trophyGrid'), $trophyProgress=$('trophyProgress'), $trophyClose=$('trophyClose');
+
+// ===== INIT =====
+function init() {
+  FX.init(); BG.init();
+  initMenuGrid();
+
+  // Load no-guess preference
+  noGuessEnabled = localStorage.getItem('minesweeper_noguess') === '1';
+  $noGuessCheck.checked = noGuessEnabled;
+
+  updateDailyButton();
+
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => startGame(btn.dataset.diff));
+  });
+
+  $dailyBtn.addEventListener('click', startDaily);
+  $faceBtn.addEventListener('click', () => { if(difficulty) { if(isDaily) startDaily(); else startGame(difficulty); } });
+  $retryBtn.addEventListener('click', () => { if(isDaily) startDaily(); else startGame(difficulty); });
+  $menuBtn.addEventListener('click', showMenu);
+  $backBtn.addEventListener('click', showMenu);
+  $flagToggle.addEventListener('click', toggleFlagMode);
+  $statsLink.addEventListener('click', () => showStats('easy'));
+  $statsClose.addEventListener('click', () => $statsModal.classList.remove('show'));
+  $statsModal.addEventListener('click', e => { if(e.target === $statsModal) $statsModal.classList.remove('show'); });
+  $trophyLink.addEventListener('click', showTrophies);
+  $trophyClose.addEventListener('click', () => $trophyModal.classList.remove('show'));
+  $trophyModal.addEventListener('click', e => { if(e.target === $trophyModal) $trophyModal.classList.remove('show'); });
+  $hsLink.addEventListener('click', () => showHighscores('easy'));
+  $hsClose.addEventListener('click', () => $hsModal.classList.remove('show'));
+  $hsModal.addEventListener('click', e => { if(e.target === $hsModal) $hsModal.classList.remove('show'); });
+  $hsTabs.addEventListener('click', e => {
+    const tab = e.target.closest('.modal-tab');
+    if(!tab) return;
+    $hsTabs.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderHighscores(tab.dataset.mode);
+  });
+
+  $noGuessCheck.addEventListener('change', () => {
+    noGuessEnabled = $noGuessCheck.checked;
+    localStorage.setItem('minesweeper_noguess', noGuessEnabled ? '1' : '0');
+  });
+
+  $statsTabs.addEventListener('click', e => {
+    const tab = e.target.closest('.modal-tab');
+    if(!tab) return;
+    $statsTabs.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderStats(tab.dataset.mode);
+  });
+
+  document.addEventListener('keydown', e => {
+    if(e.key==='Escape'){
+      if($hsModal.classList.contains('show')){$hsModal.classList.remove('show');return;}
+      if($trophyModal.classList.contains('show')){$trophyModal.classList.remove('show');return;}
+      if($statsModal.classList.contains('show')){$statsModal.classList.remove('show');return;}
+      if($game.style.display!=='none'){showMenu();return;}
+    }
+    if(e.key==='r'&&(e.ctrlKey||e.metaKey)) return;
+    if(e.key==='r'&&!gameOver&&$game.style.display!=='none'){
+      e.preventDefault();
+      if(isDaily) startDaily(); else startGame(difficulty);
+    }
+  });
+
+  // Pause menu
+  document.addEventListener('keydown', e => {
+    if(e.key==='p'&&$game.style.display!=='none'&&!gameOver){
+      if(window.GameVolt&&GameVolt.ui) GameVolt.ui.pauseMenu({onResume:()=>{},onRestart:()=>{if(isDaily)startDaily();else startGame(difficulty);},onQuit:()=>showMenu()});
+    }
+  });
+
+  // GameVolt SDK
+  if(window.GameVolt) {
+    GameVolt.init('minesweeper');
+    GameVolt.save.registerMigration({
+      keys: [SAVE_KEY,'minesweeper_achievements',DAILY_KEY],
+      merge(local, cloud) {
+        if(!cloud) return local[SAVE_KEY] ? JSON.parse(local[SAVE_KEY]) : getDefaultStats();
+        const ls = local[SAVE_KEY] ? JSON.parse(local[SAVE_KEY]) : getDefaultStats();
+        const merged = {};
+        for(const mode of ['easy','medium','hard','daily']){
+          merged[mode]={
+            played:Math.max(cloud[mode]?.played||0,ls[mode]?.played||0),
+            won:Math.max(cloud[mode]?.won||0,ls[mode]?.won||0),
+            bestTime:Math.min(cloud[mode]?.bestTime||Infinity,ls[mode]?.bestTime||Infinity),
+            streak:Math.max(cloud[mode]?.streak||0,ls[mode]?.streak||0),
+            bestStreak:Math.max(cloud[mode]?.bestStreak||0,ls[mode]?.bestStreak||0),
+            totalTime:Math.max(cloud[mode]?.totalTime||0,ls[mode]?.totalTime||0)
+          };
+          if(merged[mode].bestTime===Infinity) merged[mode].bestTime=0;
+        }
+        merged.totalPlayed=Math.max(cloud.totalPlayed||0,ls.totalPlayed||0);
+        return merged;
+      },
+      getAchievements(local){
+        const achs=local['minesweeper_achievements']?JSON.parse(local['minesweeper_achievements']):{};
+        return Object.keys(achs).map(id=>({id,unlocked_at:achs[id]}));
+      },
+      getScores(local){
+        const s=local[SAVE_KEY]?JSON.parse(local[SAVE_KEY]):{};
+        const scores=[];
+        for(const mode of ['easy','medium','hard']){if(s[mode]?.bestTime&&s[mode].bestTime>0) scores.push({score:s[mode].bestTime,mode});}
+        return scores;
+      }
+    });
+    GameVolt.auth.onStateChange(user => { if(user) loadFromCloud(); });
+  }
+}
+
+// ===== DAILY =====
+function loadDaily() {
+  try { const d=localStorage.getItem(DAILY_KEY); if(d) return JSON.parse(d); } catch(e){}
+  return { lastDate:null, streak:0, bestTime:0, completedToday:false };
+}
+
+function saveDaily() {
+  localStorage.setItem(DAILY_KEY, JSON.stringify(dailyData));
+}
+
+function updateDailyButton() {
+  const today = getTodayKey();
+  // Check if streak is still valid (must have played yesterday or today)
+  if(dailyData.lastDate && dailyData.lastDate !== today) {
+    const last = new Date(dailyData.lastDate+'T00:00:00');
+    const now = new Date(today+'T00:00:00');
+    const diff = (now - last) / 86400000;
+    if(diff > 1) { dailyData.streak = 0; saveDaily(); }
+  }
+  dailyData.completedToday = dailyData.lastDate === today;
+
+  $dailyStreak.textContent = dailyData.streak > 0 ? `${dailyData.streak} day streak` : 'New';
+  $dailyBtn.classList.toggle('completed', dailyData.completedToday);
+}
+
+function startDaily() {
+  isDaily = true;
+  difficulty = 'daily';
+  const cfg = DAILY_CFG;
+  cols = cfg.cols; rows = cfg.rows; mineCount = cfg.mines;
+  totalSafe = cols * rows - mineCount;
+  revealed = 0; flagCount = 0; gameStarted = false; gameOver = false; won = false;
+  firstClickDone = false; usedFlags = false; flagMode = false; revealBatch = 0;
+  clickCount = 0; flagsPlaced = 0;
+  seconds = 0;
+  clearInterval(timerInterval); timerInterval = null;
+  FX.clear(); hideEndBar();
+
+  $mineCount.textContent = mineCount;
+  $timer.textContent = '0:00';
+  $faceBtn.textContent = '🙂';
+  $flagToggle.classList.remove('active');
+  $board.classList.remove('win-glow','lose-flash','shake','shake-hard');
+  $dailyBadge.classList.remove('hidden');
+
+  // Cell sizing
+  let cellSize = Math.min(36, Math.floor((window.innerWidth - 30) / cols));
+  cellSize = Math.max(26, cellSize);
+  document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
+
+  // Pre-generate the daily board with seeded PRNG
+  // Use center as guaranteed start position
+  const startR = Math.floor(rows / 2);
+  const startC = Math.floor(cols / 2);
+  const seed = getTodaySeed();
+
+  const result = generateNoGuessBoard(rows, cols, mineCount, startR, startC, seed);
+  grid = [];
+  for(let r=0; r<rows; r++) {
+    grid[r] = [];
+    for(let c=0; c<cols; c++) {
+      grid[r][c] = { mine: result.grid[r][c].mine, count: result.grid[r][c].count, revealed: false, flagged: false };
+    }
+  }
+
+  renderBoard();
+  $menu.classList.add('hidden');
+  $game.style.display = 'flex';
+  stopMenuGridAnim();
+
+  // Auto-reveal start position on first frame
+  firstClickDone = true;
+  startTimer();
+  revealBatch = 0;
+  revealCell(startR, startC);
+  if(revealBatch > 5) SFX.play('reveal-big'); else SFX.play('reveal');
+
+  stats.daily.played++;
+  stats.totalPlayed++;
+  saveStats();
+  gvPost('game_start', { mode: 'daily' });
+}
+
+// ===== GAME LOGIC =====
+function startGame(diff) {
+  isDaily = false;
+  difficulty = diff;
+  const cfg = DIFFICULTIES[diff];
+  cols = cfg.cols; rows = cfg.rows; mineCount = cfg.mines;
+  totalSafe = cols * rows - mineCount;
+  revealed = 0; flagCount = 0; gameStarted = false; gameOver = false; won = false;
+  firstClickDone = false; usedFlags = false; flagMode = false; revealBatch = 0;
+  clickCount = 0; flagsPlaced = 0;
+  seconds = 0;
+  clearInterval(timerInterval); timerInterval = null;
+  FX.clear(); hideEndBar();
+
+  $mineCount.textContent = mineCount;
+  $timer.textContent = '0:00';
+  $faceBtn.textContent = '🙂';
+  $flagToggle.classList.remove('active');
+  $board.classList.remove('win-glow','lose-flash','shake','shake-hard');
+  $dailyBadge.classList.add('hidden');
+
+  grid = [];
+  for(let r=0; r<rows; r++) {
+    grid[r] = [];
+    for(let c=0; c<cols; c++) grid[r][c] = { mine:false, count:0, revealed:false, flagged:false };
+  }
+
+  let cellSize = 36;
+  const vw = window.innerWidth;
+  if(diff==='hard'){cellSize=Math.min(36,Math.floor((vw-40)/cols));cellSize=Math.max(22,cellSize);}
+  else if(diff==='medium'){cellSize=Math.min(36,Math.floor((vw-30)/cols));cellSize=Math.max(26,cellSize);}
+  else{cellSize=Math.min(40,Math.floor((vw-30)/cols));cellSize=Math.max(28,cellSize);}
+  document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
+
+  renderBoard();
+  $menu.classList.add('hidden');
+  $game.style.display = 'flex';
+  stopMenuGridAnim();
+
+  stats[diff].played++;
+  stats.totalPlayed++;
+  saveStats();
+  gvPost('game_start', { mode: diff });
+}
+
+function placeMines(safeR, safeC) {
+  if(noGuessEnabled) {
+    // No-guess: guaranteed solvable + opening cascade
+    const result = generateNoGuessBoard(rows, cols, mineCount, safeR, safeC, null);
+    for(let r=0; r<rows; r++) {
+      for(let c=0; c<cols; c++) {
+        grid[r][c].mine = result.grid[r][c].mine;
+        grid[r][c].count = result.grid[r][c].count;
+      }
+    }
+    return;
+  }
+
+  // Standard placement — retry until first click gives an opening (count=0)
+  const maxRetries = 50;
+  for(let attempt=0; attempt<maxRetries; attempt++) {
+    // Reset grid
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){ grid[r][c].mine=false; grid[r][c].count=0; }
+
+    // Place mines
+    const safeCells = new Set();
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+      const nr=safeR+dr,nc=safeC+dc;
+      if(nr>=0&&nr<rows&&nc>=0&&nc<cols) safeCells.add(nr*cols+nc);
+    }
+    let placed = 0;
+    while(placed < mineCount){
+      const r=Math.floor(Math.random()*rows), c=Math.floor(Math.random()*cols);
+      if(grid[r][c].mine||safeCells.has(r*cols+c)) continue;
+      grid[r][c].mine=true; placed++;
+    }
+    // Calculate counts
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+      if(grid[r][c].mine) continue;
+      let count=0;
+      forNeighbors(r,c,(nr,nc)=>{if(grid[nr][nc].mine)count++;});
+      grid[r][c].count=count;
+    }
+    // Check: first click should have count=0 for an opening cascade
+    if(grid[safeR][safeC].count === 0) return; // got an opening
+  }
+  // After max retries, accept whatever we have
+}
+
+function renderBoard() {
+  $board.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
+  $board.innerHTML = '';
+  for(let r=0; r<rows; r++) {
+    for(let c=0; c<cols; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r; cell.dataset.c = c;
+
+      let longPressTimer=null, didLongPress=false;
+      cell.addEventListener('pointerdown', e => {
+        if(gameOver)return; didLongPress=false;
+        if(e.pointerType==='touch'&&!flagMode&&!grid[r][c].revealed&&!grid[r][c].flagged&&firstClickDone){
+          cell.classList.add('lp-fill');
+          longPressTimer=setTimeout(()=>{
+            didLongPress=true;
+            cell.classList.remove('lp-fill');
+            toggleFlag(r,c);
+            if(navigator.vibrate)navigator.vibrate(30);
+          },400);
+        }
+      });
+      let isTouch=false;
+      cell.addEventListener('pointerup', e => {
+        clearTimeout(longPressTimer);cell.classList.remove('lp-fill');
+        if(gameOver||didLongPress)return;
+        if(e.pointerType==='touch'){
+          isTouch=true;
+          // Tap on flagged cell = unflag
+          if(grid[r][c].flagged&&!flagMode){toggleFlag(r,c);return;}
+          if(flagMode)toggleFlag(r,c);
+          else if(grid[r][c].revealed&&grid[r][c].count>0) chordReveal(r,c);
+          else handleClick(r,c);
+        }
+      });
+      cell.addEventListener('pointerleave',()=>{clearTimeout(longPressTimer);cell.classList.remove('lp-fill');});
+      cell.addEventListener('pointermove',()=>{clearTimeout(longPressTimer);cell.classList.remove('lp-fill');});
+      cell.addEventListener('click', e => {
+        if(gameOver)return;
+        // Skip if this was a touch interaction (handled by pointerup)
+        if(isTouch){isTouch=false;return;}
+        if(flagMode){toggleFlag(r,c);return;} handleClick(r,c);
+      });
+      cell.addEventListener('contextmenu', e => {e.preventDefault();if(!gameOver)toggleFlag(r,c);});
+      cell.addEventListener('auxclick', e => {if(e.button===1&&!gameOver){e.preventDefault();chordReveal(r,c);}});
+      cell.addEventListener('dblclick', () => {if(!gameOver)chordReveal(r,c);});
+
+      // Chord highlight on hover
+      cell.addEventListener('mouseenter', () => showChordHighlight(r,c));
+      cell.addEventListener('mouseleave', clearChordHighlight);
+
+      $board.appendChild(cell);
+    }
+  }
+}
+
+function getCell(r,c){return $board.children[r*cols+c];}
+function getCellCenter(r,c){const dom=getCell(r,c);const rect=dom.getBoundingClientRect();return{x:rect.left+rect.width/2,y:rect.top+rect.height/2};}
+function forNeighbors(r,c,fn){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const nr=r+dr,nc=c+dc;if(nr>=0&&nr<rows&&nc>=0&&nc<cols)fn(nr,nc);}}
+
+// Chord highlight — show which cells would be affected
+function showChordHighlight(r,c){
+  clearChordHighlight();
+  const cell=grid[r][c];
+  if(!cell.revealed||cell.count===0||gameOver) return;
+  getCell(r,c).classList.add('chord-source');
+  forNeighbors(r,c,(nr,nc)=>{
+    if(!grid[nr][nc].revealed&&!grid[nr][nc].flagged) getCell(nr,nc).classList.add('chord-target');
+  });
+}
+function clearChordHighlight(){
+  const prev=$board.querySelectorAll('.chord-source,.chord-target');
+  for(const el of prev) el.classList.remove('chord-source','chord-target');
+}
+
+function handleClick(r, c) {
+  const cell = grid[r][c];
+  if(cell.revealed || cell.flagged) return;
+  clickCount++;
+  if(!firstClickDone) {
+    firstClickDone = true;
+    placeMines(r, c);
+    startTimer();
+  }
+  if(cell.mine) { lose(r, c); return; }
+  revealBatch = 0;
+  revealCell(r, c);
+  if(revealBatch > 5) SFX.play('reveal-big'); else SFX.play('reveal');
+  if(revealBatch > 10) { const center=getCellCenter(r,c); FX.ring(center.x,center.y,'rgba(124,92,252,0.5)',60+revealBatch*2); }
+  if(revealBatch >= 20) unlockAchievement('cascade_20');
+  if(revealBatch >= 40) unlockAchievement('cascade_40');
+  clearChordHighlight();
+  checkWin();
+}
+
+function revealCell(r, c) {
+  const cell = grid[r][c];
+  if(cell.revealed || cell.flagged || cell.mine) return;
+  cell.revealed = true; revealed++; revealBatch++;
+  const dom = getCell(r, c);
+  dom.classList.add('revealed','reveal-anim');
+  if(cell.count > 0) dom.innerHTML = `<span class="num n${cell.count}">${cell.count}</span>`;
+  else forNeighbors(r, c, (nr, nc) => revealCell(nr, nc));
+}
+
+function toggleFlag(r, c) {
+  const cell=grid[r][c]; if(cell.revealed||!firstClickDone) return;
+  const dom=getCell(r,c);
+  if(cell.flagged){cell.flagged=false;flagCount--;dom.classList.remove('flagged');SFX.play('unflag');}
+  else{cell.flagged=true;flagCount++;flagsPlaced++;usedFlags=true;dom.classList.add('flagged');SFX.play('flag');if(navigator.vibrate)navigator.vibrate(15);unlockAchievement('first_flag');}
+  $mineCount.textContent=mineCount-flagCount;
+  $mineCount.classList.remove('bump');void $mineCount.offsetWidth;$mineCount.classList.add('bump');
+}
+
+function chordReveal(r, c) {
+  const cell=grid[r][c]; if(!cell.revealed||cell.count===0) return;
+  clickCount++;
+  let adjFlags=0; forNeighbors(r,c,(nr,nc)=>{if(grid[nr][nc].flagged)adjFlags++;});
+  if(adjFlags===cell.count){
+    revealBatch=0; let hitMine=false;
+    forNeighbors(r,c,(nr,nc)=>{
+      if(hitMine) return;
+      const n=grid[nr][nc];
+      if(!n.revealed&&!n.flagged){
+        if(n.mine){lose(nr,nc);hitMine=true;return;}
+        revealCell(nr,nc);
+      }
+    });
+    if(!hitMine){if(revealBatch>3)SFX.play('reveal-big');else if(revealBatch>0)SFX.play('reveal');clearChordHighlight();checkWin();}
+  }
+}
+
+function checkWin(){if(revealed>=totalSafe&&!gameOver)win();}
+
+function win() {
+  gameOver=true;won=true;clearInterval(timerInterval);
+  $faceBtn.textContent='😎';$board.classList.add('win-glow');
+  SFX.play('win');
+
+  const cells=$board.querySelectorAll('.cell');
+  cells.forEach((c,i)=>{setTimeout(()=>c.classList.add('sweep-anim'),i*6);});
+
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    if(grid[r][c].mine&&!grid[r][c].flagged){grid[r][c].flagged=true;const dom=getCell(r,c);setTimeout(()=>dom.classList.add('flagged'),200+Math.random()*300);}
+  }
+  $mineCount.textContent='0';
+
+  const boardRect=$board.getBoundingClientRect();
+  const cx=boardRect.left+boardRect.width/2, cy=boardRect.top+boardRect.height/2;
+  FX.confetti(cx,cy,80);
+  setTimeout(()=>FX.starBurst(cx,cy,30),200);
+  setTimeout(()=>FX.confetti(cx-80,cy-40,40),300);
+  setTimeout(()=>FX.confetti(cx+80,cy-40,40),450);
+  setTimeout(()=>{FX.confetti(boardRect.left,boardRect.top,25);FX.confetti(boardRect.right,boardRect.top,25);FX.confetti(boardRect.left,boardRect.bottom,25);FX.confetti(boardRect.right,boardRect.bottom,25);},600);
+
+  // Stats
+  const mode = isDaily ? 'daily' : difficulty;
+  const s = stats[mode];
+  s.won++; s.streak++;
+  if(s.streak > s.bestStreak) s.bestStreak = s.streak;
+  const isNewBest = !s.bestTime || seconds < s.bestTime;
+  if(isNewBest) s.bestTime = seconds;
+  s.totalTime += seconds;
+  stats.totalClicks += clickCount;
+  stats.totalFlags += flagsPlaced;
+  // Top 10 times
+  s.topTimes.push({ time: seconds, clicks: clickCount, flags: flagsPlaced, date: new Date().toLocaleDateString() });
+  s.topTimes.sort((a,b) => a.time - b.time);
+  if(s.topTimes.length > 10) s.topTimes.length = 10;
+  saveStats();
+
+  // Daily streak
+  if(isDaily) {
+    const today = getTodayKey();
+    if(dailyData.lastDate !== today) {
+      // Check if yesterday was completed for streak
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate()-1);
+      const yKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+      if(dailyData.lastDate === yKey || dailyData.streak === 0) {
+        dailyData.streak++;
+      } else {
+        dailyData.streak = 1;
+      }
+      dailyData.lastDate = today;
+      dailyData.completedToday = true;
+      if(!dailyData.bestTime || seconds < dailyData.bestTime) dailyData.bestTime = seconds;
+      saveDaily();
+    }
+  }
+
+  checkAchievements();
+  submitScore();
+
+  // Portal events — score, win, optional new-best high-score
+  const portalMode = isDaily ? 'daily' : difficulty;
+  gvPost('game_over', { score: seconds, mode: portalMode, won: true, time: seconds, clicks: clickCount, flags: flagsPlaced });
+  if(isNewBest) gvPost('high_score', { score: seconds, mode: portalMode });
+
+  if(isNewBest) setTimeout(()=>FX.float(cx,cy-60,'NEW BEST!','#ffe066',20),400);
+
+  // Show end bar after animations settle
+  setTimeout(()=>{
+    let detail = `${formatTime(seconds)} · ${clickCount} clicks · ${flagsPlaced} flags`;
+    if(isNewBest) detail += ' · New Best!';
+    if(isDaily) detail += ` · ${dailyData.streak} day streak`;
+    showEndBar('win', 'You Win!', detail);
+  },1200);
+}
+
+function lose(hitR, hitC) {
+  gameOver=true;won=false;clearInterval(timerInterval);
+  $faceBtn.textContent='💀';
+  SFX.play('explode');
+
+  const mode = isDaily ? 'daily' : difficulty;
+  stats[mode].streak=0;
+  stats.totalClicks += clickCount;
+  stats.totalFlags += flagsPlaced;
+  saveStats();
+  gvPost('game_over', { score: 0, mode: mode, won: false, time: seconds, clicks: clickCount, flags: flagsPlaced });
+
+  $board.classList.add('shake-hard');
+  setTimeout(()=>$board.classList.remove('shake-hard'),600);
+  $board.classList.add('lose-flash');
+
+  const hitDom=getCell(hitR,hitC);
+  hitDom.classList.add('exploded');hitDom.textContent='💥';
+  if(navigator.vibrate)navigator.vibrate([50,30,80]);
+
+  const hitCenter=getCellCenter(hitR,hitC);
+  FX.explode(hitCenter.x,hitCenter.y,25,['#ff3b5c','#ff6b3b','#ff9f1c','#fff'],{speed:3,speedVar:6,gravity:0.2,size:4,type:'debris'});
+  FX.ring(hitCenter.x,hitCenter.y,'rgba(255,59,92,0.6)',80);
+  FX.ring(hitCenter.x,hitCenter.y,'rgba(255,159,28,0.3)',120);
+
+  let delay=120;
+  const minePositions=[];
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    if(r===hitR&&c===hitC) continue;
+    const cell=grid[r][c], dom=getCell(r,c);
+    if(cell.mine&&!cell.flagged){
+      minePositions.push({r,c,delay});
+      const d=delay;
+      setTimeout(()=>{
+        dom.classList.add('mine-revealed','revealed');dom.textContent='💣';
+        const pos=getCellCenter(r,c);
+        FX.explode(pos.x,pos.y,6,['#ff3b5c','#ff6b3b'],{speed:2,speedVar:3,gravity:0.15,size:3,type:'spark',decay:0.03});
+      },d);
+      delay+=40;
+    } else if(!cell.mine&&cell.flagged){
+      setTimeout(()=>{dom.classList.add('mine-wrong');dom.textContent='✕';dom.style.color='var(--red)';},delay);
+    }
+  }
+  if(minePositions.length>5){setTimeout(()=>{$board.classList.remove('shake');void $board.offsetWidth;$board.classList.add('shake');},delay*0.4);}
+
+  setTimeout(()=>{
+    const modeName = isDaily ? 'Daily' : difficulty.charAt(0).toUpperCase()+difficulty.slice(1);
+    showEndBar('lose', 'Game Over', `${formatTime(seconds)} · ${clickCount} clicks · ${modeName}`);
+  },delay+500);
+}
+
+// ===== TIMER =====
+function startTimer(){
+  gameStarted=true;seconds=0;clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{seconds++;$timer.textContent=formatTimer(seconds);if(seconds>=999)clearInterval(timerInterval);},1000);
+}
+
+function formatTimer(s){const min=Math.floor(s/60),sec=s%60;return min>0?`${min}:${sec.toString().padStart(2,'0')}`:`0:${sec.toString().padStart(2,'0')}`;}
+function formatTime(s){const min=Math.floor(s/60),sec=s%60;return min>0?`${min}:${sec.toString().padStart(2,'0')}`:`${s}s`;}
+
+// ===== FLAG TOGGLE =====
+function toggleFlagMode(){flagMode=!flagMode;$flagToggle.classList.toggle('active',flagMode);}
+
+// ===== END BAR =====
+function showEndBar(type, title, detail) {
+  $endBar.classList.remove('win','lose');
+  $endBar.classList.add(type);
+  $endIcon.textContent = type === 'win' ? '😎' : '💀';
+  $endTitle.textContent = title;
+  $endDetail.textContent = detail;
+  $retryBtn.textContent = isDaily ? 'Try Again' : 'Play Again';
+  $endBar.classList.add('show');
+}
+function hideEndBar() { $endBar.classList.remove('show','win','lose'); }
+
+function showMenu(){
+  $game.style.display='none';$menu.classList.remove('hidden');
+  hideEndBar();clearInterval(timerInterval);
+  gameOver=true;FX.clear();isDaily=false;
+  updateDailyButton();
+  initMenuGrid();
+}
+
+// ===== STATS =====
+function defaultMode(){return {played:0,won:0,bestTime:0,streak:0,bestStreak:0,totalTime:0,topTimes:[]};}
+function getDefaultStats(){
+  return {easy:defaultMode(),medium:defaultMode(),hard:defaultMode(),daily:defaultMode(),totalPlayed:0,totalClicks:0,totalFlags:0};
+}
+function loadStats(){
+  try{
+    const d=localStorage.getItem(SAVE_KEY);
+    if(d){
+      const p=JSON.parse(d);
+      if(!p.daily) p.daily=defaultMode();
+      // Migrate: ensure new fields exist
+      for(const m of ['easy','medium','hard','daily']){ if(!p[m].topTimes) p[m].topTimes=[]; }
+      if(!p.totalClicks) p.totalClicks=0;
+      if(!p.totalFlags) p.totalFlags=0;
+      return p;
+    }
+  }catch(e){}
+  return getDefaultStats();
+}
+function saveStats(){localStorage.setItem(SAVE_KEY,JSON.stringify(stats));if(window.GameVolt)GameVolt.save.set(stats).catch(()=>{});}
+
+async function loadFromCloud(){
+  if(!window.GameVolt)return;
+  try{const cloud=await GameVolt.save.get();if(cloud){
+    for(const mode of ['easy','medium','hard','daily']){if(!cloud[mode])continue;const s=stats[mode];
+    s.played=Math.max(s.played,cloud[mode].played||0);s.won=Math.max(s.won,cloud[mode].won||0);
+    if(cloud[mode].bestTime&&(!s.bestTime||cloud[mode].bestTime<s.bestTime))s.bestTime=cloud[mode].bestTime;
+    s.bestStreak=Math.max(s.bestStreak,cloud[mode].bestStreak||0);s.totalTime=Math.max(s.totalTime,cloud[mode].totalTime||0);}
+    stats.totalPlayed=Math.max(stats.totalPlayed,cloud.totalPlayed||0);saveStats();
+  }}catch(e){}
+}
+
+function loadAchievements(){try{const d=localStorage.getItem('minesweeper_achievements');if(d)return JSON.parse(d);}catch(e){}return{};}
+function saveAchievements(){localStorage.setItem('minesweeper_achievements',JSON.stringify(unlockedAchs));}
+
+function showStats(mode){
+  $statsModal.classList.add('show');
+  $statsTabs.querySelectorAll('.modal-tab').forEach(t=>{t.classList.toggle('active',t.dataset.mode===mode);});
+  renderStats(mode);
+}
+
+function renderStats(mode){
+  const s=stats[mode]||defaultMode();
+  const winRate=s.played?Math.round(s.won/s.played*100):0;
+
+  const streakCards = mode==='daily'
+    ? `<div class="stat-card"><div class="stat-card-icon">📅</div><div class="stat-card-body"><div class="stat-card-val">${dailyData.streak}</div><div class="stat-card-label">Daily Streak</div></div></div>
+       <div class="stat-card"><div class="stat-card-icon">🏅</div><div class="stat-card-body"><div class="stat-card-val">${dailyData.bestTime?formatTime(dailyData.bestTime):'—'}</div><div class="stat-card-label">Daily Best</div></div></div>`
+    : `<div class="stat-card"><div class="stat-card-icon">🔥</div><div class="stat-card-body"><div class="stat-card-val">${s.streak}</div><div class="stat-card-label">Current Streak</div></div></div>
+       <div class="stat-card"><div class="stat-card-icon">⭐</div><div class="stat-card-body"><div class="stat-card-val">${s.bestStreak}</div><div class="stat-card-label">Best Streak</div></div></div>`;
+
+  $statsGrid.innerHTML=`
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-card-icon">🎮</div><div class="stat-card-body"><div class="stat-card-val">${s.played}</div><div class="stat-card-label">Played</div></div></div>
+      <div class="stat-card"><div class="stat-card-icon">📊</div><div class="stat-card-body"><div class="stat-card-val">${winRate}%</div><div class="stat-card-label">Win Rate</div></div></div>
+      <div class="stat-card"><div class="stat-card-icon">🏆</div><div class="stat-card-body"><div class="stat-card-val">${s.won}</div><div class="stat-card-label">Won</div></div></div>
+      <div class="stat-card"><div class="stat-card-icon">⏱</div><div class="stat-card-body"><div class="stat-card-val">${s.bestTime?formatTime(s.bestTime):'—'}</div><div class="stat-card-label">Best Time</div></div></div>
+      ${streakCards}
+    </div>
+    <div class="modal-section">Career</div>
+    <div class="career-cards">
+      <div class="career-card"><div class="career-card-icon">🎯</div><div class="career-card-val">${stats.totalPlayed}</div><div class="career-card-label">Games</div></div>
+      <div class="career-card"><div class="career-card-icon">👆</div><div class="career-card-val">${(stats.totalClicks||0).toLocaleString()}</div><div class="career-card-label">Clicks</div></div>
+      <div class="career-card"><div class="career-card-icon">🚩</div><div class="career-card-val">${(stats.totalFlags||0).toLocaleString()}</div><div class="career-card-label">Flags</div></div>
+    </div>`;
+}
+
+// ===== HIGHSCORES =====
+function showHighscores(mode){
+  $hsModal.classList.add('show');
+  $hsTabs.querySelectorAll('.modal-tab').forEach(t=>t.classList.toggle('active',t.dataset.mode===mode));
+  renderHighscores(mode);
+}
+
+function renderHighscores(mode){
+  const s = stats[mode] || defaultMode();
+  const times = s.topTimes || [];
+  const medals = ['🥇','🥈','🥉'];
+
+  if(times.length === 0) {
+    $hsContent.innerHTML = '<div class="hs-empty">No wins yet — play to set a record!</div>';
+    return;
+  }
+
+  let html = '<div class="hs-list">';
+  times.forEach((t,i) => {
+    const rankClass = i < 3 ? ` rank-${i+1}` : '';
+    const rankLabel = i < 3 ? medals[i] : `${i+1}`;
+    html += `<div class="hs-card${rankClass}">
+      <div class="hs-card-rank">${rankLabel}</div>
+      <div class="hs-card-time">${formatTime(t.time)}</div>
+      <div class="hs-card-stat"><span>${t.clicks!=null?t.clicks:'—'}</span>clicks</div>
+      <div class="hs-card-stat"><span>${t.flags!=null?t.flags:'—'}</span>flags</div>
+    </div>`;
+  });
+  html += '</div>';
+  $hsContent.innerHTML = html;
+}
+
+// ===== ACHIEVEMENTS =====
+// Trophy toast queue (standalone, when no GameVolt SDK)
+const toastQueue=[];
+let toastActive=false;
+
+function showTrophyToast(trophy){
+  toastQueue.push(trophy);
+  if(!toastActive) popToast();
+}
+
+function popToast(){
+  if(!toastQueue.length){toastActive=false;return;}
+  toastActive=true;
+  const t=toastQueue.shift();
+  const el=document.getElementById('trophy-toast');
+  document.getElementById('trophy-toast-icon').textContent=t.icon;
+  document.getElementById('trophy-toast-name').textContent=t.name;
+  const tierEl=document.getElementById('trophy-toast-tier');
+  tierEl.textContent=t.tier.toUpperCase();
+  tierEl.className=t.tier;
+  el.classList.add('show');
+  // Play tier-specific chime
+  trophySfx(t.tier);
+  setTimeout(()=>{el.classList.remove('show');setTimeout(popToast,400);},3000);
+}
+
+function trophySfx(tier){
+  if(SFX.muted) return;
+  try{
+    const ctx=SFX._ctx(), t=ctx.currentTime;
+    const freqs = tier==='platinum'?[784,988,1318,1568,1976]:
+                  tier==='gold'?[880,1109,1318,1568]:
+                  tier==='silver'?[784,988,1318]:
+                  [880,1320];
+    freqs.forEach((f,i)=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.value=f;
+      g.gain.setValueAtTime(0,t+i*0.1);
+      g.gain.linearRampToValueAtTime(0.08,t+i*0.1+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001,t+i*0.1+0.5);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t+i*0.1); o.stop(t+i*0.1+0.5);
+    });
+  }catch(e){}
+}
+
+function unlockAchievement(id){
+  if(unlockedAchs[id])return;unlockedAchs[id]=new Date().toISOString();saveAchievements();
+  const ach=ACHIEVEMENTS.find(a=>a.id===id);if(!ach)return;
+  if(window.GameVolt){
+    GameVolt.achievements.unlock(id).catch(()=>{});
+    if(GameVolt.ui) GameVolt.ui.achievementToast({icon:ach.icon,name:ach.name,tier:ach.tier});
+  } else {
+    showTrophyToast(ach);
+  }
+  gvPost('achievement', { id: 'minesweeper-' + id, name: ach.name, tier: ach.tier });
+}
+
+function showTrophies(){
+  $trophyModal.classList.add('show');
+  const unlocked=ACHIEVEMENTS.filter(a=>unlockedAchs[a.id]).length;
+  $trophyProgress.textContent=`${unlocked} / ${ACHIEVEMENTS.length} trophies unlocked`;
+
+  $trophyGrid.innerHTML='';
+  const tiers=[
+    {key:'bronze',label:'BRONZE',n:15},
+    {key:'silver',label:'SILVER',n:10},
+    {key:'gold',label:'GOLD',n:5},
+    {key:'platinum',label:'PLATINUM',n:1}
+  ];
+  for(const tier of tiers){
+    const tierAchs=ACHIEVEMENTS.filter(a=>a.tier===tier.key);
+    if(!tierAchs.length) continue;
+    const tierUnlocked=tierAchs.filter(a=>unlockedAchs[a.id]).length;
+
+    const header=document.createElement('div');
+    header.className=`trophy-section-header ${tier.key}`;
+    header.textContent=`${tier.label} — ${tierUnlocked} / ${tierAchs.length}`;
+    $trophyGrid.appendChild(header);
+
+    const cards=document.createElement('div');
+    cards.className='trophy-cards';
+    for(const a of tierAchs){
+      const isUnlocked=!!unlockedAchs[a.id];
+      const card=document.createElement('div');
+      card.className=`trophy-card ${isUnlocked?'unlocked':'locked'}`;
+      card.innerHTML=`
+        <div class="trophy-card-header">
+          <span class="trophy-card-icon">${isUnlocked?a.icon:'🔒'}</span>
+          <span class="trophy-card-name">${a.name}</span>
+        </div>
+        <div class="trophy-card-desc">${isUnlocked?a.desc:'???'}</div>
+        <div class="trophy-card-tier ${a.tier}">${a.tier.toUpperCase()}</div>
+      `;
+      cards.appendChild(card);
+    }
+    $trophyGrid.appendChild(cards);
+  }
+}
+
+function checkAchievements(){
+  const mode=isDaily?'daily':difficulty;
+  const s=stats[mode];
+  const totalWins=stats.easy.won+stats.medium.won+stats.hard.won;
+  const total=stats.easy.played+stats.medium.played+stats.hard.played;
+  const diff=difficulty;
+
+  // Bronze
+  if(totalWins>=1) unlockAchievement('first_win');
+  if(diff==='easy') unlockAchievement('easy_clear');
+  if(diff==='medium'||isDaily) unlockAchievement('medium_clear');
+  if(diff==='hard') unlockAchievement('hard_clear');
+  if(total>=10) unlockAchievement('games_10');
+  if(total>=25) unlockAchievement('games_25');
+  if(totalWins>=5) unlockAchievement('wins_5');
+  if(totalWins>=10) unlockAchievement('wins_10');
+  if(!isDaily&&s.streak>=3) unlockAchievement('streak_3');
+  if(diff==='easy'&&seconds<60) unlockAchievement('speed_easy_60');
+  if(seconds>=300) unlockAchievement('endurance');
+  if(isDaily) unlockAchievement('daily_first');
+  if(isDaily&&dailyData.streak>=3) unlockAchievement('daily_3');
+  // cascade_20 and first_flag are checked inline (see handleClick/toggleFlag)
+
+  // Silver
+  if(diff==='easy'&&seconds<30) unlockAchievement('speed_easy_30');
+  if((diff==='medium'||isDaily)&&seconds<120) unlockAchievement('speed_med_120');
+  if(!usedFlags) unlockAchievement('no_flags');
+  if(total>=50) unlockAchievement('games_50');
+  if(total>=100) unlockAchievement('games_100');
+  if(totalWins>=25) unlockAchievement('wins_25');
+  if(!isDaily&&s.streak>=5) unlockAchievement('streak_5');
+  if(stats.easy.won>0&&stats.medium.won>0&&stats.hard.won>0) unlockAchievement('all_modes');
+  if(isDaily&&dailyData.streak>=7) unlockAchievement('daily_7');
+  // cascade_40 checked inline
+
+  // Gold
+  if(diff==='easy'&&seconds<15) unlockAchievement('speed_easy_15');
+  if(diff==='hard'&&seconds<300) unlockAchievement('speed_hard_300');
+  if(totalWins>=100) unlockAchievement('wins_100');
+  if(!isDaily&&s.streak>=10) unlockAchievement('streak_10');
+  if(isDaily&&dailyData.streak>=30) unlockAchievement('daily_30');
+
+  // Platinum check (delayed so toasts queue nicely)
+  setTimeout(()=>checkPlatinum(), 600);
+}
+
+function checkPlatinum(){
+  if(unlockedAchs['completionist']) return;
+  const nonPlat = ACHIEVEMENTS.filter(a=>a.id!=='completionist');
+  const allDone = nonPlat.every(a=>unlockedAchs[a.id]);
+  if(allDone) unlockAchievement('completionist');
+}
+
+// ===== LEADERBOARD =====
+async function submitScore(){
+  if(!window.GameVolt)return;
+  const mode = isDaily ? `daily-${getTodayKey()}` : difficulty;
+  try{await GameVolt.leaderboard.submit(seconds,{mode});}catch(e){}
+}
+
+
+// ===== START =====
+init();
+
+})();
+</script>
+
+<!-- SEO content & footer — visible standalone, hidden inside the /play/ iframe -->
+<div id="seo-content" style="display:none;">
+<style>
+  /* When body becomes scrollable in standalone mode, let the menu+game wrapper
+     take the first viewport so the SEO content scrolls in below it. */
+  body.gv-standalone { height:auto !important; min-height:100vh; overflow:auto !important; justify-content:flex-start !important; }
+  body.gv-standalone #menu, body.gv-standalone #game { min-height:100vh; height:auto !important; }
+  body.gv-standalone #bgCanvas, body.gv-standalone #fxCanvas { position:fixed !important; }
+  #seo-content { display:block !important; background:#0a0e1a; color:#b0b0b0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; position:relative; z-index:20; }
+  #seo-content a { color:#a78bfa; }
+  #seo-content a:hover { color:#7c5cfc; }
+  .ms-breadcrumb { max-width:1200px; margin:0 auto; padding:16px 24px; font-size:0.85rem; color:#626580; }
+  .ms-breadcrumb a { color:#a0a4c0; text-decoration:none; }
+  .ms-breadcrumb a:hover { color:#a78bfa; }
+  .ms-breadcrumb .sep { color:#626580; margin:0 0.4rem; }
+  .ms-breadcrumb .here { color:#f0f0ff; }
+  .ms-info { max-width:800px; margin:2rem auto 0; padding:0 24px 2rem; line-height:1.75; font-size:0.97rem; }
+  .ms-info h1 { color:#f0f0ff; font-size:1.7rem; margin-bottom:0.5rem; font-weight:700; }
+  .ms-info h2 { color:#e0e0e0; font-size:1.2rem; margin-top:1.8rem; margin-bottom:0.5rem; font-weight:600; }
+  .ms-info p { margin-bottom:1rem; }
+  .ms-info ul { margin:0 0 1rem 1.25rem; padding:0; }
+  .ms-info li { margin-bottom:0.4rem; }
+  .ms-related { max-width:1200px; margin:2.5rem auto 0; padding:0 24px; }
+  .ms-related h2 { color:#f0f0ff; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; }
+  .ms-related-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+  .ms-card { text-decoration:none; background:rgba(255,255,255,0.04); border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); display:block; transition:border-color .2s, transform .2s; }
+  .ms-card:hover { border-color:rgba(124,92,252,0.4); transform:translateY(-2px); }
+  .ms-card img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+  .ms-card-body { padding:12px; }
+  .ms-card-title { color:#f0f0ff; font-size:0.95rem; font-weight:600; }
+  .ms-card-cat { color:#888; font-size:0.8rem; margin-top:4px; }
+  .ms-faq { max-width:800px; margin:2.5rem auto 0; padding:0 24px; }
+  .ms-faq h2 { color:#f0f0ff; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; }
+  .ms-faq details { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; }
+  .ms-faq summary { color:#e0e0e0; font-weight:600; cursor:pointer; font-size:0.97rem; }
+  .ms-faq details[open] summary { color:#a78bfa; }
+  .ms-faq details > p { color:#b0b0b0; margin-top:0.6rem; line-height:1.7; font-size:0.92rem; }
+  .ms-footer { background:#0a0e1a; border-top:1px solid rgba(255,255,255,0.06); padding:48px 24px 24px; margin-top:3rem; }
+  .ms-footer-inner { max-width:1200px; margin:0 auto; }
+  .ms-footer-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:32px; padding-bottom:32px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .ms-footer-brand { max-width:300px; }
+  .ms-footer-logo { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .ms-footer-logo-icon { width:40px; height:40px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:10px; display:flex; align-items:center; justify-content:center; }
+  .ms-footer-name { font-size:1.5rem; font-weight:700; color:#fff; }
+  .ms-footer-cols { display:flex; gap:48px; flex-wrap:wrap; }
+  .ms-footer-cols h4 { font-size:1rem; font-weight:700; margin:0 0 16px; color:#f0f0ff; }
+  .ms-footer-cols a { display:block; color:#888; text-decoration:none; padding:4px 0; font-size:0.9rem; }
+  .ms-footer-cols a:hover { color:#a78bfa; }
+  .ms-copy { padding-top:24px; text-align:center; color:#888; font-size:0.85rem; }
+</style>
+
+<nav class="ms-breadcrumb" aria-label="Breadcrumb">
+  <a href="/">Home</a>
+  <span class="sep">›</span>
+  <a href="/puzzle-games/">Puzzle Games</a>
+  <span class="sep">›</span>
+  <span class="here">Minesweeper</span>
+</nav>
+
+<section class="ms-info">
+  <h1>Minesweeper — Free Online Classic Puzzle</h1>
+  <p>
+    Play Minesweeper free in your browser. The classic logic puzzle is back with a modern twist:
+    three difficulties, a daily challenge with a global streak, an optional <strong>no-guess mode</strong>
+    that guarantees every board can be solved by pure deduction, plus global leaderboards and 31 trophies
+    to chase. No download, no signup — just clear the board without hitting a mine.
+  </p>
+
+  <h2>How to Play Minesweeper</h2>
+  <p>
+    Each cell is either safe or hides a mine. Reveal a safe cell and you'll see a number from 1 to 8
+    telling you exactly how many mines surround that cell. Use those numbers to deduce where the
+    mines are. Flag suspected mines, reveal everything else, and the board is won.
+  </p>
+  <ul>
+    <li><strong>Left-click (or tap)</strong> to reveal a cell.</li>
+    <li><strong>Right-click</strong> (desktop) or <strong>long-press</strong> (mobile) to flag a mine.</li>
+    <li><strong>Double-click</strong> a numbered cell to "chord" — auto-reveal its neighbours when the right number of flags is placed.</li>
+    <li>The first click is always safe and opens a cascade.</li>
+  </ul>
+
+  <h2>Three Difficulty Levels</h2>
+  <ul>
+    <li><strong>Easy</strong> — 9×9 grid, 10 mines. Perfect for a quick warm-up or a sub-30-second speedrun.</li>
+    <li><strong>Medium</strong> — 16×16 grid, 40 mines. The classic Windows "Intermediate" board.</li>
+    <li><strong>Hard</strong> — 30×16 grid, 99 mines. Expert-level pattern recognition.</li>
+  </ul>
+
+  <h2>Daily Challenge & Streaks</h2>
+  <p>
+    Every day at midnight, a brand-new Medium board is generated from a seeded random number generator.
+    Everyone in the world plays the same board, so you can compare your time against friends and the
+    global leaderboard. Complete the Daily and build your streak — 3 days, 7 days, even 30 days for the
+    "Monthly Devotion" gold trophy.
+  </p>
+
+  <h2>No-Guess Mode</h2>
+  <p>
+    The biggest frustration in classic Minesweeper is being forced to guess at the end. Toggle on
+    no-guess mode and every board is mathematically guaranteed to be solvable by pure logic — no
+    50/50 coin-flips, no unfair losses. The solver uses constraint propagation plus a tank-style
+    backtracking pass, so even the hardest boards are deterministically beatable.
+  </p>
+
+  <h2>Trophies, Stats & Leaderboards</h2>
+  <p>
+    Earn 31 trophies across four tiers — 15 bronze, 10 silver, 5 gold and 1 platinum. From your first
+    flag to clearing Easy in under 15 seconds or maintaining a 30-day Daily streak, there's always a
+    new goal to chase. Sign in to GameVolt to sync your trophies and times across devices, and to
+    submit your best times to the global leaderboard for each difficulty.
+  </p>
+
+  <h2>Mobile-Friendly Controls</h2>
+  <p>
+    Minesweeper plays beautifully on phones and tablets. Tap to reveal, long-press to flag, or toggle
+    the floating flag button to flag with single taps. Haptic feedback confirms every action. The
+    board auto-resizes to your screen so even Hard mode is playable on the smaller phone.
+  </p>
+
+  <h2>Free, Instant, No Download</h2>
+  <p>
+    Minesweeper is part of <a href="/">GameVolt</a> — a curated collection of original free browser
+    games. No ads, no installs, no account required to play. Progress is saved locally; sign in to
+    sync across devices.
+  </p>
+</section>
+
+<section class="ms-faq">
+  <h2>Minesweeper FAQ</h2>
+  <details>
+    <summary>Is this Minesweeper really free?</summary>
+    <p>Yes. 100% free, no ads, no signup needed. Sign in only if you want cloud-synced trophies and a place on the global leaderboard.</p>
+  </details>
+  <details>
+    <summary>What's the difference between no-guess mode and classic mode?</summary>
+    <p>In classic mode, mines are placed randomly (with a safe zone around your first click). That sometimes creates "50/50" endgame positions where you must guess. No-guess mode runs a solver during board generation to guarantee a logical, guess-free solution — every board is winnable by pure deduction.</p>
+  </details>
+  <details>
+    <summary>How does chording work?</summary>
+    <p>Once a numbered cell is revealed, you can double-click it to "chord" — if the number of flagged neighbours matches the cell's number, all other neighbours are revealed instantly. This is the fastest way to clear large open areas. On mobile, tap a revealed number to chord.</p>
+  </details>
+  <details>
+    <summary>Is the daily challenge the same for everyone?</summary>
+    <p>Yes — every player worldwide gets the same daily board, generated from a date-seeded random number generator. Compare your times on the daily leaderboard.</p>
+  </details>
+  <details>
+    <summary>Does it work on phones and tablets?</summary>
+    <p>Yes. Tap to reveal, long-press to flag, or use the floating flag toggle for one-tap flagging. The board scales to your screen size, even on Hard.</p>
+  </details>
+  <details>
+    <summary>What's the world record for Minesweeper Hard?</summary>
+    <p>The current human world record for Hard (Expert) is just under 30 seconds. Beating 5 minutes unlocks the gold "Hard &amp; Fast" trophy — a good benchmark for serious players.</p>
+  </details>
+</section>
+
+<section class="ms-related">
+  <h2>You Might Also Like</h2>
+  <div class="ms-related-grid">
+    <a href="/sudoku/" class="ms-card">
+      <img src="/assets/thumbnails/sudoku.webp" alt="Play Sudoku online free">
+      <div class="ms-card-body">
+        <div class="ms-card-title">Sudoku</div>
+        <div class="ms-card-cat">Logic Puzzle</div>
+      </div>
+    </a>
+    <a href="/one-stroke/" class="ms-card">
+      <img src="/assets/thumbnails/one-stroke.webp" alt="Play One Stroke online free">
+      <div class="ms-card-body">
+        <div class="ms-card-title">One Stroke</div>
+        <div class="ms-card-cat">Path Puzzle</div>
+      </div>
+    </a>
+    <a href="/golden-glyphs/" class="ms-card">
+      <img src="/assets/thumbnails/golden-glyphs.webp" alt="Play Golden Glyphs online free">
+      <div class="ms-card-body">
+        <div class="ms-card-title">Golden Glyphs</div>
+        <div class="ms-card-cat">Block Puzzle</div>
+      </div>
+    </a>
+    <a href="/blockstorm/" class="ms-card">
+      <img src="/assets/thumbnails/blockstorm.webp" alt="Play BlockStorm online free">
+      <div class="ms-card-body">
+        <div class="ms-card-title">BlockStorm</div>
+        <div class="ms-card-cat">Tetris-Style</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<footer class="ms-footer">
+  <div class="ms-footer-inner">
+    <div class="ms-footer-top">
+      <div class="ms-footer-brand">
+        <div class="ms-footer-logo">
+          <div class="ms-footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+          <span class="ms-footer-name">GameVolt</span>
+        </div>
+        <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+      </div>
+      <div class="ms-footer-cols">
+        <div>
+          <h4>Games</h4>
+          <a href="/sudoku/">Sudoku</a>
+          <a href="/one-stroke/">One Stroke</a>
+          <a href="/golden-glyphs/">Golden Glyphs</a>
+          <a href="/blockstorm/">BlockStorm</a>
+          <a href="/manga-match3/">Manga Match</a>
+          <a href="/hoverdash/">HoverDash</a>
+          <a href="/snake/">Snake Neo</a>
+          <a href="/breakout/">Breakout</a>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <a href="/arcade-games/">Arcade</a>
+          <a href="/action-games/">Action</a>
+          <a href="/puzzle-games/">Puzzle</a>
+          <a href="/board-games/">Board Games</a>
+        </div>
+        <div>
+          <h4>Info</h4>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/privacy/">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="ms-copy">© 2026 GameVolt. All rights reserved.</div>
+  </div>
+</footer>
+</div>
+<script>
+// Reveal SEO content only when loaded standalone — hide everything in iframe (e.g. /play/?game=minesweeper)
+if (window.parent === window) {
+  document.body.classList.add('gv-standalone');
+  document.getElementById('seo-content').style.display = 'block';
+}
+</script>
+
+<noscript>
+  <div style="padding:2rem;color:#c8cce0;text-align:center">
+    <h1>Minesweeper Online</h1>
+    <p>Play the classic Minesweeper puzzle game free in your browser. JavaScript is required.</p>
+  </div>
+</noscript>
+</body>
+</html>

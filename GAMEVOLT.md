@@ -66,6 +66,7 @@ Last verified by auditing the code on 2026-04-17.
 | 12 | Manga Match | ✅ Live | ✅ Full (registerMigration added 2026-04-17) |
 | 13 | Golden Glyphs | ✅ Live | ✅ Full |
 | 14 | One Stroke | ✅ Live | ✅ Full |
+| 15 | Minesweeper | ✅ Live | ✅ Full (31 trophies, added 2026-05-15) |
 
 **Remaining work:** SDK rollout to Snake; full integration (leaderboard + achievements + migration) for the Solitaire variants.
 
@@ -692,6 +693,7 @@ Optional: Transfer domain to Cloudflare to save ~100-200 kr/year.
 ├── blockstorm/                   ← Tetris clone
 ├── connect4/                     ← Connect 4
 ├── hoverdash/                    ← HoverDash (SDK pilot)
+├── minesweeper/                  ← Minesweeper (no-guess mode + daily)
 ├── snake/                        ← Snake Neo (3 modes)
 ├── solitaire/                    ← Solitaire Collection
 ├── taprush/                      ← TapRush (was ClickRush)
