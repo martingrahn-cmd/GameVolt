@@ -298,6 +298,39 @@ body{
 }
 .back-btn:hover{color:var(--text-bright);border-color:var(--accent)}
 
+.help-btn{
+  position:fixed;top:0.75rem;right:0.75rem;
+  width:32px;height:32px;border-radius:50%;
+  background:var(--bg2);border:1px solid rgba(255,255,255,0.06);
+  color:var(--text-dim);cursor:pointer;font-size:0.95rem;font-weight:700;
+  font-family:'Inter',sans-serif;z-index:100;transition:all 0.2s;
+  display:flex;align-items:center;justify-content:center;padding:0
+}
+.help-btn:hover{color:var(--text-bright);border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow)}
+
+/* How to Play modal */
+.how-body{font-size:0.85rem;line-height:1.55;color:var(--text)}
+.how-intro{margin-bottom:0.6rem;color:var(--text-bright)}
+.how-section-title{
+  font-size:0.6rem;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--text-dim);padding:0.85rem 0 0.35rem;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:0.5rem
+}
+.how-grid{display:flex;flex-direction:column;gap:0.3rem}
+.how-row{
+  display:grid;grid-template-columns:9.5rem 1fr;gap:0.6rem;align-items:center;
+  padding:0.35rem 0.55rem;background:rgba(10,14,26,0.5);border:1px solid rgba(255,255,255,0.03);
+  border-radius:6px;font-size:0.78rem
+}
+.how-key{font-family:'JetBrains Mono',monospace;color:var(--cyan);font-size:0.72rem}
+.how-act{color:var(--text)}
+.how-tips{margin:0 0 0 1.1rem;padding:0;color:var(--text)}
+.how-tips li{margin-bottom:0.35rem;font-size:0.82rem}
+.how-tips li strong{color:var(--text-bright)}
+@media(max-width:480px){
+  .how-row{grid-template-columns:7.5rem 1fr;font-size:0.72rem}
+  .how-key{font-size:0.68rem}
+}
+
 
 /* Shared modal base */
 .modal-overlay{
@@ -555,6 +588,7 @@ body{
       <a class="stats-link" id="statsLink">Statistics</a>
       <a class="stats-link" id="trophyLink">Achievements</a>
     </div>
+    <a class="stats-link how-link" id="howLink" style="width:100%;margin-top:0.4rem">How to Play</a>
   </div>
 </div>
 
@@ -572,6 +606,7 @@ body{
     <div class="board" id="board"></div>
   </div>
   <button class="back-btn" id="backBtn">← Menu</button>
+  <button class="help-btn" id="helpBtn" aria-label="How to play">?</button>
   <button class="flag-toggle" id="flagToggle">🚩</button>
   <div class="end-bar" id="endBar">
     <div class="end-bar-info">
@@ -625,6 +660,45 @@ body{
     </div>
     <div id="hsContent"></div>
     <button class="modal-close" id="hsClose">Close</button>
+  </div>
+</div>
+
+<!-- HOW TO PLAY MODAL -->
+<div id="how-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h2>How to Play Minesweeper</h2>
+    <div class="how-body">
+      <p class="how-intro">Reveal every safe cell without clicking a mine. Numbers tell you how many mines surround that cell — use them to deduce where the mines are.</p>
+
+      <div class="how-section-title">Controls</div>
+      <div class="how-grid">
+        <div class="how-row"><span class="how-key">🖱️ Left-click</span><span class="how-act">Reveal a cell</span></div>
+        <div class="how-row"><span class="how-key">🖱️ Right-click</span><span class="how-act">Place / remove flag</span></div>
+        <div class="how-row"><span class="how-key">🖱️ Double-click</span><span class="how-act">Chord (reveal neighbours of a flagged number)</span></div>
+        <div class="how-row"><span class="how-key">👆 Tap</span><span class="how-act">Reveal a cell</span></div>
+        <div class="how-row"><span class="how-key">👆 Long-press</span><span class="how-act">Place / remove flag</span></div>
+        <div class="how-row"><span class="how-key">🚩 Flag toggle</span><span class="how-act">Mobile button — swap tap mode to flag mode</span></div>
+        <div class="how-row"><span class="how-key">⌨️ R</span><span class="how-act">Restart current board</span></div>
+        <div class="how-row"><span class="how-key">⌨️ Esc</span><span class="how-act">Back to menu / close modal</span></div>
+      </div>
+
+      <div class="how-section-title">Tips</div>
+      <ul class="how-tips">
+        <li><strong>The first click is always safe</strong> — it can never hit a mine, and usually opens a cascade.</li>
+        <li>A revealed <span class="n1" style="font-weight:700">1</span> next to one unrevealed cell means that cell is a mine — flag it.</li>
+        <li>If a number's flag count already matches, double-click to instantly reveal all its remaining neighbours.</li>
+        <li><strong>No-guess mode</strong> guarantees the board is solvable by logic — no 50/50 endgame coin-flips.</li>
+        <li>The <strong>Daily Challenge</strong> is the same Medium board for everyone, every day. Build a streak.</li>
+      </ul>
+
+      <div class="how-section-title">Difficulties</div>
+      <ul class="how-tips">
+        <li><strong>Easy</strong> — 9×9, 10 mines. Great for warmups and speedruns.</li>
+        <li><strong>Medium</strong> — 16×16, 40 mines. The classic intermediate board.</li>
+        <li><strong>Hard</strong> — 30×16, 99 mines. Expert pattern recognition.</li>
+      </ul>
+    </div>
+    <button class="modal-close" id="howClose">Got it</button>
   </div>
 </div>
 
@@ -1195,6 +1269,7 @@ const $noGuessCheck=$('noGuessCheck');
 const $trophyLink=$('trophyLink'), $trophyModal=$('trophy-modal');
 const $hsLink=$('hsLink'), $hsModal=$('hs-modal'), $hsTabs=$('hsTabs'), $hsContent=$('hsContent'), $hsClose=$('hsClose');
 const $trophyGrid=$('trophyGrid'), $trophyProgress=$('trophyProgress'), $trophyClose=$('trophyClose');
+const $howLink=$('howLink'), $howBtn=$('helpBtn'), $howModal=$('how-modal'), $howClose=$('howClose');
 
 // ===== INIT =====
 function init() {
@@ -1234,6 +1309,18 @@ function init() {
     renderHighscores(tab.dataset.mode);
   });
 
+  // How to Play
+  function openHow(){ $howModal.classList.add('show'); }
+  function closeHow(){ $howModal.classList.remove('show'); localStorage.setItem('minesweeper_seenHelp','1'); }
+  $howLink.addEventListener('click', openHow);
+  $howBtn.addEventListener('click', openHow);
+  $howClose.addEventListener('click', closeHow);
+  $howModal.addEventListener('click', e => { if(e.target === $howModal) closeHow(); });
+  // Auto-show on the very first visit (in iframe and standalone alike — most players land via portal)
+  if(!localStorage.getItem('minesweeper_seenHelp')){
+    setTimeout(openHow, 600);
+  }
+
   $noGuessCheck.addEventListener('change', () => {
     noGuessEnabled = $noGuessCheck.checked;
     localStorage.setItem('minesweeper_noguess', noGuessEnabled ? '1' : '0');
@@ -1249,6 +1336,7 @@ function init() {
 
   document.addEventListener('keydown', e => {
     if(e.key==='Escape'){
+      if($howModal.classList.contains('show')){closeHow();return;}
       if($hsModal.classList.contains('show')){$hsModal.classList.remove('show');return;}
       if($trophyModal.classList.contains('show')){$trophyModal.classList.remove('show');return;}
       if($statsModal.classList.contains('show')){$statsModal.classList.remove('show');return;}
