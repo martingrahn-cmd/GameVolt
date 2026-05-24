@@ -200,6 +200,15 @@
                 "url": "https://gamevolt.io/minesweeper/",
                 "genre": ["Puzzle", "Logic"],
                 "gamePlatform": "Web Browser"
+            },
+            {
+                "@type": "VideoGame",
+                "position": 14,
+                "name": "Type or Die",
+                "description": "A typing zombie game and WPM speed test — type to kill zombies, chase combos, survive boss waves, server-validated leaderboard and 31 trophies",
+                "url": "https://gamevolt.io/type-or-die/",
+                "genre": ["Word", "Typing", "Arcade"],
+                "gamePlatform": "Web Browser"
             }
         ]
     }
@@ -2057,7 +2066,7 @@
             <button class="category-pill active" data-filter="all">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
-                <span class="pill-count">14</span>
+                <span class="pill-count">15</span>
             </button>
             <button class="category-pill" data-filter="coffee-break">
                 <span class="pill-icon">☕</span>
@@ -2073,6 +2082,11 @@
                 <span class="pill-icon">🔥</span>
                 <span>Action</span>
                 <span class="pill-count">6</span>
+            </button>
+            <button class="category-pill" data-filter="word">
+                <span class="pill-icon">⌨️</span>
+                <span>Word</span>
+                <span class="pill-count">1</span>
             </button>
             <span class="category-pill-sep" aria-hidden="true"></span>
             <button class="category-pill" data-filter="trending">
@@ -2371,6 +2385,25 @@
                     <span class="play-btn">▶ Play Now</span>
                 </div>
             </a>
+
+            <!-- Type or Die -->
+            <a href="/play/?game=type-or-die" class="game-card" data-category="word">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/type-or-die.webp" alt="Play Type or Die online free" loading="lazy">
+                    <span class="game-badge new">NEW</span>
+                    <span class="game-bolt">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Type or Die</h3>
+                    <p class="game-description">A typing zombie game and WPM speed test in one. Type to kill zombies, chase combos, survive boss waves, take the Daily Challenge — server-validated leaderboard and 31 trophies.</p>
+                    <div class="game-tags">
+                        <span class="tag">Typing</span>
+                        <span class="tag">WPM</span>
+                        <span class="tag">Zombie</span>
+                    </div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
         </div>
 
         <section class="features-section">
@@ -2435,6 +2468,7 @@
                         <a href="/action-games/">Action</a>
                         <a href="/puzzle-games/">Puzzle</a>
                         <a href="/board-games/">Board Games</a>
+                        <a href="/word-games/">Word</a>
                     </div>
                     <div class="footer-column">
                         <h4>Info</h4>
@@ -2515,12 +2549,13 @@
             'coffee-break': 'Coffee Break',
             'brain-challenge': 'Brain Challenge',
             'action': 'Action',
+            'word': 'Word',
             'trending': '🔥 Trending',
             'top-rated': '⭐ Top Rated',
             'new': '🆕 New'
         };
 
-        var CATEGORY_FILTERS = { 'coffee-break':1, 'brain-challenge':1, 'action':1 };
+        var CATEGORY_FILTERS = { 'coffee-break':1, 'brain-challenge':1, 'action':1, 'word':1 };
         var SORT_TABS = { 'trending':1, 'top-rated':1, 'new':1 };
 
         // Snapshot the original DOM order so we can restore "All Games".
@@ -2656,7 +2691,8 @@
             "golden-glyphs": { name: "Golden Glyphs", thumb: "/assets/thumbnails/golden-glyphs.webp", preview: "/golden-glyphs/preview.mp4" },
             "one-stroke": { name: "One Stroke", thumb: "/assets/thumbnails/one-stroke.webp", preview: "/one-stroke/preview.mp4" },
             "asteroid-storm": { name: "Asteroid Storm", thumb: "/assets/thumbnails/asteroid-storm.webp" },
-            minesweeper: { name: "Minesweeper", thumb: "/assets/thumbnails/minesweeper.webp" }
+            minesweeper: { name: "Minesweeper", thumb: "/assets/thumbnails/minesweeper.webp" },
+            "type-or-die": { name: "Type or Die", thumb: "/assets/thumbnails/type-or-die.webp" }
         };
 
         var recent = GVTracker.getRecentlyPlayed(4);
@@ -2721,7 +2757,8 @@
             "golden-glyphs": { name: "Golden Glyphs", thumb: "/assets/thumbnails/golden-glyphs.webp", preview: "/golden-glyphs/preview.mp4" },
             "one-stroke":    { name: "One Stroke",    thumb: "/assets/thumbnails/one-stroke.webp", preview: "/one-stroke/preview.mp4" },
             "asteroid-storm": { name: "Asteroid Storm", thumb: "/assets/thumbnails/asteroid-storm.webp" },
-            minesweeper:     { name: "Minesweeper",   thumb: "/assets/thumbnails/minesweeper.webp" }
+            minesweeper:     { name: "Minesweeper",   thumb: "/assets/thumbnails/minesweeper.webp" },
+            "type-or-die":   { name: "Type or Die",    thumb: "/assets/thumbnails/type-or-die.webp" }
         };
         var section = document.getElementById('favoritesSection');
         var grid = document.getElementById('favoritesGrid');

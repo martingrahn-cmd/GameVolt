@@ -19,7 +19,8 @@
     { id: 'gravitywell',   name: 'Gravity Well',   cat: 'Arcade', thumb: '/assets/thumbnails/gravitywell.webp', tags: 'arcade gravity physics' },
     { id: 'solitaire',     name: 'Solitaire',      cat: 'Board',  thumb: '/assets/thumbnails/solitaire.webp', tags: 'board card classic klondike' },
     { id: 'connect4',      name: 'Connect 4',      cat: 'Board',  thumb: '/assets/thumbnails/connect4-thumbnail.webp', tags: 'board strategy classic' },
-    { id: 'asteroid-storm', name: 'Asteroid Storm', cat: 'Action', thumb: '/assets/thumbnails/asteroid-storm.webp', tags: 'action arcade shooter space asteroids coop boss' }
+    { id: 'asteroid-storm', name: 'Asteroid Storm', cat: 'Action', thumb: '/assets/thumbnails/asteroid-storm.webp', tags: 'action arcade shooter space asteroids coop boss' },
+    { id: 'type-or-die', name: 'Type or Die', cat: 'Word', thumb: '/assets/thumbnails/type-or-die.webp', tags: 'word typing wpm speed test zombie keyboard' }
   ];
 
   var wrap = null;
