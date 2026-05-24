@@ -30,6 +30,41 @@
     gtag("js", new Date());
     gtag("config", "G-PY073ZX38N");
   </script>
+  <!-- GameVolt portal bridge: postMessage events + GA4 play-time tracker.
+       gvPost() forwards lifecycle actions to the portal; GameVoltTracker
+       sends GA4 events (routed through the parent when embedded). Both are
+       no-ops in standalone dev. -->
+  <script>
+    function gvPost(action, payload) {
+      if (window.parent !== window) {
+        try { window.parent.postMessage({ type: "gamevolt", action: action, gameId: "type-or-die", payload: payload || {} }, "*"); } catch (e) {}
+      }
+    }
+    var GameVoltTracker = {
+      gameName: null, startTime: null, hasTracked30s: false, hasTracked60s: false, timerInterval: null,
+      start: function (n) {
+        this.gameName = n; this.startTime = Date.now(); this.hasTracked30s = false; this.hasTracked60s = false;
+        this._send("game_start", { game_name: n });
+        if (this.timerInterval) clearInterval(this.timerInterval);
+        var self = this; this.timerInterval = setInterval(function () { self._checkMilestones(); }, 5000);
+      },
+      end: function (o) {
+        o = o || {}; var t = this.startTime ? Math.round((Date.now() - this.startTime) / 1000) : 0;
+        this._send("game_end", { game_name: this.gameName, play_time_seconds: t, score: o.score != null ? o.score : null, level: o.level != null ? o.level : null, outcome: o.outcome || "unknown" });
+        if (this.timerInterval) clearInterval(this.timerInterval);
+        this.startTime = null;
+      },
+      _checkMilestones: function () {
+        if (!this.startTime) return; var t = (Date.now() - this.startTime) / 1000;
+        if (t >= 30 && !this.hasTracked30s) { this.hasTracked30s = true; this._send("game_play_30s", { game_name: this.gameName }); }
+        if (t >= 60 && !this.hasTracked60s) { this.hasTracked60s = true; this._send("game_play_60s", { game_name: this.gameName }); }
+      },
+      _send: function (n, p) {
+        if (window.parent !== window) { window.parent.postMessage({ type: "gamevolt_ga4", event: n, params: p }, "*"); return; }
+        if (typeof gtag === "function") { gtag("event", n, p); return; }
+      }
+    };
+  </script>
   <!-- GameVolt SDK — absent in standalone dev (404, harmless); all SDK use is guarded -->
   <script src="/sdk/gamevolt.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -109,6 +144,11 @@
           <button class="menu-btn" id="trophy-btn">&#x1F3C6; TROPHIES</button>
           <button class="menu-btn" id="settings-btn">&#x2699; SETTINGS</button>
           <button class="menu-btn" id="fullscreen-btn">&#x26F6; FULLSCREEN</button>
+        </div>
+        <!-- GameVolt account — saves scores & trophies to the cloud. Hidden
+             unless the GameVolt SDK is present (i.e. running on the portal). -->
+        <div class="menu-tools menu-tools--account">
+          <button class="menu-btn menu-btn--ghost" id="signin-btn" hidden>&#x1F464; SIGN IN</button>
         </div>
       </div>
     </div>

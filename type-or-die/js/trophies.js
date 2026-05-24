@@ -153,6 +153,25 @@ export function recordRun(run) {
 
   save(p);
   for (const t of newly) showToast(t);
+
+  // Mirror to the GameVolt cloud (no-op standalone). The SDK persists the
+  // unlock under "type-or-die-<id>" for the signed-in user; our own toast
+  // already plays, so we don't trigger the SDK toast as well.
+  if (window.GameVolt?.achievements) {
+    for (const t of newly) {
+      try { window.GameVolt.achievements.unlock(t.id); } catch { /* offline */ }
+    }
+  }
+
+  // End-of-run telemetry (single chokepoint — recordRun fires once per run).
+  const score = run.mode === "zombie" ? run.score || 0 : run.wpm || 0;
+  window.GameVoltTracker?.end({
+    score,
+    level: run.wave || null,
+    outcome: run.mode === "zombie" ? "game_over" : "complete",
+  });
+  window.gvPost?.("score", { mode: run.mode, score });
+
   return newly;
 }
 

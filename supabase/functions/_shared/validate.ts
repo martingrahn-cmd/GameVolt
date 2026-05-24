@@ -65,6 +65,58 @@ export function botFlags(log: Keystroke[], wpm: number): string[] {
   return flags;
 }
 
+// Phase 1 structural anti-cheat (GDD §6.4). Human typing has *digraph
+// structure*: transitions across a word boundary (to or from a space) run
+// slower than transitions inside a word — you reach for the spacebar, your
+// eyes jump to the next word — and intra-word timing itself varies letter to
+// letter. A bot that emits a single flat interval distribution shows neither.
+//
+// This catches the jittered-but-structureless bot that botFlags()'s CV test
+// misses (uniform jitter keeps a healthy CV yet still has no boundary gap).
+// Deliberately conservative — it only fires with ample data and when the
+// boundary/intra means are near-identical AND intra timing is near-constant,
+// and it only ever flags to 'pending' (shadow), never rejects.
+const STRUCT_MIN_BOUNDARY = 8;   // need this many word-boundary transitions
+const STRUCT_MIN_INTRA = 20;     // …and this many intra-word transitions
+const STRUCT_RATIO_LO = 0.9;     // boundary/intra ratio inside [lo, hi] …
+const STRUCT_RATIO_HI = 1.1;     // …means no boundary slowdown (bot-like)
+const STRUCT_INTRA_CV = 0.18;    // …and intra timing barely varies
+
+export function bigramFlags(log: Keystroke[]): string[] {
+  const flags: string[] = [];
+  const boundary: number[] = []; // a space is one of the two keys
+  const intra: number[] = []; // letter → letter within a word
+  for (let i = 1; i < log.length; i++) {
+    const d = log[i].t - log[i - 1].t;
+    if (d <= 0) continue;
+    const a = log[i - 1].k;
+    const b = log[i].k;
+    if (a === "Backspace" || b === "Backspace") continue;
+    if (a === " " || b === " ") {
+      boundary.push(d);
+    } else if (
+      a.length === 1 && b.length === 1 &&
+      /[a-z]/i.test(a) && /[a-z]/i.test(b)
+    ) {
+      intra.push(d);
+    }
+  }
+  if (boundary.length < STRUCT_MIN_BOUNDARY || intra.length < STRUCT_MIN_INTRA) {
+    return flags; // not enough signal — say nothing
+  }
+  const mean = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / xs.length;
+  const mB = mean(boundary);
+  const mI = mean(intra);
+  if (mI <= 0) return flags;
+  const intraVar = intra.reduce((s, x) => s + (x - mI) ** 2, 0) / intra.length;
+  const intraCv = Math.sqrt(intraVar) / mI;
+  const ratio = mB / mI;
+  if (ratio >= STRUCT_RATIO_LO && ratio <= STRUCT_RATIO_HI && intraCv < STRUCT_INTRA_CV) {
+    flags.push("no_structure"); // flat, boundary-less timing — not human
+  }
+  return flags;
+}
+
 // Letter keystrokes in the log — used to sanity-check that a zombie run's
 // claimed kills were actually typed (GDD §6 heuristic for the zombie mode).
 export function letterCount(log: Keystroke[]): number {

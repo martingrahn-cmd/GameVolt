@@ -9,6 +9,7 @@ import { generateWords } from "../_shared/words.ts";
 import {
   replaySpeedTest,
   botFlags,
+  bigramFlags,
   letterCount,
   allDictionaryWords,
   type Keystroke,
@@ -67,9 +68,11 @@ Deno.serve(async (req: Request) => {
     wpm = stats.wpm;
     accuracy = stats.accuracy;
     score = stats.wpm;
-    const flags = botFlags(log, stats.wpm);
+    const flags = botFlags(log, stats.wpm).concat(bigramFlags(log));
     if (!timeOk || flags.includes("wpm_cap")) state = "rejected";
-    else if (flags.includes("too_regular")) state = "pending";
+    else if (flags.includes("too_regular") || flags.includes("no_structure")) {
+      state = "pending";
+    }
   } else {
     // Zombie — heuristic (GDD §6.6). Spawn order is timing-dependent so we
     // can't fully re-derive it; instead we require a real, human, consistent
@@ -87,7 +90,7 @@ Deno.serve(async (req: Request) => {
     const zWpm = spanMs > 0
       ? Math.round((letterCount(log) / 5) / (spanMs / 60000))
       : 0;
-    const flags = botFlags(log, zWpm);
+    const flags = botFlags(log, zWpm).concat(bigramFlags(log));
     score = Math.min(claimed, ceiling);
     if (
       !timeOk ||
@@ -96,7 +99,7 @@ Deno.serve(async (req: Request) => {
       flags.includes("wpm_cap")
     ) {
       state = "rejected";
-    } else if (flags.includes("too_regular")) {
+    } else if (flags.includes("too_regular") || flags.includes("no_structure")) {
       state = "pending";
     }
   }

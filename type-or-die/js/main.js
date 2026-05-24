@@ -63,6 +63,7 @@ function launch(name) {
   m.daily = daily;
   m.activate();
   localStorage.setItem("tod_mode", name);
+  window.GameVoltTracker?.start(name === "zombie" ? "Type or Die — Zombie" : "Type or Die — Speed Test");
 }
 
 // ---- hot-seat two-player (turns) ---------------------------------------
@@ -102,6 +103,7 @@ function versusLaunch(player) {
   m.onRunEnd = (result) => onVersusRunEnd(player, result);
   m.activate();
   frameCtl.hidden = false;
+  window.GameVoltTracker?.start(match.mode === "zombie" ? "Type or Die — Zombie (2P)" : "Type or Die — Speed Test (2P)");
 }
 
 function onVersusRunEnd(player, result) {
@@ -508,6 +510,41 @@ showMenu();
 // Detect a logged-in GameVolt session in the background; if present, runs
 // use the server-validated leaderboard (otherwise the local one).
 initRemote();
+
+// ---- GameVolt account (sign-in / sign-out) ------------------------------
+// Only meaningful when the SDK is present (i.e. served on the portal). The
+// button opens GameVolt's own auth modal; signing in there reloads the frame
+// via OAuth/magic-link redirect, after which initRemote() picks the session
+// up and the server-validated boards light up.
+(function wireAccount() {
+  const btn = $("signin-btn");
+  if (!btn || !window.GameVolt) return; // standalone dev: stays hidden
+
+  function paint() {
+    const user = window.GameVolt.auth?.getUser?.();
+    if (user) {
+      const name = user.username || user.email || "Player";
+      btn.innerHTML = "\u{1F464} " + name + " · SIGN OUT";
+    } else {
+      btn.innerHTML = "\u{1F464} SIGN IN";
+    }
+    btn.hidden = false;
+  }
+
+  btn.addEventListener("click", () => {
+    const user = window.GameVolt.auth?.getUser?.();
+    if (user) {
+      window.GameVolt.auth.logout?.();
+    } else {
+      window.GameVolt.auth.login?.();
+    }
+  });
+
+  window.GameVolt.init?.("type-or-die");
+  window.GameVolt.onReady?.(paint);
+  window.GameVolt.auth?.onStateChange?.(paint);
+  paint();
+})();
 
 // Desktop-only (GDD §9): gate touch-only devices (no real keyboard). A
 // "play anyway" escape covers hybrids that mis-detect.
