@@ -8,7 +8,7 @@ import { ZombieGame } from "./zombie.js";
 import { TROPHIES, TIERS, loadProfile, unlockedCount } from "./trophies.js";
 import { topScores } from "./leaderboard.js";
 import { todayKey } from "./daily.js";
-import { initRemote } from "./api.js";
+import { initRemote, remoteEnabled, board } from "./api.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -245,27 +245,44 @@ function renderBoard(listId, emptyId, rows, main, sub) {
         '<span class="lb-name"></span>' +
         `<span class="lb-wpm">${main(r)}</span>` +
         `<span class="lb-acc">${sub(r)}</span>`;
-      li.querySelector(".lb-name").textContent = r.name;
+      li.querySelector(".lb-name").textContent = r.name ?? r.username ?? "";
       return li;
     }),
   );
 }
 
-function openLeaderboard() {
-  renderBoard(
-    "hs-zombie-list", "hs-zombie-empty",
-    topScores("zombie", "classic", ["score", "wave"]),
-    (r) => r.score,
-    (r) => "wave " + r.wave,
-  );
-  renderBoard(
-    "hs-speed-list", "hs-speed-empty",
-    topScores("speedtest", "30", ["wpm", "accuracy"]),
-    (r) => r.wpm + " wpm",
-    (r) => r.accuracy + "%",
-  );
+async function openLeaderboard() {
   $("screen-leaderboard").hidden = false;
   focusScreen();
+
+  // Prefer the server-validated boards when signed in; else the local ones.
+  const zRemote = remoteEnabled() ? await board("zombie", "all", 10) : null;
+  if (zRemote) {
+    renderBoard("hs-zombie-list", "hs-zombie-empty", zRemote, (r) => r.score, () => "");
+  } else {
+    renderBoard(
+      "hs-zombie-list", "hs-zombie-empty",
+      topScores("zombie", "classic", ["score", "wave"]),
+      (r) => r.score,
+      (r) => "wave " + r.wave,
+    );
+  }
+
+  const sRemote = remoteEnabled() ? await board("speedtest-30", "all", 10) : null;
+  if (sRemote) {
+    renderBoard(
+      "hs-speed-list", "hs-speed-empty", sRemote,
+      (r) => r.wpm + " wpm",
+      (r) => (r.accuracy != null ? r.accuracy + "%" : ""),
+    );
+  } else {
+    renderBoard(
+      "hs-speed-list", "hs-speed-empty",
+      topScores("speedtest", "30", ["wpm", "accuracy"]),
+      (r) => r.wpm + " wpm",
+      (r) => r.accuracy + "%",
+    );
+  }
 }
 
 function closeLeaderboard() {
