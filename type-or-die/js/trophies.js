@@ -100,6 +100,36 @@ export function unlockedCount(p = loadProfile()) {
   return TROPHIES.filter((t) => p.unlocked[t.id]).length;
 }
 
+// Register a localStorage → cloud migration so a guest's trophies and career
+// stats follow them when they sign in (the SDK runs this once per session on
+// sign-in). Scores are deliberately NOT migrated: the GameVolt board for this
+// game is server-validated behind the keystroke-log validator (see api.js), so
+// only runs the server proves can ever count — handing the SDK a client score
+// would be exactly the cheat the validator exists to block. Safe to call
+// whenever the SDK is present; a no-op otherwise.
+export function registerCloudMigration() {
+  if (!window.GameVolt?.save?.registerMigration) return;
+  window.GameVolt.save.registerMigration({
+    keys: [PROFILE_KEY],
+    merge(localData, cloudData) {
+      // Prefer existing cloud progress; fall back to the local profile for a
+      // fresh account. This backs up stats/best so they survive a sign-in on a
+      // new device — the game itself still reads from localStorage.
+      return cloudData || localData[PROFILE_KEY] || blankProfile();
+    },
+    getAchievements(localData) {
+      const prof = localData[PROFILE_KEY];
+      if (!prof || !prof.unlocked) return [];
+      // Raw trophy ids — the SDK prefixes each with "type-or-die-", matching
+      // how recordRun() calls achievements.unlock(t.id).
+      return Object.keys(prof.unlocked).map((id) => ({
+        id,
+        unlocked_at: prof.unlocked[id],
+      }));
+    },
+  });
+}
+
 // Fold a finished run into the profile; return the trophies it newly
 // unlocked. run: { mode, accuracy, daily, versus, wpm?, words?, kills?,
 // bosses?, comboMax?, wave?, score?, nukes?, slowmos? }

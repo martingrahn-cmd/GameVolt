@@ -5,7 +5,7 @@
 
 import { SpeedTest } from "./speedtest.js";
 import { ZombieGame } from "./zombie.js";
-import { TROPHIES, TIERS, loadProfile, unlockedCount } from "./trophies.js";
+import { TROPHIES, TIERS, loadProfile, unlockedCount, registerCloudMigration } from "./trophies.js";
 import { topScores } from "./leaderboard.js";
 import { todayKey } from "./daily.js";
 import { initRemote, remoteEnabled, board } from "./api.js";
@@ -541,6 +541,8 @@ initRemote();
   });
 
   window.GameVolt.init?.("type-or-die");
+  // Carry a guest's local trophies & stats into their account on sign-in.
+  registerCloudMigration();
   window.GameVolt.onReady?.(paint);
   window.GameVolt.auth?.onStateChange?.(paint);
   paint();
