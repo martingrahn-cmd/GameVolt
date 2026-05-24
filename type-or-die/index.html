@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Type or Die — Free Typing Zombie Game &amp; WPM Test | GameVolt</title>
+  <meta name="description" content="Type or Die — kill zombies by typing, or run a clean WPM speed test. Daily Challenge, trophies, leaderboard. Free to play on GameVolt." />
+  <meta name="keywords" content="typing game, typing zombie game, type to kill zombies, wpm test, typing speed test" />
+  <meta name="author" content="GameVolt" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://gamevolt.io/type-or-die/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gamevolt.io/type-or-die/" />
+  <meta property="og:title" content="Type or Die — Typing Zombie Game &amp; WPM Test" />
+  <meta property="og:description" content="Kill zombies by typing, or run a clean WPM speed test." />
+  <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/type-or-die.webp" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#00ffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="icon" href="/assets/favicon.png" />
+  <link rel="manifest" href="manifest.json" />
+  <!-- GameVolt analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag("js", new Date());
+    gtag("config", "G-PY073ZX38N");
+  </script>
+  <!-- GameVolt SDK — absent in standalone dev (404, harmless); all SDK use is guarded -->
+  <script src="/sdk/gamevolt.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- The whole game lives in one full-bleed frame (GameVolt house style). -->
+  <div id="game">
+
+    <!-- ===================== PLAY SURFACES ===================== -->
+    <div class="view" id="view-speedtest" hidden>
+      <div class="seg" id="duration-seg" role="group" aria-label="Test duration">
+        <button class="seg-btn" data-duration="15">15s</button>
+        <button class="seg-btn is-active" data-duration="30">30s</button>
+        <button class="seg-btn" data-duration="60">60s</button>
+      </div>
+      <div class="speed-hud">
+        <div class="hud-stat"><span class="hud-num" id="live-timer">30</span><span class="hud-lbl">time</span></div>
+        <div class="hud-stat"><span class="hud-num" id="live-wpm">0</span><span class="hud-lbl">wpm</span></div>
+      </div>
+      <div class="words" id="words-viewport">
+        <div class="words-inner" id="words"></div>
+      </div>
+      <p class="hint" id="hint">Start typing to begin · <kbd>Tab</kbd> to restart</p>
+    </div>
+
+    <div class="view" id="view-zombie" hidden>
+      <canvas id="zombie-canvas"></canvas>
+      <div class="zombie-hud">
+        <div class="hud-stat hud-stat--lives">
+          <span class="hud-hearts" id="z-lives"></span><span class="hud-lbl">lives</span>
+        </div>
+        <div class="hud-stat"><span class="hud-num" id="z-score">0</span><span class="hud-lbl">score</span></div>
+        <div class="hud-stat"><span class="hud-num" id="z-combo">0</span><span class="hud-lbl" id="z-mult">combo</span></div>
+        <div class="hud-stat"><span class="hud-num" id="z-wave">1</span><span class="hud-lbl">wave</span></div>
+      </div>
+      <div class="zombie-start" id="zombie-start">
+        <p class="zs-title">THEY'RE COMING</p>
+        <p class="zs-sub">They walk straight at you from the dark. Type the word above a zombie to drop it before it reaches your line.<br />Press any key to begin.</p>
+      </div>
+    </div>
+
+    <!-- in-frame controls, shown only while a mode is being played -->
+    <div class="frame-ctl" id="frame-ctl" hidden>
+      <button class="ctl-btn" id="restart" title="Restart (Tab)">&#x21BB;</button>
+      <button class="ctl-btn" id="mute-btn" title="Mute / unmute">&#x1F50A;</button>
+      <button class="ctl-btn ctl-btn--text" data-act="menu">MENU</button>
+    </div>
+
+    <!-- CRT flourishes -->
+    <div id="scanlines"></div>
+    <div id="vignette"></div>
+
+    <!-- ===================== MAIN MENU ===================== -->
+    <div class="screen" id="screen-menu">
+      <div class="menu-inner">
+        <h1 class="logo">TYPE<span class="logo-or">OR</span>DIE</h1>
+        <p class="tagline">Kill by typing — or run the clock.</p>
+        <div class="menu-modes">
+          <button class="menu-btn menu-btn--big" data-mode="zombie">
+            <span class="mb-title">ZOMBIE</span>
+            <span class="mb-sub">survive the waves</span>
+          </button>
+          <button class="menu-btn menu-btn--big" data-mode="speedtest">
+            <span class="mb-title">SPEED TEST</span>
+            <span class="mb-sub">pure WPM run</span>
+          </button>
+        </div>
+        <div class="menu-tools">
+          <button class="menu-btn" id="daily-btn">&#x25F7; DAILY CHALLENGE</button>
+          <button class="menu-btn" id="versus-btn">&#x1F465; 2-PLAYER</button>
+        </div>
+        <div class="menu-tools">
+          <button class="menu-btn" id="leaderboard-btn">&#x1F4CA; HIGH SCORES</button>
+          <button class="menu-btn" id="trophy-btn">&#x1F3C6; TROPHIES</button>
+          <button class="menu-btn" id="settings-btn">&#x2699; SETTINGS</button>
+          <button class="menu-btn" id="fullscreen-btn">&#x26F6; FULLSCREEN</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== SPEED TEST RESULT ===================== -->
+    <div class="screen" id="overlay" hidden>
+      <div class="panel result-panel">
+        <h2 class="panel-title">RUN COMPLETE</h2>
+        <div class="result-hero">
+          <div class="result-main"><span class="result-val" id="r-wpm">0</span><span class="result-key">wpm</span></div>
+          <div class="result-main"><span class="result-val" id="r-acc">0%</span><span class="result-key">accuracy</span></div>
+        </div>
+        <div class="result-grid">
+          <div><span id="r-raw">0</span><label>raw</label></div>
+          <div><span id="r-chars">0/0</span><label>chars &#x2713;/&#x2717;</label></div>
+          <div><span id="r-time">0s</span><label>time</label></div>
+          <div><span id="r-words">0</span><label>clean words</label></div>
+        </div>
+        <div class="trophy-pop" id="r-trophies" hidden></div>
+        <div class="lb">
+          <div class="lb-head">LEADERBOARD <span class="lb-sub" id="lb-sub">30s</span></div>
+          <ol class="lb-list" id="lb-list"></ol>
+          <p class="lb-empty" id="lb-empty">No runs yet — set the first score.</p>
+        </div>
+        <form class="save-form" id="save-form">
+          <input type="text" id="name-input" maxlength="16" placeholder="YOUR NAME" autocomplete="off" />
+          <button type="submit" id="save-btn">SAVE</button>
+        </form>
+        <p class="result-saved" id="result-saved" hidden>Score recorded.</p>
+        <div class="screen-actions">
+          <button class="menu-btn" id="overlay-restart">&#x21BB; PLAY AGAIN</button>
+          <button class="menu-btn menu-btn--ghost" data-act="menu">MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== ZOMBIE GAME OVER ===================== -->
+    <div class="screen" id="zombie-overlay" hidden>
+      <div class="panel result-panel">
+        <h2 class="panel-title panel-title--danger">YOU DIED</h2>
+        <div class="result-hero">
+          <div class="result-main">
+            <span class="result-val result-val--danger" id="zr-score">0</span>
+            <span class="result-key">score</span>
+          </div>
+        </div>
+        <div class="result-grid">
+          <div><span id="zr-wave">1</span><label>wave reached</label></div>
+          <div><span id="zr-kills">0</span><label>kills</label></div>
+          <div><span id="zr-combo">0</span><label>max combo</label></div>
+          <div><span id="zr-acc">0%</span><label>accuracy</label></div>
+          <div><span id="zr-wpm">0</span><label>net wpm</label></div>
+          <div><span id="zr-time">0s</span><label>survived</label></div>
+        </div>
+        <div class="trophy-pop" id="zr-trophies" hidden></div>
+        <div class="lb">
+          <div class="lb-head">LEADERBOARD <span class="lb-sub" id="z-lb-sub">all-time</span></div>
+          <ol class="lb-list" id="z-lb-list"></ol>
+          <p class="lb-empty" id="z-lb-empty">No runs yet — survive the first wave.</p>
+        </div>
+        <form class="save-form" id="z-save-form">
+          <input type="text" id="z-name-input" maxlength="16" placeholder="YOUR NAME" autocomplete="off" />
+          <button type="submit" id="z-save-btn">SAVE</button>
+        </form>
+        <p class="result-saved" id="z-result-saved" hidden>Score recorded.</p>
+        <div class="screen-actions">
+          <button class="menu-btn" id="z-overlay-restart">&#x21BB; PLAY AGAIN</button>
+          <button class="menu-btn menu-btn--ghost" data-act="menu">MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ HOT-SEAT TWO-PLAYER (turns) ============ -->
+    <div class="screen" id="screen-versus" hidden>
+      <div class="panel">
+        <h2 class="panel-title" id="vs-title">PLAYER 1</h2>
+        <p class="vs-msg" id="vs-msg">Get ready.</p>
+        <div class="vs-scores" id="vs-scores" hidden></div>
+        <div class="screen-actions" id="vs-actions"></div>
+      </div>
+    </div>
+
+    <!-- ===================== HIGH SCORES ===================== -->
+    <div class="screen" id="screen-leaderboard" hidden>
+      <div class="panel">
+        <h2 class="panel-title">HIGH SCORES</h2>
+        <div class="lb">
+          <div class="lb-head">ZOMBIE <span class="lb-sub">all-time</span></div>
+          <ol class="lb-list" id="hs-zombie-list"></ol>
+          <p class="lb-empty" id="hs-zombie-empty">No runs yet.</p>
+        </div>
+        <div class="lb">
+          <div class="lb-head">SPEED TEST <span class="lb-sub">30s · all-time</span></div>
+          <ol class="lb-list" id="hs-speed-list"></ol>
+          <p class="lb-empty" id="hs-speed-empty">No runs yet.</p>
+        </div>
+        <div class="screen-actions">
+          <button class="menu-btn" id="leaderboard-close">CLOSE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== SETTINGS ===================== -->
+    <div class="screen" id="screen-settings" hidden>
+      <div class="panel">
+        <h2 class="panel-title">SETTINGS</h2>
+        <div class="setting-row">
+          <label>Sound</label>
+          <button class="menu-btn menu-btn--ghost" id="set-sound">ON</button>
+        </div>
+        <div class="setting-row">
+          <label>Music volume</label>
+          <input type="range" id="set-music" min="0" max="100" value="60" aria-label="Music volume" />
+        </div>
+        <div class="setting-row">
+          <label>SFX volume</label>
+          <input type="range" id="set-sfx" min="0" max="100" value="85" aria-label="SFX volume" />
+        </div>
+        <div class="setting-row">
+          <label>Progress</label>
+          <button class="menu-btn menu-btn--ghost" id="set-reset">RESET PROGRESS</button>
+        </div>
+        <div class="screen-actions">
+          <button class="menu-btn" id="settings-close">CLOSE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== TROPHY CASE ===================== -->
+    <div class="screen" id="trophy-overlay" hidden>
+      <div class="panel panel--wide">
+        <h2 class="panel-title">TROPHIES</h2>
+        <p class="trophy-count" id="trophy-count">0 / 31</p>
+        <p class="streak-line" id="streak-line">Daily streak: 0 days</p>
+        <div class="trophy-list" id="trophy-list"></div>
+        <div class="screen-actions">
+          <button class="menu-btn" id="trophy-close">CLOSE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trophy unlock toast (queued, one at a time) -->
+    <div id="trophy-toast">
+      <span class="tt-icon"></span>
+      <div class="tt-text">
+        <span class="tt-label">TROPHY UNLOCKED</span>
+        <span class="tt-tier"></span>
+        <span class="tt-name"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SEO content — in the DOM for crawlers, hidden inside an iframe embed. -->
+  <div id="seo-content">
+    <h1>Type or Die — Typing Zombie Game &amp; WPM Speed Test</h1>
+    <p>Type or Die is a desktop typing game. Kill zombies by typing the word
+    above them before they reach you, or run a clean words-per-minute speed
+    test. Build combos, earn power-ups, survive boss waves, climb the
+    leaderboard, and take on the date-seeded Daily Challenge.</p>
+  </div>
+
+  <!-- Desktop-only gate: this is a keyboard game (GDD §9). -->
+  <div id="desktop-gate" hidden>
+    <div class="gate-inner">
+      <h1 class="logo">TYPE<span class="logo-or">OR</span>DIE</h1>
+      <p class="gate-msg">This is a keyboard game. Grab a desktop or laptop
+      with a real keyboard to play.</p>
+      <button class="menu-btn menu-btn--ghost" id="gate-anyway">Play anyway</button>
+    </div>
+  </div>
+
+  <!-- GameVolt: hide the SEO block when embedded in the portal iframe. -->
+  <script>
+    if (window.parent !== window) {
+      var s = document.getElementById("seo-content");
+      if (s) s.style.display = "none";
+    }
+  </script>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
