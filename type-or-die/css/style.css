@@ -398,6 +398,8 @@ kbd {
 #overlay,
 #zombie-overlay,
 #trophy-overlay,
+#screen-leaderboard,
+#screen-settings,
 #screen-versus {
   background: rgba(2, 6, 10, 0.93);
 }
