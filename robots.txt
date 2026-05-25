@@ -28,8 +28,9 @@ User-agent: *
 Allow: /
 # Legacy paths return 410 Gone via Cloudflare Worker — allow crawl so Google sees the 410.
 # /game/, /tag/, /category/
-# Duplicate game URLs — canonical versions live at /[name]/
-Disallow: /games/
+# Duplicate game URLs live at /games/[name]/ — they are noindex + redirect to the
+# canonical /[name]/ pages. Intentionally NOT blocked: Google must be able to crawl them
+# to see the noindex and drop them. Blocking would trap the stale duplicates in the index.
 # Internal / dynamic surfaces that shouldn't burn crawl budget.
 Disallow: /rest/
 Disallow: /play/
