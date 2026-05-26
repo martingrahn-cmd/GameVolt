@@ -31,3 +31,51 @@ WHERE achievement_id LIKE 'sudoku-sudoku-%';
 -- Verify: should return 0 rows after running.
 -- SELECT achievement_id, count(*) FROM user_achievements
 -- WHERE achievement_id LIKE 'sudoku-sudoku-%' GROUP BY achievement_id;
+
+-- 3. Redeploy get_recent_activity with the hardened inner join, so any future
+--    unlock that lacks a definition is skipped instead of rendered as a blank
+--    "unlocked  in" ghost row. (Matches sql/schema.sql.)
+CREATE OR REPLACE FUNCTION get_recent_activity(p_limit INT DEFAULT 20)
+RETURNS TABLE(
+  activity_type TEXT,
+  user_id UUID,
+  username TEXT,
+  avatar_url TEXT,
+  game_id TEXT,
+  game_title TEXT,
+  detail TEXT,
+  created_at TIMESTAMPTZ
+) AS $$
+  (
+    SELECT
+      'score'::TEXT AS activity_type,
+      s.user_id, p.username, p.avatar_url,
+      s.game_id, g.title AS game_title,
+      s.score::TEXT AS detail,
+      s.created_at
+    FROM scores s
+    JOIN profiles p ON p.id = s.user_id
+    JOIN games g ON g.id = s.game_id
+    ORDER BY s.created_at DESC
+    LIMIT p_limit
+  )
+  UNION ALL
+  (
+    SELECT
+      'achievement'::TEXT AS activity_type,
+      ua.user_id, p.username, p.avatar_url,
+      ad.game_id, g.title AS game_title,
+      ad.title AS detail,
+      ua.unlocked_at AS created_at
+    FROM user_achievements ua
+    JOIN profiles p ON p.id = ua.user_id
+    -- Inner join: an unlock with no matching definition is skipped rather than
+    -- rendered as a blank "unlocked  in" ghost row in the activity feed.
+    JOIN achievement_defs ad ON ad.id = ua.achievement_id
+    LEFT JOIN games g ON g.id = ad.game_id
+    ORDER BY ua.unlocked_at DESC
+    LIMIT p_limit
+  )
+  ORDER BY created_at DESC
+  LIMIT p_limit;
+$$ LANGUAGE sql STABLE;
