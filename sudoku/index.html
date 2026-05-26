@@ -601,7 +601,10 @@
       if (window.GameVolt) GameVolt.ui.achievementToast(a);
       gvPost('achievement', { id: 'sudoku-' + id, title: a.title });
       if (window.GameVolt) {
-        GameVolt.achievements.unlock('sudoku-' + id);
+        // The SDK prefixes the game id itself ("sudoku-"), so pass the bare id.
+        // Passing 'sudoku-'+id here double-prefixed it (sudoku-sudoku-...),
+        // leaving the unlock unmatched in achievement_defs (blank in feeds).
+        GameVolt.achievements.unlock(id);
       }
     }
 

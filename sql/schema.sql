@@ -308,7 +308,9 @@ RETURNS TABLE(
       ua.unlocked_at AS created_at
     FROM user_achievements ua
     JOIN profiles p ON p.id = ua.user_id
-    LEFT JOIN achievement_defs ad ON ad.id = ua.achievement_id
+    -- Inner join: an unlock with no matching definition is skipped rather than
+    -- rendered as a blank "unlocked  in" ghost row in the activity feed.
+    JOIN achievement_defs ad ON ad.id = ua.achievement_id
     LEFT JOIN games g ON g.id = ad.game_id
     ORDER BY ua.unlocked_at DESC
     LIMIT p_limit
