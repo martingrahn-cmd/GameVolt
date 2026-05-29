@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+
+  <!-- SEO -->
+  <title>Chain Reaction — Free 2048 Puzzle Game Online | GameVolt.io</title>
+  <meta name="description" content="Play Chain Reaction free online — a neon 2048 puzzle where merges auto-cascade into combo chains. Reach the 2048 tile, chase high scores and unlock 31 trophies. No download." />
+  <meta name="keywords" content="2048 game, chain reaction, number puzzle, 2048 online, merge puzzle, free puzzle game, 2048 with combos" />
+  <meta name="author" content="GameVolt" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://gamevolt.io/chain-reaction/" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
+  <meta name="theme-color" content="#0a0a14" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gamevolt.io/chain-reaction/" />
+  <meta property="og:title" content="Chain Reaction — Free 2048 Puzzle Game Online | GameVolt.io" />
+  <meta property="og:description" content="A neon 2048 puzzle where merges auto-cascade into combo chains. Reach 2048, chase high scores, unlock 31 trophies." />
+  <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/chain-reaction.webp" />
+  <meta property="og:image:width" content="1920" />
+  <meta property="og:image:height" content="1080" />
+  <meta property="og:site_name" content="GameVolt" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Chain Reaction — Free 2048 Puzzle Game Online | GameVolt.io" />
+  <meta name="twitter:description" content="A neon 2048 puzzle where merges auto-cascade into combo chains. Reach 2048, chase high scores, unlock 31 trophies." />
+  <meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/chain-reaction.webp" />
+
+  <!-- GameVolt analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-PY073ZX38N');
+  </script>
+
+  <!-- GameVolt portal bridge: postMessage events + GA4 play-time tracker (iframe-safe; no-op standalone) -->
+  <script>
+    function gvPost(action, payload) {
+      if (window.parent !== window) {
+        try { window.parent.postMessage({ type: 'gamevolt', action: action, gameId: 'chain-reaction', payload: payload || {} }, '*'); } catch (e) {}
+      }
+    }
+    var GameVoltTracker = {
+      gameName: null, startTime: null, hasTracked30s: false, hasTracked60s: false, timerInterval: null,
+      start: function (n) { this.gameName = n; this.startTime = Date.now(); this.hasTracked30s = false; this.hasTracked60s = false; this._send('game_start', { game_name: n }); if (this.timerInterval) clearInterval(this.timerInterval); var self = this; this.timerInterval = setInterval(function () { self._checkMilestones(); }, 5000); },
+      end: function (o) { o = o || {}; var t = this.startTime ? Math.round((Date.now() - this.startTime) / 1000) : 0; this._send('game_end', { game_name: this.gameName, play_time_seconds: t, score: o.score != null ? o.score : null, level: o.level != null ? o.level : null, outcome: o.outcome || 'unknown' }); if (this.timerInterval) clearInterval(this.timerInterval); this.startTime = null; },
+      _checkMilestones: function () { if (!this.startTime) return; var t = (Date.now() - this.startTime) / 1000; if (t >= 30 && !this.hasTracked30s) { this.hasTracked30s = true; this._send('game_play_30s', { game_name: this.gameName }); } if (t >= 60 && !this.hasTracked60s) { this.hasTracked60s = true; this._send('game_play_60s', { game_name: this.gameName }); } },
+      _send: function (n, p) { if (window.parent !== window) { window.parent.postMessage({ type: 'gamevolt_ga4', event: n, params: p }, '*'); return; } if (typeof gtag === 'function') { gtag('event', n, p); return; } }
+    };
+  </script>
+
+  <!-- GameVolt SDK — absent in standalone dev (404, harmless); all SDK use is guarded -->
+  <script src="/sdk/gamevolt.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="bg"></canvas>
+  <div id="app">
+    <div class="topbar">
+      <div class="title">CHAIN REACTION</div>
+      <div class="scores">
+        <div class="stat"><div class="label">Score</div><div class="value" id="score">0</div></div>
+        <div class="stat"><div class="label">Best</div><div class="value" id="best">0</div></div>
+      </div>
+    </div>
+
+    <canvas id="board"></canvas>
+
+    <div class="controls">
+      <button class="btn" id="undo">↶ UNDO (<span id="undoCount">1</span>)</button>
+      <button class="btn" id="openMenu">☰ MENU</button>
+      <button class="btn" id="newgame">⟲ NEW</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="tutorial">
+    <div class="modal tutorial">
+      <canvas class="tut-canvas" id="tutCanvas"></canvas>
+      <h2 id="tutTitle">HOW TO PLAY</h2>
+      <p class="tut-body" id="tutBody"></p>
+      <div class="tut-dots" id="tutDots"></div>
+      <div class="actions" style="flex-direction:row">
+        <button class="btn" id="tutBack">BACK</button>
+        <button class="btn primary" id="tutNext">NEXT</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="gameover">
+    <div class="modal">
+      <h2 id="goTitle">GAME OVER</h2>
+      <div class="go-rank" id="goRank"></div>
+      <div class="go-scorerank" id="goScoreRank"></div>
+      <div class="row"><span class="k">Score</span><span class="v" id="goScore">0</span></div>
+      <div class="row"><span class="k">Best</span><span class="v" id="goBest">0</span></div>
+      <div class="row"><span class="k">Max tile</span><span class="v" id="goMaxTile">0</span></div>
+      <div class="row"><span class="k">Best chain</span><span class="v" id="goBestChain">0</span></div>
+      <div class="row"><span class="k">Chains</span><span class="v" id="goChains">0</span></div>
+      <div class="row"><span class="k">Moves</span><span class="v" id="goMoves">0</span></div>
+      <div class="row"><span class="k">Goals</span><span class="v" id="goGoals">0/3</span></div>
+      <div class="actions">
+        <button class="btn primary" id="tryAgain">TRY AGAIN</button>
+        <button class="btn" id="continueEndless" style="display:none">CONTINUE ENDLESS</button>
+        <button class="btn" id="goHighscores">🏆 HIGH SCORES</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="menu">
+    <div class="modal">
+      <h2>MENU</h2>
+      <div class="goals-box" id="menuGoals"></div>
+      <div class="menu-list">
+        <button class="btn primary" id="menuResume">▶ RESUME</button>
+        <button class="btn" id="menuHighscores">🏆 HIGH SCORES</button>
+        <button class="btn" id="menuAchievements">★ ACHIEVEMENTS</button>
+        <button class="btn" id="menuStats">📊 STATS</button>
+        <button class="btn" id="menuHowto">? HOW TO PLAY</button>
+        <button class="btn" id="menuNew">⟲ NEW GAME</button>
+      </div>
+      <div class="menu-settings">
+        <div class="tut-setting"><span class="tut-setting-label">Difficulty</span><button class="btn easy-toggle" id="easy">NORMAL</button></div>
+        <div class="tut-setting"><span class="tut-setting-label">Sound</span><button class="btn easy-toggle" id="soundToggle">ON</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="highscores">
+    <div class="modal">
+      <h2>HIGH SCORES</h2>
+      <div class="row"><span class="k">Best score</span><span class="v" id="hsBest">0</span></div>
+      <div class="row"><span class="k">Longest chain</span><span class="v" id="hsChain">0</span></div>
+      <ol class="hs-list" id="hsList"></ol>
+      <div class="actions"><button class="btn primary" id="hsBack">BACK</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="achievements">
+    <div class="modal">
+      <h2>ACHIEVEMENTS <span class="ach-count" id="achCount"></span></h2>
+      <div class="ach-list" id="achList"></div>
+      <div class="actions"><button class="btn primary" id="achBack">BACK</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="stats">
+    <div class="modal">
+      <h2>STATS</h2>
+      <div class="row"><span class="k">Games played</span><span class="v" id="stGames">0</span></div>
+      <div class="row"><span class="k">Best score</span><span class="v" id="stBest">0</span></div>
+      <div class="row"><span class="k">Average score</span><span class="v" id="stAvg">0</span></div>
+      <div class="row"><span class="k">Max tile ever</span><span class="v" id="stMaxTile">0</span></div>
+      <div class="row"><span class="k">Longest chain</span><span class="v" id="stChain">0</span></div>
+      <div class="row"><span class="k">Total chains</span><span class="v" id="stChains">0</span></div>
+      <div class="row"><span class="k">Total moves</span><span class="v" id="stMoves">0</span></div>
+      <div class="actions"><button class="btn primary" id="stBack">BACK</button></div>
+    </div>
+  </div>
+
+  <div class="ach-toast" id="achToast"></div>
+  <div class="resume-note" id="resumeNote">▸ RESUMED RUN</div>
+
+  <script src="bg.js"></script>
+  <script src="particles.js"></script>
+  <script src="audio.js"></script>
+  <script src="meta.js"></script>
+  <script src="game.js"></script>
+  <script src="render.js"></script>
+  <script>
+  // --- Bootstrap / controller ------------------------------------------
+  (function () {
+    "use strict";
+    var CR = window.CR;
+
+    var canvas = document.getElementById("board");
+    var game = new CR.Game();
+    var particles = new CR.ParticleSystem();
+    var audio = new CR.AudioEngine();
+
+    var $ = function (id) { return document.getElementById(id); };
+    // Release vs dev: only expose console helpers, logs and the test panel
+    // when the URL opts in (?dev). Keeps the shipped build quiet.
+    var DEV = /[?&]dev\b/.test(location.search);
+    var inputLocked = false;
+    var endlessMode = false;
+    var won2048shown = false; // win sequence shown once per game
+    var winThisMove = false;  // this move just reached 2048
+    var runFinalized = false; // high score / lifetime recorded for this run
+    var muted = false;
+    try { muted = localStorage.getItem("chainreaction.muted") === "1"; } catch (e) {}
+    audio.setMuted(muted);
+
+    function syncUI() {
+      $("score").textContent = game.score;
+      $("best").textContent = game.bestScore;
+      $("undoCount").textContent = game.undosRemaining;
+      $("undo").disabled = !game.canUndo() || inputLocked;
+    }
+
+    var renderer = new CR.Renderer(canvas, particles, audio, {
+      onScore: function (delta) {
+        // Animate the displayed score up to the running total + pulse it.
+        $("score").textContent = (parseInt($("score").textContent, 10) || 0) + delta;
+        $("best").textContent = Math.max(game.bestScore, game.score);
+        var el = $("score");
+        el.classList.remove("bump");
+        void el.offsetWidth; // restart the animation
+        el.classList.add("bump");
+      },
+      onComplete: function () {
+        inputLocked = false;
+        syncUI();
+        checkAchievements(); // per-move unlocks (tiles, chains, score)
+        checkGoals();        // per-move run-goal completion
+        if (winThisMove) {
+          winThisMove = false;
+          won2048shown = true;
+          var deadOnWin = game.isGameOver; // reached 2048 AND no moves left
+          if (deadOnWin) { audio.gameOver(); finalizeRun(); }
+          showWin(deadOnWin);
+          return;
+        }
+        if (game.isGameOver) {
+          audio.gameOver();              // falling tone as the board dims
+          finalizeRun();
+          renderer.startGameOver(showGameOver); // modal fires after the dim
+        }
+      },
+    });
+
+    function startNewGame() {
+      endlessMode = false;
+      won2048shown = false;
+      winThisMove = false;
+      runFinalized = false;
+      genGoals();
+      game.newGame();
+      renderer.setBoard(game.board);
+      $("gameover").classList.remove("show");
+      $("continueEndless").style.display = "none";
+      $("score").textContent = 0;
+      inputLocked = false;
+      syncUI();
+      if (window.GameVoltTracker) GameVoltTracker.start("Chain Reaction");
+    }
+
+    function modalOpen() {
+      return document.querySelector(".modal-backdrop.show") !== null;
+    }
+
+    function doMove(dir) {
+      if (inputLocked || game.isGameOver || modalOpen()) return;
+      audio.unlock();
+      var hadWon = game.has2048;
+      var plan = game.move(dir);
+      if (!plan) {
+        // Nothing moved — give a clear "blocked" cue instead of silence.
+        renderer.invalidMove(dir);
+        audio.thunk();
+        return;
+      }
+      if (game.has2048 && !hadWon && !won2048shown) winThisMove = true;
+      inputLocked = true;
+      $("best").textContent = game.bestScore; // best may have been beaten
+      renderer.play(plan);
+      syncUI();
+    }
+
+    // Reactor-state rank, driven by the biggest tile reached.
+    function rankFor(maxTile) {
+      if (maxTile >= 2048) return { label: "SYSTEM BREACH", cls: "breach" };
+      if (maxTile >= 512) return { label: "OVERLOAD", cls: "overload" };
+      return { label: "REACTOR STABLE", cls: "stable" };
+    }
+    // Separate rank by score, so two runs to the same tile still feel distinct.
+    function scoreRankFor(s) {
+      if (s >= 40000) return "OVERSEER";
+      if (s >= 15000) return "REACTOR CHIEF";
+      if (s >= 5000) return "ENGINEER";
+      if (s >= 1500) return "OPERATOR";
+      return "TRAINEE";
+    }
+
+    function fillModalStats() {
+      $("goScore").textContent = game.score;
+      $("goBest").textContent = game.bestScore;
+      $("goMaxTile").textContent = game.stats.maxTile;
+      $("goBestChain").textContent = "x" + game.stats.bestComboThisGame;
+      $("goChains").textContent = game.stats.chainsTriggered;
+      $("goMoves").textContent = game.stats.moves;
+      $("goGoals").textContent = goalsDone() + "/" + goals.length;
+      var r = rankFor(game.stats.maxTile);
+      var el = $("goRank");
+      el.textContent = r.label;
+      el.className = "go-rank " + r.cls;
+      $("goScoreRank").textContent = scoreRankFor(game.score) + " · " + game.score.toLocaleString();
+    }
+
+    // --- GameVolt portal hooks (guarded; no-op standalone) ---------------
+    function portalSubmitScore(score) {
+      if (window.GameVolt && GameVolt.leaderboard) {
+        try { GameVolt.leaderboard.submit(score, { mode: "default" }); } catch (e) {}
+      }
+    }
+    function portalUnlock(id) {
+      if (window.GameVolt && GameVolt.achievements) {
+        try { GameVolt.achievements.unlock(id); } catch (e) {}
+      }
+    }
+
+    // --- run finalization + achievements + toasts ------------------------
+    function finalizeRun() {
+      if (runFinalized) return;
+      runFinalized = true;
+      CR.HighScores.add({
+        score: game.score,
+        maxTile: game.stats.maxTile,
+        chain: game.stats.bestComboThisGame,
+        date: Date.now(),
+      });
+      portalSubmitScore(game.score); // optional — only when inside GameVolt
+      CR.Lifetime.record({
+        moves: game.stats.moves,
+        chains: game.stats.chainsTriggered,
+        score: game.score,
+        maxTile: game.stats.maxTile,
+      });
+      checkAchievements(); // re-check now that lifetime totals went up
+      // Portal telemetry (no-op standalone): report the finished run.
+      if (window.GameVoltTracker) {
+        GameVoltTracker.end({ score: game.score, level: game.stats.maxTile, outcome: "game_over" });
+      }
+      if (window.gvPost) gvPost("score", { score: game.score, maxTile: game.stats.maxTile });
+    }
+
+    function runCtx() {
+      return {
+        maxTile: game.stats.maxTile,
+        bestCombo: game.stats.bestComboThisGame,
+        score: game.score,
+        moves: game.stats.moves,
+        chains: game.stats.chainsTriggered,
+        games: CR.Lifetime.games(),
+        lifetimeMoves: CR.Lifetime.moves(),
+      };
+    }
+
+    function checkAchievements() {
+      var newly = CR.Achievements.check(runCtx());
+      newly.forEach(function (d) {
+        portalUnlock(d.id); // sync to portal if present
+        queueToast(d);      // our own toast always (works standalone)
+      });
+    }
+
+    // --- run goals (3 mini-objectives per run) ---
+    var goals = [];
+    function genGoals() { goals = CR.RunGoals.pick(3); }
+    function goalsDone() { return goals.filter(function (g) { return g.done; }).length; }
+    function checkGoals() {
+      var ctx = runCtx();
+      goals.forEach(function (g) {
+        if (!g.done && g.test(ctx)) {
+          g.done = true;
+          queueToast({ icon: "🎯", tier: "goal", name: g.label, label: "GOAL CLEAR" });
+        }
+      });
+    }
+    function renderMenuGoals() {
+      var html = '<div class="goals-title">RUN GOALS <span>' + goalsDone() + "/" + goals.length + "</span></div>";
+      html += goals.map(function (g) {
+        return '<div class="goal ' + (g.done ? "done" : "") + '">' +
+          '<span class="goal-mark">' + (g.done ? "✓" : "○") + '</span>' +
+          '<span class="goal-label"></span></div>';
+      }).join("");
+      $("menuGoals").innerHTML = html;
+      var labels = $("menuGoals").querySelectorAll(".goal-label");
+      goals.forEach(function (g, i) { labels[i].textContent = g.label; });
+    }
+
+    var toastQ = [], toastBusy = false;
+    function queueToast(def) { toastQ.push(def); if (!toastBusy) nextToast(); }
+    function nextToast() {
+      if (!toastQ.length) { toastBusy = false; return; }
+      toastBusy = true;
+      var d = toastQ.shift();
+      var el = $("achToast");
+      el.innerHTML = '<div class="ach-toast-badge"></div><div>' +
+        '<div class="ach-toast-label"></div>' +
+        '<div class="ach-toast-row"><span class="ach-toast-tier"></span><span class="ach-toast-name"></span></div></div>';
+      el.querySelector(".ach-toast-badge").textContent = d.icon || "★";
+      el.querySelector(".ach-toast-label").textContent = d.label || "ACHIEVEMENT";
+      var tierEl = el.querySelector(".ach-toast-tier");
+      tierEl.textContent = (d.tier || "").toUpperCase();
+      tierEl.className = "ach-toast-tier " + (d.tier || "");
+      el.querySelector(".ach-toast-name").textContent = d.name;
+      el.classList.add("show");
+      if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
+      setTimeout(function () {
+        el.classList.remove("show");
+        setTimeout(nextToast, 380);
+      }, 2200);
+    }
+
+    // Real game over — board is locked, no continue.
+    function showGameOver() {
+      $("goTitle").textContent = "SYSTEM FAILURE";
+      fillModalStats();
+      $("continueEndless").style.display = "none";
+      $("continueEndless").classList.remove("primary");
+      $("tryAgain").classList.add("primary");
+      $("gameover").classList.add("show");
+      focusFirst($("gameover"));
+    }
+
+    // Reached 2048. If the board is also dead, continue is a false promise —
+    // celebrate the win but hide it and make Try Again the primary action.
+    function showWin(dead) {
+      $("goTitle").textContent = dead ? "2048 — BOARD FULL" : "YOU REACHED 2048!";
+      fillModalStats();
+      if (dead) {
+        $("continueEndless").style.display = "none";
+        $("continueEndless").classList.remove("primary");
+        $("tryAgain").classList.add("primary");
+      } else {
+        $("continueEndless").style.display = "block";
+        $("continueEndless").classList.add("primary");
+        $("tryAgain").classList.remove("primary");
+      }
+      $("gameover").classList.add("show");
+      focusFirst($("gameover"));
+    }
+
+    // --- keyboard ---
+    var KEYMAP = {
+      ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right",
+      w: "up", s: "down", a: "left", d: "right",
+      W: "up", S: "down", A: "left", D: "right",
+    };
+    window.addEventListener("keydown", function (e) {
+      var dir = KEYMAP[e.key];
+      if (dir) { e.preventDefault(); doMove(dir); }
+    });
+
+    // --- full keyboard support for menus / overlays ---
+    function focusList(modal) {
+      return Array.prototype.slice.call(modal.querySelectorAll("button"))
+        .filter(function (b) { return b.offsetParent !== null && !b.disabled; });
+    }
+    function dismissModal(modal) {
+      switch (modal.id) {
+        case "menu": $("menuResume").click(); break;
+        case "highscores": $("hsBack").click(); break;
+        case "achievements": $("achBack").click(); break;
+        case "stats": $("stBack").click(); break;
+        case "tutorial": closeTutorial(); break;
+        // gameover has no "dismiss" — you must pick Try Again / Continue
+      }
+    }
+    window.addEventListener("keydown", function (e) {
+      var modal = document.querySelector(".modal-backdrop.show");
+      if (!modal) {
+        // In-game: Escape or M opens the menu.
+        if (!inputLocked && !game.isGameOver && (e.key === "Escape" || e.key === "m" || e.key === "M")) {
+          e.preventDefault();
+          openMenu();
+        }
+        return;
+      }
+      var f = focusList(modal);
+      var cur = f.indexOf(document.activeElement);
+      if (e.key === "Escape") {
+        e.preventDefault();
+        dismissModal(modal);
+      } else if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+        e.preventDefault();
+        if (f.length) f[cur < 0 ? 0 : (cur + 1) % f.length].focus();
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        if (f.length) f[cur < 0 ? 0 : (cur - 1 + f.length) % f.length].focus();
+      } else if (e.key === "Tab") {
+        // Trap focus inside the open overlay.
+        e.preventDefault();
+        if (f.length) {
+          if (cur < 0) f[0].focus();
+          else f[(cur + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+        }
+      }
+      // Enter / Space activate the focused button natively.
+    });
+
+    // --- touch swipe (threshold ~30px) ---
+    var sx = 0, sy = 0, tracking = false;
+    canvas.addEventListener("touchstart", function (e) {
+      var t = e.changedTouches[0];
+      sx = t.clientX; sy = t.clientY; tracking = true;
+      audio.unlock();
+    }, { passive: true });
+    canvas.addEventListener("touchend", function (e) {
+      if (!tracking) return;
+      tracking = false;
+      var t = e.changedTouches[0];
+      var dx = t.clientX - sx, dy = t.clientY - sy;
+      if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+      if (Math.abs(dx) > Math.abs(dy)) doMove(dx > 0 ? "right" : "left");
+      else doMove(dy > 0 ? "down" : "up");
+    }, { passive: true });
+
+    // also support mouse drag on desktop
+    var mdown = false, mx = 0, my = 0;
+    canvas.addEventListener("mousedown", function (e) { mdown = true; mx = e.clientX; my = e.clientY; audio.unlock(); });
+    window.addEventListener("mouseup", function (e) {
+      if (!mdown) return;
+      mdown = false;
+      var dx = e.clientX - mx, dy = e.clientY - my;
+      if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
+      if (Math.abs(dx) > Math.abs(dy)) doMove(dx > 0 ? "right" : "left");
+      else doMove(dy > 0 ? "down" : "up");
+    });
+
+    // --- buttons ---
+    $("newgame").addEventListener("click", startNewGame);
+    $("tryAgain").addEventListener("click", startNewGame);
+    $("undo").addEventListener("click", function () {
+      if (inputLocked) return;
+      audio.unlock();
+      if (game.undo()) { renderer.setBoard(game.board); $("score").textContent = game.score; syncUI(); }
+    });
+    $("continueEndless").addEventListener("click", function () {
+      endlessMode = true;
+      game.isGameOver = false;
+      $("gameover").classList.remove("show");
+      inputLocked = false;
+      syncUI();
+    });
+
+    // --- menu + screen navigation ---
+    // Move keyboard focus to a screen's primary (or first) button.
+    function focusFirst(el) {
+      var b = el.querySelector("button.primary") || el.querySelector("button");
+      if (b) b.focus();
+    }
+    function showScreen(id) { var el = $(id); el.classList.add("show"); focusFirst(el); }
+    function hideScreen(id) { $(id).classList.remove("show"); }
+
+    function openMenu() { audio.unlock(); syncEasyButton(); syncSoundButton(); renderMenuGoals(); showScreen("menu"); }
+    $("openMenu").addEventListener("click", openMenu);
+    $("menuResume").addEventListener("click", function () { hideScreen("menu"); $("openMenu").focus(); });
+    $("menuNew").addEventListener("click", function () { hideScreen("menu"); startNewGame(); });
+    $("menuHowto").addEventListener("click", function () { hideScreen("menu"); openTutorial(); });
+    $("menuHighscores").addEventListener("click", function () { hideScreen("menu"); openHighScores("menu"); });
+    $("menuAchievements").addEventListener("click", function () { hideScreen("menu"); openAchievements(); });
+
+    var hsReturn = "menu"; // which screen the high-scores BACK button returns to
+
+    // High scores screen
+    function openHighScores(from) {
+      hsReturn = from || "menu";
+      $("hsBest").textContent = game.bestScore;
+      $("hsChain").textContent = game.longestChain;
+      var list = CR.HighScores.load();
+      if (!list.length) {
+        $("hsList").innerHTML = '<li class="hs-empty">No runs yet — play a game!</li>';
+      } else {
+        $("hsList").innerHTML = list.map(function (e) {
+          return '<li><span class="hs-score">' + e.score + '</span>' +
+            '<span class="hs-meta">tile ' + e.maxTile + ' · chain x' + e.chain + '</span></li>';
+        }).join("");
+      }
+      showScreen("highscores");
+    }
+    $("hsBack").addEventListener("click", function () { hideScreen("highscores"); showScreen(hsReturn); });
+    $("goHighscores").addEventListener("click", function () { hideScreen("gameover"); openHighScores("gameover"); });
+
+    // Achievements screen — grouped by tier, GameVolt trophy-card styling.
+    function openAchievements() {
+      var list = CR.Achievements.list();
+      $("achCount").textContent = "(" + CR.Achievements.count() + "/" + CR.Achievements.total() + ")";
+      var tiers = ["bronze", "silver", "gold", "platinum"];
+      var flat = [];
+      var html = "";
+      tiers.forEach(function (t) {
+        var items = list.filter(function (a) { return a.tier === t; });
+        if (!items.length) return;
+        var got = items.filter(function (a) { return a.unlocked; }).length;
+        html += '<div class="ach-tier-head ' + t + '">' + t.toUpperCase() +
+          ' <span>' + got + "/" + items.length + "</span></div>";
+        html += '<div class="ach-grid">' + items.map(function (a) {
+          flat.push(a);
+          return '<div class="ach-card ' + t + " " + (a.unlocked ? "unlocked" : "locked") + '">' +
+            '<div class="ach-card-icon"></div>' +
+            '<div class="ach-card-name"></div>' +
+            '<div class="ach-card-desc"></div></div>';
+        }).join("") + "</div>";
+      });
+      $("achList").innerHTML = html;
+      // set text safely (avoid HTML injection)
+      var cards = $("achList").querySelectorAll(".ach-card");
+      cards.forEach(function (card, i) {
+        card.querySelector(".ach-card-icon").textContent = flat[i].icon;
+        card.querySelector(".ach-card-name").textContent = flat[i].name;
+        card.querySelector(".ach-card-desc").textContent = flat[i].desc;
+      });
+      showScreen("achievements");
+    }
+    $("achBack").addEventListener("click", function () { hideScreen("achievements"); showScreen("menu"); });
+
+    // Stats screen (all-time)
+    function openStats() {
+      $("stGames").textContent = CR.Lifetime.games();
+      $("stBest").textContent = game.bestScore;
+      $("stAvg").textContent = CR.Lifetime.avgScore();
+      $("stMaxTile").textContent = CR.Lifetime.maxTile();
+      $("stChain").textContent = game.longestChain;
+      $("stChains").textContent = CR.Lifetime.chains();
+      $("stMoves").textContent = CR.Lifetime.moves();
+      showScreen("stats");
+    }
+    $("menuStats").addEventListener("click", function () { hideScreen("menu"); openStats(); });
+    $("stBack").addEventListener("click", function () { hideScreen("stats"); showScreen("menu"); });
+
+    // --- difficulty + sound toggles (live in the menu) ---
+    function syncEasyButton() {
+      $("easy").textContent = game.easyMode ? "ASSIST" : "STANDARD";
+      $("easy").classList.toggle("active", game.easyMode);
+    }
+    $("easy").addEventListener("click", function () {
+      audio.unlock();
+      game.setEasy(!game.easyMode);
+      syncEasyButton();
+      startNewGame(); // difficulty applies to a fresh board
+    });
+    function syncSoundButton() {
+      $("soundToggle").textContent = muted ? "OFF" : "ON";
+      $("soundToggle").classList.toggle("active", !muted);
+    }
+    $("soundToggle").addEventListener("click", function () {
+      muted = !muted;
+      audio.setMuted(muted);
+      if (!muted) audio.unlock();
+      try { localStorage.setItem("chainreaction.muted", muted ? "1" : "0"); } catch (e) {}
+      syncSoundButton();
+    });
+
+    // --- tutorial ---
+    var TUT = [
+      { title: "MOVE", body: "Swipe — or use the arrow keys / WASD — to slide every tile in one direction at once." },
+      { title: "MERGE", body: "Two tiles with the same number slam together into one tile worth double." },
+      { title: "CHAIN REACTION", body: "When a merge creates a new match, it cascades automatically. Each step multiplies your score — longer chains mean way more points." },
+      { title: "GOAL", body: "Reach the 2048 tile. Tip: keep your biggest tile locked in a corner. Good luck!" },
+    ];
+    var TUT_SEEN = "chainreaction.tutorialSeen";
+    var tutIndex = 0;
+
+    // --- neon mini-diagrams for the tutorial (on-brand, no emojis) ---
+    var tutCanvas = $("tutCanvas");
+    var tutCtx = tutCanvas.getContext("2d");
+
+    function tutRoundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+    function tutLighten(hex, amt) {
+      var n = parseInt(hex.slice(1), 16);
+      var r = Math.min(255, ((n >> 16) & 255) + 255 * amt);
+      var g = Math.min(255, ((n >> 8) & 255) + 255 * amt);
+      var b = Math.min(255, (n & 255) + 255 * amt);
+      return "rgb(" + r + "," + g + "," + b + ")";
+    }
+    function tutTile(cx, cy, size, value, glow) {
+      var col = CR.tileColor(value);
+      var x = cx - size / 2, y = cy - size / 2, r = size * 0.18;
+      tutCtx.save();
+      tutCtx.shadowColor = col;
+      tutCtx.shadowBlur = glow;
+      tutRoundRect(tutCtx, x, y, size, size, r);
+      var g = tutCtx.createLinearGradient(x, y, x, y + size);
+      g.addColorStop(0, tutLighten(col, 0.25));
+      g.addColorStop(1, col);
+      tutCtx.fillStyle = g;
+      tutCtx.fill();
+      tutCtx.shadowBlur = 0;
+      tutCtx.fillStyle = value >= 1024 ? "#1a0a14" : (value === 16 || value === 32 ? "#0a0a14" : "#fff");
+      tutCtx.textAlign = "center";
+      tutCtx.textBaseline = "middle";
+      tutCtx.font = "700 " + size * (String(value).length >= 4 ? 0.3 : 0.4) + "px 'Trebuchet MS', sans-serif";
+      tutCtx.fillText(String(value), cx, cy + size * 0.02);
+      tutCtx.restore();
+    }
+    function tutArrow(x, y, len, color) {
+      tutCtx.save();
+      tutCtx.strokeStyle = color; tutCtx.fillStyle = color;
+      tutCtx.lineWidth = 3; tutCtx.lineCap = "round";
+      tutCtx.shadowColor = color; tutCtx.shadowBlur = 8;
+      tutCtx.beginPath(); tutCtx.moveTo(x, y); tutCtx.lineTo(x + len, y); tutCtx.stroke();
+      tutCtx.beginPath(); tutCtx.moveTo(x + len, y); tutCtx.lineTo(x + len - 8, y - 6); tutCtx.lineTo(x + len - 8, y + 6); tutCtx.closePath(); tutCtx.fill();
+      tutCtx.restore();
+    }
+    function tutChevron(x, y, dir, color) {
+      var s = 8;
+      tutCtx.save();
+      tutCtx.strokeStyle = color; tutCtx.lineWidth = 3; tutCtx.lineCap = "round";
+      tutCtx.shadowColor = color; tutCtx.shadowBlur = 8;
+      tutCtx.beginPath();
+      if (dir === "up") { tutCtx.moveTo(x - s, y + s); tutCtx.lineTo(x, y - s + 2); tutCtx.lineTo(x + s, y + s); }
+      else if (dir === "down") { tutCtx.moveTo(x - s, y - s); tutCtx.lineTo(x, y + s - 2); tutCtx.lineTo(x + s, y - s); }
+      else if (dir === "left") { tutCtx.moveTo(x + s, y - s); tutCtx.lineTo(x - s + 2, y); tutCtx.lineTo(x + s, y + s); }
+      else { tutCtx.moveTo(x - s, y - s); tutCtx.lineTo(x + s - 2, y); tutCtx.lineTo(x - s, y + s); }
+      tutCtx.stroke();
+      tutCtx.restore();
+    }
+    function sizeTutCanvas() {
+      var w = tutCanvas.clientWidth || 300, h = 104;
+      var dpr = window.devicePixelRatio || 1;
+      tutCanvas.width = Math.round(w * dpr);
+      tutCanvas.height = Math.round(h * dpr);
+      tutCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { w: w, h: h };
+    }
+    function drawTutDiagram(step) {
+      var d = sizeTutCanvas(), w = d.w, cy = d.h / 2;
+      tutCtx.clearRect(0, 0, w, d.h);
+      var cyan = "rgba(33,230,255,0.85)";
+      if (step === 0) {            // MOVE — tile with directional chevrons
+        tutTile(w / 2, cy, 46, 2, 16);
+        tutChevron(w / 2, cy - 38, "up", cyan);
+        tutChevron(w / 2, cy + 38, "down", cyan);
+        tutChevron(w / 2 - 56, cy, "left", cyan);
+        tutChevron(w / 2 + 56, cy, "right", cyan);
+      } else if (step === 1) {     // MERGE — 2 + 2 -> 4
+        tutTile(w * 0.24, cy, 42, 2, 12);
+        tutTile(w * 0.24 + 46, cy, 42, 2, 12);
+        tutArrow(w * 0.52, cy, 34, "#7fefff");
+        tutTile(w * 0.8, cy, 46, 4, 18);
+      } else if (step === 2) {     // CHAIN — 4 + 4 -> 8, x2
+        tutTile(w * 0.2, cy + 4, 38, 4, 10);
+        tutTile(w * 0.2 + 40, cy + 4, 38, 4, 10);
+        tutArrow(w * 0.46, cy + 4, 28, "#ffd23f");
+        tutTile(w * 0.76, cy + 4, 48, 8, 24);
+        tutCtx.save();
+        tutCtx.fillStyle = "#ffd23f"; tutCtx.shadowColor = "#ffd23f"; tutCtx.shadowBlur = 12;
+        tutCtx.font = "800 15px 'Trebuchet MS', sans-serif";
+        tutCtx.textAlign = "center"; tutCtx.textBaseline = "middle";
+        tutCtx.fillText("CHAIN x2", w * 0.76, cy - 32);
+        tutCtx.restore();
+      } else {                     // GOAL — the white 2048 tile
+        tutTile(w / 2, cy, 66, 2048, 42);
+      }
+    }
+
+    function renderTut() {
+      var step = TUT[tutIndex];
+      $("tutTitle").textContent = step.title;
+      $("tutBody").textContent = step.body;
+      $("tutBack").style.visibility = tutIndex === 0 ? "hidden" : "visible";
+      $("tutNext").textContent = tutIndex === TUT.length - 1 ? "PLAY" : "NEXT";
+      var dots = "";
+      for (var i = 0; i < TUT.length; i++) dots += '<span class="dot' + (i === tutIndex ? " on" : "") + '"></span>';
+      $("tutDots").innerHTML = dots;
+      drawTutDiagram(tutIndex);
+    }
+    function openTutorial() {
+      tutIndex = 0;
+      $("tutorial").classList.add("show"); // show first so the canvas has a width
+      renderTut();
+      focusFirst($("tutorial"));
+    }
+    function closeTutorial() {
+      $("tutorial").classList.remove("show");
+      try { localStorage.setItem(TUT_SEEN, "1"); } catch (e) {}
+      if (!document.querySelector(".modal-backdrop.show")) $("openMenu").focus();
+    }
+    $("tutBack").addEventListener("click", function () { if (tutIndex > 0) { tutIndex--; renderTut(); } });
+    $("tutNext").addEventListener("click", function () {
+      audio.unlock();
+      if (tutIndex < TUT.length - 1) { tutIndex++; renderTut(); }
+      else closeTutorial();
+    });
+
+    // --- dev / polish test helpers (console + optional ?dev panel) -------
+    function devSetBoard(values, msg) {
+      var arr = values.slice();
+      while (arr.length < 16) arr.push(null); // 4-length = row 0
+      var board = new Array(16).fill(null);
+      for (var i = 0; i < 16; i++) {
+        if (arr[i]) board[i] = CR.makeTile(arr[i], Math.floor(i / 4), i % 4);
+      }
+      game.board = board;
+      game.history = [];
+      game.isGameOver = false;
+      won2048shown = false;
+      winThisMove = false;
+      $("gameover").classList.remove("show");
+      renderer.setBoard(game.board);
+      inputLocked = false;
+      syncUI();
+      if (msg) console.log("%c[dev] " + msg, "color:#21e6ff");
+    }
+    var DEAD_BOARD = [2, 4, 2, 4, 4, 2, 4, 2, 2, 4, 2, 4, 4, 2, 4, 2];
+    if (DEV) window.dev = {
+      set: function (v) { devSetBoard(v, "board set — swipe to play it"); },
+      chain2: function () { devSetBoard([2, 2, 2, 2], "swipe RIGHT → chain x2"); },
+      chain3: function () { devSetBoard([2, 2, 4, 8], "swipe RIGHT → chain x3 (max on a 4x4 line)"); },
+      milestone: function () { devSetBoard([null, null, 1024, 1024], "swipe RIGHT → 2048 win"); },
+      almostOver: function () { var b = DEAD_BOARD.slice(); b[15] = null; devSetBoard(b, "one move from game over"); },
+      gameOver: function () { devSetBoard(DEAD_BOARD.slice(), "dead board → failure sequence"); audio.gameOver(); renderer.startGameOver(showGameOver); },
+      fx: function (n) { audio.unlock(); renderer.debugCombo(n || 3); },
+      resolveFx: function (n) { audio.unlock(); renderer.debugResolve(n || 3); },
+      milestoneFx: function (v) { audio.unlock(); renderer.debugMilestone(v || 2048); },
+      // Achievement / meta QA
+      unlockAll: function () { CR.Achievements.unlockAll(); openAchievements(); console.log("%c[dev] all trophies unlocked", "color:#ffd23f"); },
+      resetAch: function () { CR.Achievements.reset(); openAchievements(); console.log("%c[dev] trophies reset", "color:#ff5a2a"); },
+      score: function (n) {
+        n = n || 50000;
+        game.score = n;
+        if (n > game.bestScore) game.bestScore = n;
+        $("score").textContent = n;
+        $("best").textContent = game.bestScore;
+        checkAchievements();
+        console.log("%c[dev] score set to " + n, "color:#21e6ff");
+      },
+      portalTest: function () {
+        // Mock the portal SDK and assert each hook fires exactly once.
+        var real = window.GameVolt, subs = 0, unlocks = 0, sScore = null, uId = null;
+        window.GameVolt = {
+          leaderboard: { submit: function (v) { subs++; sScore = v; } },
+          achievements: { unlock: function (id) { unlocks++; uId = id; } },
+        };
+        portalSubmitScore(1234);
+        portalUnlock("t2048");
+        window.GameVolt = real;
+        var ok = subs === 1 && unlocks === 1 && sScore === 1234 && uId === "t2048";
+        console.log((ok ? "%cPASS" : "%cFAIL") + " [dev] portal contract — submit×" + subs + " unlock×" + unlocks,
+          "color:" + (ok ? "#27e07a" : "#ff5a2a"));
+        return ok;
+      },
+      help: function () {
+        console.log("%cChain Reaction — dev helpers", "font-weight:bold;color:#21e6ff");
+        console.log("dev.set([16 or 4 values])   dev.chain2()   dev.chain3()");
+        console.log("dev.milestone()   dev.almostOver()   dev.gameOver()");
+        console.log("dev.fx(n)   dev.resolveFx(n)   dev.milestoneFx(v)   (feel tests)");
+        console.log("dev.unlockAll()   dev.resetAch()   dev.score(n)   dev.portalTest()");
+        console.log("Presets set the board — then swipe RIGHT to trigger. Add ?dev to the URL for buttons.");
+      },
+    };
+    if (DEV) console.log("%c[Chain Reaction] dev helpers ready — run dev.help()", "color:#7c8db0");
+
+    if (DEV) {
+      var panel = document.createElement("div");
+      panel.className = "dev-panel collapsed"; // start tucked away (mobile-safe)
+      var toggle = document.createElement("button");
+      toggle.className = "dev-toggle";
+      var body = document.createElement("div");
+      body.className = "dev-body";
+      function syncDevToggle() {
+        toggle.textContent = (panel.classList.contains("collapsed") ? "▸" : "▾") + " DEV";
+      }
+      toggle.addEventListener("click", function () {
+        panel.classList.toggle("collapsed");
+        syncDevToggle();
+      });
+      syncDevToggle();
+      var devBtns = [
+        ["[2,2,2,2]", function () { dev.chain2(); }],
+        ["chain x3", function () { dev.chain3(); }],
+        ["→ 2048", function () { dev.milestone(); }],
+        ["near GO", function () { dev.almostOver(); }],
+        ["game over", function () { dev.gameOver(); }],
+        ["fx x2", function () { dev.fx(2); }],
+        ["fx x3", function () { dev.fx(3); }],
+        ["fx x4", function () { dev.fx(4); }],
+        ["resolve", function () { dev.resolveFx(3); }],
+        ["milestone fx", function () { dev.milestoneFx(2048); }],
+        ["unlock all", function () { dev.unlockAll(); }],
+        ["reset ach", function () { dev.resetAch(); }],
+        ["score 50k", function () { dev.score(50000); }],
+        ["portal test", function () { dev.portalTest(); }],
+      ];
+      devBtns.forEach(function (b) {
+        var el = document.createElement("button");
+        el.textContent = b[0];
+        el.addEventListener("click", b[1]);
+        body.appendChild(el);
+      });
+      panel.appendChild(toggle);
+      panel.appendChild(body);
+      document.body.appendChild(panel);
+    }
+
+    window.addEventListener("resize", function () {
+      renderer.resize();
+      if ($("tutorial").classList.contains("show")) drawTutDiagram(tutIndex);
+    });
+
+    // Resume an in-progress game if one was saved, else start fresh.
+    function resumeOrNew() {
+      if (game.load()) {
+        won2048shown = game.has2048; // already past 2048 — don't replay the win
+        endlessMode = game.has2048;
+        winThisMove = false;
+        runFinalized = false;
+        genGoals();
+        renderer.setBoard(game.board);
+        $("gameover").classList.remove("show");
+        $("continueEndless").style.display = "none";
+        $("score").textContent = game.score;
+        inputLocked = false;
+        syncUI();
+        if (window.GameVoltTracker) GameVoltTracker.start("Chain Reaction");
+        // Surface the silent restore so it's not confusing.
+        var note = $("resumeNote");
+        note.classList.add("show");
+        setTimeout(function () { note.classList.remove("show"); }, 1900);
+      } else {
+        startNewGame();
+      }
+    }
+
+    // GameVolt portal SDK — optional. The portal injects /sdk/gamevolt.js;
+    // standalone it's simply absent and every call below is guarded. When
+    // shipping into the portal, include the SDK script (/sdk/gamevolt.js)
+    // before this one and the leaderboard/achievement hooks light up.
+    if (window.GameVolt) {
+      try {
+        GameVolt.init("chain-reaction");
+        if (GameVolt.save && GameVolt.save.registerMigration) {
+          GameVolt.save.registerMigration({
+            keys: ["chainreaction.highscores", "chainreaction.achievements", "chainreaction.bestScore"],
+            getScores: function () {
+              var b = parseInt(localStorage.getItem("chainreaction.bestScore") || "0", 10) || 0;
+              return b ? [{ score: b, mode: "default" }] : [];
+            },
+            getAchievements: function () {
+              try {
+                return (JSON.parse(localStorage.getItem("chainreaction.achievements")) || [])
+                  .map(function (id) { return { id: id, unlocked_at: Date.now() }; });
+              } catch (e) { return []; }
+            },
+          });
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    // --- go ---
+    syncEasyButton();
+    syncSoundButton();
+    resumeOrNew();
+    // First-time players see the tutorial automatically.
+    var seen = false;
+    try { seen = localStorage.getItem(TUT_SEEN) === "1"; } catch (e) {}
+    if (!seen) openTutorial();
+    // Regression suite — runs only in dev (?dev), never in the shipped build.
+    if (DEV && CR.runTests) CR.runTests();
+  })();
+  </script>
+</body>
+</html>

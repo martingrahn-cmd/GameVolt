@@ -209,6 +209,15 @@
                 "url": "https://gamevolt.io/type-or-die/",
                 "genre": ["Word", "Typing", "Arcade"],
                 "gamePlatform": "Web Browser"
+            },
+            {
+                "@type": "VideoGame",
+                "position": 15,
+                "name": "Chain Reaction",
+                "description": "A juiced-up 2048 puzzle where merges auto-cascade into combo chains — reach the 2048 tile, chase high scores, unlock 31 trophies",
+                "url": "https://gamevolt.io/chain-reaction/",
+                "genre": ["Puzzle"],
+                "gamePlatform": "Web Browser"
             }
         ]
     }
@@ -1736,7 +1745,7 @@
             <p>Play free arcade, puzzle, card and action games right in your browser. No downloads, no signups – just pure gaming enjoyment.</p>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="stat-number">15</span>
+                    <span class="stat-number">17</span>
                     <span class="stat-label">Games Available</span>
                 </div>
                 <div class="stat">
@@ -1854,6 +1863,21 @@
             </div>
             <p class="powered-subtitle">Cloud saves, global leaderboards & trophies</p>
             <div class="powered-grid">
+                <a href="/play/?game=chain-reaction" class="powered-card">
+                    <div class="powered-thumb">
+                        <img src="/assets/thumbnails/chain-reaction.webp" alt="Play Chain Reaction online free">
+                    </div>
+                    <span class="powered-bolt">⚡</span>
+                    <div class="powered-info">
+                        <div class="powered-name">Chain Reaction</div>
+                        <div class="powered-features">
+                            <span class="powered-feat" style="background:rgba(6,214,160,0.12);color:#06d6a0;border-color:rgba(6,214,160,0.15)">New</span>
+                            <span class="powered-feat cloud">Cloud Save</span>
+                            <span class="powered-feat board">Leaderboard</span>
+                            <span class="powered-feat trophy">31 Trophies</span>
+                        </div>
+                    </div>
+                </a>
                 <a href="/play/?game=minesweeper" class="powered-card">
                     <div class="powered-thumb">
                         <img src="/assets/thumbnails/minesweeper.webp" alt="Play Minesweeper online free">
@@ -2061,7 +2085,7 @@
             <button class="category-pill active" data-filter="all">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
-                <span class="pill-count">15</span>
+                <span class="pill-count">17</span>
             </button>
             <button class="category-pill" data-filter="coffee-break">
                 <span class="pill-icon">☕</span>
@@ -2071,7 +2095,7 @@
             <button class="category-pill" data-filter="brain-challenge">
                 <span class="pill-icon">🧠</span>
                 <span>Brain Challenge</span>
-                <span class="pill-count">7</span>
+                <span class="pill-count">9</span>
             </button>
             <button class="category-pill" data-filter="action">
                 <span class="pill-icon">🔥</span>
@@ -2399,6 +2423,24 @@
                     <span class="play-btn">▶ Play Now</span>
                 </div>
             </a>
+
+            <a href="/play/?game=chain-reaction" class="game-card" data-category="brain-challenge">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/chain-reaction.webp" alt="Play Chain Reaction online free" loading="lazy">
+                    <span class="game-badge new">NEW</span>
+                    <span class="game-bolt">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Chain Reaction</h3>
+                    <p class="game-description">A juiced-up 2048 where every merge can auto-cascade into a combo chain. Slide tiles, trigger chain reactions, reach 2048 and chase high scores — neon visuals, leaderboard and 31 trophies.</p>
+                    <div class="game-tags">
+                        <span class="tag">2048</span>
+                        <span class="tag">Merge</span>
+                        <span class="tag">Combo</span>
+                    </div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
         </div>
 
         <section class="features-section">
@@ -2456,6 +2498,8 @@
                         <a href="/play/?game=one-stroke">One Stroke</a>
                         <a href="/play/?game=asteroid-storm">Asteroid Storm</a>
                         <a href="/play/?game=minesweeper">Minesweeper</a>
+                        <a href="/play/?game=type-or-die">Type or Die</a>
+                        <a href="/play/?game=chain-reaction">Chain Reaction</a>
                     </div>
                     <div class="footer-column">
                         <h4>Categories</h4>
@@ -2687,7 +2731,8 @@
             "one-stroke": { name: "One Stroke", thumb: "/assets/thumbnails/one-stroke.webp", preview: "/one-stroke/preview.mp4" },
             "asteroid-storm": { name: "Asteroid Storm", thumb: "/assets/thumbnails/asteroid-storm.webp" },
             minesweeper: { name: "Minesweeper", thumb: "/assets/thumbnails/minesweeper.webp" },
-            "type-or-die": { name: "Type or Die", thumb: "/assets/thumbnails/type-or-die.webp" }
+            "type-or-die": { name: "Type or Die", thumb: "/assets/thumbnails/type-or-die.webp" },
+            "chain-reaction": { name: "Chain Reaction", thumb: "/assets/thumbnails/chain-reaction.webp" }
         };
 
         var recent = GVTracker.getRecentlyPlayed(4);
@@ -2753,7 +2798,8 @@
             "one-stroke":    { name: "One Stroke",    thumb: "/assets/thumbnails/one-stroke.webp", preview: "/one-stroke/preview.mp4" },
             "asteroid-storm": { name: "Asteroid Storm", thumb: "/assets/thumbnails/asteroid-storm.webp" },
             minesweeper:     { name: "Minesweeper",   thumb: "/assets/thumbnails/minesweeper.webp" },
-            "type-or-die":   { name: "Type or Die",    thumb: "/assets/thumbnails/type-or-die.webp" }
+            "type-or-die":   { name: "Type or Die",    thumb: "/assets/thumbnails/type-or-die.webp" },
+            "chain-reaction":{ name: "Chain Reaction", thumb: "/assets/thumbnails/chain-reaction.webp" }
         };
         var section = document.getElementById('favoritesSection');
         var grid = document.getElementById('favoritesGrid');

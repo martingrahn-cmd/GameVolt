@@ -678,7 +678,9 @@
           'manga-match3': 'Manga Match — Free Match-3 Puzzle',
           'golden-glyphs': 'Golden Glyphs — Free Block Puzzle',
           'asteroid-storm': 'Asteroid Storm — Free Space Arcade Shooter',
-          minesweeper: 'Minesweeper — Free Online Classic Puzzle'
+          minesweeper: 'Minesweeper — Free Online Classic Puzzle',
+          'type-or-die': 'Type or Die — Free Typing Zombie Game & WPM Test',
+          'chain-reaction': 'Chain Reaction — Free 2048 Puzzle Game'
         };
         var game = new URLSearchParams(location.search).get('game');
         document.getElementById('game-title').textContent = names[game] || 'GameVolt — Free Browser Games';
@@ -752,7 +754,8 @@
       "one-stroke": { name: "One Stroke", category: "Puzzle", path: "/one-stroke/", thumb: "/assets/thumbnails/one-stroke.webp" },
       "asteroid-storm": { name: "Asteroid Storm", category: "Action", path: "/asteroid-storm/", thumb: "/assets/thumbnails/asteroid-storm.webp", landscape: true },
       minesweeper: { name: "Minesweeper", category: "Puzzle", path: "/minesweeper/", thumb: "/assets/thumbnails/minesweeper.webp" },
-      "type-or-die": { name: "Type or Die", category: "Word", path: "/type-or-die/", thumb: "/assets/thumbnails/type-or-die.webp", landscape: true }
+      "type-or-die": { name: "Type or Die", category: "Word", path: "/type-or-die/", thumb: "/assets/thumbnails/type-or-die.webp", landscape: true },
+      "chain-reaction": { name: "Chain Reaction", category: "Puzzle", path: "/chain-reaction/", thumb: "/assets/thumbnails/chain-reaction.webp" }
     };
 
     const frame = document.getElementById('gameFrame');
