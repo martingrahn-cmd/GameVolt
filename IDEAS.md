@@ -85,3 +85,25 @@ Allt byggs i `sdk/gamevolt.js` — noll ändringar i spelen. Se även `TODO-logi
 - [ ] **Performance dashboard** — Grafana/analytics för speltid, retention, populäraste spel
 - [ ] **A/B testing** — testa olika CTA:er, layouter, ordning på spel
 - [ ] **Game submission portal** — låt andra devs submita spel till GameVolt
+
+---
+
+## Trophies & Toast Timing
+
+Status från audit 2026-05-29 över alla 17 spel (15 har lokala trofésystem, 2 saknar helt).
+
+### Lägg till saknade trofésystem
+- [ ] **Snake** — bygg ut det lokala trofésystemet (redan TODO på [snake/backlog.md](snake/backlog.md)). Init-only SDK idag; behöver både defs (15/10/5/1) och toast-UI.
+- [ ] **Solitaire** — inga troféer alls i någon av de 6 varianterna. Beslut: per-variant defs eller en gemensam Solitaire-trofé-uppsättning?
+
+### Konvertera batched → live toasting
+Spel där trofé-toasten i dag visas först vid game over fast den **kunde** poppa direkt när villkoret nås mitt i spelet:
+- [ ] **HoverDash** — endless runner med långa sessioner; per-run-troféer (100m / 1000m / 5000m, "Coin Collector 100 in one game", "Near Miss King", "Shield Up" etc.) buntas i `Ending()` vid death. Flytta checken till respektive event (m-tröskel, coin/shield/magnet-pickup, near-miss).
+- [ ] **Type or Die (Zombie mode)** — `recordRun()` är enda chokepoint. Per-run-mål som "boss-slayer", "kills-50", "combo-10", "wave-3" kan poppa direkt vid event. Speed Test kan stå kvar batched (15/30/60 s är kort).
+
+### Acceptabelt batched (ingen åtgärd)
+Rond-baserade spel där "game over" = puzzle/match clear, vilket *är* ögonblicket man tar troféen:
+- **Sudoku** (puzzle win) · **Minesweeper** (board win) · **Connect 4** (match end) · **Manga Match** (stage clear)
+
+### Redan Live (ingen åtgärd)
+Chain Reaction, Asteroid Storm, Breakout, Golden Glyphs, One Stroke. *(Mixed: BlockStorm, Axeluga, Gravity Well, Tap Rush.)*
