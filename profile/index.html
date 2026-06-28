@@ -777,6 +777,7 @@
                         <a href="/play/?game=golden-glyphs">Golden Glyphs</a>
                         <a href="/play/?game=one-stroke">One Stroke</a>
                         <a href="/play/?game=asteroid-storm">Asteroid Storm</a>
+                        <a href="/play/?game=livewire">Livewire</a>
                     </div>
                     <div class="footer-column">
                         <h4>Info</h4>
@@ -816,7 +817,8 @@
             'asteroid-storm': 'Asteroid Storm',
             minesweeper: 'Minesweeper',
             'type-or-die': 'Type or Die',
-            'chain-reaction': 'Chain Reaction'
+            'chain-reaction': 'Chain Reaction',
+            'livewire': 'Livewire'
         };
 
         var GAME_THUMBS = {
@@ -836,7 +838,8 @@
             taprush: '/assets/thumbnails/taprush.webp',
             minesweeper: '/assets/thumbnails/minesweeper.webp',
             'type-or-die': '/assets/thumbnails/type-or-die.webp',
-            'chain-reaction': '/assets/thumbnails/chain-reaction.webp'
+            'chain-reaction': '/assets/thumbnails/chain-reaction.webp',
+            'livewire': '/assets/thumbnails/livewire.webp'
         };
 
         // Full trophy catalog — all definitions from all games
@@ -1219,6 +1222,39 @@
                 { id:'chain-reaction-score50k', icon:'👑', name:'Legend', desc:'Score 50,000 in a run', tier:'gold' },
                 { id:'chain-reaction-chains25', icon:'🌪️', name:'Chain Storm', desc:'Trigger 25 chains in a game', tier:'gold' },
                 { id:'chain-reaction-platinum', icon:'💎', name:'Reactor Core', desc:'Unlock every other trophy', tier:'platinum' }
+            ],
+            'livewire': [
+                { id:'livewire-first_wire', icon:'⚡', name:'First Connection', desc:'Connect your first pair', tier:'bronze' },
+                { id:'livewire-first_clear', icon:'💡', name:'Lights On', desc:'Complete your first level', tier:'bronze' },
+                { id:'livewire-clear_5', icon:'✨', name:'Warming Up', desc:'Complete 5 levels', tier:'bronze' },
+                { id:'livewire-clear_15', icon:'🔗', name:'Getting Wired', desc:'Complete 15 levels', tier:'bronze' },
+                { id:'livewire-first_3star', icon:'⭐', name:'Flawless', desc:'Earn 3 stars on a level', tier:'bronze' },
+                { id:'livewire-use_hint', icon:'🤝', name:'Helping Hand', desc:'Use a hint', tier:'bronze' },
+                { id:'livewire-use_undo', icon:'↩️', name:'Rewind', desc:'Undo a move', tier:'bronze' },
+                { id:'livewire-easy_done', icon:'🟢', name:'Easy Rider', desc:'Finish every Easy level', tier:'bronze' },
+                { id:'livewire-daily_first', icon:'📅', name:'Daily Dose', desc:'Complete a Daily puzzle', tier:'bronze' },
+                { id:'livewire-endless_5', icon:'♾️', name:'Endless Start', desc:'Reach 5 pairs in Endless', tier:'bronze' },
+                { id:'livewire-pairs_50', icon:'🧮', name:'Fifty Links', desc:'Connect 50 pairs in total', tier:'bronze' },
+                { id:'livewire-speed_30', icon:'⏱️', name:'Quick Hands', desc:'Solve a level in under 30s', tier:'bronze' },
+                { id:'livewire-normal_reach', icon:'🔼', name:'Step Up', desc:'Complete a Normal level', tier:'bronze' },
+                { id:'livewire-hard_reach', icon:'🌀', name:'Into the Deep', desc:'Complete a Hard level', tier:'bronze' },
+                { id:'livewire-untangle', icon:'🪢', name:'Untangler', desc:'Clear a tangle back to clean', tier:'bronze' },
+                { id:'livewire-normal_done', icon:'🔌', name:'Network Engineer', desc:'Finish every Normal level', tier:'silver' },
+                { id:'livewire-three_star_10', icon:'🌟', name:'Perfectionist', desc:'Earn 3 stars on 10 levels', tier:'silver' },
+                { id:'livewire-speed_15', icon:'⚡', name:'Lightning Fingers', desc:'Solve a level in under 15s', tier:'silver' },
+                { id:'livewire-no_hint_10', icon:'🧠', name:'Self-Reliant', desc:'Clear 10 levels without a hint', tier:'silver' },
+                { id:'livewire-daily_streak_3', icon:'📆', name:'Regular', desc:'Reach a 3-day Daily streak', tier:'silver' },
+                { id:'livewire-endless_10', icon:'♾️', name:'Endless Adept', desc:'Reach 10 pairs in Endless', tier:'silver' },
+                { id:'livewire-pairs_500', icon:'🧵', name:'Master Linker', desc:'Connect 500 pairs in total', tier:'silver' },
+                { id:'livewire-hard_done', icon:'🎚️', name:'Untangled', desc:'Finish every Hard level', tier:'silver' },
+                { id:'livewire-all_3star_easy', icon:'✨', name:'Spotless: Easy', desc:'3 stars on every Easy level', tier:'silver' },
+                { id:'livewire-flawless_hard', icon:'❄️', name:'Cool Hand', desc:'Earn 3 stars on a Hard level', tier:'silver' },
+                { id:'livewire-expert_done', icon:'👑', name:'Grid Master', desc:'Finish every Expert level', tier:'gold' },
+                { id:'livewire-all_3star_all', icon:'💯', name:'Immaculate', desc:'3 stars on every campaign level', tier:'gold' },
+                { id:'livewire-daily_streak_7', icon:'🗓️', name:'Devoted', desc:'Reach a 7-day Daily streak', tier:'gold' },
+                { id:'livewire-endless_20', icon:'🏆', name:'Endless Legend', desc:'Reach 20 pairs in Endless', tier:'gold' },
+                { id:'livewire-campaign_done', icon:'🎖️', name:'Circuit Complete', desc:'Finish the whole campaign', tier:'gold' },
+                { id:'livewire-platinum', icon:'🌟', name:'Live Wire', desc:'Unlock all 30 trophies', tier:'platinum' }
             ]
         };
 

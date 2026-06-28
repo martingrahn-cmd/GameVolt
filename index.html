@@ -218,6 +218,15 @@
                 "url": "https://gamevolt.io/chain-reaction/",
                 "genre": ["Puzzle"],
                 "gamePlatform": "Web Browser"
+            },
+            {
+                "@type": "VideoGame",
+                "position": 16,
+                "name": "Livewire",
+                "description": "A relaxing line-drawing puzzle — connect every pair of same-colored dots without letting the wires cross. Curated levels, a daily puzzle, endless mode and 31 trophies",
+                "url": "https://gamevolt.io/livewire/",
+                "genre": ["Puzzle", "Logic"],
+                "gamePlatform": "Web Browser"
             }
         ]
     }
@@ -1745,7 +1754,7 @@
             <p>Play free arcade, puzzle, card and action games right in your browser. No downloads, no signups – just pure gaming enjoyment.</p>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="stat-number">17</span>
+                    <span class="stat-number">18</span>
                     <span class="stat-label">Games Available</span>
                 </div>
                 <div class="stat">
@@ -1863,6 +1872,20 @@
             </div>
             <p class="powered-subtitle">Cloud saves, global leaderboards & trophies</p>
             <div class="powered-grid">
+                <a href="/play/?game=livewire" class="powered-card">
+                    <div class="powered-thumb">
+                        <img src="/assets/thumbnails/livewire.webp" alt="Play Livewire online free">
+                    </div>
+                    <span class="powered-bolt">⚡</span>
+                    <div class="powered-info">
+                        <div class="powered-name">Livewire</div>
+                        <div class="powered-features">
+                            <span class="powered-feat" style="background:rgba(6,214,160,0.12);color:#06d6a0;border-color:rgba(6,214,160,0.15)">New</span>
+                            <span class="powered-feat cloud">Cloud Save</span>
+                            <span class="powered-feat trophy">31 Trophies</span>
+                        </div>
+                    </div>
+                </a>
                 <a href="/play/?game=chain-reaction" class="powered-card">
                     <div class="powered-thumb">
                         <img src="/assets/thumbnails/chain-reaction.webp" alt="Play Chain Reaction online free">
@@ -2085,7 +2108,7 @@
             <button class="category-pill active" data-filter="all">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
-                <span class="pill-count">17</span>
+                <span class="pill-count">18</span>
             </button>
             <button class="category-pill" data-filter="coffee-break">
                 <span class="pill-icon">☕</span>
@@ -2095,7 +2118,7 @@
             <button class="category-pill" data-filter="brain-challenge">
                 <span class="pill-icon">🧠</span>
                 <span>Brain Challenge</span>
-                <span class="pill-count">9</span>
+                <span class="pill-count">10</span>
             </button>
             <button class="category-pill" data-filter="action">
                 <span class="pill-icon">🔥</span>
@@ -2441,6 +2464,24 @@
                     <span class="play-btn">▶ Play Now</span>
                 </div>
             </a>
+
+            <a href="/play/?game=livewire" class="game-card" data-category="brain-challenge">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/livewire.webp" alt="Play Livewire online free" loading="lazy">
+                    <span class="game-badge new">NEW</span>
+                    <span class="game-bolt">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Livewire</h3>
+                    <p class="game-description">A relaxing line-drawing puzzle — connect every pair of same-colored dots without letting the wires cross. Curated levels, a daily puzzle, endless mode, stars and 31 trophies.</p>
+                    <div class="game-tags">
+                        <span class="tag">Logic</span>
+                        <span class="tag">Relaxing</span>
+                        <span class="tag">Connect</span>
+                    </div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
         </div>
 
         <section class="features-section">
@@ -2500,6 +2541,7 @@
                         <a href="/play/?game=minesweeper">Minesweeper</a>
                         <a href="/play/?game=type-or-die">Type or Die</a>
                         <a href="/play/?game=chain-reaction">Chain Reaction</a>
+                        <a href="/play/?game=livewire">Livewire</a>
                     </div>
                     <div class="footer-column">
                         <h4>Categories</h4>
@@ -2732,7 +2774,8 @@
             "asteroid-storm": { name: "Asteroid Storm", thumb: "/assets/thumbnails/asteroid-storm.webp" },
             minesweeper: { name: "Minesweeper", thumb: "/assets/thumbnails/minesweeper.webp" },
             "type-or-die": { name: "Type or Die", thumb: "/assets/thumbnails/type-or-die.webp" },
-            "chain-reaction": { name: "Chain Reaction", thumb: "/assets/thumbnails/chain-reaction.webp" }
+            "chain-reaction": { name: "Chain Reaction", thumb: "/assets/thumbnails/chain-reaction.webp" },
+            "livewire": { name: "Livewire", thumb: "/assets/thumbnails/livewire.webp" }
         };
 
         var recent = GVTracker.getRecentlyPlayed(4);
@@ -2799,7 +2842,8 @@
             "asteroid-storm": { name: "Asteroid Storm", thumb: "/assets/thumbnails/asteroid-storm.webp" },
             minesweeper:     { name: "Minesweeper",   thumb: "/assets/thumbnails/minesweeper.webp" },
             "type-or-die":   { name: "Type or Die",    thumb: "/assets/thumbnails/type-or-die.webp" },
-            "chain-reaction":{ name: "Chain Reaction", thumb: "/assets/thumbnails/chain-reaction.webp" }
+            "chain-reaction":{ name: "Chain Reaction", thumb: "/assets/thumbnails/chain-reaction.webp" },
+            "livewire":      { name: "Livewire",       thumb: "/assets/thumbnails/livewire.webp" }
         };
         var section = document.getElementById('favoritesSection');
         var grid = document.getElementById('favoritesGrid');
