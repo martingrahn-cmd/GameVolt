@@ -818,3 +818,20 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   ('livewire-campaign_done',  'livewire', 'Circuit Complete',  'Finish the whole campaign',        '🎖️', 'gold',    30),
   ('livewire-platinum',       'livewire', 'Live Wire',         'Unlock all 30 trophies',           '🌟',  'platinum',31)
 ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================
+-- Play counter (see sql/play-count.sql) — increments games.play_count
+-- once per game load from /play/. SECURITY DEFINER so anon may increment.
+-- ============================================================
+CREATE OR REPLACE FUNCTION increment_play_count(p_game_id TEXT)
+RETURNS INT AS $$
+DECLARE v_count INT;
+BEGIN
+  UPDATE games SET play_count = COALESCE(play_count, 0) + 1
+  WHERE id = p_game_id
+  RETURNING play_count INTO v_count;
+  RETURN COALESCE(v_count, 0);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+GRANT EXECUTE ON FUNCTION increment_play_count(TEXT) TO anon, authenticated;
