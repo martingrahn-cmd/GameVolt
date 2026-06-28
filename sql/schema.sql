@@ -776,3 +776,45 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   -- Minesweeper: Platinum (1)
   ('minesweeper-completionist',   'minesweeper', 'Completionist',       'Unlock all 30 other trophies',        '💎', 'platinum', 31)
 ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================
+-- Livewire — game + 31 trophy definitions (15 bronze, 10 silver, 5 gold, 1 platinum)
+-- (games row first so the achievement_defs FK on game_id resolves on a fresh run)
+-- ============================================================
+INSERT INTO games (id, title, thumbnail_url) VALUES
+  ('livewire', 'Livewire', '/assets/thumbnails/livewire.webp')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_order) VALUES
+  ('livewire-first_wire',     'livewire', 'First Connection',  'Connect your first pair',          '⚡',  'bronze',   1),
+  ('livewire-first_clear',    'livewire', 'Lights On',         'Complete your first level',        '💡',  'bronze',   2),
+  ('livewire-clear_5',        'livewire', 'Warming Up',        'Complete 5 levels',                '✨',  'bronze',   3),
+  ('livewire-clear_15',       'livewire', 'Getting Wired',     'Complete 15 levels',               '🔗',  'bronze',   4),
+  ('livewire-first_3star',    'livewire', 'Flawless',          'Earn 3 stars on a level',          '⭐',  'bronze',   5),
+  ('livewire-use_hint',       'livewire', 'Helping Hand',      'Use a hint',                       '🤝',  'bronze',   6),
+  ('livewire-use_undo',       'livewire', 'Rewind',            'Undo a move',                      '↩️',  'bronze',   7),
+  ('livewire-easy_done',      'livewire', 'Easy Rider',        'Finish every Easy level',          '🟢',  'bronze',   8),
+  ('livewire-daily_first',    'livewire', 'Daily Dose',        'Complete a Daily puzzle',          '📅',  'bronze',   9),
+  ('livewire-endless_5',      'livewire', 'Endless Start',     'Reach 5 pairs in Endless',         '♾️',  'bronze',  10),
+  ('livewire-pairs_50',       'livewire', 'Fifty Links',       'Connect 50 pairs in total',        '🧮',  'bronze',  11),
+  ('livewire-speed_30',       'livewire', 'Quick Hands',       'Solve a level in under 30s',       '⏱️',  'bronze',  12),
+  ('livewire-normal_reach',   'livewire', 'Step Up',           'Complete a Normal level',          '🔼',  'bronze',  13),
+  ('livewire-hard_reach',     'livewire', 'Into the Deep',     'Complete a Hard level',            '🌀',  'bronze',  14),
+  ('livewire-untangle',       'livewire', 'Untangler',         'Clear a tangle back to clean',     '🪢',  'bronze',  15),
+  ('livewire-normal_done',    'livewire', 'Network Engineer',  'Finish every Normal level',        '🔌',  'silver',  16),
+  ('livewire-three_star_10',  'livewire', 'Perfectionist',     'Earn 3 stars on 10 levels',        '🌟',  'silver',  17),
+  ('livewire-speed_15',       'livewire', 'Lightning Fingers', 'Solve a level in under 15s',       '⚡',  'silver',  18),
+  ('livewire-no_hint_10',     'livewire', 'Self-Reliant',      'Clear 10 levels without a hint',   '🧠',  'silver',  19),
+  ('livewire-daily_streak_3', 'livewire', 'Regular',           'Reach a 3-day Daily streak',       '📆',  'silver',  20),
+  ('livewire-endless_10',     'livewire', 'Endless Adept',     'Reach 10 pairs in Endless',        '♾️',  'silver',  21),
+  ('livewire-pairs_500',      'livewire', 'Master Linker',     'Connect 500 pairs in total',       '🧵',  'silver',  22),
+  ('livewire-hard_done',      'livewire', 'Untangled',         'Finish every Hard level',          '🎚️', 'silver',  23),
+  ('livewire-all_3star_easy', 'livewire', 'Spotless: Easy',    '3 stars on every Easy level',      '✨',  'silver',  24),
+  ('livewire-flawless_hard',  'livewire', 'Cool Hand',         'Earn 3 stars on a Hard level',     '❄️',  'silver',  25),
+  ('livewire-expert_done',    'livewire', 'Grid Master',       'Finish every Expert level',        '👑',  'gold',    26),
+  ('livewire-all_3star_all',  'livewire', 'Immaculate',        '3 stars on every campaign level',  '💯',  'gold',    27),
+  ('livewire-daily_streak_7', 'livewire', 'Devoted',           'Reach a 7-day Daily streak',       '🗓️', 'gold',    28),
+  ('livewire-endless_20',     'livewire', 'Endless Legend',    'Reach 20 pairs in Endless',        '🏆',  'gold',    29),
+  ('livewire-campaign_done',  'livewire', 'Circuit Complete',  'Finish the whole campaign',        '🎖️', 'gold',    30),
+  ('livewire-platinum',       'livewire', 'Live Wire',         'Unlock all 30 trophies',           '🌟',  'platinum',31)
+ON CONFLICT (id) DO NOTHING;

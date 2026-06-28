@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="description" content="Play Livewire free online — a relaxing line-drawing puzzle. Connect every pair of same-colored dots without letting the wires cross. No download needed.">
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PY073ZX38N');
+</script>
+
+<!-- SEO -->
+<title>Livewire — Connect the Dots Without Crossing | GameVolt</title>
+<meta name="keywords" content="livewire, free browser game, line puzzle, connect the dots, wire puzzle, logic game, relaxing puzzle">
+<meta name="author" content="GameVolt">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gamevolt.io/livewire/">
+<meta property="og:title" content="Livewire — Connect the Dots Without Crossing">
+<meta property="og:description" content="A relaxing line-drawing puzzle — connect every pair of same-colored dots without letting the wires cross.">
+<meta property="og:image" content="https://gamevolt.io/assets/thumbnails/livewire.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="GameVolt">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Livewire — Connect the Dots Without Crossing">
+<meta name="twitter:description" content="A relaxing line-drawing puzzle — connect every pair of same-colored dots without letting the wires cross.">
+<meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/livewire.webp">
+
+<!-- Canonical + Favicon + PWA -->
+<link rel="canonical" href="https://gamevolt.io/livewire/">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+<link rel="manifest" href="/livewire/manifest.json">
+<meta name="theme-color" content="#080d16">
+<style>
+  :root{ --ink:#eef3fb; --mut:#76839b; --bad:#ff5f72; --acc:#67e0c8; }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; height:100%; overscroll-behavior:none;}
+  body{
+    user-select:none; -webkit-user-select:none;
+    background:
+      radial-gradient(1200px 640px at 18% -12%, rgba(110,99,233,.14), transparent 58%),
+      radial-gradient(1100px 560px at 88% 112%, rgba(45,212,191,.13), transparent 58%),
+      radial-gradient(800px 800px at 50% 50%, rgba(20,32,52,.5), transparent 70%),
+      #080d16;
+    color:var(--ink);
+    font-family:"Space Grotesk",ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    display:flex; flex-direction:column; align-items:center; min-height:100%;
+    padding:14px 14px max(18px,env(safe-area-inset-bottom)); gap:12px; overflow-x:hidden;
+  }
+  header{width:100%; max-width:540px; display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  h1{margin:0; font-size:19px; letter-spacing:.30em; font-weight:600; text-transform:uppercase; white-space:nowrap;}
+  h1 b{color:var(--acc); text-shadow:0 0 16px rgba(74,168,255,.7);}
+  .meta{font-size:11.5px; color:var(--mut); letter-spacing:.14em; text-transform:uppercase; text-align:right; line-height:1.5;}
+  .meta b{color:var(--ink); font-weight:600;}
+
+  .stage{
+    position:relative; width:min(540px, 92vw, calc(100dvh - 244px)); aspect-ratio:1/1;
+    border-radius:26px; margin:0 auto; touch-action:none; overflow:hidden;
+    background:
+      linear-gradient(155deg, rgba(255,255,255,.07), rgba(255,255,255,.012) 46%),
+      radial-gradient(120% 90% at 50% 0%, rgba(103,224,200,.06), transparent 55%),
+      rgba(255,255,255,.014);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10), inset 0 0 0 1px rgba(255,255,255,.05),
+      inset 0 -30px 60px -40px rgba(0,0,0,.7), 0 40px 100px -46px rgba(70,90,160,.55);
+  }
+  .stage::after{ content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; opacity:.045; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+  canvas{width:100%; height:100%; display:block; touch-action:none; cursor:crosshair;}
+
+  .status{max-width:540px; width:100%; text-align:center; font-size:12.5px; letter-spacing:.04em;
+          color:var(--mut); min-height:1.4em; transition:color .2s;}
+  .status.warn{color:var(--bad);} .status.good{color:#36e2a4;}
+  .brand{position:absolute; left:50%; bottom:7px; transform:translateX(-50%); pointer-events:none;
+         font-size:10px; letter-spacing:.30em; font-weight:600; text-transform:uppercase; color:rgba(232,243,251,.30);
+         display:flex; align-items:center; gap:5px; white-space:nowrap;}
+  .brand .v{color:rgba(103,224,200,.75); filter:drop-shadow(0 0 4px rgba(103,224,200,.5));}
+  .credit{font-size:11px; color:var(--mut); letter-spacing:.04em;}
+  .credit a{color:var(--acc); text-decoration:none;}
+  .credit a:hover{text-decoration:underline;}
+  .rail{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:4px;
+        width:100%; max-width:540px; min-height:13px;}
+  .rail.endless{font-size:11px; letter-spacing:.14em; color:var(--mut); text-transform:uppercase;}
+  .pip{width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.10);
+       box-shadow:inset 0 0 0 1px rgba(255,255,255,.16); cursor:pointer;
+       transition:background .25s, box-shadow .25s;}
+  .pip:hover{background:rgba(103,224,200,.35);}
+  .pip.done{background:var(--acc); box-shadow:0 0 7px rgba(103,224,200,.6);}
+  .pip.current{box-shadow:0 0 0 2px rgba(103,224,200,.55), 0 0 8px rgba(103,224,200,.45);}
+  .pip.done.current{box-shadow:0 0 0 2px rgba(103,224,200,.75), 0 0 9px rgba(103,224,200,.7);}
+  .pip.pop{animation:pip-pop .45s ease;}
+  @keyframes pip-pop{0%{transform:scale(1)}45%{transform:scale(2)}100%{transform:scale(1)}}
+
+  .controls{width:100%; max-width:540px; display:flex; gap:7px; flex-wrap:wrap; justify-content:center;}
+  button{
+    font:inherit; font-size:12.5px; letter-spacing:.03em; color:var(--ink);
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.13);
+    border-radius:11px; padding:9px 12px; cursor:pointer; transition:.15s; flex:1 1 auto; min-width:60px;
+  }
+  button:hover{background:rgba(74,168,255,.12); border-color:rgba(74,168,255,.45);}
+  button:active{transform:translateY(1px);}
+  button:disabled{opacity:.3; cursor:default; transform:none;}
+  button:focus-visible{outline:2px solid var(--acc); outline-offset:2px;}
+
+  .overlay{position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center;
+           gap:14px; padding:20px; text-align:center; overflow:auto;
+           background:radial-gradient(circle at 50% 42%, rgba(6,9,18,.80), rgba(6,9,18,.96)); backdrop-filter:blur(2px);}
+  .overlay.show{display:flex;}
+  .menuTitle{font-size:12px; letter-spacing:.24em; text-transform:uppercase; color:var(--mut);}
+  .tabs{display:flex; gap:6px; flex-wrap:wrap; justify-content:center;}
+  .tab{font:inherit; font-size:12px; letter-spacing:.03em; color:var(--ink); background:rgba(255,255,255,.05);
+       border:1px solid rgba(255,255,255,.13); border-radius:10px; padding:7px 13px; cursor:pointer; transition:.15s;}
+  .tab:hover{border-color:rgba(103,224,200,.4);}
+  .tab.on{border-color:rgba(103,224,200,.55); color:var(--acc); background:rgba(103,224,200,.10);}
+  .grid{display:grid; grid-template-columns:repeat(5,1fr); gap:8px; width:100%; max-width:360px;}
+  .cell{aspect-ratio:1/1; border-radius:12px; border:1px solid rgba(255,255,255,.14);
+        background:rgba(255,255,255,.04); display:flex; align-items:center; justify-content:center;
+        font-size:14px; font-weight:600; cursor:pointer; transition:.15s; position:relative;}
+  .cell:hover{border-color:rgba(103,224,200,.5); background:rgba(103,224,200,.12);}
+  .cell.done{border-color:rgba(70,220,166,.45);}
+  .cell .tick{position:absolute; top:3px; right:5px; font-size:9px; color:#46dca6;}
+  .cell.endless{grid-column:span 5; aspect-ratio:auto; padding:13px; gap:8px; color:#c6a6ff;
+                border-color:rgba(176,109,255,.4); font-weight:500; font-size:13px;}
+  .cell.daily{grid-column:span 5; aspect-ratio:auto; padding:13px; gap:8px; color:#ffd95e;
+              border-color:rgba(255,217,94,.42); font-weight:500; font-size:13px;}
+  .cell .cstars{position:absolute; left:0; right:0; bottom:3px; text-align:center; line-height:1;
+                font-size:8px; letter-spacing:1px; color:#ffd95e;}
+  .cell .cstars i{color:rgba(255,255,255,.15); font-style:normal;}
+  .mtime{display:inline-block; margin-top:3px; color:var(--acc); font-size:11px;
+         letter-spacing:.10em; font-variant-numeric:tabular-nums;}
+
+  /* ===== Troféer ===== */
+  .hright{display:flex; align-items:center; gap:10px;}
+  #trophyBtn{font:inherit; font-size:12px; letter-spacing:.04em; color:var(--ink);
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.13); border-radius:11px;
+    padding:7px 10px; cursor:pointer; white-space:nowrap; transition:.15s;}
+  #trophyBtn:hover{border-color:rgba(255,217,94,.5); background:rgba(255,217,94,.08);}
+  #trophyBtn span{color:var(--acc); font-weight:600;}
+  .tov{position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:18px; z-index:60;
+    background:radial-gradient(circle at 50% 38%, rgba(6,9,18,.86), rgba(6,9,18,.97)); backdrop-filter:blur(3px);}
+  .tov.show{display:flex;}
+  .tpanel{width:100%; max-width:720px; max-height:88vh; display:flex; flex-direction:column; gap:12px;
+    background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.08); border-radius:20px; padding:18px;}
+  .tphead{display:flex; align-items:baseline; justify-content:space-between; gap:10px;}
+  .tptitle{font-size:15px; letter-spacing:.24em; text-transform:uppercase; font-weight:600; color:var(--ink);}
+  .tpprog{font-size:11px; letter-spacing:.10em; color:var(--mut);}
+  #trophyGrid{display:flex; flex-direction:column; gap:14px; overflow-y:auto; padding:2px 4px;}
+  .tsec{font-size:9px; font-weight:700; letter-spacing:4px; padding:6px 0 5px; border-bottom:1px solid rgba(255,255,255,.1);}
+  .tsec.bronze{color:#cd7f32; border-color:rgba(205,127,50,.3);}
+  .tsec.silver{color:#c0c0c0; border-color:rgba(192,192,192,.3);}
+  .tsec.gold{color:#ffd700; border-color:rgba(255,215,0,.3);}
+  .tsec.platinum{color:#b4ffff; border-color:rgba(180,255,255,.3);}
+  .tcards{display:grid; grid-template-columns:repeat(3,1fr); gap:9px;}
+  .tcard{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10); border-radius:12px;
+    padding:11px 12px; display:flex; flex-direction:column; gap:5px; min-height:74px; transition:.2s;}
+  .tcard.on{border-color:rgba(103,224,200,.28); background:rgba(103,224,200,.06);}
+  .tcard.off{opacity:.4;}
+  .tcard.on:hover{border-color:rgba(103,224,200,.5); box-shadow:0 0 14px rgba(103,224,200,.12);}
+  .tch{display:flex; align-items:center; gap:7px;}
+  .tci{font-size:16px; min-width:20px; text-align:center;}
+  .tcn{font-size:10px; font-weight:700; letter-spacing:.08em; line-height:1.4; color:var(--ink);}
+  .tcd{font-size:9px; color:var(--mut); letter-spacing:.02em; line-height:1.5;}
+  .tct{font-size:7.5px; font-weight:700; letter-spacing:2px; margin-top:auto;}
+  .tct.bronze{color:#cd7f32;} .tct.silver{color:#c0c0c0;} .tct.gold{color:#ffd700;} .tct.platinum{color:#b4ffff;}
+  #trophyClose{align-self:center; min-width:130px; flex:0 0 auto;}
+  #trophy-toast{position:fixed; bottom:-90px; left:50%; transform:translateX(-50%); display:flex; align-items:center;
+    gap:12px; background:#0a0a18ee; border:1px solid #ffd70066; border-radius:12px; padding:10px 20px; z-index:9999;
+    transition:bottom .5s cubic-bezier(.34,1.56,.64,1); box-shadow:0 0 30px #ffd70033; pointer-events:none;}
+  #trophy-toast.show{bottom:24px;}
+  #trophy-toast-icon{font-size:28px;}
+  #trophy-toast-label{font-size:9px; color:#ffd700; letter-spacing:3px; font-weight:700;}
+  #trophy-toast-tier{font-size:9px; font-weight:700; letter-spacing:2px;}
+  #trophy-toast-tier.bronze{color:#cd7f32;} #trophy-toast-tier.silver{color:#c0c0c0;}
+  #trophy-toast-tier.gold{color:#ffd700;} #trophy-toast-tier.platinum{color:#b4ffff;}
+  #trophy-toast-name{font-size:14px; color:#fff; font-weight:700; letter-spacing:1px;}
+  @media (max-width:520px){ .tcards{grid-template-columns:repeat(2,1fr);} }
+  @media (prefers-reduced-motion: reduce){ *{transition:none!important;} }
+</style>
+<script src="/sdk/gamevolt.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Live<b>wire</b></h1>
+    <div class="hright">
+      <button id="trophyBtn" title="Trophies">🏆 <span id="trophyCount">0 / 31</span></button>
+      <div class="meta"><span id="mTitle">Level 1</span><br><b id="mName">—</b><br><span id="mTime" class="mtime"></span></div>
+    </div>
+  </header>
+
+  <div class="stage">
+    <canvas id="cv"></canvas>
+    <div class="brand"><span class="v">⚡</span> GameVolt</div>
+    <div class="overlay" id="menuOv">
+      <div class="menuTitle">Select level</div>
+      <div class="tabs" id="difftabs">
+        <button class="tab" data-d="easy">Easy</button>
+        <button class="tab" data-d="normal">Normal</button>
+        <button class="tab" data-d="hard">Hard</button>
+        <button class="tab" data-d="expert">Expert</button>
+      </div>
+      <div class="grid" id="grid"></div>
+      <button style="flex:0 0 auto;min-width:130px" id="menuClose">Close</button>
+    </div>
+  </div>
+
+  <div class="rail" id="rail"></div>
+  <div class="status" id="status">Drag a wire between two dots of the same color.</div>
+
+  <div class="controls">
+    <button id="prev">‹</button>
+    <button id="menuBtn">Levels</button>
+    <button id="reset">Clear</button>
+    <button id="undo">Undo</button>
+    <button id="aux">Hint</button>
+    <button id="sound">Sound: on</button>
+    <button id="next">›</button>
+  </div>
+  <footer class="credit">A game from <a href="https://gamevolt.io" target="_blank" rel="noopener">GameVolt</a></footer>
+
+  <div class="tov" id="trophyOv">
+    <div class="tpanel">
+      <div class="tphead"><div class="tptitle">Trophies</div><div class="tpprog" id="trophyProgress">0 / 31 unlocked</div></div>
+      <div id="trophyGrid"></div>
+      <button id="trophyClose">Close</button>
+    </div>
+  </div>
+
+  <div id="trophy-toast">
+    <div id="trophy-toast-icon"></div>
+    <div>
+      <div id="trophy-toast-label">TROPHY UNLOCKED</div>
+      <div id="trophy-toast-tier" class="bronze"></div>
+      <div id="trophy-toast-name"></div>
+    </div>
+  </div>
+
+<script>
+/* GameVolt iframe-brygga + GA4-händelsespårning (iframe-säker) */
+function gvPost(action, payload) {
+  if (window.parent !== window) {
+    try { window.parent.postMessage({ type: 'gamevolt', action: action, gameId: 'livewire', payload: payload || {} }, '*'); } catch(e) {}
+  }
+}
+var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
+start:function(n){this.gameName=n;this.startTime=Date.now();this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',{game_name:n});if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
+end:function(o){o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'});if(this.timerInterval)clearInterval(this.timerInterval);},
+_checkMilestones:function(){if(!this.startTime)return;var t=(Date.now()-this.startTime)/1000;if(t>=30&&!this.hasTracked30s){this.hasTracked30s=true;this._send('game_play_30s',{game_name:this.gameName});}if(t>=60&&!this.hasTracked60s){this.hasTracked60s=true;this._send('game_play_60s',{game_name:this.gameName});}},
+_send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}if(typeof gtag==='function'){gtag('event',n,p);return;}}};
+GameVoltTracker.start('Livewire');
+if(window.parent!==window){var s=document.getElementById('seo-content');if(s)s.style.display='none';}
+</script>
+
+<script>
+"use strict";
+
+/* ===== Lagring (tål blockerad localStorage) ===== */
+const store={ get(k,d){ try{const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} },
+              set(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} } };
+
+/* ===== Palett ===== */
+const PAL=["#ff6b8a","#ff9d52","#ffd95e","#46dca6","#5ab0ff","#b98bff"];
+const C={ R:"#ff6b8a", Y:"#ffd95e", G:"#46dca6", B:"#5ab0ff" };
+const ring=(n,r,cx=50,cy=50)=>{const o=[];for(let i=0;i<n;i++){const a=-Math.PI/2+i*(Math.PI*2/n);
+  o.push({x:+(cx+r*Math.cos(a)).toFixed(1),y:+(cy+r*Math.sin(a)).toFixed(1)});}return o;};
+const pick=a=>a[Math.random()*a.length|0];
+
+/* ===== Handgjorda banor ===== */
+const HEX=ring(6,34);
+const CURATED=[
+  { name:"Start",
+    dots:[{...HEX[5],c:C.R},{...HEX[0],c:C.R},{...HEX[1],c:C.G},{...HEX[2],c:C.G},{...HEX[3],c:C.B},{...HEX[4],c:C.B}],
+    sol:[[C.R,[HEX[5],HEX[0]]],[C.G,[HEX[1],HEX[2]]],[C.B,[HEX[3],HEX[4]]]] },
+  { name:"Past the dot",
+    dots:[{x:14,y:50,c:C.R},{x:86,y:50,c:C.R},{x:50,y:54,c:C.G},{x:50,y:82,c:C.G},{x:28,y:20,c:C.B},{x:72,y:20,c:C.B}],
+    sol:[[C.R,[{x:14,y:50},{x:50,y:42},{x:86,y:50}]],[C.G,[{x:50,y:54},{x:50,y:82}]],[C.B,[{x:28,y:20},{x:72,y:20}]]] },
+  { name:"Center",
+    dots:[{x:50,y:12,c:C.R},{x:50,y:88,c:C.R},{x:50,y:50,c:C.B},{x:16,y:50,c:C.B},{x:84,y:32,c:C.G},{x:84,y:68,c:C.G}],
+    sol:[[C.R,[{x:50,y:12},{x:63,y:50},{x:50,y:88}]],[C.B,[{x:50,y:50},{x:16,y:50}]],[C.G,[{x:84,y:32},{x:84,y:68}]]] },
+  { name:"Four pairs",
+    dots:(()=>{const O=ring(8,36);return[{...O[7],c:C.R},{...O[0],c:C.R},{...O[1],c:C.G},{...O[2],c:C.G},{...O[3],c:C.B},{...O[4],c:C.B},{...O[5],c:C.Y},{...O[6],c:C.Y}];})(),
+    sol:(()=>{const O=ring(8,36);return[[C.R,[O[7],O[0]]],[C.G,[O[1],O[2]]],[C.B,[O[3],O[4]]],[C.Y,[O[5],O[6]]]];})() },
+  { name:"Weave",
+    dots:[{x:12,y:50,c:C.R},{x:88,y:50,c:C.R},{x:50,y:50,c:C.Y},{x:50,y:14,c:C.Y},{x:18,y:80,c:C.G},{x:38,y:80,c:C.G},{x:62,y:80,c:C.B},{x:82,y:80,c:C.B}],
+    sol:[[C.R,[{x:12,y:50},{x:50,y:60},{x:88,y:50}]],[C.Y,[{x:50,y:50},{x:50,y:14}]],[C.G,[{x:18,y:80},{x:38,y:80}]],[C.B,[{x:62,y:80},{x:82,y:80}]]] },
+  { name:"Labyrinth",
+    dots:[{x:50,y:10,c:C.R},{x:50,y:90,c:C.R},{x:50,y:50,c:C.G},{x:80,y:50,c:C.G},{x:15,y:30,c:C.B},{x:15,y:70,c:C.B},{x:88,y:20,c:C.Y},{x:88,y:80,c:C.Y}],
+    sol:[[C.R,[{x:50,y:10},{x:39,y:50},{x:50,y:90}]],[C.G,[{x:50,y:50},{x:80,y:50}]],[C.B,[{x:15,y:30},{x:15,y:70}]],[C.Y,[{x:88,y:20},{x:88,y:80}]]] },
+  { name:"Trio arc",
+    dots:[{x:26,y:64,c:C.R},{x:74,y:64,c:C.R},{x:36,y:64,c:C.Y},{x:64,y:64,c:C.Y},{x:46,y:64,c:C.G},{x:54,y:64,c:C.G}],
+    sol:[[C.R,[{x:26,y:64},{x:50,y:30},{x:74,y:64}]],[C.Y,[{x:36,y:64},{x:50,y:38},{x:64,y:64}]],[C.G,[{x:46,y:64},{x:50,y:46},{x:54,y:64}]]] },
+  { name:"Arc nest",
+    dots:[{x:22,y:66,c:C.R},{x:78,y:66,c:C.R},{x:30,y:66,c:C.Y},{x:70,y:66,c:C.Y},{x:38,y:66,c:C.G},{x:62,y:66,c:C.G},{x:46,y:66,c:C.B},{x:54,y:66,c:C.B}],
+    sol:[[C.R,[{x:22,y:66},{x:50,y:26},{x:78,y:66}]],[C.Y,[{x:30,y:66},{x:50,y:34},{x:70,y:66}]],[C.G,[{x:38,y:66},{x:50,y:42},{x:62,y:66}]],[C.B,[{x:46,y:66},{x:50,y:50},{x:54,y:66}]]] },
+  { name:"Halo",
+    dots:[{x:35,y:50,c:C.G},{x:65,y:50,c:C.G},{x:50,y:20,c:C.B},{x:50,y:80,c:C.B},{x:78,y:35,c:C.R},{x:78,y:65,c:C.R}],
+    sol:[[C.G,[{x:35,y:50},{x:65,y:50}]],[C.R,[{x:78,y:35},{x:78,y:65}]],[C.B,[{x:50,y:20},{x:28,y:50},{x:50,y:80}]]] },
+  { name:"Around the post",
+    dots:[{x:25,y:30,c:C.R},{x:75,y:30,c:C.R},{x:25,y:70,c:C.B},{x:75,y:70,c:C.B},{x:50,y:42,c:C.G},{x:50,y:58,c:C.G},{x:20,y:50,c:C.Y},{x:80,y:50,c:C.Y}],
+    sol:[[C.R,[{x:25,y:30},{x:75,y:30}]],[C.B,[{x:25,y:70},{x:75,y:70}]],[C.G,[{x:50,y:42},{x:50,y:58}]],[C.Y,[{x:20,y:50},{x:35,y:36},{x:65,y:36},{x:80,y:50}]]] },
+];
+
+/* ===== Generator ===== */
+const D=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function shuffle(a,rnd){for(let i=a.length-1;i>0;i--){const j=rnd()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+function poisson(n,rmax,mind,rnd){const p=[];for(let t=0;t<n*400&&p.length<n;t++){const a=rnd()*Math.PI*2,r=Math.sqrt(rnd())*rmax,q={x:50+r*Math.cos(a),y:50+r*Math.sin(a)};if(p.every(o=>D(q,o)>=mind))p.push(q);}return p;}
+function ncMatch(idx,P){ if(!idx.length)return[]; let p=idx[0]; for(const k of idx) if(P[k].x<P[p].x)p=k;
+  const rest=idx.filter(k=>k!==p).sort((a,b)=>Math.atan2(P[a].y-P[p].y,P[a].x-P[p].x)-Math.atan2(P[b].y-P[p].y,P[b].x-P[p].x));
+  return [[p,rest[0]],...ncMatch(rest.slice(1),P)]; }
+function segPD(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy;let t=l2?((p.x-a.x)*dx+(p.y-a.y)*dy)/l2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-(a.x+t*dx),p.y-(a.y+t*dy));}
+function segInt(p1,p2,p3,p4){const d=(p2.x-p1.x)*(p4.y-p3.y)-(p2.y-p1.y)*(p4.x-p3.x);if(!d)return null;const t=((p3.x-p1.x)*(p4.y-p3.y)-(p3.y-p1.y)*(p4.x-p3.x))/d;return{x:p1.x+t*(p2.x-p1.x),y:p1.y+t*(p2.y-p1.y)};}
+function crossPts(){const out=[];for(let i=0;i<paths.length;i++)for(let j=i+1;j<paths.length;j++){const A=paths[i].pts,B=paths[j].pts;for(let s=0;s<A.length-1;s++)for(let t=0;t<B.length-1;t++)if(segX(A[s],A[s+1],B[t],B[t+1])){const q=segInt(A[s],A[s+1],B[t],B[t+1]);if(q)out.push(q);}}return out;}
+function segXg(p1,p2,p3,p4){const c=(a,b,d)=>(b.x-a.x)*(d.y-a.y)-(b.y-a.y)*(d.x-a.x);
+  const d1=c(p3,p4,p1),d2=c(p3,p4,p2),d3=c(p1,p2,p3),d4=c(p1,p2,p4);
+  return((d1>0&&d2<0)||(d1<0&&d2>0))&&((d3>0&&d4<0)||(d3<0&&d4>0));}
+function matchCrossings(P,pairs){let c=0;for(let i=0;i<pairs.length;i++)for(let j=i+1;j<pairs.length;j++)
+  if(segXg(P[pairs[i][0]],P[pairs[i][1]],P[pairs[j][0]],P[pairs[j][1]]))c++; return c;}
+function buildDots(P,pairs){const d=[];pairs.forEach(([i,j],c)=>{const col=PAL[c%PAL.length];d.push({...P[i],c:col});d.push({...P[j],c:col});});return d;}
+function randMatch(P,rnd){const o=shuffle(P.map((_,i)=>i),rnd),pr=[];for(let i=0;i+1<o.length;i+=2)pr.push([o[i],o[i+1]]);return pr;}
+function genLevel(nPairs,mode,rnd=Math.random,minCross=0){
+  const mind=Math.max(11,30-nPairs*2.6);
+  if(mode==="clean"){
+    for(let att=0;att<80;att++){ const P=poisson(nPairs*2,37,mind,rnd); if(P.length<nPairs*2)continue;
+      const pairs=ncMatch(P.map((_,i)=>i),P); let ok=true;
+      for(const[i,j]of pairs){for(let k=0;k<P.length;k++)if(k!==i&&k!==j&&segPD(P[k],P[i],P[j])<4){ok=false;break;}if(!ok)break;}
+      if(!ok)continue;
+      const sol=pairs.map(([i,j],c)=>[PAL[c%PAL.length],[P[i],P[j]]]);
+      return {dots:buildDots(P,pairs),sol}; }
+    mode="tangle";   // fallback om ingen ren hittas
+  }
+  // tangle / weave: punkter en bit in (rmax 30 < FIELD_R) => garanterat lösbart, gott om rum att väva
+  let bestDots=null,bestC=-1;
+  for(let att=0;att<30;att++){
+    const P=poisson(nPairs*2,30,mind,rnd); if(P.length<nPairs*2)continue;
+    for(let k=0;k<220;k++){ const pairs=randMatch(P,rnd);
+      if(mode!=="weave") return {dots:buildDots(P,pairs),sol:null};   // tangle: ta första
+      const c=matchCrossings(P,pairs);
+      if(c>bestC){bestC=c;bestDots=buildDots(P,pairs);}
+      if(c>=minCross) return {dots:buildDots(P,pairs),sol:null};      // weave: minst minCross korsningar
+    }
+  }
+  if(bestDots) return {dots:bestDots,sol:null};
+  const P=poisson(nPairs*2,30,Math.max(9,mind-4),rnd); return {dots:buildDots(P,randMatch(P,rnd)),sol:null};
+}
+
+/* ===== Banbank: tre svårighetsgrader (handgjorda + seedad batch) ===== */
+function buildPack(curated,spec,seed){ const rnd=mulberry32(seed);
+  const gen=spec.map(([p,m,mc])=>{const L=genLevel(p,m,rnd,mc||0); L.name=(m==="clean")?"Clean lines":(m==="weave"?"Weave":"Tangle"); return L;});
+  return [...curated,...gen]; }
+const CUR3=CURATED.slice(0,3).concat(CURATED.slice(6,7)),    // easy: 3 ursprungliga + Trio arc
+      CUR4=CURATED.slice(3,6).concat(CURATED.slice(7,10));   // normal: 3 ursprungliga + Arc nest, Halo, Around the post
+const DIFFS=["easy","normal","hard","expert"], DIFF_LABEL={easy:"Easy",normal:"Normal",hard:"Hard",expert:"Expert"};
+const PACKS={
+  easy:   buildPack(CUR3, [[3,"clean"],[3,"clean"],[3,"tangle"],[3,"tangle"],[4,"clean"],[4,"tangle"],[4,"tangle"]], 101),
+  normal: buildPack(CUR4, [[4,"clean"],[4,"weave",3],[4,"weave",4],[5,"weave",4],[5,"weave",5],[5,"weave",6],[5,"weave",6]], 202),
+  hard:   buildPack([],   [[5,"weave",5],[5,"weave",6],[5,"weave",7],[6,"weave",6],[6,"weave",7],[6,"weave",8],[6,"weave",8],[6,"weave",9],[6,"weave",9],[6,"weave",10]], 303),
+  expert: buildPack([],   [[6,"weave",9],[6,"weave",10],[6,"weave",11],[6,"weave",11],[6,"weave",12],[6,"weave",12],[6,"weave",13],[6,"weave",13],[6,"weave",13],[6,"weave",14]], 404),
+};
+
+/* ===== Tillstånd ===== */
+let mode=store.get("fb_mode","campaign"), diff=store.get("fb_diff","easy"), menuDiff, cIdx=0, eIdx=0;
+if(!DIFFS.includes(diff))diff="easy"; menuDiff=diff;
+let level=null,dots=[],used=[],paths=[],sol=null;
+let draw0=null,ghost=null,ghostT=null,winning=false,prevBad=0,hintHi=null;
+let muted=store.get("fb_mute",false);
+const doneByDiff={easy:new Set(store.get("fb_done_easy",[])),normal:new Set(store.get("fb_done_normal",[])),hard:new Set(store.get("fb_done_hard",[])),expert:new Set(store.get("fb_done_expert",[]))};
+let endlessBest=store.get("fb_ebest",0);
+let T=0,parts=[],pulses=[],flash=null,transScale=1,trans=null;
+const DOT_R=3.4,HIT=8,TOUCH=2.6,MINSTEP=0.5,FIELD_R=42,FIT_R=37,BOARD_DY=0;
+const clampDisc=p=>{const dx=p.x-50,dy=p.y-50,r=Math.hypot(dx,dy);if(r<=FIELD_R)return p;const k=FIELD_R/r;return{x:50+dx*k,y:50+dy*k};};
+
+/* ===== Replayvärde: timer + stjärnor + bästa tid ===== */
+const now=()=>(typeof performance!=="undefined"&&performance.now)?performance.now():Date.now();
+const fmtT=ms=>{const s=Math.max(0,Math.floor(ms/1000));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");};
+const starStr=n=>"★★★".slice(0,n)+"☆☆☆".slice(0,3-n);
+const starsByDiff={}, bestByDiff={};
+for(const d of DIFFS){ starsByDiff[d]=store.get("fb_stars_"+d,{}); bestByDiff[d]=store.get("fb_best_"+d,{}); }
+let runStart=0,runMs=0,runActive=false,lastSec=-1,runHinted=false,runErred=false;
+function updateTimeUI(){ const el=document.getElementById("mTime"); if(!el)return;
+  let best=0; if(mode==="campaign")best=bestByDiff[diff][cIdx]||0; else if(mode==="daily")best=dailyBest||0;
+  el.textContent=fmtT(runMs)+(best?("  ·  best "+fmtT(best)):""); }
+
+/* ===== Dagens pussel (deterministiskt seedat på datum) ===== */
+const pad2=n=>String(n).padStart(2,"0");
+const keyOf=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+const todayKey=()=>keyOf(new Date());
+const yesterKey=()=>{const d=new Date();d.setDate(d.getDate()-1);return keyOf(d);};
+const daySeed=()=>{const d=new Date();return (d.getFullYear()*372+d.getMonth()*31+d.getDate())>>>0;};
+let dailyDone=store.get("fb_daily_done",""), dailyStreak=store.get("fb_daily_streak",0);
+let dailyStars=store.get("fb_daily_stars",0), dailyBest=store.get("fb_daily_best",0);
+
+/* ===== Ångra (snapshot före varje ändring) ===== */
+let undoStack=[];
+function snapshot(){ undoStack.push({paths:paths.map(p=>({c:p.c,a:p.a,b:p.b,pts:p.pts.map(q=>({x:q.x,y:q.y}))})),used:used.slice()});
+  if(undoStack.length>60)undoStack.shift(); updateUndoBtn(); }
+function undo(){ if(winning||trans||!undoStack.length)return; const s=undoStack.pop();
+  paths=s.paths; used=s.used; draw0=null; ghost=null; prevBad=conflicts().bP.size; status(); updateUndoBtn();
+  Achievements.setStat('undoUsed',1); checkTrophies(); }
+function updateUndoBtn(){ const b=document.getElementById("undo"); if(b) b.disabled=winning||!!trans||!undoStack.length; }
+
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d"),statusEl=document.getElementById("status");
+let scale=1;
+
+/* ===== Geometri ===== */
+const ccw=(a,b,c)=>(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);
+function segX(p1,p2,p3,p4){const d1=ccw(p3,p4,p1),d2=ccw(p3,p4,p2),d3=ccw(p1,p2,p3),d4=ccw(p1,p2,p4);return((d1>0&&d2<0)||(d1<0&&d2>0))&&((d3>0&&d4<0)||(d3<0&&d4>0));}
+function polyX(A,B){for(let i=0;i<A.length-1;i++)for(let j=0;j<B.length-1;j++)if(segX(A[i],A[i+1],B[j],B[j+1]))return true;return false;}
+function touchesDot(pts,a,b){for(let k=0;k<dots.length;k++){if(k===a||k===b)continue;for(let i=0;i<pts.length-1;i++)if(segPD(dots[k],pts[i],pts[i+1])<TOUCH)return true;}return false;}
+const nearestDot=p=>{let bi=-1,bd=HIT*HIT;dots.forEach((d,i)=>{const v=(d.x-p.x)**2+(d.y-p.y)**2;if(v<bd){bd=v;bi=i;}});return bi;};
+function nearestPath(p){for(let pi=0;pi<paths.length;pi++){const q=paths[pi].pts;for(let i=0;i<q.length-1;i++)if(segPD(p,q[i],q[i+1])<2.2)return pi;}return -1;}
+function conflicts(){const bP=new Set(),bD=new Set();let cross=false;for(let i=0;i<paths.length;i++){const A=paths[i];
+  for(let k=0;k<dots.length;k++){if(k===A.a||k===A.b)continue;for(let s=0;s<A.pts.length-1;s++)if(segPD(dots[k],A.pts[s],A.pts[s+1])<TOUCH){bP.add(i);bD.add(k);break;}}
+  for(let j=i+1;j<paths.length;j++)if(polyX(A.pts,paths[j].pts)){bP.add(i);bP.add(j);cross=true;}}
+  return{bP,bD,cross,touch:bD.size>0};}
+function liveValid(pts,from){for(const p of paths)if(polyX(pts,p.pts))return false;return !touchesDot(pts,from,-1);}
+function smooth(pts){if(pts.length<=3)return pts;const o=[pts[0]];for(let i=1;i<pts.length-1;i++)o.push({x:(pts[i-1].x+2*pts[i].x+pts[i+1].x)/4,y:(pts[i-1].y+2*pts[i].y+pts[i+1].y)/4});o.push(pts[pts.length-1]);return o;}
+
+/* ===== Canvas ===== */
+function resize(){const dpr=Math.min(window.devicePixelRatio||1,2.5),w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;scale=(w*dpr)/100;ctx.setTransform(scale,0,0,scale,0,0);}
+function stroke(pts,color,width,alpha,dash){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin="round";ctx.lineCap="round";ctx.shadowColor=color;ctx.shadowBlur=7;ctx.setLineDash(dash||[]);ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.stroke();ctx.restore();}
+function drawX(p,s){ctx.save();ctx.translate(p.x,p.y);ctx.lineCap="round";ctx.shadowColor="#ff2a1a";ctx.shadowBlur=9;
+  ctx.strokeStyle="#fff";ctx.globalAlpha=.95;ctx.lineWidth=s*.66;ctx.beginPath();ctx.moveTo(-s,-s);ctx.lineTo(s,s);ctx.moveTo(s,-s);ctx.lineTo(-s,s);ctx.stroke();
+  ctx.strokeStyle="#ff3322";ctx.globalAlpha=1;ctx.lineWidth=s*.42;ctx.beginPath();ctx.moveTo(-s,-s);ctx.lineTo(s,s);ctx.moveTo(s,-s);ctx.lineTo(-s,s);ctx.stroke();ctx.restore();}
+const _rgb=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const rgba=(h,a)=>{const[r,g,b]=_rgb(h);return`rgba(${r},${g},${b},${a})`;};
+const tint=(h,a)=>{const[r,g,b]=_rgb(h),L=c=>Math.round(c+(255-c)*a);return`rgb(${L(r)},${L(g)},${L(b)})`;};
+const shade=(h,a)=>{const[r,g,b]=_rgb(h),L=c=>Math.round(c*(1-a));return`rgb(${L(r)},${L(g)},${L(b)})`;};
+const tracePath=p=>{ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);for(let i=1;i<p.length;i++)ctx.lineTo(p[i].x,p[i].y);};
+const AUR=["#3f7d8c","#5a4fb0","#b85878"];
+function drawField(){
+  // mörkare hörn utanför cirkeln
+  const v=ctx.createRadialGradient(50,50,FIELD_R-3,50,50,FIELD_R+16);
+  v.addColorStop(0,"rgba(8,13,22,0)"); v.addColorStop(1,"rgba(8,13,22,.6)");
+  ctx.save(); ctx.fillStyle=v; ctx.fillRect(0,0,100,100); ctx.restore();
+  // svag fyllnad + ram
+  const fg=ctx.createRadialGradient(50,50,FIELD_R*.3,50,50,FIELD_R);
+  fg.addColorStop(0,"rgba(255,255,255,.022)"); fg.addColorStop(1,"rgba(255,255,255,0)");
+  ctx.save(); ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(50,50,FIELD_R,0,Math.PI*2); ctx.fill();
+  ctx.lineWidth=.7; ctx.strokeStyle="rgba(185,212,255,.18)"; ctx.shadowColor="rgba(103,224,200,.45)"; ctx.shadowBlur=4;
+  ctx.beginPath(); ctx.arc(50,50,FIELD_R,0,Math.PI*2); ctx.stroke(); ctx.restore();
+}
+function drawAurora(){ for(let k=0;k<3;k++){ const cx=50+Math.cos(T*0.011+k*2.1)*(14+k*3), cy=50+Math.sin(T*0.009+k*1.7)*(13+k*2);
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,47); g.addColorStop(0,rgba(AUR[k],.12)); g.addColorStop(1,rgba(AUR[k],0));
+  ctx.fillStyle=g; ctx.fillRect(0,0,100,100); } }
+function drawRibbon(p,color){
+  stroke(p,color,7,.12,null);                                   // mjukt sken
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=3.0; ctx.lineJoin="round"; ctx.lineCap="round";
+    ctx.shadowColor=color; ctx.shadowBlur=3; tracePath(p); ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.strokeStyle=tint(color,.55); ctx.globalAlpha=.5; ctx.lineWidth=1.0; ctx.lineJoin="round"; ctx.lineCap="round";
+    tracePath(p); ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.strokeStyle="rgba(255,255,255,.9)"; ctx.lineWidth=1.3; ctx.lineCap="round";
+    ctx.setLineDash([1.3,24]); ctx.lineDashOffset=-(T*0.5); ctx.shadowColor="#fff"; ctx.shadowBlur=4;
+    tracePath(p); ctx.stroke(); ctx.restore();                  // vandrande glimt = signatur
+}
+function drawDot(d,i,bad){
+  const conn=used[i], base=d.c, R=DOT_R+(conn?0:Math.sin(T*0.07+i*1.3)*0.12);
+  const halo=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,R+4);
+  halo.addColorStop(0,rgba(base,conn?.55:.4)); halo.addColorStop(1,rgba(base,0));
+  ctx.save(); ctx.fillStyle=halo; ctx.beginPath(); ctx.arc(d.x,d.y,R+4,0,Math.PI*2); ctx.fill(); ctx.restore();
+  const sg=ctx.createRadialGradient(d.x-R*.4,d.y-R*.45,R*.15,d.x,d.y,R);
+  sg.addColorStop(0,tint(base,.65)); sg.addColorStop(.55,base); sg.addColorStop(1,shade(base,.32));
+  ctx.save(); ctx.fillStyle=sg; ctx.shadowColor=base; ctx.shadowBlur=conn?7:3;
+  ctx.beginPath(); ctx.arc(d.x,d.y,R,0,Math.PI*2); ctx.fill(); ctx.restore();
+  ctx.save(); ctx.fillStyle="rgba(255,255,255,.9)"; ctx.beginPath();
+  ctx.ellipse(d.x-R*.32,d.y-R*.4,R*.3,R*.18,-0.6,0,Math.PI*2); ctx.fill(); ctx.restore();
+  if(!conn && !bad){ ctx.save(); ctx.globalAlpha=.22+.18*Math.sin(T*0.08+i*1.3); ctx.strokeStyle=rgba(base,.85);
+    ctx.lineWidth=.5; ctx.beginPath(); ctx.arc(d.x,d.y,R+1.9,0,Math.PI*2); ctx.stroke(); ctx.restore(); }
+  if(bad){ ctx.save(); ctx.globalAlpha=.65+.3*Math.sin(T*0.28); ctx.strokeStyle="#ff3d6e"; ctx.lineWidth=.95;
+    ctx.shadowColor="#ff3d6e"; ctx.shadowBlur=6; ctx.beginPath(); ctx.arc(d.x,d.y,R+2.6,0,Math.PI*2); ctx.stroke(); ctx.restore(); }
+}
+function redraw(){
+  ctx.clearRect(0,0,100,100);
+  drawAurora();
+  ctx.save(); ctx.translate(50,50); ctx.scale(transScale,transScale); ctx.translate(-50,-50);
+  drawField();
+  if(ghost) ghost.forEach(([col,pts])=>stroke(pts,col,1.6,.6,[2,2.2]));
+  const {bD}=conflicts();
+  paths.forEach(p=>drawRibbon(p.pts,p.c));
+  if(draw0&&draw0.pts.length>1){const ok=liveValid(draw0.pts,draw0.from);stroke(draw0.pts,ok?draw0.c:"#ff6b8a",2.8,ok?.95:.8,ok?null:[2.4,2]);}
+  const xs=crossPts(), xsz=2.5+Math.sin(T*.2)*.25; for(const q of xs) drawX(q,xsz);
+  dots.forEach((d,i)=>drawDot(d,i,bD.has(i)));
+  if(hintHi){ if(T<hintHi.until){ const r=DOT_R+3.4+Math.sin(T*.3)*1.1;
+      for(const idx of [hintHi.a,hintHi.b]){ const d=dots[idx];
+        ctx.save(); ctx.globalAlpha=.45+.4*Math.sin(T*.3); ctx.strokeStyle=d.c; ctx.lineWidth=.85;
+        ctx.shadowColor=d.c; ctx.shadowBlur=9; ctx.beginPath(); ctx.arc(d.x,d.y,r,0,Math.PI*2); ctx.stroke(); ctx.restore(); } }
+    else hintHi=null; }
+
+  for(const u of pulses){const k=1-u.life/u.max; ctx.save(); ctx.globalAlpha=(1-k)*.9; ctx.strokeStyle=u.c;
+    ctx.lineWidth=.9; ctx.shadowColor=u.c; ctx.shadowBlur=6; ctx.beginPath(); ctx.arc(u.x,u.y,DOT_R+k*8,0,Math.PI*2); ctx.stroke(); ctx.restore();}
+  for(const p of parts){ctx.save();ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.c;ctx.shadowColor=p.c;ctx.shadowBlur=5;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();ctx.restore();}
+  if(flash){const k=flash.life/flash.max;ctx.save();ctx.globalAlpha=Math.min(1,k*1.6);ctx.fillStyle="#eaf1ff";ctx.shadowColor="#36e2a4";ctx.shadowBlur=12;ctx.font="600 8px 'Space Grotesk',sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(flash.text,50,46-(1-k)*8);ctx.restore();}
+  ctx.restore();
+}
+function loop(){ T++;
+  if(trans){ trans.t++;
+    const e=t=>{t=Math.max(0,Math.min(1,t));return t*t*(3-2*t);};
+    const back=t=>{t=Math.max(0,Math.min(1,t));const c=1.9;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2);};
+    if(trans.p===0){ transScale=1-e(trans.t/9); if(trans.t>=9){ advance(); trans.p=1; trans.t=0; transScale=0; } }
+    else { transScale=back(trans.t/15); if(trans.t>=15){ trans=null; transScale=1; } } }
+  for(const u of pulses)u.life--; pulses=pulses.filter(u=>u.life>0);
+  for(const p of parts){p.x+=p.vx;p.y+=p.vy;p.vy+=.03;p.life--;} parts=parts.filter(p=>p.life>0);
+  if(flash){flash.life--; if(flash.life<=0)flash=null;}
+  if(runActive&&!winning) runMs=now()-runStart;
+  { const s=Math.floor(runMs/1000); if(s!==lastSec){ lastSec=s; updateTimeUI(); } }
+  redraw(); requestAnimationFrame(loop);
+}
+
+/* ===== Ljud ===== */
+let ac=null; const audio=()=>{if(!ac){try{ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return ac;};
+function beep(f,dur=.08,type="sine",g0=.05,t0=0){if(muted)return;const a=audio();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;const t=a.currentTime+t0;g.gain.setValueAtTime(g0,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur);}
+const sndBad=()=>beep(150,.13,"sawtooth",.035);
+const sndResolve=()=>{beep(440,.09,"sine",.04);beep(660,.1,"sine",.035,.05);};
+const sndWin=()=>[523,659,784,1047,1319].forEach((f,i)=>beep(f,.2,"triangle",.05,i*.07));
+
+/* ===== Haptik (progressiv – ignoreras där stöd saknas, t.ex. iOS Safari) ===== */
+const haptic=p=>{ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} };
+
+/* ===== Feedback vid bra koppling ===== */
+function rewardConnect(a,b,pts){
+  const col=dots[a].c, n=paths.length;
+  pulses.push({x:dots[a].x,y:dots[a].y,c:col,life:26,max:26});
+  pulses.push({x:dots[b].x,y:dots[b].y,c:col,life:26,max:26});
+  for(let i=0;i<7;i++){const q=pts[(Math.random()*pts.length)|0],ang=Math.random()*Math.PI*2,s=.3+Math.random()*.9;
+    parts.push({x:q.x,y:q.y,vx:Math.cos(ang)*s,vy:Math.sin(ang)*s-.3,r:.5+Math.random()*.9,life:18+Math.random()*16,max:36,c:col});}
+  beep(430+Math.min(n,7)*70,.09,"triangle",.05);   // stigande ton per kopplat par
+  haptic(14);
+}
+
+/* ===== Inmatning ===== */
+const toLocal=ev=>{const r=cv.getBoundingClientRect();return{x:(ev.clientX-r.left)/r.width*100,y:(ev.clientY-r.top)/r.height*100-BOARD_DY};};
+cv.addEventListener("pointerdown",ev=>{ if(winning||trans)return; ev.preventDefault(); audio();
+  const p=toLocal(ev),di=nearestDot(p);
+  if(di>=0){ if(used[di]){const pi=paths.findIndex(pp=>pp.a===di||pp.b===di);if(pi>=0){snapshot();const pp=paths[pi];used[pp.a]=used[pp.b]=false;paths.splice(pi,1);afterChange();}}
+    draw0={c:dots[di].c,from:di,pts:[{x:dots[di].x,y:dots[di].y}]}; cv.setPointerCapture(ev.pointerId); return; }
+  const ep=nearestPath(p); if(ep>=0){snapshot();const pp=paths[ep];used[pp.a]=used[pp.b]=false;paths.splice(ep,1);afterChange();}
+});
+cv.addEventListener("pointermove",ev=>{if(!draw0)return;ev.preventDefault();const p=clampDisc(toLocal(ev)),l=draw0.pts[draw0.pts.length-1];if(Math.hypot(p.x-l.x,p.y-l.y)>=MINSTEP)draw0.pts.push(p);});
+cv.addEventListener("touchmove",e=>{if(draw0)e.preventDefault();},{passive:false});
+function endDraw(ev){ if(!draw0)return; const p=toLocal(ev),di=nearestDot(p),cur=draw0; draw0=null;
+  if(di>=0&&di!==cur.from&&!used[di]&&dots[di].c===cur.c){
+    let pts=cur.pts.slice(); pts[0]={x:dots[cur.from].x,y:dots[cur.from].y}; pts.push({x:dots[di].x,y:dots[di].y}); pts=smooth(pts);
+    snapshot();
+    paths.push({c:cur.c,a:cur.from,b:di,pts}); used[cur.from]=used[di]=true;
+    Achievements.addStat('pairsConnected');
+    const idx=paths.length-1, bad=conflicts().bP.has(idx);
+    if(bad){ sndBad(); haptic([8,40,8]); } else rewardConnect(cur.from,di,pts);
+    afterChange();
+  }
+}
+cv.addEventListener("pointerup",endDraw);
+cv.addEventListener("pointercancel",()=>{draw0=null;});
+
+/* ===== Status / vinst ===== */
+function afterChange(){ const {bP}=conflicts();
+  if(bP.size>0) runErred=true;                                     // någon gång under banan fanns en konflikt → ingen 3:a
+  if(prevBad>0&&bP.size===0&&!used.every(Boolean)){ sndResolve(); Achievements.setStat('untangled',1); }   // löste upp trassel
+  prevBad=bP.size; status(); checkWin(); checkTrophies();
+}
+function status(){ const total=dots.length/2,{bP,cross,touch}=conflicts(); statusEl.classList.remove("warn","good");
+  if(bP.size>0){statusEl.classList.add("warn");
+    statusEl.textContent = (cross&&touch) ? "Wires can't cross or touch other dots — tap a wire to remove it."
+      : cross ? "Wires can't cross — tap one to remove it."
+      : "A wire is touching another dot — reroute or remove it."; return;}
+  if(paths.length===total){statusEl.classList.add("good");statusEl.textContent="Clean!";return;}
+  statusEl.textContent=paths.length+" / "+total+" pairs."; }
+function checkWin(){ if(winning||!used.every(Boolean)||conflicts().bP.size>0)return; winning=true;
+  runActive=false; updateUndoBtn();
+  if(mode==="campaign"||mode==="daily"){ Achievements.addStat('levelsCompleted'); if(!runHinted)Achievements.addStat('noHintClears'); }
+  const stars=Math.max(1,3-(runHinted?1:0)-(runErred?1:0)), ms=runMs;
+  if(mode==="campaign"){ doneByDiff[diff].add(cIdx); store.set("fb_done_"+diff,[...doneByDiff[diff]]);
+    if(stars>(starsByDiff[diff][cIdx]||0)){ starsByDiff[diff][cIdx]=stars; store.set("fb_stars_"+diff,starsByDiff[diff]); }
+    const pb=bestByDiff[diff][cIdx]; if(!pb||ms<pb){ bestByDiff[diff][cIdx]=ms; store.set("fb_best_"+diff,bestByDiff[diff]); }
+    const p=railEl.querySelector('.pip[data-i="'+cIdx+'"]'); if(p){p.classList.add("done","pop"); setTimeout(()=>p.classList.remove("pop"),460);} }
+  else if(mode==="daily"){ const k=todayKey();
+    if(dailyDone!==k){ dailyStreak=(dailyDone===yesterKey())?dailyStreak+1:1; dailyDone=k;
+      store.set("fb_daily_done",k); store.set("fb_daily_streak",dailyStreak); }
+    if(stars>dailyStars){ dailyStars=stars; store.set("fb_daily_stars",stars); }
+    if(!dailyBest||ms<dailyBest){ dailyBest=ms; store.set("fb_daily_best",ms); } }
+  else{ endlessBest=Math.max(endlessBest,dots.length/2); store.set("fb_ebest",endlessBest); }
+  sndWin(); haptic([0,30,40,30,40,70]); flash={text:pick(["Nice!","Clean!","Great!","Sweet!","Done!"]),life:46,max:46};
+  for(const d of dots)for(let i=0;i<7;i++){const a=Math.random()*Math.PI*2,s=.4+Math.random()*1.3;
+    parts.push({x:d.x,y:d.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-.4,r:.6+Math.random()*1.1,life:30+Math.random()*26,max:56,c:d.c});}
+  statusEl.classList.add("good");
+  statusEl.textContent = (mode==="endless") ? ("Done!  "+fmtT(ms)) : ("Done!  "+starStr(stars)+"  "+fmtT(ms));
+  updateTimeUI();
+  setTimeout(()=>{ if(winning && mode!=="daily") trans={p:0,t:0}; }, 600);   // sjunk ner till nästa (ej daily)
+}
+
+/* ===== Ledtråd (funkar på alla banor) ===== */
+function showHint(){
+  runHinted=true; Achievements.setStat('hintUsed',1); checkTrophies();
+  if(sol){ ghost=sol; clearTimeout(ghostT); ghostT=setTimeout(()=>{ghost=null;},2800); return; }
+  for(let i=0;i<dots.length;i++){ if(used[i])continue;
+    for(let j=i+1;j<dots.length;j++){ if(used[j]||dots[j].c!==dots[i].c)continue;
+      hintHi={a:i,b:j,until:T+168}; beep(620,.06,"sine",.03); return; } }
+}
+
+/* ===== Banhantering ===== */
+function curLevel(){ if(mode==="campaign")return PACKS[diff][cIdx];
+  if(mode==="daily"){ const L=genLevel(5,"weave",mulberry32(daySeed()),5); L.name="Daily · "+todayKey(); return L; }
+  const pairs=Math.min(6,3+Math.floor(eIdx/2)),m=eIdx<3?"clean":"tangle";const L=genLevel(pairs,m);L.name="Random";return L; }
+function load(){ level=curLevel(); dots=level.dots.map(d=>({...d})); used=dots.map(()=>false);
+  paths=[]; draw0=null; ghost=null; parts=[]; pulses=[]; flash=null; winning=false; prevBad=0; hintHi=null;
+  undoStack=[]; runStart=now(); runMs=0; runActive=true; lastSec=-1; runHinted=false; runErred=false;
+  // skala in prickarna så allt ryms i spelcirkeln
+  let maxR=0; for(const d of dots){const r=Math.hypot(d.x-50,d.y-50); if(r>maxR)maxR=r;}
+  const f=maxR>FIT_R?FIT_R/maxR:1;
+  if(f<1) for(const d of dots){d.x=50+(d.x-50)*f; d.y=50+(d.y-50)*f;}
+  sol=level.sol?level.sol.map(([c,pts])=>[c,pts.map(p=>({x:50+(p.x-50)*f,y:50+(p.y-50)*f}))]):null;
+  document.getElementById("menuOv").classList.remove("show");
+  document.getElementById("mTitle").textContent = mode==="campaign"?(DIFF_LABEL[diff]+" · "+(cIdx+1)+" / "+PACKS[diff].length):mode==="daily"?"Daily challenge":("Endless #"+(eIdx+1));
+  document.getElementById("mName").textContent = level.name || (mode==="campaign"?"Level":"Random");
+  document.getElementById("prev").disabled=(mode==="campaign"&&diff==="easy"&&cIdx===0)||(mode==="endless"&&eIdx===0)||mode==="daily";
+  document.getElementById("next").disabled=(mode==="daily");
+  const aux=document.getElementById("aux");
+  if(mode==="endless"){aux.textContent="New board";aux.disabled=false;}
+  else{aux.textContent="Hint";aux.disabled=false;}
+  store.set("fb_mode",mode); store.set("fb_diff",diff); updateRail(); status(); updateUndoBtn(); updateTimeUI(); resize();
+}
+function stepCampaign(d){ let di=DIFFS.indexOf(diff), n=cIdx+d;
+  if(n<0){ if(di>0){ diff=DIFFS[di-1]; cIdx=PACKS[diff].length-1; } else cIdx=0; }
+  else if(n>=PACKS[diff].length){ if(di<DIFFS.length-1){ diff=DIFFS[di+1]; cIdx=0; } else { mode="endless"; eIdx=0; } }
+  else cIdx=n; }
+function advance(){ if(mode==="campaign")stepCampaign(1); else eIdx++; load(); }
+function go(d){ if(trans||mode==="daily")return; if(mode==="campaign")stepCampaign(d); else eIdx=Math.max(0,eIdx+d); load(); }
+
+/* ===== Banväljare ===== */
+function buildMenu(){ const g=document.getElementById("grid"); g.innerHTML="";
+  const dn=doneByDiff[menuDiff], st=starsByDiff[menuDiff];
+  const dc=document.createElement("div"); dc.className="cell daily";
+  dc.innerHTML="★ Daily challenge"+(dailyDone===todayKey()?" · done ✓":"")+(dailyStreak?(" · streak "+dailyStreak):"");
+  dc.onclick=()=>{mode="daily";load();}; g.appendChild(dc);
+  PACKS[menuDiff].forEach((L,i)=>{const n=st[i]||0;const c=document.createElement("div");c.className="cell"+(dn.has(i)?" done":"");
+    c.innerHTML=(i+1)+(dn.has(i)?'<div class="tick">✓</div>':'')+'<div class="cstars">'+'★'.repeat(n)+'<i>'+'★'.repeat(3-n)+'</i></div>';
+    c.onclick=()=>{mode="campaign";diff=menuDiff;cIdx=i;load();};g.appendChild(c);});
+  const e=document.createElement("div");e.className="cell endless";
+  e.innerHTML="∞ Endless"+(endlessBest?(" · best "+endlessBest+" pairs"):"");e.onclick=()=>{mode="endless";eIdx=0;load();};g.appendChild(e);
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.dataset.d===menuDiff));
+}
+const railEl=document.getElementById("rail");
+function buildRail(){ railEl.classList.remove("endless"); railEl.innerHTML="";
+  for(let i=0;i<PACKS[diff].length;i++){ const p=document.createElement("span"); p.className="pip"; p.dataset.i=i;
+    p.title="Level "+(i+1); p.onclick=()=>{ if(trans)return; mode="campaign"; cIdx=i; load(); }; railEl.appendChild(p); } }
+function updateRail(){
+  if(mode==="daily"){ railEl.classList.add("endless");
+    railEl.textContent="Daily"+(dailyStreak?(" · streak "+dailyStreak):"")+(dailyDone===todayKey()?" · done ✓":""); return; }
+  if(mode==="endless"){ railEl.classList.add("endless");
+    railEl.textContent="Endless · #"+(eIdx+1)+(endlessBest?(" · best "+endlessBest):""); return; }
+  if(railEl.classList.contains("endless")||railEl.querySelectorAll(".pip").length!==PACKS[diff].length) buildRail();
+  const dn=doneByDiff[diff];
+  railEl.querySelectorAll(".pip").forEach((p,i)=>{ p.classList.toggle("done",dn.has(i)); p.classList.toggle("current",i===cIdx); });
+}
+
+/* ===== Troféer (GameVolt-integration: 31 st — 15 brons, 10 silver, 5 guld, 1 platina) ===== */
+const TROPHIES=[
+  // Brons (15)
+  {id:'first_wire',  name:'First Connection',  desc:'Connect your first pair',          icon:'⚡',  tier:'bronze'},
+  {id:'first_clear', name:'Lights On',         desc:'Complete your first level',        icon:'💡',  tier:'bronze'},
+  {id:'clear_5',     name:'Warming Up',        desc:'Complete 5 levels',                icon:'✨',  tier:'bronze'},
+  {id:'clear_15',    name:'Getting Wired',     desc:'Complete 15 levels',               icon:'🔗',  tier:'bronze'},
+  {id:'first_3star', name:'Flawless',          desc:'Earn 3 stars on a level',          icon:'⭐',  tier:'bronze'},
+  {id:'use_hint',    name:'Helping Hand',      desc:'Use a hint',                       icon:'🤝',  tier:'bronze'},
+  {id:'use_undo',    name:'Rewind',            desc:'Undo a move',                      icon:'↩️',  tier:'bronze'},
+  {id:'easy_done',   name:'Easy Rider',        desc:'Finish every Easy level',          icon:'🟢',  tier:'bronze'},
+  {id:'daily_first', name:'Daily Dose',        desc:'Complete a Daily puzzle',          icon:'📅',  tier:'bronze'},
+  {id:'endless_5',   name:'Endless Start',     desc:'Reach 5 pairs in Endless',         icon:'♾️',  tier:'bronze'},
+  {id:'pairs_50',    name:'Fifty Links',       desc:'Connect 50 pairs in total',        icon:'🧮',  tier:'bronze'},
+  {id:'speed_30',    name:'Quick Hands',       desc:'Solve a level in under 30s',       icon:'⏱️',  tier:'bronze'},
+  {id:'normal_reach',name:'Step Up',           desc:'Complete a Normal level',          icon:'🔼',  tier:'bronze'},
+  {id:'hard_reach',  name:'Into the Deep',     desc:'Complete a Hard level',            icon:'🌀',  tier:'bronze'},
+  {id:'untangle',    name:'Untangler',         desc:'Clear a tangle back to clean',     icon:'🪢',  tier:'bronze'},
+  // Silver (10)
+  {id:'normal_done',   name:'Network Engineer', desc:'Finish every Normal level',       icon:'🔌',  tier:'silver'},
+  {id:'three_star_10', name:'Perfectionist',    desc:'Earn 3 stars on 10 levels',       icon:'🌟',  tier:'silver'},
+  {id:'speed_15',      name:'Lightning Fingers',desc:'Solve a level in under 15s',      icon:'⚡',  tier:'silver'},
+  {id:'no_hint_10',    name:'Self-Reliant',     desc:'Clear 10 levels without a hint',  icon:'🧠',  tier:'silver'},
+  {id:'daily_streak_3',name:'Regular',          desc:'Reach a 3-day Daily streak',      icon:'📆',  tier:'silver'},
+  {id:'endless_10',    name:'Endless Adept',    desc:'Reach 10 pairs in Endless',       icon:'♾️',  tier:'silver'},
+  {id:'pairs_500',     name:'Master Linker',    desc:'Connect 500 pairs in total',      icon:'🧵',  tier:'silver'},
+  {id:'hard_done',     name:'Untangled',        desc:'Finish every Hard level',         icon:'🎚️', tier:'silver'},
+  {id:'all_3star_easy',name:'Spotless: Easy',   desc:'3 stars on every Easy level',     icon:'✨',  tier:'silver'},
+  {id:'flawless_hard', name:'Cool Hand',        desc:'Earn 3 stars on a Hard level',    icon:'❄️',  tier:'silver'},
+  // Guld (5)
+  {id:'expert_done',   name:'Grid Master',     desc:'Finish every Expert level',        icon:'👑',  tier:'gold'},
+  {id:'all_3star_all', name:'Immaculate',      desc:'3 stars on every campaign level',  icon:'💯',  tier:'gold'},
+  {id:'daily_streak_7',name:'Devoted',         desc:'Reach a 7-day Daily streak',       icon:'🗓️', tier:'gold'},
+  {id:'endless_20',    name:'Endless Legend',  desc:'Reach 20 pairs in Endless',        icon:'🏆',  tier:'gold'},
+  {id:'campaign_done', name:'Circuit Complete',desc:'Finish the whole campaign',        icon:'🎖️', tier:'gold'},
+  // Platina (1) — låses upp när de övriga 30 är klara
+  {id:'platinum',      name:'Live Wire',       desc:'Unlock all 30 trophies',           icon:'🌟',  tier:'platinum'}
+];
+
+const Achievements={
+  KEY:"fb_ach", SKEY:"fb_achstats",
+  _u(){ return store.get(this.KEY,{}); }, _wu(d){ store.set(this.KEY,d); },
+  _s(){ return store.get(this.SKEY,{}); }, _ws(d){ store.set(this.SKEY,d); },
+  isUnlocked(id){ return !!this._u()[id]; },
+  getUnlockedCount(){ return Object.keys(this._u()).length; },
+  getAll(){ const u=this._u(); return TROPHIES.map(t=>({...t,unlocked:!!u[t.id],unlockedAt:u[t.id]||null})); },
+  unlock(id){ if(this.isUnlocked(id))return null; const t=TROPHIES.find(x=>x.id===id); if(!t)return null;
+    const d=this._u(); d[id]=Date.now(); this._wu(d);
+    if(window.GameVolt){ try{ GameVolt.achievements.unlock(id); }catch(e){} }   // GameVolt prefixar spel-id automatiskt
+    return t; },
+  getStat(k){ return this._s()[k]||0; },
+  addStat(k,n=1){ const s=this._s(); s[k]=(s[k]||0)+n; this._ws(s); return s[k]; },
+  setStat(k,v){ const s=this._s(); if(v>(s[k]||0)){ s[k]=v; this._ws(s); } return s[k]; }
+};
+
+/* Trofé-toast (köbaserad, en i taget) — GameVolt-SDK:ts standardmönster */
+let _tq=[], _tActive=false;
+function showTrophyToast(t){ _tq.push(t); if(!_tActive)_popToast(); }
+function _popToast(){ if(!_tq.length){ _tActive=false; return; } _tActive=true; const t=_tq.shift();
+  const el=document.getElementById("trophy-toast"); if(!el){ _tActive=false; return; }
+  document.getElementById("trophy-toast-icon").textContent=t.icon;
+  document.getElementById("trophy-toast-name").textContent=t.name;
+  const te=document.getElementById("trophy-toast-tier"); te.textContent=t.tier.toUpperCase(); te.className=t.tier;
+  el.classList.add("show"); trophySfx(t.tier);
+  setTimeout(()=>{ el.classList.remove("show"); setTimeout(_popToast,420); }, 2800); }
+function trophySfx(tier){ if(muted)return; const big=(tier==="gold"||tier==="platinum");
+  (big?[784,988,1318]:[784,1047]).forEach((f,i)=>beep(f,.4,"sine",.05,i*.08)); }
+
+function updateTrophyChip(){ const c=document.getElementById("trophyCount");
+  if(c)c.textContent=Achievements.getUnlockedCount()+" / "+TROPHIES.length;
+  const p=document.getElementById("trophyProgress");
+  if(p)p.textContent=Achievements.getUnlockedCount()+" / "+TROPHIES.length+" unlocked"; }
+
+/* Utvärdera alla villkor mot sparat tillstånd. silent=true vid uppstart (ingen toast-flod). */
+function _count3(){ let n=0; for(const d of DIFFS) for(const k in starsByDiff[d]) if(starsByDiff[d][k]===3)n++; return n; }
+function _bestUnder(ms){ let m=Infinity; for(const d of DIFFS) for(const k in bestByDiff[d]){ const v=bestByDiff[d][k]; if(v>0)m=Math.min(m,v); } if(dailyBest>0)m=Math.min(m,dailyBest); return m<ms; }
+function _allStars(diff){ const L=PACKS[diff].length, s=starsByDiff[diff]; if(!L)return false; for(let i=0;i<L;i++) if(s[i]!==3)return false; return true; }
+function _diffDone(diff){ return doneByDiff[diff].size>=PACKS[diff].length; }
+function checkTrophies(silent){
+  const U=id=>{ const t=Achievements.unlock(id); if(t){ if(!silent)showTrophyToast(t); updateTrophyChip(); } };
+  const st=k=>Achievements.getStat(k), c3=_count3();
+  // Brons
+  if(st('pairsConnected')>=1)U('first_wire');
+  if(st('levelsCompleted')>=1)U('first_clear');
+  if(st('levelsCompleted')>=5)U('clear_5');
+  if(st('levelsCompleted')>=15)U('clear_15');
+  if(c3>=1||dailyStars>=3)U('first_3star');
+  if(st('hintUsed'))U('use_hint');
+  if(st('undoUsed'))U('use_undo');
+  if(_diffDone('easy'))U('easy_done');
+  if(dailyDone)U('daily_first');
+  if(endlessBest>=5)U('endless_5');
+  if(st('pairsConnected')>=50)U('pairs_50');
+  if(_bestUnder(30000))U('speed_30');
+  if(doneByDiff.normal.size>=1)U('normal_reach');
+  if(doneByDiff.hard.size>=1)U('hard_reach');
+  if(st('untangled'))U('untangle');
+  // Silver
+  if(_diffDone('normal'))U('normal_done');
+  if(c3>=10)U('three_star_10');
+  if(_bestUnder(15000))U('speed_15');
+  if(st('noHintClears')>=10)U('no_hint_10');
+  if(dailyStreak>=3)U('daily_streak_3');
+  if(endlessBest>=10)U('endless_10');
+  if(st('pairsConnected')>=500)U('pairs_500');
+  if(_diffDone('hard'))U('hard_done');
+  if(_allStars('easy'))U('all_3star_easy');
+  { let any=false; for(const k in starsByDiff.hard) if(starsByDiff.hard[k]===3)any=true; if(any)U('flawless_hard'); }
+  // Guld
+  if(_diffDone('expert'))U('expert_done');
+  if(DIFFS.every(_allStars))U('all_3star_all');
+  if(dailyStreak>=7)U('daily_streak_7');
+  if(endlessBest>=20)U('endless_20');
+  if(DIFFS.every(_diffDone))U('campaign_done');
+  // Platina
+  if(TROPHIES.every(t=>t.id==='platinum'||Achievements.isUnlocked(t.id)))U('platinum');
+}
+
+/* Troférutan — grupperad per tier (efterliknar Asteroid Storms layout, Livewire-tema) */
+function renderTrophies(){ const grid=document.getElementById("trophyGrid"); if(!grid)return;
+  updateTrophyChip(); grid.innerHTML="";
+  const all=Achievements.getAll();
+  for(const ti of [{k:'bronze',l:'BRONZE'},{k:'silver',l:'SILVER'},{k:'gold',l:'GOLD'},{k:'platinum',l:'PLATINUM'}]){
+    const grp=all.filter(t=>t.tier===ti.k); if(!grp.length)continue;
+    const got=grp.filter(t=>t.unlocked).length;
+    const h=document.createElement("div"); h.className="tsec "+ti.k; h.textContent=ti.l+" — "+got+" / "+grp.length; grid.appendChild(h);
+    const cc=document.createElement("div"); cc.className="tcards";
+    for(const t of grp){ const card=document.createElement("div"); card.className="tcard "+ti.k+(t.unlocked?" on":" off");
+      card.innerHTML='<div class="tch"><span class="tci">'+t.icon+'</span><span class="tcn">'+t.name+'</span></div>'
+        +'<div class="tcd">'+(t.unlocked?t.desc:'???')+'</div>'
+        +'<div class="tct '+t.tier+'">'+t.tier.toUpperCase()+'</div>';
+      cc.appendChild(card); }
+    grid.appendChild(cc); }
+}
+
+/* ===== Knappar ===== */
+document.getElementById("prev").onclick=()=>go(-1);
+document.getElementById("next").onclick=()=>go(1);
+document.getElementById("menuBtn").onclick=()=>{menuDiff=diff;buildMenu();document.getElementById("menuOv").classList.add("show");};
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{menuDiff=t.dataset.d;buildMenu();});
+document.getElementById("menuClose").onclick=()=>document.getElementById("menuOv").classList.remove("show");
+document.getElementById("reset").onclick=()=>{ if(winning||trans)return; if(paths.length)snapshot(); paths=[];used=dots.map(()=>false);ghost=null;prevBad=0;status();updateUndoBtn();};
+document.getElementById("undo").onclick=undo;
+document.getElementById("trophyBtn").onclick=()=>{ renderTrophies(); document.getElementById("trophyOv").classList.add("show"); };
+document.getElementById("trophyClose").onclick=()=>document.getElementById("trophyOv").classList.remove("show");
+document.getElementById("aux").onclick=()=>{ if(mode==="endless") load(); else showHint(); };
+document.getElementById("sound").onclick=function(){muted=!muted;store.set("fb_mute",muted);this.textContent="Sound: "+(muted?"off":"on");if(!muted)beep(540,.07,"triangle",.05);};
+
+document.getElementById("sound").textContent="Sound: "+(muted?"off":"on");
+window.addEventListener("resize",resize);
+
+/* GameVolt-init + uppstartskontroll av troféer (allt gardera mot saknad SDK) */
+updateTrophyChip();
+if(window.GameVolt){ try{ GameVolt.init("livewire");
+  if(GameVolt.save&&GameVolt.save.registerMigration) GameVolt.save.registerMigration({
+    keys:["fb_ach","fb_done_easy","fb_done_normal","fb_done_hard","fb_done_expert","fb_stars_easy","fb_stars_normal","fb_stars_hard","fb_stars_expert","fb_ebest","fb_daily_done","fb_daily_streak"],
+    merge:(l,c)=>c||l||{},
+    getAchievements:l=>{ const t=(l&&l["fb_ach"])||{}; return Object.keys(t).map(id=>({id,unlocked_at:t[id]})); }
+  });
+}catch(e){} }
+checkTrophies(true);   // backfill från tidigare framsteg, utan toast-flod
+
+load(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
