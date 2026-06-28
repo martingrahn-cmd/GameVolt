@@ -946,6 +946,16 @@
       }
 
       currentGame = key;
+      // Count a play (server-side aggregate) — fire-and-forget, anon RLS-safe via SECURITY DEFINER RPC
+      try {
+        var _sbUrl = 'https://nwkjayseuhvvpkdgpivm.supabase.co';
+        var _sbKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a2pheXNldWh2dnBrZGdwaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzQxMzYsImV4cCI6MjA4Nzk1MDEzNn0.lGCRdYlgxWJlzM6_XpML3f8AKUJG3tLmzNRLTPR0TnU';
+        fetch(_sbUrl + '/rest/v1/rpc/increment_play_count', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': _sbKey, 'Authorization': 'Bearer ' + _sbKey },
+          body: JSON.stringify({ p_game_id: key })
+        }).catch(function(){});
+      } catch (e) {}
       // Forward challenge param to iframe if present
       var params = new URLSearchParams(window.location.search);
       var challengeId = params.get('challenge');
