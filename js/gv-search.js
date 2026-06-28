@@ -22,7 +22,8 @@
     { id: 'asteroid-storm', name: 'Asteroid Storm', cat: 'Action', thumb: '/assets/thumbnails/asteroid-storm.webp', tags: 'action arcade shooter space asteroids coop boss' },
     { id: 'type-or-die', name: 'Type or Die', cat: 'Word', thumb: '/assets/thumbnails/type-or-die.webp', tags: 'word typing wpm speed test zombie keyboard' },
     { id: 'chain-reaction', name: 'Chain Reaction', cat: 'Puzzle', thumb: '/assets/thumbnails/chain-reaction.webp', tags: 'puzzle 2048 number merge combo chain tiles brain' },
-    { id: 'livewire', name: 'Livewire', cat: 'Puzzle', thumb: '/assets/thumbnails/livewire.webp', tags: 'puzzle logic connect dots wire line relaxing brain untangle' }
+    { id: 'livewire', name: 'Livewire', cat: 'Puzzle', thumb: '/assets/thumbnails/livewire.webp', tags: 'puzzle logic connect dots wire line relaxing brain untangle' },
+    { id: 'minesweeper',   name: 'Minesweeper',    cat: 'Puzzle', thumb: '/assets/thumbnails/minesweeper.webp', tags: 'puzzle mines logic classic flags brain board' }
   ];
 
   var wrap = null;
