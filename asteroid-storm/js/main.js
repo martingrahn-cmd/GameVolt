@@ -1998,7 +1998,7 @@ class Game {
 
         // End play-time tracking
         if (typeof GameVoltTracker !== 'undefined' && GameVoltTracker.startTime) {
-            GameVoltTracker.end({ score: this.ui.score, outcome: 'game_over' });
+            GameVoltTracker.end({ score: this.ui.score, level: this.waves ? this.waves.getDifficulty() : null, outcome: 'game_over' });
         }
 
         // Hold on the explosion + shard spread for ~1.3s before fading the
@@ -2803,10 +2803,9 @@ function initGame() {
                 });
             }
 
-            // Start play-time tracker
-            if (typeof GameVoltTracker !== 'undefined') {
-                GameVoltTracker.start('AsteroidStorm');
-            }
+            // Note: play-time tracking (GameVoltTracker.start) is fired from
+            // startMode() when play actually begins — NOT here at page load,
+            // so game_start isn't double-fired during the attract/menu screen.
 
             console.log('✓ Asteroid Storm initialized successfully!');
         } catch (error) {
