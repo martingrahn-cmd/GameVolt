@@ -195,12 +195,6 @@
 
   <!-- Info pages -->
   <url>
-    <loc>https://gamevolt.io/leaderboards/</loc>
-    <lastmod>2026-04-17</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://gamevolt.io/about/</loc>
     <lastmod>2026-04-17</lastmod>
     <changefreq>yearly</changefreq>

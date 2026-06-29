@@ -835,3 +835,180 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 GRANT EXECUTE ON FUNCTION increment_play_count(TEXT) TO anon, authenticated;
+
+
+-- ============================================================
+-- Consolidated achievement_defs for chain-reaction, one-stroke,
+-- taprush, type-or-die (previously only in separate sql/*.sql files).
+-- Idempotent: games rows use ON CONFLICT DO NOTHING and the FK
+-- achievement_defs.game_id -> games(id) is satisfied because the
+-- games rows are inserted first here.
+-- ============================================================
+INSERT INTO games (id, title, thumbnail_url) VALUES
+  ('chain-reaction', 'Chain Reaction', '/assets/thumbnails/chain-reaction.webp'),
+  ('one-stroke', 'One Stroke', '/assets/thumbnails/one-stroke.webp'),
+  ('taprush', 'Tap Rush', '/assets/thumbnails/taprush.webp'),
+  ('type-or-die', 'Type or Die', '/assets/thumbnails/type-or-die.webp')
+ON CONFLICT (id) DO NOTHING;
+
+-- chain-reaction (31 trophies)
+INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_order) VALUES
+  -- Bronze (15) — natural early play
+  ('chain-reaction-power_on',    'chain-reaction', 'Power On',        'Make your first move',          '🔌', 'bronze',  1),
+  ('chain-reaction-t32',         'chain-reaction', 'Ignition',        'Create a 32 tile',              '🟡', 'bronze',  2),
+  ('chain-reaction-t64',         'chain-reaction', 'Kindling',        'Create a 64 tile',              '🟠', 'bronze',  3),
+  ('chain-reaction-t128',        'chain-reaction', 'Warm Up',         'Create a 128 tile',             '🔆', 'bronze',  4),
+  ('chain-reaction-t256',        'chain-reaction', 'Heating Up',      'Create a 256 tile',             '🔥', 'bronze',  5),
+  ('chain-reaction-first_chain', 'chain-reaction', 'Reaction',        'Trigger your first chain',      '⚡', 'bronze',  6),
+  ('chain-reaction-score500',    'chain-reaction', 'First Sparks',    'Score 500 in a run',            '✨', 'bronze',  7),
+  ('chain-reaction-score1k',     'chain-reaction', 'Charged',         'Score 1,000 in a run',          '🔋', 'bronze',  8),
+  ('chain-reaction-score2k',     'chain-reaction', 'Spark',           'Score 2,000 in a run',          '💡', 'bronze',  9),
+  ('chain-reaction-score3k',     'chain-reaction', 'Reactor Online',  'Score 3,000 in a run',          '📈', 'bronze', 10),
+  ('chain-reaction-moves25',     'chain-reaction', 'Tinkerer',        'Make 25 moves in a game',       '🛠️', 'bronze', 11),
+  ('chain-reaction-moves50',     'chain-reaction', 'Operator',        'Make 50 moves in a game',       '⚙️', 'bronze', 12),
+  ('chain-reaction-chains3',     'chain-reaction', 'Cascader',        'Trigger 3 chains in a game',    '🌊', 'bronze', 13),
+  ('chain-reaction-games1',      'chain-reaction', 'First Game',      'Finish your first game',        '🎮', 'bronze', 14),
+  ('chain-reaction-games5',      'chain-reaction', 'Getting Started', 'Play 5 games',                  '🕹️', 'bronze', 15),
+  -- Silver (10) — committed play
+  ('chain-reaction-chain3',      'chain-reaction', 'Chain Master',    'Pull off a 3-chain',            '⛓️', 'silver', 16),
+  ('chain-reaction-t512',        'chain-reaction', 'Critical Mass',   'Create a 512 tile',             '☢️', 'silver', 17),
+  ('chain-reaction-t1024',       'chain-reaction', 'Meltdown',        'Create a 1024 tile',            '🌋', 'silver', 18),
+  ('chain-reaction-score5k',     'chain-reaction', 'High Voltage',    'Score 5,000 in a run',          '⚡', 'silver', 19),
+  ('chain-reaction-score10k',    'chain-reaction', 'Overload',        'Score 10,000 in a run',         '💥', 'silver', 20),
+  ('chain-reaction-chains10',    'chain-reaction', 'Chain Reactor',   'Trigger 10 chains in a game',   '🔗', 'silver', 21),
+  ('chain-reaction-moves150',    'chain-reaction', 'Marathon',        'Make 150 moves in a game',      '🏃', 'silver', 22),
+  ('chain-reaction-games15',     'chain-reaction', 'Regular',         'Play 15 games',                 '🎯', 'silver', 23),
+  ('chain-reaction-games25',     'chain-reaction', 'Persistent',      'Play 25 games',                 '📅', 'silver', 24),
+  ('chain-reaction-moves1k',     'chain-reaction', 'Workhorse',       'Make 1,000 moves all-time',     '🧰', 'silver', 25),
+  -- Gold (5) — mastery
+  ('chain-reaction-t2048',       'chain-reaction', 'Breakthrough',    'Reach the 2048 tile',           '🏆', 'gold',   26),
+  ('chain-reaction-t4096',       'chain-reaction', 'Singularity',     'Reach the 4096 tile',           '🌀', 'gold',   27),
+  ('chain-reaction-score25k',    'chain-reaction', 'Overdrive',       'Score 25,000 in a run',         '🔋', 'gold',   28),
+  ('chain-reaction-score50k',    'chain-reaction', 'Legend',          'Score 50,000 in a run',         '👑', 'gold',   29),
+  ('chain-reaction-chains25',    'chain-reaction', 'Chain Storm',     'Trigger 25 chains in a game',   '🌪️', 'gold',   30),
+  -- Platinum (1) — the cap
+  ('chain-reaction-platinum',    'chain-reaction', 'Reactor Core',    'Unlock every other trophy',     '💎', 'platinum', 31);
+
+-- one-stroke (31 trophies)
+INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_order) VALUES
+  -- Bronze (15)
+  ('one-stroke-b01', 'one-stroke', 'First Step',      'Solve 1 campaign level',                          '👣', 'bronze', 1),
+  ('one-stroke-b02', 'one-stroke', 'High Five',       'Solve 5 campaign levels',                         '✋', 'bronze', 2),
+  ('one-stroke-b03', 'one-stroke', 'Ten Down',        'Solve 10 campaign levels',                        '🔟', 'bronze', 3),
+  ('one-stroke-b04', 'one-stroke', 'Twenty Down',     'Solve 20 campaign levels',                        '📊', 'bronze', 4),
+  ('one-stroke-b05', 'one-stroke', 'Thirty Down',     'Solve 30 campaign levels',                        '📈', 'bronze', 5),
+  ('one-stroke-b06', 'one-stroke', 'Getting Started', 'Play 10 campaign level attempts',                 '🎮', 'bronze', 6),
+  ('one-stroke-b07', 'one-stroke', 'Warming Up',      'Play 25 campaign level attempts',                 '🕹️', 'bronze', 7),
+  ('one-stroke-b08', 'one-stroke', 'Challenger',      'Complete your first challenge run',                '⚡', 'bronze', 8),
+  ('one-stroke-b09', 'one-stroke', 'Full Run',        'Complete an entire challenge',                    '🏁', 'bronze', 9),
+  ('one-stroke-b10', 'one-stroke', 'Score 3K',        'Reach 3,000 points in a challenge run',           '💎', 'bronze', 10),
+  ('one-stroke-b11', 'one-stroke', 'Score 5K',        'Reach 5,000 points in a challenge run',           '💠', 'bronze', 11),
+  ('one-stroke-b12', 'one-stroke', 'No Hints',        'Complete a challenge run without using hints',     '🧠', 'bronze', 12),
+  ('one-stroke-b13', 'one-stroke', 'No Resets',       'Complete a challenge run without resetting',       '🔒', 'bronze', 13),
+  ('one-stroke-b14', 'one-stroke', 'Steady Hand',     'Complete a challenge run with 20 undos or less',   '🎯', 'bronze', 14),
+  ('one-stroke-b15', 'one-stroke', 'Dedicated',       'Play 50 campaign level attempts',                 '🏋️', 'bronze', 15),
+
+  -- Silver (10)
+  ('one-stroke-s01', 'one-stroke', 'Halfway There',   'Solve 50 campaign levels',                        '⭐', 'silver', 16),
+  ('one-stroke-s02', 'one-stroke', '75 Club',         'Solve 75 campaign levels',                        '🌟', 'silver', 17),
+  ('one-stroke-s03', 'one-stroke', 'Century',         'Solve 100 campaign levels',                       '💫', 'silver', 18),
+  ('one-stroke-s04', 'one-stroke', '150 Strong',      'Solve 150 campaign levels',                       '✨', 'silver', 19),
+  ('one-stroke-s05', 'one-stroke', 'Hat Trick',       'Complete 3 full challenge runs',                   '🏅', 'silver', 20),
+  ('one-stroke-s06', 'one-stroke', 'Veteran',         'Complete 5 full challenge runs',                   '🎖️', 'silver', 21),
+  ('one-stroke-s07', 'one-stroke', 'Score 8K',        'Reach 8,000 points in a challenge run',           '🔥', 'silver', 22),
+  ('one-stroke-s08', 'one-stroke', 'Score 10K',       'Reach 10,000 points in a challenge run',          '💰', 'silver', 23),
+  ('one-stroke-s09', 'one-stroke', 'Speed Runner',    'Complete a challenge run in under 6:00',           '⏱️', 'silver', 24),
+  ('one-stroke-s10', 'one-stroke', 'No Safety Net',   'Complete a challenge run with no hints and no resets', '🪂', 'silver', 25),
+
+  -- Gold (5)
+  ('one-stroke-g01', 'one-stroke', 'Campaign Master',  'Solve all 200 campaign levels',                  '👑', 'gold', 26),
+  ('one-stroke-g02', 'one-stroke', 'Challenge Legend',  'Complete 10 full challenge runs',                '🏆', 'gold', 27),
+  ('one-stroke-g03', 'one-stroke', 'Score 12K',        'Reach 12,000 points in a challenge run',         '💎', 'gold', 28),
+  ('one-stroke-g04', 'one-stroke', 'Elite Pace',       'Complete a challenge run in under 4:30',          '⚡', 'gold', 29),
+  ('one-stroke-g05', 'one-stroke', 'Perfect Run',      'Complete a challenge run with 0 hints, 0 resets, 0 undos', '🌈', 'gold', 30),
+
+  -- Platinum (1)
+  ('one-stroke-p01', 'one-stroke', 'Platinum Path',    'Unlock all 30 other trophies',                   '👑', 'platinum', 31);
+
+-- taprush (31 trophies)
+INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_order) VALUES
+  -- Bronze (15) — natural play
+  ('taprush-first-play',    'taprush', 'First Run',        'Play your first Tap Rush game',       '🎯', 'bronze',  1),
+  ('taprush-first-tap',     'taprush', 'First Tap',        'Hit your first target',               '👆', 'bronze',  2),
+  ('taprush-score-25',      'taprush', 'Warming Up',       'Score 25 points in one game',         '🔥', 'bronze',  3),
+  ('taprush-score-50',      'taprush', 'Finding Rhythm',   'Score 50 points in one game',         '🎵', 'bronze',  4),
+  ('taprush-score-100',     'taprush', 'Century',          'Score 100 points in one game',        '💯', 'bronze',  5),
+  ('taprush-level-2',       'taprush', 'Level Up',         'Reach level 2',                       '🆙', 'bronze',  6),
+  ('taprush-level-3',       'taprush', 'Climbing',         'Reach level 3',                       '🧗', 'bronze',  7),
+  ('taprush-first-power',   'taprush', 'Power Hungry',     'Grab a power-up (+3)',                '⚡', 'bronze',  8),
+  ('taprush-first-life',    'taprush', 'Extra Life',       'Grab a life heart',                   '❤️', 'bronze',  9),
+  ('taprush-first-dual',    'taprush', 'Dual Hit',         'Land your first DUAL HIT bonus',      '✌️', 'bronze', 10),
+  ('taprush-first-combo',   'taprush', 'In the Zone',      'Land a COMBO x2',                     '🎶', 'bronze', 11),
+  ('taprush-combo-5',       'taprush', 'Hot Streak',       'Land a COMBO x5',                     '🔥', 'bronze', 12),
+  ('taprush-games-5',       'taprush', 'Regular',          'Play 5 games',                        '🎮', 'bronze', 13),
+  ('taprush-games-10',      'taprush', 'Dedicated',        'Play 10 games',                       '🏅', 'bronze', 14),
+  ('taprush-no-bomb-level', 'taprush', 'Clean Run',        'Complete a level without hitting a bomb', '💣', 'bronze', 15),
+
+  -- Silver (10) — skill & dedication
+  ('taprush-score-150',     'taprush', 'Hustler',          'Score 150 in one game',               '🥈', 'silver', 16),
+  ('taprush-score-200',     'taprush', 'Marksman',         'Score 200 in one game',               '🎯', 'silver', 17),
+  ('taprush-score-250',     'taprush', 'Sharpshooter',     'Score 250 in one game',               '🔫', 'silver', 18),
+  ('taprush-level-5',       'taprush', 'Halfway There',    'Reach level 5',                       '🗻', 'silver', 19),
+  ('taprush-level-7',       'taprush', 'Advanced',         'Reach level 7',                       '🏔️', 'silver', 20),
+  ('taprush-combo-10',      'taprush', 'Unstoppable',      'Land a COMBO x10',                    '🚀', 'silver', 21),
+  ('taprush-games-25',      'taprush', 'Tap Rush Fan',     'Play 25 games',                       '🎖️', 'silver', 22),
+  ('taprush-react-500',     'taprush', 'Quick Fingers',    'Best reaction under 500 ms',          '✋', 'silver', 23),
+  ('taprush-react-400',     'taprush', 'Reflexes',         'Best reaction under 400 ms',          '⚡', 'silver', 24),
+  ('taprush-total-1000',    'taprush', 'Points Collector', '1,000 total points across all games', '💰', 'silver', 25),
+
+  -- Gold (5) — hardcore
+  ('taprush-score-300',     'taprush', 'Elite',            'Score 300 in one game',               '🥇', 'gold',   26),
+  ('taprush-score-400',     'taprush', 'Legend',           'Score 400 in one game',               '👑', 'gold',   27),
+  ('taprush-level-10',      'taprush', 'Level 10 Club',    'Reach level 10',                      '🏆', 'gold',   28),
+  ('taprush-react-300',     'taprush', 'Lightning',        'Best reaction under 300 ms',          '⚡', 'gold',   29),
+  ('taprush-combo-15',      'taprush', 'Combo King',       'Land a COMBO x15',                    '🎆', 'gold',   30),
+
+  -- Platinum (1)
+  ('taprush-taprush-master','taprush', 'Tap Rush Master',  'Unlock all other Tap Rush trophies',  '💎', 'platinum', 31)
+ON CONFLICT (id) DO NOTHING;
+
+-- type-or-die (31 trophies)
+INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_order) VALUES
+  -- Bronze (15) — natural play
+  ('type-or-die-first-blood',    'type-or-die', 'First Blood',       'Kill your first zombie.',             '☠️',  'bronze',  1),
+  ('type-or-die-combo-10',       'type-or-die', 'On a Roll',         'Reach a 10-combo.',                   '🔥',  'bronze',  2),
+  ('type-or-die-wpm-40',         'type-or-die', 'Warmed Up',         'Hit 40 WPM in a Speed Test.',         '⌨️',  'bronze',  3),
+  ('type-or-die-wave-3',         'type-or-die', 'Holding the Line',  'Reach wave 3.',                       '🧟',  'bronze',  4),
+  ('type-or-die-boss-slayer',    'type-or-die', 'Boss Slayer',       'Kill a boss zombie.',                 '👹',  'bronze',  5),
+  ('type-or-die-nuke',           'type-or-die', 'Scorched Earth',    'Trigger a Nuke.',                     '💥',  'bronze',  6),
+  ('type-or-die-slowmo',         'type-or-die', 'Bullet Time',       'Trigger Slow-mo.',                    '🐌',  'bronze',  7),
+  ('type-or-die-accuracy-95',    'type-or-die', 'Steady Hands',      'Finish a run at 95%+ accuracy.',      '🎯',  'bronze',  8),
+  ('type-or-die-kills-50',       'type-or-die', 'Exterminator',      'Kill 50 zombies in total.',           '🪓',  'bronze',  9),
+  ('type-or-die-daily-1',        'type-or-die', 'Daily Grind',       'Play a Daily Challenge.',             '📅',  'bronze', 10),
+  ('type-or-die-speedtest-done', 'type-or-die', 'Clocked In',        'Finish a Speed Test.',                '⏱️',  'bronze', 11),
+  ('type-or-die-zombie-done',    'type-or-die', 'Outbreak',          'Finish a Zombie run.',                '🧟',  'bronze', 12),
+  ('type-or-die-versus-played',  'type-or-die', 'Pass the Keyboard', 'Play a 2-player match.',              '👥',  'bronze', 13),
+  ('type-or-die-runs-10',        'type-or-die', 'Regular',           'Play 10 runs.',                       '🎮',  'bronze', 14),
+  ('type-or-die-words-500',      'type-or-die', 'Wordsmith',         'Type 500 words in total.',            '📝',  'bronze', 15),
+
+  -- Silver (10) — needs skill
+  ('type-or-die-combo-25',       'type-or-die', 'Combo Master',      'Reach a 25-combo.',                   '🔥',  'silver', 16),
+  ('type-or-die-wpm-80',         'type-or-die', 'Fast Fingers',      'Hit 80 WPM in a Speed Test.',         '⌨️',  'silver', 17),
+  ('type-or-die-wave-6',         'type-or-die', 'Frontline',         'Reach wave 6.',                       '🧟',  'silver', 18),
+  ('type-or-die-accuracy-100',   'type-or-die', 'Flawless',          'Finish a run at 100% accuracy.',      '💯',  'silver', 19),
+  ('type-or-die-boss-hunter',    'type-or-die', 'Boss Hunter',       'Kill 10 bosses in total.',            '👹',  'silver', 20),
+  ('type-or-die-kills-500',      'type-or-die', 'Cleanser',          'Kill 500 zombies in total.',          '🪓',  'silver', 21),
+  ('type-or-die-streak-3',       'type-or-die', 'Committed',         'Reach a 3-day Daily streak.',         '📅',  'silver', 22),
+  ('type-or-die-score-5000',     'type-or-die', 'High Roller',       'Score 5,000 in a Zombie run.',        '🏆',  'silver', 23),
+  ('type-or-die-nuke-master',    'type-or-die', 'Fallout',           'Trigger 10 Nukes in total.',          '💥',  'silver', 24),
+  ('type-or-die-runs-50',        'type-or-die', 'Devoted',           'Play 50 runs.',                       '🎮',  'silver', 25),
+
+  -- Gold (5) — hard
+  ('type-or-die-combo-50',       'type-or-die', 'Unstoppable',       'Reach a 50-combo.',                   '🔥',  'gold',   26),
+  ('type-or-die-wpm-120',        'type-or-die', 'Speed Demon',       'Hit 120 WPM in a Speed Test.',        '⌨️',  'gold',   27),
+  ('type-or-die-wave-12',        'type-or-die', 'Last Survivor',     'Reach wave 12.',                      '🧟',  'gold',   28),
+  ('type-or-die-streak-7',       'type-or-die', 'Obsessed',          'Reach a 7-day Daily streak.',         '📅',  'gold',   29),
+  ('type-or-die-score-15000',    'type-or-die', 'Apex Predator',     'Score 15,000 in a Zombie run.',       '🏆',  'gold',   30),
+
+  -- Platinum (1)
+  ('type-or-die-platinum',       'type-or-die', 'Type or Die',       'Unlock all 30 other trophies.',       '🌟',  'platinum', 31);
