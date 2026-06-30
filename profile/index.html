@@ -448,6 +448,48 @@
 
         .ach-label { color: var(--text-muted); font-size: 0.9rem; }
 
+        .ach-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+            margin: -4px 0 24px;
+            padding: 14px 18px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+        }
+        .ach-stat { display: flex; flex-direction: column; line-height: 1.15; }
+        .ach-stat-num {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-bright);
+        }
+        .ach-stat-lbl {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-top: 2px;
+        }
+        .ach-tiers { display: flex; flex-wrap: wrap; gap: 12px; margin-left: auto; }
+        .ach-tier {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-medium);
+        }
+        .ach-tier::before {
+            content: '';
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--c);
+            box-shadow: 0 0 6px var(--c);
+        }
+
         .ach-bar-wrap {
             flex: 1;
             height: 8px;
@@ -1585,19 +1627,45 @@
             var totalUnlocked = achData.unlocked || 0;
             var totalAll = 0;
 
-            // Count total trophies across all games in catalog
+            // Count total trophies across all games + cross-game completion meta
             var catalogGames = Object.keys(TROPHY_CATALOG);
+            var completedGames = 0, gamesWithTrophies = 0;
+            var tierCounts = { bronze: 0, silver: 0, gold: 0, platinum: 0 };
             for (var i = 0; i < catalogGames.length; i++) {
-                totalAll += TROPHY_CATALOG[catalogGames[i]].length;
+                var _trs = TROPHY_CATALOG[catalogGames[i]];
+                totalAll += _trs.length;
+                if (!_trs.length) continue;
+                gamesWithTrophies++;
+                var _gu = 0;
+                for (var _j = 0; _j < _trs.length; _j++) {
+                    if (unlockedSet[_trs[_j].id]) {
+                        _gu++;
+                        if (tierCounts[_trs[_j].tier] !== undefined) tierCounts[_trs[_j].tier]++;
+                    }
+                }
+                if (_gu === _trs.length) completedGames++;
             }
 
             var html = '';
 
-            // Summary bar
+            // Summary bar — total, overall progress, and cross-game completion meta
             var pct = totalAll > 0 ? Math.round((totalUnlocked / totalAll) * 100) : 0;
             html += '<div class="ach-summary">';
             html += '<span class="ach-total">' + totalUnlocked + '</span>';
-            html += '<span class="ach-label">' + totalUnlocked + ' of ' + totalAll + ' trophies unlocked (' + pct + '%)</span>';
+            html += '<div style="flex:1;min-width:160px">';
+            html += '<div class="ach-label">' + totalUnlocked + ' of ' + totalAll + ' trophies unlocked (' + pct + '%)</div>';
+            html += '<div class="ach-bar-wrap" style="margin-top:8px"><div class="ach-bar" style="width:' + pct + '%"></div></div>';
+            html += '</div>';
+            html += '</div>';
+            html += '<div class="ach-meta">';
+            html += '<div class="ach-stat"><span class="ach-stat-num">' + completedGames + ' / ' + gamesWithTrophies + '</span><span class="ach-stat-lbl">Games 100%</span></div>';
+            html += '<div class="ach-stat"><span class="ach-stat-num">' + tierCounts.platinum + '</span><span class="ach-stat-lbl">Platinum</span></div>';
+            html += '<div class="ach-tiers">';
+            html += '<span class="ach-tier" style="--c:' + TIER_COLORS.bronze + '">' + tierCounts.bronze + ' Bronze</span>';
+            html += '<span class="ach-tier" style="--c:' + TIER_COLORS.silver + '">' + tierCounts.silver + ' Silver</span>';
+            html += '<span class="ach-tier" style="--c:' + TIER_COLORS.gold + '">' + tierCounts.gold + ' Gold</span>';
+            html += '<span class="ach-tier" style="--c:' + TIER_COLORS.platinum + '">' + tierCounts.platinum + ' Platinum</span>';
+            html += '</div>';
             html += '</div>';
 
             // Per-game sections (collapsible)
