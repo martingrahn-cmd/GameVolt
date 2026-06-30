@@ -1,1 +1,18 @@
 axeluga/axeluga-standalone.zip
+
+# macOS Finder metadata — never deploy
+.DS_Store
+**/.DS_Store
+
+# Internal dev notes — keep local, never deploy (README.md files are intentional)
+**/TODO.md
+**/ToDo.md
+**/BUGS.md
+**/IDEAS.md
+**/NOW.md
+**/MEMORY.md
+**/backlog.md
+**/gamedesign.md
+**/IMPROVEMENTS.md
+one-stroke/CHANGELOG.md
+snake/readme.txt

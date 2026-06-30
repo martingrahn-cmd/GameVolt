@@ -6,7 +6,7 @@
  *   Route: gamevolt.io/*    Worker: legacy-paths-410
  *
  * It only intercepts the paths it cares about. Everything else is
- * passed straight through to GitHub Pages.
+ * passed straight through to Cloudflare Pages.
  *
  * Handles three things in one Worker:
  *
@@ -17,7 +17,7 @@
  *    https://www.gamevolt.io/<path>  →  301  https://gamevolt.io/<path>
  *
  * 3. Pass-through for everything else
- *    Returns fetch(request) unchanged so GitHub Pages keeps serving.
+ *    Returns fetch(request) unchanged so Cloudflare Pages keeps serving.
  *
  * Note: gone-410 fires BEFORE www-redirect on purpose — if a bot
  * arrives at https://www.gamevolt.io/game/something we want them to
@@ -72,7 +72,7 @@ export default {
       return Response.redirect(url.toString(), 301);
     }
 
-    // 3. Everything else: pass through to origin (GitHub Pages)
+    // 3. Everything else: pass through to origin (Cloudflare Pages)
     return fetch(request);
   }
 };
