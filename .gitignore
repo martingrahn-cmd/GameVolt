@@ -1,1 +1,5 @@
 axeluga/axeluga-standalone.zip
+
+# macOS Finder metadata — never deploy
+.DS_Store
+**/.DS_Store
