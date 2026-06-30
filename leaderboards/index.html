@@ -526,6 +526,7 @@
         var _activeTab = 'trophies';
         var _activePeriod = 'all';
         var _activeGame = 'hoverdash';
+        var _gameModes = {};
         var _currentUser = null;
 
         function escHtml(s) {
@@ -569,7 +570,7 @@
             if (_activeTab === 'trophies') {
                 promise = rpc('get_trophy_leaderboard', { p_period: _activePeriod, p_limit: 50 });
             } else {
-                var scoreMode = _activeGame === 'blockstorm' ? 'marathon' : 'default';
+                var scoreMode = _gameModes[_activeGame] || (_activeGame === 'blockstorm' ? 'marathon' : 'default');
                 promise = rpc('get_leaderboard', { p_game_id: _activeGame, p_mode: scoreMode, p_limit: 50 });
             }
 
@@ -658,15 +659,59 @@
             });
         });
 
-        // ─── Game pills ───
-        document.querySelectorAll('#score-filters .filter-pill').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('#score-filters .filter-pill').forEach(function(b) { b.classList.remove('active'); });
-                btn.classList.add('active');
-                _activeGame = btn.dataset.game;
-                loadData();
-            });
+        // ─── Game pills (delegated — pills are rebuilt dynamically by buildGamePills) ───
+        document.getElementById('score-filters').addEventListener('click', function(e) {
+            var btn = e.target.closest && e.target.closest('.filter-pill');
+            if (!btn || !this.contains(btn)) return;
+            this.querySelectorAll('.filter-pill').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            _activeGame = btn.dataset.game;
+            loadData();
         });
+
+        var GAME_NAMES = {
+            'asteroid-storm': 'Asteroid Storm', 'axeluga': 'Axeluga', 'blockstorm': 'BlockStorm',
+            'breakout': 'Breakout', 'chain-reaction': 'Chain Reaction', 'connect4': 'Connect 4',
+            'golden-glyphs': 'Golden Glyphs', 'gravitywell': 'Gravity Well', 'hoverdash': 'HoverDash',
+            'livewire': 'Livewire', 'manga-match3': 'Manga Match', 'minesweeper': 'Minesweeper',
+            'one-stroke': 'One Stroke', 'snake': 'Snake Neo', 'solitaire': 'Solitaire',
+            'sudoku': 'Sudoku', 'taprush': 'Tap Rush', 'type-or-die': 'Type or Die'
+        };
+
+        // Build game pills from the games that actually have scores, each pointing at
+        // the mode where its data lives — so no pill shows an empty board and populated
+        // boards (e.g. Axeluga) aren't hidden. Keeps the static fallback pills on failure.
+        function buildGamePills() {
+            fetch(SB_URL + '/rest/v1/scores?select=game_id,mode', {
+                headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+            }).then(function(r) { return r.ok ? r.json() : []; }).then(function(rows) {
+                if (!rows || !rows.length) return;
+                var byGame = {};
+                rows.forEach(function(row) {
+                    var g = row.game_id;
+                    if (!GAME_NAMES[g]) return; // skip unknown / legacy ids
+                    var m = row.mode || 'default';
+                    if (!byGame[g]) byGame[g] = { total: 0, modes: {} };
+                    byGame[g].total++;
+                    byGame[g].modes[m] = (byGame[g].modes[m] || 0) + 1;
+                });
+                var games = Object.keys(byGame);
+                if (!games.length) return;
+                games.sort(function(a, b) { return byGame[b].total - byGame[a].total; });
+                _gameModes = {};
+                games.forEach(function(g) {
+                    var modes = byGame[g].modes;
+                    _gameModes[g] = Object.keys(modes).sort(function(a, b) { return modes[b] - modes[a]; })[0];
+                });
+                _activeGame = byGame[_activeGame] ? _activeGame : games[0];
+                var html = '';
+                games.forEach(function(g) {
+                    html += '<button class="filter-pill' + (g === _activeGame ? ' active' : '') + '" data-game="' + g + '">' + escHtml(GAME_NAMES[g]) + '</button>';
+                });
+                document.getElementById('score-filters').innerHTML = html;
+                if (_activeTab === 'scores') loadData();
+            }).catch(function() { /* keep static fallback pills */ });
+        }
 
         // ─── Auth state ───
         function onAuth(user) {
@@ -702,10 +747,11 @@
 
         // ─── Init ───
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() { initSDK(); loadData(); });
+            document.addEventListener('DOMContentLoaded', function() { initSDK(); loadData(); buildGamePills(); });
         } else {
             initSDK();
             loadData();
+            buildGamePills();
         }
 
         // SDK may load after DOMContentLoaded
