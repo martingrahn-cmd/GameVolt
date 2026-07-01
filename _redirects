@@ -1,0 +1,4 @@
+# Cloudflare Pages redirects.
+# Legacy duplicate game URLs /games/<name>/ -> canonical /<name>/ as a real 301
+# (stronger + faster de-dup signal than the client-side redirect stubs in /games/).
+/games/*  /:splat  301
