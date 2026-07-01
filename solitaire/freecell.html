@@ -527,6 +527,7 @@
         _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}if(typeof gtag==='function'){gtag('event',n,p);return;}}};
 
         function newGame(seed) {
+            if (window.SolAch) SolAch.recordStart('freecell');
             GameVoltTracker.start('Solitaire-FreeCell');
             clearInterval(game.timerInterval);
             game.seed = seed || Math.floor(Math.random() * 100000);
@@ -728,6 +729,7 @@
                 if (!stats.bestTime || game.time < stats.bestTime) stats.bestTime = game.time;
                 if (!stats.bestScore || game.score > stats.bestScore) stats.bestScore = game.score;
                 saveStats();
+                if (window.SolAch) SolAch.recordWin('freecell', { score: game.score, time: game.time, moves: game.moves });
                 showVictory(timeBonus);
             } else {
                 setTimeout(autoComplete, 200);
@@ -1249,7 +1251,8 @@
     })();
     </script>
     <script src="leaderboard.js"></script>
+    <script src="solitaire-achievements.js"></script>
     <script src="/sdk/gamevolt.js"></script>
-    <script>if (window.GameVolt) GameVolt.init('solitaire-freecell');</script>
+    <script>if (window.GameVolt) GameVolt.init('solitaire');</script>
 </body>
 </html>
