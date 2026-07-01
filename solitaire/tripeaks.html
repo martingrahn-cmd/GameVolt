@@ -730,6 +730,7 @@
         _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}if(typeof gtag==='function'){gtag('event',n,p);return;}}};
 
         function newGame() {
+            if (window.SolAch) SolAch.recordStart('tripeaks');
             GameVoltTracker.start('Solitaire-TriPeaks');
             clearInterval(game.timerInterval);
 
@@ -1106,6 +1107,7 @@
             
             if (peaksCleared && tableauCleared) {
                 game.gameWon = true;
+                if (window.SolAch) SolAch.recordWin('tripeaks', { score: game.score, time: game.time, moves: game.moves, tpStreak: game.bestStreak });
                 GameVoltTracker.end({score: game.score, outcome: 'win'});
                 clearInterval(game.timerInterval);
 
@@ -1497,7 +1499,8 @@
     })();
     </script>
     <script src="leaderboard.js"></script>
+    <script src="solitaire-achievements.js"></script>
     <script src="/sdk/gamevolt.js"></script>
-    <script>if (window.GameVolt) GameVolt.init('solitaire-tripeaks');</script>
+    <script>if (window.GameVolt) GameVolt.init('solitaire');</script>
 </body>
 </html>

@@ -408,6 +408,7 @@
         <header>
             <h2 class="logo">Solitaire Collection<span> | GameVolt</span></h2>
             <p class="subtitle">Classic card games, beautifully crafted</p>
+            <button type="button" onclick="if(window.SolAch)SolAch.openGrid()" style="margin-top:14px;background:rgba(212,175,55,0.12);border:1px solid #d4af37;color:#f4d03f;font-family:'Source Sans 3',system-ui,sans-serif;font-size:0.95rem;font-weight:600;padding:9px 20px;border-radius:10px;cursor:pointer;transition:background 0.2s" onmouseover="this.style.background='rgba(212,175,55,0.25)'" onmouseout="this.style.background='rgba(212,175,55,0.12)'">🏆 Achievements</button>
         </header>
 
         <div class="games-grid">
@@ -660,6 +661,7 @@
       </div>
     </footer>
 
+    <script src="solitaire-achievements.js"></script>
     <script>
         // Handle navigation
         function navigateTo(url, cardElement) {
