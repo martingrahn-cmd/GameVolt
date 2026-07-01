@@ -15,6 +15,7 @@ import { GameOverScreen } from "./gameover.js";
 import { PauseScreen } from "./pause.js";
 import { LevelCompleteScreen } from "./levelcomplete.js";
 import { OptionsScreen } from "./options.js";
+import { recordRun } from "./achievements.js";
 import { HighscoreManager, HighscoreEntryScreen, HighscoreListScreen } from "./highscore.js";
 
 export class Game {
@@ -614,7 +615,15 @@ export class Game {
     _gameOver() {
         this.state = "gameover";
         const stats = this.scoring.getFinalStats();
-        
+
+        // Trophies + global leaderboard. This method serves Neo and Nokia;
+        // Nokia earns only the nostalgia trophy and does not submit a score.
+        const _mode = this.endlessMode ? "nokia" : "neo";
+        try { recordRun(_mode, stats); } catch (e) { /* ignore */ }
+        if (_mode === "neo" && stats.score > 0 && window.GameVolt && window.GameVolt.leaderboard) {
+            try { window.GameVolt.leaderboard.submit(stats.score, { mode: "default" }); } catch (e) { /* ignore */ }
+        }
+
         // Hide pause button
         if (this.hud?.setPauseButtonVisible) {
             this.hud.setPauseButtonVisible(false);

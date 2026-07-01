@@ -3,6 +3,8 @@
 // With Gamepad Support + Background Images
 // ============================================================
 
+import { AchievementsScreen, HighScoresScreen } from "./achievements.js";
+
 export class MenuScreen {
     constructor() {
         this.element = null;
@@ -47,6 +49,9 @@ export class MenuScreen {
                         16-Bit Arcade
                         <span class="mode-desc">Fruit chain puzzle</span>
                     </button>
+
+                    <button class="menu-btn menu-btn-action" data-action="achievements">🏆 Achievements</button>
+                    <button class="menu-btn menu-btn-action" data-action="highscores">🥇 High Scores</button>
 
                     <p class="menu-small">SmartProc Games</p>
                     <p class="menu-controls">
@@ -100,7 +105,7 @@ export class MenuScreen {
             // Click handlers
             this.buttons.forEach((btn, index) => {
                 btn.addEventListener("click", () => {
-                    this._selectMode(btn.dataset.mode);
+                    this._confirm(btn);
                 });
                 btn.addEventListener("mouseenter", () => {
                     this._highlightButton(index, false); // No sound on hover
@@ -109,6 +114,7 @@ export class MenuScreen {
 
             // Keyboard support
             this._keyHandler = (e) => {
+                if (this._subOpen) return; // a sub-screen (achievements/high scores) owns input
                 if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
                     e.preventDefault();
                     this._highlightButton(this.selectedIndex - 1, true); // Sound on keyboard
@@ -119,7 +125,7 @@ export class MenuScreen {
                 }
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    this._selectMode(this.buttons[this.selectedIndex].dataset.mode);
+                    this._confirm(this.buttons[this.selectedIndex]);
                 }
             };
             window.addEventListener("keydown", this._keyHandler);
@@ -179,9 +185,38 @@ export class MenuScreen {
         }, 250);
     }
 
+    // Route a confirm on the selected button: action buttons open a sub-screen
+    // (achievements / high scores) without leaving the menu; mode buttons start a game.
+    _confirm(btn) {
+        if (!btn) return;
+        if (btn.dataset.action) { this._openSub(btn.dataset.action); return; }
+        this._selectMode(btn.dataset.mode);
+    }
+
+    _openSub(action) {
+        if (this._subOpen) return;
+        this._subOpen = true;
+        if (window.audioNeoSFX) window.audioNeoSFX.click();
+        const screen = action === "highscores" ? new HighScoresScreen() : new AchievementsScreen();
+        this._activeSub = screen;
+        screen.show(() => { this._subOpen = false; this._activeSub = null; });
+    }
+
     _pollGamepad() {
         const poll = () => {
             this.pollId = requestAnimationFrame(poll);
+            if (this._subOpen) {
+                // A sub-screen owns input, but still let the Back button (B) close it.
+                const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+                for (const gp of pads) {
+                    if (!gp) continue;
+                    const back = gp.buttons[1]?.pressed;
+                    if (back && !this._lastBack && this._activeSub) this._activeSub.hide();
+                    this._lastBack = back;
+                    break;
+                }
+                return;
+            }
 
             const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
             
@@ -206,7 +241,7 @@ export class MenuScreen {
                 // Confirm (X / A)
                 const confirm = gp.buttons[0]?.pressed;
                 if (confirm && !this.lastConfirm) {
-                    this._selectMode(this.buttons[this.selectedIndex].dataset.mode);
+                    this._confirm(this.buttons[this.selectedIndex]);
                 }
                 this.lastConfirm = confirm;
 
