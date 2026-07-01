@@ -10,6 +10,7 @@ if (window.__snakeLoopId) {
 
 import { Game } from "./game.js";
 import { MenuScreen } from "./menu.js";
+import { recordRun, initSnakeAchievements } from "./achievements.js";
 import { Input } from "./input.js";
 
 import { audioNokia }     from "./nokia/audio_nokia.js";
@@ -354,6 +355,12 @@ function patchGameForMode(mode) {
 
             const stats = this.scoring.getFinalStats();
 
+            // Trophies + global leaderboard (Fruit Chain / 16-bit mode)
+            try { recordRun("16bit", stats); } catch (e) { /* ignore */ }
+            if (stats.score > 0 && window.GameVolt && window.GameVolt.leaderboard) {
+                try { window.GameVolt.leaderboard.submit(stats.score, { mode: "fruit-chain" }); } catch (e) { /* ignore */ }
+            }
+
             // Auto-save score
             let position = 0;
             if (stats.score > 0) {
@@ -595,6 +602,9 @@ window.addEventListener("load", async () => {
         return;
     }
     window.__snakeGameStarted = true;
+
+    // Init GameVolt SDK for cloud trophies + leaderboard (no-op if SDK absent)
+    initSnakeAchievements();
 
     try {
         // MENU
