@@ -294,7 +294,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // ── VERSION ─────────────────────────────────────────────────────────────
   // Bump this AND the CACHE string in sw.js together on every deploy, so the
   // start screen shows the running version and installed apps update.
-  const VERSION = 'v1.7';
+  const VERSION = 'v1.8';
   const verEl = document.getElementById('version');
   if (verEl) verEl.textContent = VERSION;
   // ────────────────────────────────────────────────────────────────────────
@@ -307,6 +307,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   let SIDES = 6, LANE = TAU / SIDES;
   function setSides(n){
     SIDES = n; LANE = TAU / n;
+    if (n===4) unlock('sq'); else if (n===5) unlock('pent');
     if (runShapes){ runShapes.add(n); if (runShapes.has(4)&&runShapes.has(5)&&runShapes.has(6)) unlock('shapes'); }
   }
   const SHAPE_NAME = { 4:'SQUARE', 5:'PENTAGON', 6:'HEXAGON' };
@@ -338,18 +339,43 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   const fmt = t => t.toFixed(2);
 
   // ---------- achievements / trophies ----------
+  // 31 total — 15 bronze, 10 silver, 5 gold, 1 platinum (unlocks with all others)
   const ACH = [
-    { id:'first',   name:'FIRST CONTACT',  desc:'Finish your first run' },
-    { id:'s15',     name:'WARMED UP',      desc:'Survive 15 seconds' },
-    { id:'s30',     name:'IN THE ZONE',    desc:'Survive 30 seconds' },
-    { id:'clear',   name:'SURVIVOR',       desc:'Clear a tier (survive 60s)' },
-    { id:'climb',   name:'CLIMBER',        desc:'Reach Hexagonest in one run' },
-    { id:'win',     name:'APEX',           desc:'Win — clear Hexagonest' },
-    { id:'shapes',  name:'SHAPESHIFTER',   desc:'See all 3 shapes in one run' },
-    { id:'close',   name:'DAREDEVIL',      desc:'5 close calls in one run' },
-    { id:'endless', name:'NO FINISH LINE', desc:'Play an Endless run' },
-    { id:'e60',     name:'ENDURANCE',      desc:'Survive 60s in Endless' },
-    { id:'runs',    name:'HOOKED',         desc:'Play 25 runs' },
+    // bronze (15)
+    { id:'first',    name:'FIRST CONTACT',  desc:'Finish your first run',            tier:'bronze' },
+    { id:'s10',      name:'TEN SECONDS',    desc:'Survive 10 seconds',               tier:'bronze' },
+    { id:'s15',      name:'WARMED UP',      desc:'Survive 15 seconds',               tier:'bronze' },
+    { id:'s20',      name:'STEADY',         desc:'Survive 20 seconds',               tier:'bronze' },
+    { id:'s30',      name:'IN THE ZONE',    desc:'Survive 30 seconds',               tier:'bronze' },
+    { id:'s40',      name:'FORTY',          desc:'Survive 40 seconds',               tier:'bronze' },
+    { id:'sq',       name:'SQUARED',        desc:'Ride the field as a square',       tier:'bronze' },
+    { id:'pent',     name:'PENTAGON',       desc:'Ride the field as a pentagon',     tier:'bronze' },
+    { id:'near',     name:'NEAR MISS',      desc:'Thread a wall by a hair',          tier:'bronze' },
+    { id:'close5',   name:'DAREDEVIL',      desc:'5 close calls in one run',         tier:'bronze' },
+    { id:'shapes',   name:'SHAPESHIFTER',   desc:'See all 3 shapes in one run',      tier:'bronze' },
+    { id:'endless',  name:'NO FINISH LINE', desc:'Play an Endless run',              tier:'bronze' },
+    { id:'clear',    name:'SURVIVOR',       desc:'Clear a tier (survive 60s)',       tier:'bronze' },
+    { id:'dj',       name:'DJ',             desc:'Load your own music track',        tier:'bronze' },
+    { id:'runs10',   name:'REGULAR',        desc:'Play 10 runs',                     tier:'bronze' },
+    // silver (10)
+    { id:'s50',      name:'NEARLY THERE',   desc:'Survive 50 seconds',               tier:'silver' },
+    { id:'climber',  name:'CLIMBER',        desc:'Reach Hexagonest in one run',      tier:'silver' },
+    { id:'clear2',   name:'DOUBLE CLEAR',   desc:'Clear two tiers in one run',       tier:'silver' },
+    { id:'e30',      name:'ENDURING',       desc:'Survive 30s in Endless',           tier:'silver' },
+    { id:'e60',      name:'ENDURANCE',      desc:'Survive 60s in Endless',           tier:'silver' },
+    { id:'close10',  name:'RECKLESS',       desc:'10 close calls in one run',        tier:'silver' },
+    { id:'expert',   name:'BRAVADO',        desc:'Start a run on Hexagonest',        tier:'silver' },
+    { id:'total5',   name:'TIME SERVED',    desc:'5 minutes of total survival',      tier:'silver' },
+    { id:'runs25',   name:'HOOKED',         desc:'Play 25 runs',                     tier:'silver' },
+    { id:'runs50',   name:'COMMITTED',      desc:'Play 50 runs',                     tier:'silver' },
+    // gold (5)
+    { id:'win',      name:'APEX',           desc:'Win — clear Hexagonest',           tier:'gold' },
+    { id:'fullclimb',name:'THE LONG CLIMB', desc:'Win a run started on Hexagon',     tier:'gold' },
+    { id:'e90',      name:'IRONMAN',        desc:'Survive 90s in Endless',           tier:'gold' },
+    { id:'close20',  name:'UNTOUCHABLE',    desc:'20 close calls in one run',        tier:'gold' },
+    { id:'runs100',  name:'DEVOTED',        desc:'Play 100 runs',                    tier:'gold' },
+    // platinum (1)
+    { id:'platinum', name:'VECTOR MASTER',  desc:'Unlock every other trophy',        tier:'platinum' },
   ];
   const achKey = id => 'vhex-ach-' + id;
   const hasAch = id => localStorage.getItem(achKey(id)) === '1';
@@ -364,6 +390,8 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     if (window.GameVolt) GameVolt.achievements.unlock(id);
     const tr = document.getElementById('trophies');
     if (tr && !tr.classList.contains('hidden')) buildTrophies();
+    // platinum unlocks once every other trophy is earned
+    if (id !== 'platinum' && ACH.every(x => x.id==='platinum' || hasAch(x.id))) unlock('platinum');
   }
   function pumpToast(){
     if (toastActive || !toastQ.length) return;
@@ -379,11 +407,27 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   }
   const runsKey = 'vhex-runs';
   const getRuns = () => parseInt(localStorage.getItem(runsKey)||'0',10) || 0;
-  function bumpRuns(){ const n=getRuns()+1; try{localStorage.setItem(runsKey,String(n));}catch(e){} if (n>=25) unlock('runs'); }
+  function bumpRuns(){
+    const n=getRuns()+1; try{localStorage.setItem(runsKey,String(n));}catch(e){}
+    if (n>=10) unlock('runs10'); if (n>=25) unlock('runs25');
+    if (n>=50) unlock('runs50'); if (n>=100) unlock('runs100');
+  }
+  const totalKey = 'vhex-total';
+  const getTotal = () => parseFloat(localStorage.getItem(totalKey)||'0') || 0;
+  function addTotal(sec){ const t=getTotal()+sec; try{localStorage.setItem(totalKey,String(t));}catch(e){} if (t>=300) unlock('total5'); }
+  let runClears = 0;   // tiers cleared in the current run
   function checkTimeAchievements(){
+    if (elapsed>=10) unlock('s10');
     if (elapsed>=15) unlock('s15');
+    if (elapsed>=20) unlock('s20');
     if (elapsed>=30) unlock('s30');
-    if (endless && elapsed>=60) unlock('e60');
+    if (elapsed>=40) unlock('s40');
+    if (elapsed>=50) unlock('s50');
+    if (endless){
+      if (elapsed>=30) unlock('e30');
+      if (elapsed>=60) unlock('e60');
+      if (elapsed>=90) unlock('e90');
+    }
   }
 
   // ---------- portal integration seam ----------
@@ -787,11 +831,13 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // trophies screen
   const trophiesEl = document.getElementById('trophies');
   const trophiesOpen = () => !trophiesEl.classList.contains('hidden');
+  const TIER_ICON = { bronze:'🥉', silver:'🥈', gold:'🥇', platinum:'💎' };
   function buildTrophies(){
     document.getElementById('trophyCount').textContent = achCount() + ' / ' + ACH.length;
     document.getElementById('trophyList').innerHTML = ACH.map(a => {
       const got = hasAch(a.id);
-      return '<div class="tro'+(got?' got':'')+'"><div class="ico">'+(got?'🏆':'🔒')+'</div>'+
+      const ico = got ? (TIER_ICON[a.tier] || '🏆') : '🔒';
+      return '<div class="tro'+(got?' got':'')+' t-'+(a.tier||'bronze')+'"><div class="ico">'+ico+'</div>'+
              '<div class="txt"><div class="n">'+a.name+'</div><div class="d">'+a.desc+'</div></div></div>';
     }).join('');
   }
@@ -824,7 +870,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     if (!f) return;
     const url = URL.createObjectURL(f);
     loadMusicFromURL(url, true);
-    blip(760);
+    blip(760); unlock('dj');
   });
 
   function toMenu(){
@@ -851,7 +897,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     morph='none'; morphScale=1; morphT=0; scheduleMorph();  // scheduleMorph AFTER elapsed=0
     hue = TIER_HUE[stage]; hueDir=1; distAccum=0; shake=0; pulse=0; beatClock=0;
     cursorGlow=0; beatFlash=0;
-    runShapes = new Set([6]); runCloseCalls = 0;   // reset per-run achievement stats
+    runShapes = new Set([6]); runCloseCalls = 0; runClears = 0;   // reset per-run achievement stats
     stepIdx=0; if (ac) audioBeat = ac.currentTime + 0.06;
     if (ac && ac.state==='suspended') ac.resume();
     // adopt a committed soundtrack on first play, if one is present
@@ -860,6 +906,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     setHudLevel();
     document.getElementById('hudBest').textContent = 'BEST ' + fmt(modeBest(diffIdx));
     if (endless) unlock('endless');
+    if (diffIdx === DIFFS.length-1) unlock('expert');
     if (window.GameVoltTracker) GameVoltTracker.start('Vector Hexagon');
     const label = endless ? 'ENDLESS' : 'BEGIN';
     callout(label, false, '#7df9ff'); announce([523.25, 659.25, 783.99], 'square'); say('Begin');
@@ -868,7 +915,9 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // tier cleared at 60s -> seamlessly climb into the next, same run, timer runs on
   function advanceStage(){
     stage++; stageTime = 0;
-    unlock('clear'); if (stage >= DIFFS.length-1) unlock('climb');
+    runClears++; unlock('clear');
+    if (runClears >= 2) unlock('clear2');
+    if (stage >= DIFFS.length-1) unlock('climber');
     hue = TIER_HUE[stage]; hueDir = 1;         // snap colour to the new tier
     spinDir *= -1; spinTimer = 2.5;            // flip the spin for drama
     beatFlash = 1; shake = 0.55; pulse = 1;
@@ -882,8 +931,8 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
 
   function endRun(victory){
     state=ST.OVER; shake = 1; musicStop(); won = victory;
-    unlock('first'); bumpRuns();
-    if (victory){ unlock('win'); unlock('clear'); unlock('climb'); }
+    unlock('first'); bumpRuns(); addTotal(elapsed);
+    if (victory){ unlock('win'); unlock('clear'); unlock('climber'); if (diffIdx===0) unlock('fullclimb'); }
     if (victory){ setCleared(diffIdx); buzz([50,40,50,40,120]); announce([659,784,988,1319],'square'); say('Cleared'); }
     else        { deathSound(); buzz([45,40,130]); announce([392,311.13,246.94],'sawtooth'); say('Game Over'); }
     let isNew=false;
@@ -1063,7 +1112,11 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
         beatFlash  = Math.max(beatFlash, intensity*0.4);
         tick(1500 + intensity*600, 0.06 + intensity*0.06);
         if (intensity > 0.72) buzz(12);                       // subtle haptic on razor-thin passes
-        runCloseCalls++; if (runCloseCalls >= 5) unlock('close');
+        runCloseCalls++;
+        unlock('near');
+        if (runCloseCalls >= 5)  unlock('close5');
+        if (runCloseCalls >= 10) unlock('close10');
+        if (runCloseCalls >= 20) unlock('close20');
       }
     }
   }
@@ -1251,7 +1304,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
       keys: ['vhex-best-HEXAGON','vhex-best-HEXAGONER','vhex-best-HEXAGONEST',
              'vhex-ebest-HEXAGON','vhex-ebest-HEXAGONER','vhex-ebest-HEXAGONEST',
              'vhex-cleared-HEXAGON','vhex-cleared-HEXAGONER','vhex-cleared-HEXAGONEST',
-             'vhex-runs'].concat(ACH.map(function(a){ return 'vhex-ach-'+a.id; })),
+             'vhex-runs','vhex-total'].concat(ACH.map(function(a){ return 'vhex-ach-'+a.id; })),
       merge: function(local, cloud){
         cloud = cloud || {};
         var bests={}, ebests={}, cleared={}, ach={};
@@ -1261,8 +1314,9 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
           if (local['vhex-cleared-'+d.key] || (cloud.cleared && cloud.cleared[d.key])) cleared[d.key]=1;
         });
         ACH.forEach(function(a){ if (local['vhex-ach-'+a.id] || (cloud.ach && cloud.ach[a.id])) ach[a.id]=1; });
-        var runs = Math.max(parseInt(local['vhex-runs'])||0, cloud.runs||0);
-        return { bests:bests, ebests:ebests, cleared:cleared, ach:ach, runs:runs };
+        var runs  = Math.max(parseInt(local['vhex-runs'])||0, cloud.runs||0);
+        var total = Math.max(parseFloat(local['vhex-total'])||0, cloud.total||0);
+        return { bests:bests, ebests:ebests, cleared:cleared, ach:ach, runs:runs, total:total };
       },
       getScores: function(local){
         var s=[];
