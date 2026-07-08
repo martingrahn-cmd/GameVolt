@@ -1,0 +1,1260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#07060f" />
+<title>Vector Hexagon — Free Twitch Survival Game | GameVolt.io</title>
+<meta name="description" content="Vector Hexagon — a Super Hexagon-style twitch survival game. One hex, six lanes, walls closing in. Dodge into the gap, climb the tiers, chase the leaderboard. Free, no download." />
+<meta name="author" content="GameVolt" />
+<meta property="og:title" content="Vector Hexagon — Free Twitch Survival Game | GameVolt.io" />
+<meta property="og:description" content="One hex, six lanes, walls closing in. Dodge, climb the tiers, chase the leaderboard." />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="GameVolt" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Hexagon" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden;
+    background: #07060f; color: #eaf2ff;
+    font-family: 'Rajdhani', system-ui, sans-serif;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  #stage { position: fixed; inset: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* ---- overlays ---- */
+  .overlay {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 24px; pointer-events: none; z-index: 5;
+  }
+  .overlay.on { pointer-events: auto; }
+  .hidden { display: none !important; }
+
+  h1 {
+    font-family: 'Orbitron', sans-serif; font-weight: 900;
+    font-size: clamp(30px, 9vw, 74px); letter-spacing: 0.14em;
+    margin: 0 0 6px; line-height: 0.98;
+    color: #fff; text-shadow: 0 0 24px rgba(125,249,255,0.55);
+  }
+  h1 .a { color: #7df9ff; }
+  .tag {
+    font-family: 'Rajdhani'; font-weight: 700; letter-spacing: 0.34em;
+    font-size: clamp(10px, 2.4vw, 14px); color: #8a93b8; margin-bottom: 30px;
+    text-transform: uppercase;
+  }
+
+  .diffs { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-bottom: 26px; }
+  .diff {
+    font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.16em;
+    font-size: clamp(11px, 2.6vw, 14px); padding: 13px 20px; cursor: pointer;
+    background: #0c0a1a; color: #9aa3c8; border: 1px solid #241a3a;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+    transition: transform .08s, color .15s, border-color .15s, background .15s;
+  }
+  .diff .best { display: block; font-family: 'Rajdhani'; font-weight: 600; letter-spacing: 0.08em; font-size: 12px; color: #5b6390; margin-top: 5px; }
+  .diff.sel { color: #07060f; border-color: transparent; transform: translateY(-2px); }
+  .diff.sel .best { color: rgba(7,6,15,0.7); }
+  .diff.d0.sel { background: #7df9ff; box-shadow: 0 0 26px rgba(125,249,255,0.5); }
+  .diff.d1.sel { background: #ffd166; box-shadow: 0 0 26px rgba(255,209,102,0.5); }
+  .diff.d2.sel { background: #ff5e8a; box-shadow: 0 0 26px rgba(255,94,138,0.5); }
+
+  .modes { display: flex; gap: 10px; justify-content: center; margin-bottom: 26px; }
+  .mode {
+    font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.14em; font-size: clamp(10px, 2.4vw, 12px);
+    padding: 9px 18px; cursor: pointer; background: #0c0a1a; color: #9aa3c8; border: 1px solid #241a3a;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+  }
+  .mode.sel { background: #7df9ff; color: #07060f; border-color: transparent; box-shadow: 0 0 18px rgba(125,249,255,0.4); }
+
+  .hint {
+    font-family: 'Rajdhani'; font-weight: 600; letter-spacing: 0.06em;
+    font-size: clamp(12px, 3vw, 15px); color: #c8d0ee; line-height: 1.6; max-width: 460px;
+  }
+  .hint b { color: #7df9ff; font-weight: 700; }
+  .go {
+    margin-top: 22px; font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.2em;
+    font-size: clamp(13px, 3.4vw, 17px); color: #07060f; background: #7df9ff;
+    padding: 15px 34px; cursor: pointer; border: 0;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+    box-shadow: 0 0 30px rgba(125,249,255,0.45); animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{ transform: scale(1);} 50%{ transform: scale(1.05);} }
+
+  .install {
+    margin-top: 14px; font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.16em;
+    font-size: clamp(11px, 2.8vw, 14px); color: #7df9ff; background: transparent;
+    padding: 11px 22px; cursor: pointer; border: 1px solid #2c6b78;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+    transition: background .15s, color .15s;
+  }
+  .install:hover { background: rgba(125,249,255,0.12); }
+  .installhint b { color: #7df9ff; }
+
+  .ver {
+    margin-top: 22px; font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.22em;
+    font-size: 11px; color: #4a5178;
+  }
+  #updateChip {
+    margin-top: 12px; font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.14em;
+    font-size: clamp(11px, 2.8vw, 13px); color: #07060f; background: #ffd166; cursor: pointer;
+    padding: 10px 18px; border: 0;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%);
+    box-shadow: 0 0 22px rgba(255,209,102,0.5); animation: pulse 1.5s infinite;
+  }
+
+  /* ---- achievement toast ---- */
+  #toast {
+    position: fixed; top: 16px; left: 50%; transform: translate(-50%, -140%); z-index: 8;
+    display: flex; align-items: center; gap: 12px; pointer-events: none;
+    background: #0c0a1a; border: 1px solid #2c6b78; padding: 11px 18px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 22px rgba(125,249,255,0.25);
+    transition: transform .35s cubic-bezier(.2,.9,.2,1), opacity .35s; opacity: 0;
+  }
+  #toast.show { transform: translate(-50%, 0); opacity: 1; }
+  #toast .t-ico { font-size: 26px; }
+  #toast .t-lbl { font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.18em; font-size: 9px; color: #7df9ff; }
+  #toast .t-name { font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.08em; font-size: 15px; color: #fff; }
+
+  /* ---- trophies screen ---- */
+  .trophead { font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.18em; color: #7df9ff; font-size: 15px; margin-bottom: 20px; }
+  .trolist { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 420px; max-height: 58vh; overflow-y: auto; padding: 2px; }
+  .tro {
+    display: flex; align-items: center; gap: 12px; text-align: left;
+    background: #0a0714; border: 1px solid #1c1730; padding: 10px 13px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+  }
+  .tro.got { border-color: #2c6b78; background: #0c1420; }
+  .tro .ico { font-size: 21px; filter: grayscale(1) opacity(0.4); }
+  .tro.got .ico { filter: none; }
+  .tro .txt .n { font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.08em; font-size: 12px; color: #6a7196; }
+  .tro.got .txt .n { color: #fff; }
+  .tro .txt .d { font-family: 'Rajdhani'; font-weight: 600; font-size: 12px; color: #545c82; }
+
+  /* ---- game-over card ---- */
+  #over h1 { font-size: clamp(26px, 8vw, 60px); }
+  .stat { font-family: 'Rajdhani'; font-weight: 600; letter-spacing: 0.05em; color: #c8d0ee; font-size: clamp(14px, 3.6vw, 19px); margin: 2px 0; }
+  .stat .big { font-family: 'Orbitron'; font-weight: 800; color: #7df9ff; font-size: clamp(30px, 9vw, 56px); display: block; }
+  .newbest { font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.18em; color: #ffd166; font-size: clamp(13px, 3.4vw, 18px); margin: 8px 0; text-shadow: 0 0 18px rgba(255,209,102,0.55); }
+  .clearbanner { font-family: 'Orbitron'; font-weight: 900; letter-spacing: 0.16em; color: #7df9ff; font-size: clamp(14px, 3.8vw, 20px); margin: 8px 0; text-shadow: 0 0 22px rgba(125,249,255,0.6); }
+
+  /* ---- in-game HUD ---- */
+  #hud {
+    position: fixed; top: 14px; right: 16px; text-align: right; z-index: 4;
+    pointer-events: none; text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+  }
+  #hud .lbl { font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.22em; font-size: 11px; color: #8a93b8; }
+  #hud .time { font-family: 'Orbitron'; font-weight: 900; font-size: clamp(26px, 7vw, 44px); color: #fff; line-height: 1; }
+  #hud .best { font-family: 'Rajdhani'; font-weight: 600; letter-spacing: 0.06em; font-size: 13px; color: #7df9ff; margin-top: 3px; }
+  #hud .lvl { font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.16em; font-size: clamp(11px, 2.4vw, 13px); color: #ffd166; margin-top: 6px; }
+
+  #sound {
+    position: fixed; bottom: 14px; left: 14px; z-index: 6; cursor: pointer;
+    font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.12em; font-size: 12px;
+    color: #9aa3c8; background: #0c0a1a; border: 1px solid #241a3a; padding: 8px 12px;
+  }
+  .credit { position: fixed; bottom: 12px; right: 14px; z-index: 4; font-size: 11px; letter-spacing: 0.14em; color: #3f4568; font-family: 'Orbitron'; pointer-events: none; }
+
+  #musicbtn {
+    position: fixed; bottom: 14px; left: 128px; z-index: 6; cursor: pointer;
+    font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.1em; font-size: 12px;
+    color: #9aa3c8; background: #0c0a1a; border: 1px solid #241a3a; padding: 8px 12px;
+  }
+
+  /* ---- announcer callout ---- */
+  #callout {
+    position: fixed; left: 0; right: 0; top: 34%; z-index: 5; text-align: center;
+    pointer-events: none; font-family: 'Orbitron', sans-serif; font-weight: 900;
+    letter-spacing: 0.12em; color: #fff; opacity: 0;
+    font-size: clamp(28px, 9vw, 78px); text-transform: uppercase;
+    text-shadow: 0 0 30px currentColor, 0 4px 22px rgba(0,0,0,0.6);
+  }
+  #callout.show { animation: callout 1.15s cubic-bezier(.2,.8,.2,1) forwards; }
+  #callout.hold { animation: calloutHold 1.9s cubic-bezier(.2,.8,.2,1) forwards; }
+  @keyframes callout {
+    0%   { opacity: 0; transform: scale(0.55); letter-spacing: 0.5em; }
+    18%  { opacity: 1; transform: scale(1.12); letter-spacing: 0.12em; }
+    32%  { transform: scale(1.0); }
+    78%  { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.04); }
+  }
+  @keyframes calloutHold {
+    0%   { opacity: 0; transform: scale(0.5); letter-spacing: 0.5em; }
+    14%  { opacity: 1; transform: scale(1.14); letter-spacing: 0.12em; }
+    28%  { transform: scale(1.0); }
+    82%  { opacity: 1; transform: scale(1.0); }
+    100% { opacity: 0; transform: scale(1.06); }
+  }
+</style>
+</head>
+<body>
+  <div id="stage"><canvas id="c"></canvas></div>
+
+  <!-- START -->
+  <div class="overlay on" id="start">
+    <h1>VECTOR <span class="a">HEXAGON</span></h1>
+    <div class="tag">one hex · six lanes · don't touch the walls</div>
+    <div class="diffs" id="diffs"></div>
+    <div class="modes" id="modes">
+      <button class="mode sel" id="modeClimb">CLIMB</button>
+      <button class="mode" id="modeEndless">ENDLESS</button>
+    </div>
+    <div class="hint">
+      Steer with <b>← →</b> or <b>A / D</b> · on mobile, <b>tap &amp; hold</b> the left or right half.<br>
+      Slip your cursor into the gap before the wall reaches the core.
+    </div>
+    <button class="go" id="goBtn">BEGIN</button>
+    <button class="install hidden" id="installBtn">⬇ INSTALL APP</button>
+    <div class="hint installhint hidden" id="iosHint" style="margin-top:14px">
+      Install: tap <b>Share</b>, then <b>Add to Home Screen</b>
+    </div>
+    <button class="install" id="trophyBtn" style="margin-top:10px">🏆 TROPHIES</button>
+    <button class="hidden" id="updateChip">◆ NEW VERSION — TAP TO UPDATE</button>
+    <div class="ver" id="version">v—</div>
+  </div>
+
+  <!-- TROPHIES -->
+  <div class="overlay hidden" id="trophies">
+    <h1>TRO<span class="a">PHIES</span></h1>
+    <div class="trophead" id="trophyCount">0 / 0</div>
+    <div class="trolist" id="trophyList"></div>
+    <button class="go" id="trophyBack" style="margin-top:20px">BACK</button>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="overlay hidden" id="over">
+    <h1 id="overTitle">GAME <span class="a">OVER</span></h1>
+    <div class="clearbanner hidden" id="clearBanner">★ CLEARED ★</div>
+    <div class="newbest hidden" id="newbest">◆ NEW BEST ◆</div>
+    <div class="stat"><span class="big" id="finalTime">0.00</span>SECONDS SURVIVED</div>
+    <div class="stat" id="overBest">BEST 0.00</div>
+    <button class="go" id="retryBtn">RETRY</button>
+    <div class="hint" style="margin-top:16px">press <b>SPACE</b> / tap to retry · <b>ESC</b> for menu</div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div class="lbl">TIME</div>
+    <div class="time" id="hudTime">0.00</div>
+    <div class="best" id="hudBest">BEST 0.00</div>
+    <div class="lvl" id="hudLevel">HEXAGON</div>
+  </div>
+
+  <div id="callout"></div>
+  <div id="toast" class="hidden"></div>
+
+  <div id="sound">♪ SOUND: ON</div>
+  <div id="musicbtn">＋ LOAD MP3</div>
+  <input type="file" id="musicfile" accept="audio/*" style="display:none" />
+  <div class="credit">SLIPSTREAM</div>
+
+<!-- GameVolt SDK (portal only; the game runs fine without it) -->
+<script src="/sdk/gamevolt.js"></script>
+<script>
+"use strict";
+(() => {
+  // ── VERSION ─────────────────────────────────────────────────────────────
+  // Bump this AND the CACHE string in sw.js together on every deploy, so the
+  // start screen shows the running version and installed apps update.
+  const VERSION = 'v1.7';
+  const verEl = document.getElementById('version');
+  if (verEl) verEl.textContent = VERSION;
+  // ────────────────────────────────────────────────────────────────────────
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const TAU = Math.PI * 2;
+  // SIDES/LANE are mutable — the field morphs between 4, 5 and 6 lanes mid-run.
+  // The shape only changes while no walls are on screen (see the morph machine),
+  // so every live wall's mask length always matches the current SIDES.
+  let SIDES = 6, LANE = TAU / SIDES;
+  function setSides(n){
+    SIDES = n; LANE = TAU / n;
+    if (runShapes){ runShapes.add(n); if (runShapes.has(4)&&runShapes.has(5)&&runShapes.has(6)) unlock('shapes'); }
+  }
+  const SHAPE_NAME = { 4:'SQUARE', 5:'PENTAGON', 6:'HEXAGON' };
+
+  // ---------- difficulty presets ----------
+  const DIFFS = [
+    { key:'HEXAGON',    name:'HEXAGON',    base:150, ramp:3.0, spin:0.8, spacing:182, twist:8,  hueRate:26 },
+    { key:'HEXAGONER',  name:'HEXAGONER',  base:200, ramp:6.0, spin:1.15, spacing:150, twist:11, hueRate:20 },
+    { key:'HEXAGONEST', name:'HEXAGONEST', base:230, ramp:7.0, spin:1.45, spacing:138, twist:14, hueRate:15 },
+  ];
+  let diffIdx = 0;
+
+  const TIER_HUE = [200, 45, 338];   // per-tier base hue
+  const STAGE_LEN = 60;              // seconds to clear a tier before it auto-advances
+
+  // ---------- persistent bests + clears ----------
+  const bestKey = i => 'vhex-best-' + DIFFS[i].key;
+  const getBest = i => parseFloat(localStorage.getItem(bestKey(i)) || '0') || 0;
+  const setBest = (i,v) => { try { localStorage.setItem(bestKey(i), String(v)); } catch(e){} };
+  const clearKey = i => 'vhex-cleared-' + DIFFS[i].key;
+  const getCleared = i => localStorage.getItem(clearKey(i)) === '1';
+  const setCleared = i => { try { localStorage.setItem(clearKey(i), '1'); } catch(e){} };
+  // ENDLESS-mode bests live under their own keys
+  const ebestKey = i => 'vhex-ebest-' + DIFFS[i].key;
+  const getEBest = i => parseFloat(localStorage.getItem(ebestKey(i)) || '0') || 0;
+  const setEBest = (i,v) => { try { localStorage.setItem(ebestKey(i), String(v)); } catch(e){} };
+  const modeBest = i => endless ? getEBest(i) : getBest(i);
+  const modeSetBest = (i,v) => endless ? setEBest(i,v) : setBest(i,v);
+  const fmt = t => t.toFixed(2);
+
+  // ---------- achievements / trophies ----------
+  const ACH = [
+    { id:'first',   name:'FIRST CONTACT',  desc:'Finish your first run' },
+    { id:'s15',     name:'WARMED UP',      desc:'Survive 15 seconds' },
+    { id:'s30',     name:'IN THE ZONE',    desc:'Survive 30 seconds' },
+    { id:'clear',   name:'SURVIVOR',       desc:'Clear a tier (survive 60s)' },
+    { id:'climb',   name:'CLIMBER',        desc:'Reach Hexagonest in one run' },
+    { id:'win',     name:'APEX',           desc:'Win — clear Hexagonest' },
+    { id:'shapes',  name:'SHAPESHIFTER',   desc:'See all 3 shapes in one run' },
+    { id:'close',   name:'DAREDEVIL',      desc:'5 close calls in one run' },
+    { id:'endless', name:'NO FINISH LINE', desc:'Play an Endless run' },
+    { id:'e60',     name:'ENDURANCE',      desc:'Survive 60s in Endless' },
+    { id:'runs',    name:'HOOKED',         desc:'Play 25 runs' },
+  ];
+  const achKey = id => 'vhex-ach-' + id;
+  const hasAch = id => localStorage.getItem(achKey(id)) === '1';
+  const achCount = () => ACH.reduce((n,a)=>n+(hasAch(a.id)?1:0),0);
+  let toastQ = [], toastActive = false;
+  function unlock(id){
+    if (hasAch(id)) return;
+    try { localStorage.setItem(achKey(id),'1'); } catch(e){}
+    const a = ACH.find(x=>x.id===id); if (!a) return;
+    toastQ.push(a); pumpToast();
+    emit('achievement', { id:a.id, name:a.name, desc:a.desc });
+    if (window.GameVolt) GameVolt.achievements.unlock(id);
+    const tr = document.getElementById('trophies');
+    if (tr && !tr.classList.contains('hidden')) buildTrophies();
+  }
+  function pumpToast(){
+    if (toastActive || !toastQ.length) return;
+    toastActive = true;
+    const a = toastQ.shift();
+    const el = document.getElementById('toast');
+    el.innerHTML = '<div class="t-ico">🏆</div><div><div class="t-lbl">ACHIEVEMENT UNLOCKED</div><div class="t-name">'+a.name+'</div></div>';
+    el.classList.remove('hidden'); void el.offsetWidth; el.classList.add('show');
+    if (ac && soundOn) announce([659.25, 880, 1046.5, 1318.5], 'square');
+    setTimeout(()=>{ el.classList.remove('show');
+      setTimeout(()=>{ el.classList.add('hidden'); toastActive=false; pumpToast(); }, 350);
+    }, 2400);
+  }
+  const runsKey = 'vhex-runs';
+  const getRuns = () => parseInt(localStorage.getItem(runsKey)||'0',10) || 0;
+  function bumpRuns(){ const n=getRuns()+1; try{localStorage.setItem(runsKey,String(n));}catch(e){} if (n>=25) unlock('runs'); }
+  function checkTimeAchievements(){
+    if (elapsed>=15) unlock('s15');
+    if (elapsed>=30) unlock('s30');
+    if (endless && elapsed>=60) unlock('e60');
+  }
+
+  // ---------- portal integration seam ----------
+  // Local-first, but ready to feed a host portal with zero backend today:
+  //  · embedded in an iframe -> results are postMessage'd to the parent
+  //  · window.VECTOR_HEXAGON_CONFIG.apiUrl set -> results are POSTed there
+  //  · window.VectorHexagon exposes read APIs + an on(type, cb) subscription
+  const PORTAL = (window.VECTOR_HEXAGON_CONFIG || {});
+  const hexListeners = { score:[], achievement:[] };
+  function emit(type, payload){
+    const msg = Object.assign({ game:'vector-hexagon', version:VERSION, type:'vhex:'+type,
+      player: PORTAL.playerId || null, ts: Date.now() }, payload);
+    try { (hexListeners[type]||[]).forEach(cb => cb(msg)); } catch(e){}
+    try { if (window.parent && window.parent !== window) window.parent.postMessage(msg, PORTAL.targetOrigin || '*'); } catch(e){}
+    if (PORTAL.apiUrl){
+      try { fetch(PORTAL.apiUrl, { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(msg), keepalive:true }).catch(()=>{}); } catch(e){}
+    }
+  }
+  // accept late config from the host (e.g. after the portal authenticates a user)
+  window.addEventListener('message', e => {
+    const d = e.data;
+    if (d && d.type==='vhex:config' && d.config) Object.assign(PORTAL, d.config);
+  });
+  window.VectorHexagon = {
+    version: VERSION,
+    getBests(){ return DIFFS.map((d,i)=>({ tier:d.key, climb:getBest(i), endless:getEBest(i), cleared:getCleared(i) })); },
+    getAchievements(){ return ACH.map(a=>({ id:a.id, name:a.name, desc:a.desc, unlocked:hasAch(a.id) })); },
+    getRunsPlayed(){ return getRuns(); },
+    on(type, cb){ (hexListeners[type]=hexListeners[type]||[]).push(cb); },
+  };
+
+  // ---------- viewport ----------
+  let W=0, H=0, cx=0, cy=0, scale=1, dpr=1;
+  function resize(){
+    dpr = Math.min(window.devicePixelRatio||1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.floor(W*dpr); canvas.height = Math.floor(H*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    cx = W/2; cy = H/2;
+    // fit the play-field: reference radius ~ 300 virtual units should sit within view
+    scale = Math.min(W,H) / 640;
+    scale = Math.max(scale, 0.42);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ---------- game state ----------
+  const ST = { MENU:0, PLAY:1, OVER:2 };
+  let state = ST.MENU;
+
+  const HEX_BASE = 46;      // core hexagon radius (virtual units)
+  const ORBIT = 66;         // player orbit radius
+  const WALL_TH = 34;       // wall thickness
+  const SPAWN = 430;        // spawn distance (offscreen)
+  const PLAYER_ROT = 3.05 * Math.PI; // rad/sec
+
+  // directional collision forgiveness: a wall taken head-on (centre of a
+  // blocked lane) is lethal; grazing a lane edge next to the gap while
+  // sweeping past is forgiven. Grace grows while the cursor is moving.
+  const EDGE_GRACE = 0.12;   // rad (~6.9°) forgiven at a gap edge, standing still
+  const MOVE_GRACE = 0.10;   // rad extra forgiveness while sweeping sideways (~+5.7°)
+  // radial forgiveness: the wall's very outer ("behind") and inner ("front")
+  // edges don't count — you have to be a touch more inside the wall to die.
+  const RADIAL_GRACE = 5.5;  // virtual units shaved off each radial edge
+
+  let player = 0;           // player angle (logical frame)
+  let walls = [];           // { dist, sides:[bool x6] }
+  let elapsed = 0;
+  let speed = 0;
+  let world = 0;            // visual field rotation
+  let spinDir = 1, spinSpeed = 0, spinTimer = 0;
+  let hue = 200, hueDir = 1;
+  let pulse = 0;            // 0..1 beat pulse
+  let beatClock = 0;
+  let distAccum = 0;
+  let pending = [];         // queued masks to spawn
+  let shake = 0;
+  let deathAt = 0;
+  let cursorGlow = 0;       // close-call glow, decays
+  let beatFlash = 0;        // screen flash on strong beats
+  let stage = 0;            // current difficulty tier this run is on (auto-advances)
+  let stageTime = 0;        // seconds elapsed within the current tier
+  let won = false;          // set when the final tier is cleared
+  let endless = false;      // ENDLESS mode: no tier clear, difficulty climbs forever
+  // shape-morph machine: field collapses to a point, swaps SIDES, reblooms
+  let morph = 'none';       // 'none' | 'drain' | 'collapse' | 'expand'
+  let morphT = 0;           // phase timer
+  let morphScale = 1;       // field scale during the collapse/rebloom
+  let nextMorphAt = 1e9;    // elapsed time to attempt the next shape change
+  let pendingSides = 6;     // side count to swap to at the collapse midpoint
+  const MORPH_LEN = 0.24;   // seconds per collapse/expand half
+
+  const BPM = 152, BEAT = 60/BPM;
+
+  // per-run stats (for achievements)
+  let runShapes = new Set();
+  let runCloseCalls = 0;
+
+  // ---------- patterns ----------
+  const rnd = n => Math.floor(Math.random()*n);
+  const HALF = () => Math.floor(SIDES/2);                       // "opposite" lane offset
+  const openMask = gap => { const s=Array(SIDES).fill(true); s[((gap%SIDES)+SIDES)%SIDES]=false; return s; };
+  const twoGap = (g1,g2) => { const s=Array(SIDES).fill(true); s[((g1%SIDES)+SIDES)%SIDES]=false; s[((g2%SIDES)+SIDES)%SIDES]=false; return s; };
+
+  // each pattern returns an array of masks (spawned in order, evenly spaced),
+  // all sized to the current SIDES since the shape can't change mid-group
+  const PATTERNS = [
+    // straight tunnel — same gap for a few walls
+    () => { const g=rnd(SIDES), n=2+rnd(3); return Array.from({length:n},()=>openMask(g)); },
+    // spiral — gap steps one lane each wall
+    () => { const g=rnd(SIDES), d=Math.random()<0.5?1:-1, n=3+rnd(4); return Array.from({length:n},(_,i)=>openMask(g+d*i)); },
+    // zig-zag — alternate between two adjacent gaps
+    () => { const g=rnd(SIDES), d=Math.random()<0.5?1:-1, n=4+rnd(3); return Array.from({length:n},(_,i)=>openMask(g+(i%2?d:0))); },
+    // single spike
+    () => [ openMask(rnd(SIDES)) ],
+    // wide double-gap (breather)
+    () => { const g=rnd(SIDES); return [ twoGap(g, g+HALF()) ]; },
+    // C-shape — gap jumps across, forcing a long sweep
+    () => { const g=rnd(SIDES); return [ openMask(g), openMask(g+HALF()), openMask(g) ]; },
+    // 180 reversal — tunnel one way, then the gap snaps to the opposite side
+    () => { const g=rnd(SIDES), k=2+rnd(2); const a=Array.from({length:k},()=>openMask(g));
+            const b=Array.from({length:k},()=>openMask(g+HALF())); return a.concat(b); },
+    // closing spiral — steps every wall AND tightens (walls arrive faster feel via count)
+    () => { const g=rnd(SIDES), d=Math.random()<0.5?1:-1, n=5+rnd(3); return Array.from({length:n},(_,i)=>openMask(g+d*i)); },
+    // double-back — spiral out then reverse direction (fake-out)
+    () => { const g=rnd(SIDES), d=Math.random()<0.5?1:-1, k=3+rnd(2);
+            const out=Array.from({length:k},(_,i)=>openMask(g+d*i));
+            const back=Array.from({length:k},(_,i)=>openMask(g+d*(k-1)-d*i)); return out.concat(back); },
+    // stutter — same gap with a teasing double-gap breather in the middle
+    () => { const g=rnd(SIDES); return [ openMask(g), openMask(g), twoGap(g, g+HALF()), openMask(g) ]; },
+  ];
+  // difficulty-weighted pattern pick (by current tier / endless depth)
+  function nextPattern(){
+    const hard = endless ? Math.min(2 + Math.floor(elapsed/45), 4) : stage;
+    const pool = [0,1,1,2,3,4,5];
+    if (hard>=1) pool.push(1,2,5,6);          // 180 reversal enters
+    if (hard>=2) pool.push(2,2,5,1,6,7,9);    // closing spiral + stutter
+    if (hard>=3) pool.push(6,7,8,9,2);        // double-back fake-outs (endless deep)
+    // brief grace at the start of each tier: only calm patterns
+    if (stageTime < 3 && !endless) return PATTERNS[3+rnd(2)]; // spike or breather
+    return PATTERNS[pool[rnd(pool.length)]];
+  }
+
+  // ---------- audio ----------
+  // Two soundtrack sources feed the SAME beat engine (triggerBeat), so the
+  // field pulses/flashes in time with whichever is playing:
+  //   'synth' — a procedural WebAudio groove (default, always available)
+  //   'file'  — a loaded MP3 (e.g. a Suno track) analysed live for its beat
+  let ac=null, master=null, soundOn=true, audioBeat=0;
+  let musicMode='synth';
+  let audioEl=null, mediaSrc=null, analyser=null, freqData=null;
+  let bassAvg=0, lastBeatT=0;
+  const soundBtn = document.getElementById('sound');
+  function initAudio(){
+    if (ac) return;
+    try {
+      ac = new (window.AudioContext||window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = 0.5; master.connect(ac.destination);
+    } catch(e){ ac=null; }
+  }
+
+  // beat engine — anything that hits a beat calls this; drives the visuals
+  function triggerBeat(strength){
+    pulse = 1;
+    const s = Math.max(0, Math.min(strength||1, 2.2));
+    beatFlash = Math.max(beatFlash, 0.35 + s*0.25);
+    // strong beats occasionally kick a spin flip so the field "dances"
+    if (s > 1.5 && Math.random() < 0.25){ spinDir *= -1; spinTimer = 3 + Math.random()*3; }
+  }
+
+  // ---- loaded-file music (Suno etc.) + live beat detection ----
+  function loadMusicFromURL(url, revoke){
+    initAudio(); if (!ac) return false;
+    try {
+      if (audioEl){ audioEl.pause(); }
+      audioEl = new Audio(); audioEl.src = url; audioEl.loop = true; audioEl.crossOrigin = 'anonymous';
+      // one MediaElementSource per element, wired element -> analyser -> master
+      mediaSrc = ac.createMediaElementSource(audioEl);
+      analyser = ac.createAnalyser(); analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.75;
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      mediaSrc.connect(analyser); analyser.connect(master);
+      musicMode = 'file'; bassAvg = 0; lastBeatT = 0;
+      audioEl.addEventListener('ended', ()=>{}); // loop=true handles repeat
+      if (revoke) audioEl.addEventListener('canplaythrough', ()=>{}, {once:true});
+      musicBtn.textContent = '♪ MP3 ✓';
+      if (state===ST.PLAY){ audioEl.currentTime=0; audioEl.play().catch(()=>{}); }
+      return true;
+    } catch(e){ musicMode='synth'; return false; }
+  }
+  // pull the beat out of the playing MP3 via bass energy vs a running average
+  function analyseBeat(){
+    if (musicMode!=='file' || !analyser) return;
+    analyser.getByteFrequencyData(freqData);
+    let e=0; for (let i=0;i<6;i++) e+=freqData[i]; e/=6; // low-end energy
+    bassAvg += (e - bassAvg) * 0.06;
+    const now = ac.currentTime;
+    if (e > bassAvg*1.32 && e > 42 && now - lastBeatT > 0.19){
+      lastBeatT = now; triggerBeat(e/(bassAvg+1));
+    }
+  }
+  function musicStart(){
+    if (musicMode==='file' && audioEl){ audioEl.currentTime=0; audioEl.play().catch(()=>{}); }
+  }
+  function musicStop(){
+    if (musicMode==='file' && audioEl){ audioEl.pause(); }
+  }
+  // auto-adopt a committed soundtrack if present (assets/track.mp3)
+  fetch('assets/track.mp3', {method:'HEAD'}).then(r => {
+    if (r.ok) { /* defer real wiring to first user gesture */ hasBundledTrack = true; }
+  }).catch(()=>{});
+  let hasBundledTrack = false;
+  function tone(freq, t0, dur, type, gain, glideTo){
+    if (!ac) return;
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type=type||'sawtooth'; o.frequency.setValueAtTime(freq,t0);
+    if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t0+dur);
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(gain,t0+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    o.connect(g); g.connect(master); o.start(t0); o.stop(t0+dur+0.02);
+  }
+  function kick(t0){
+    if (!ac) return;
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(150,t0);
+    o.frequency.exponentialRampToValueAtTime(48,t0+0.12);
+    g.gain.setValueAtTime(0.9,t0); g.gain.exponentialRampToValueAtTime(0.0001,t0+0.18);
+    o.connect(g); g.connect(master); o.start(t0); o.stop(t0+0.2);
+  }
+  const BASS = [0,0,3,0, 5,5,3,2]; // semitone offsets over an 8-step bar
+  const ROOT = 55; // A1
+  let stepIdx = 0;
+  function scheduleAudio(){
+    if (!ac || !soundOn || state!==ST.PLAY || musicMode!=='synth') return;
+    const ahead = 0.15;
+    while (audioBeat < ac.currentTime + ahead){
+      const t = audioBeat;
+      const half = BEAT/2;
+      // kick on every beat, snare-ish tick on off-beat
+      kick(t);
+      tone(ROOT*Math.pow(2, BASS[stepIdx%8]/12), t, half*0.9, 'sawtooth', 0.16);
+      tone(ROOT*4*Math.pow(2, BASS[stepIdx%8]/12), t, 0.09, 'square', 0.05);
+      if (stepIdx%2===1) tone(900,t,0.03,'triangle',0.05); // hat
+      stepIdx++;
+      audioBeat += half; // two steps per beat -> 16th feel at half? keep it groovy
+    }
+  }
+  // crash — a filtered noise burst + low thud + metallic ring, the wall impact
+  let noiseBuf=null;
+  function getNoise(){
+    if (noiseBuf) return noiseBuf;
+    const len=Math.floor(ac.sampleRate*0.5);
+    noiseBuf=ac.createBuffer(1,len,ac.sampleRate);
+    const d=noiseBuf.getChannelData(0);
+    for (let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    return noiseBuf;
+  }
+  function deathSound(){
+    if (!ac||!soundOn) return;
+    const t=ac.currentTime;
+    // impact noise burst, sweeping dark
+    const src=ac.createBufferSource(); src.buffer=getNoise();
+    const bp=ac.createBiquadFilter(); bp.type='lowpass';
+    bp.frequency.setValueAtTime(2200,t); bp.frequency.exponentialRampToValueAtTime(180,t+0.3);
+    const ng=ac.createGain(); ng.gain.setValueAtTime(0.55,t); ng.gain.exponentialRampToValueAtTime(0.0001,t+0.38);
+    src.connect(bp); bp.connect(ng); ng.connect(master); src.start(t); src.stop(t+0.42);
+    // low thud
+    const o=ac.createOscillator(), og=ac.createGain(); o.type='sine';
+    o.frequency.setValueAtTime(130,t); o.frequency.exponentialRampToValueAtTime(38,t+0.26);
+    og.gain.setValueAtTime(0.8,t); og.gain.exponentialRampToValueAtTime(0.0001,t+0.3);
+    o.connect(og); og.connect(master); o.start(t); o.stop(t+0.32);
+    // metallic ring-out
+    tone(300,t,0.45,'sawtooth',0.18,70);
+    kick(t);
+  }
+  function blip(f){ if(!ac||!soundOn) return; tone(f||660, ac.currentTime, 0.06,'square',0.12); }
+  function tick(f,g){ if(!ac||!soundOn) return; tone(f||1400, ac.currentTime, 0.045,'triangle', g||0.09); }
+  // announcer sting — a short arpeggio played for each callout (works everywhere)
+  function announce(seq, type){
+    if(!ac||!soundOn) return;
+    const t0=ac.currentTime;
+    seq.forEach((f,i)=> tone(f, t0 + i*0.075, 0.16, type||'square', 0.13));
+  }
+  soundBtn.addEventListener('click', () => {
+    soundOn=!soundOn; soundBtn.textContent = '♪ SOUND: ' + (soundOn?'ON':'OFF');
+    if (master) master.gain.value = soundOn?0.5:0;
+  });
+
+  // ---------- announcer voice (Web Speech, desktop only) ----------
+  // On iOS, speechSynthesis is usually silent AND interrupts the audio session,
+  // which caused a ~1s hitch on each announcement. So the spoken voice is limited
+  // to non-iOS; everywhere else the sting + on-screen callout carry the announce.
+  const IS_IOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let voice=null;
+  function pickVoice(){
+    if (IS_IOS || !('speechSynthesis' in window)) return;
+    const vs = speechSynthesis.getVoices();
+    voice = vs.find(v=>/en[-_]?(GB|US)/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || vs[0] || null;
+  }
+  if (!IS_IOS && 'speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+  function say(text){
+    if (IS_IOS || !soundOn || !('speechSynthesis' in window)) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if (voice) u.voice = voice;
+      u.rate = 0.86; u.pitch = 0.55; u.volume = 0.95;
+      speechSynthesis.speak(u);
+    } catch(e){}
+  }
+
+  // ---------- on-screen announcer callouts ----------
+  const calloutEl = document.getElementById('callout');
+  function callout(text, hold, color){
+    calloutEl.textContent = text;
+    calloutEl.style.color = color || '#ffffff';
+    calloutEl.classList.remove('show','hold');
+    void calloutEl.offsetWidth;                 // restart the animation
+    calloutEl.classList.add(hold ? 'hold' : 'show');
+  }
+
+  // ---------- haptics ----------
+  function buzz(p){ if (navigator.vibrate) { try { navigator.vibrate(p); } catch(e){} } }
+
+  // ---------- input ----------
+  const keys = { left:false, right:false };
+  let touchDir = 0;
+  window.addEventListener('keydown', e => {
+    if (e.repeat) return;
+    const k=e.key.toLowerCase();
+    if (k==='arrowleft'||k==='a') keys.left=true;
+    else if (k==='arrowright'||k==='d') keys.right=true;
+    else if (k===' '||k==='enter'){
+      if (trophiesOpen()) closeTrophies();
+      else if (state===ST.MENU) startGame();
+      else if (state===ST.OVER) startGame();
+      e.preventDefault();
+    } else if (k==='escape'||k==='backspace'){
+      if (trophiesOpen()) closeTrophies();
+      else if (state!==ST.MENU) toMenu();
+    } else if (k==='m'){ soundBtn.click(); }
+  });
+  window.addEventListener('keyup', e => {
+    const k=e.key.toLowerCase();
+    if (k==='arrowleft'||k==='a') keys.left=false;
+    else if (k==='arrowright'||k==='d') keys.right=false;
+  });
+  // touch — hold left/right half
+  function touchAt(x){ touchDir = x < W/2 ? -1 : 1; }
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault(); initAudio();
+    if (state===ST.MENU){ startGame(); return; }
+    if (state===ST.OVER){ startGame(); return; }
+    touchAt(e.touches[0].clientX);
+  }, {passive:false});
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); if(e.touches[0]) touchAt(e.touches[0].clientX); }, {passive:false});
+  canvas.addEventListener('touchend', e => { e.preventDefault(); if(e.touches.length===0) touchDir=0; }, {passive:false});
+  // mouse hold for desktop testing / trackpads
+  let mouseDown=false;
+  canvas.addEventListener('mousedown', e => { if(state===ST.PLAY){ mouseDown=true; touchDir = e.clientX<W/2?-1:1; } });
+  window.addEventListener('mouseup', () => { mouseDown=false; if(!keys.left&&!keys.right) touchDir=0; });
+  canvas.addEventListener('mousemove', e => { if(mouseDown) touchDir = e.clientX<W/2?-1:1; });
+
+  // ---------- UI wiring ----------
+  const startEl = document.getElementById('start');
+  const overEl  = document.getElementById('over');
+  const hudEl   = document.getElementById('hud');
+  const diffsEl = document.getElementById('diffs');
+  const goBtn   = document.getElementById('goBtn');
+  const retryBtn= document.getElementById('retryBtn');
+
+  function buildDiffs(){
+    diffsEl.innerHTML='';
+    DIFFS.forEach((d,i) => {
+      const el=document.createElement('div');
+      el.className='diff d'+i+(i===diffIdx?' sel':'');
+      const b=modeBest(i);
+      const star = (!endless && getCleared(i)) ? ' ★' : '';
+      el.innerHTML = d.name + star + '<span class="best">'+(b>0?('BEST '+fmt(b)):'—')+'</span>';
+      el.addEventListener('click', () => { diffIdx=i; initAudio(); blip(560+i*80); buildDiffs(); });
+      diffsEl.appendChild(el);
+    });
+  }
+  goBtn.addEventListener('click', () => { initAudio(); startGame(); });
+  retryBtn.addEventListener('click', () => { initAudio(); startGame(); });
+
+  // mode toggle: CLIMB (auto-advancing tiers) vs ENDLESS (score chase)
+  const modeClimb = document.getElementById('modeClimb');
+  const modeEndless = document.getElementById('modeEndless');
+  function setMode(e){
+    endless = e; initAudio(); blip(e?520:640);
+    modeClimb.classList.toggle('sel', !e);
+    modeEndless.classList.toggle('sel', e);
+    buildDiffs();                 // bests differ per mode
+  }
+  modeClimb.addEventListener('click', () => setMode(false));
+  modeEndless.addEventListener('click', () => setMode(true));
+
+  // trophies screen
+  const trophiesEl = document.getElementById('trophies');
+  const trophiesOpen = () => !trophiesEl.classList.contains('hidden');
+  function buildTrophies(){
+    document.getElementById('trophyCount').textContent = achCount() + ' / ' + ACH.length;
+    document.getElementById('trophyList').innerHTML = ACH.map(a => {
+      const got = hasAch(a.id);
+      return '<div class="tro'+(got?' got':'')+'"><div class="ico">'+(got?'🏆':'🔒')+'</div>'+
+             '<div class="txt"><div class="n">'+a.name+'</div><div class="d">'+a.desc+'</div></div></div>';
+    }).join('');
+  }
+  function openTrophies(){
+    initAudio(); blip(700); buildTrophies();
+    startEl.classList.add('hidden'); startEl.classList.remove('on');
+    trophiesEl.classList.remove('hidden'); trophiesEl.classList.add('on');
+  }
+  function closeTrophies(){
+    trophiesEl.classList.add('hidden'); trophiesEl.classList.remove('on');
+    toMenu();
+  }
+  document.getElementById('trophyBtn').addEventListener('click', openTrophies);
+  document.getElementById('trophyBack').addEventListener('click', closeTrophies);
+
+  // music source: load a local MP3 (e.g. a Suno track) to play the game to
+  const musicBtn  = document.getElementById('musicbtn');
+  const musicFile = document.getElementById('musicfile');
+  musicBtn.addEventListener('click', () => {
+    initAudio();
+    if (musicMode==='file'){
+      // toggle back to the synth groove
+      musicStop(); musicMode='synth'; musicBtn.textContent='＋ LOAD MP3'; blip(440);
+    } else {
+      musicFile.click();
+    }
+  });
+  musicFile.addEventListener('change', () => {
+    const f = musicFile.files && musicFile.files[0];
+    if (!f) return;
+    const url = URL.createObjectURL(f);
+    loadMusicFromURL(url, true);
+    blip(760);
+  });
+
+  function toMenu(){
+    state=ST.MENU; musicStop();
+    startEl.classList.remove('hidden'); startEl.classList.add('on');
+    overEl.classList.add('hidden'); overEl.classList.remove('on');
+    hudEl.classList.add('hidden');
+    buildDiffs();
+  }
+
+  function setHudLevel(){ document.getElementById('hudLevel').textContent = DIFFS[stage].name; }
+
+  function startGame(){
+    state=ST.PLAY; won=false;
+    startEl.classList.add('hidden'); startEl.classList.remove('on');
+    overEl.classList.add('hidden'); overEl.classList.remove('on');
+    hudEl.classList.remove('hidden');
+    // reset — the run starts on the selected tier and climbs from there
+    stage = diffIdx; stageTime = 0;
+    setSides(6);                                  // always begin as a hexagon
+    const d=DIFFS[stage];
+    player = LANE*0.5; walls.length=0; pending.length=0;
+    elapsed=0; speed=d.base; world=0; spinDir=1; spinSpeed=d.spin*0.6; spinTimer=2.5;
+    morph='none'; morphScale=1; morphT=0; scheduleMorph();  // scheduleMorph AFTER elapsed=0
+    hue = TIER_HUE[stage]; hueDir=1; distAccum=0; shake=0; pulse=0; beatClock=0;
+    cursorGlow=0; beatFlash=0;
+    runShapes = new Set([6]); runCloseCalls = 0;   // reset per-run achievement stats
+    stepIdx=0; if (ac) audioBeat = ac.currentTime + 0.06;
+    if (ac && ac.state==='suspended') ac.resume();
+    // adopt a committed soundtrack on first play, if one is present
+    if (hasBundledTrack && musicMode==='synth' && !audioEl) loadMusicFromURL('assets/track.mp3', false);
+    musicStart();
+    setHudLevel();
+    document.getElementById('hudBest').textContent = 'BEST ' + fmt(modeBest(diffIdx));
+    if (endless) unlock('endless');
+    const label = endless ? 'ENDLESS' : 'BEGIN';
+    callout(label, false, '#7df9ff'); announce([523.25, 659.25, 783.99], 'square'); say('Begin');
+  }
+
+  // tier cleared at 60s -> seamlessly climb into the next, same run, timer runs on
+  function advanceStage(){
+    stage++; stageTime = 0;
+    unlock('clear'); if (stage >= DIFFS.length-1) unlock('climb');
+    hue = TIER_HUE[stage]; hueDir = 1;         // snap colour to the new tier
+    spinDir *= -1; spinTimer = 2.5;            // flip the spin for drama
+    beatFlash = 1; shake = 0.55; pulse = 1;
+    buzz([25, 35, 25]);
+    setHudLevel();
+    callout(DIFFS[stage].name + '!', true, '#7df9ff');
+    announce([523.25, 659.25, 783.99, 1046.5], 'square'); say(DIFFS[stage].name);
+  }
+
+  function gameOver(){ endRun(false); }
+
+  function endRun(victory){
+    state=ST.OVER; shake = 1; musicStop(); won = victory;
+    unlock('first'); bumpRuns();
+    if (victory){ unlock('win'); unlock('clear'); unlock('climb'); }
+    if (victory){ setCleared(diffIdx); buzz([50,40,50,40,120]); announce([659,784,988,1319],'square'); say('Cleared'); }
+    else        { deathSound(); buzz([45,40,130]); announce([392,311.13,246.94],'sawtooth'); say('Game Over'); }
+    let isNew=false;
+    if (elapsed > modeBest(diffIdx)){ modeSetBest(diffIdx, elapsed); isNew=true; }
+    // report the result to any host portal (postMessage / API / listeners)
+    emit('score', { mode: endless?'endless':'climb', tier: DIFFS[diffIdx].key, tierName: DIFFS[diffIdx].name,
+      time: +elapsed.toFixed(2), won: !!victory, personalBest: +modeBest(diffIdx).toFixed(2), isNewBest: isNew });
+    // GameVolt leaderboard — survival time in centiseconds, one board per mode+tier
+    if (window.GameVolt) GameVolt.leaderboard.submit(Math.round(elapsed*100), { mode: (endless?'endless':'climb')+'-'+DIFFS[diffIdx].key });
+    document.getElementById('finalTime').textContent = fmt(elapsed);
+    document.getElementById('overBest').textContent = 'BEST ' + fmt(modeBest(diffIdx));
+    document.getElementById('newbest').classList.toggle('hidden', !isNew || victory);
+    // title + clear banner
+    document.getElementById('overTitle').innerHTML = victory ? 'YOU <span class="a">WIN</span>' : 'GAME <span class="a">OVER</span>';
+    const cb = document.getElementById('clearBanner');
+    cb.classList.toggle('hidden', !victory);
+    if (victory) cb.textContent = '★ ' + DIFFS[DIFFS.length-1].name + ' CLEARED ★';
+    hudEl.classList.add('hidden');
+    callout(victory ? 'CLEARED' : 'GAME OVER', true, victory ? '#7df9ff' : '#ff5e8a');
+    setTimeout(() => {
+      if (state===ST.OVER){
+        overEl.classList.remove('hidden'); overEl.classList.add('on');
+      }
+    }, 550);
+  }
+
+  // ---------- spawning ----------
+  function furthest(){ let m=-Infinity; for (const w of walls) if (w.dist>m) m=w.dist; return m===-Infinity?0:m; }
+  function spawnStep(dt){
+    if (morph !== 'none') return;          // no spawning while the field is morphing
+    const d=DIFFS[stage];
+    distAccum += speed*dt;
+    const spacing = d.spacing;
+    if (distAccum >= spacing){
+      distAccum -= spacing;
+      if (pending.length===0) pending = nextPattern()();
+      const sides = pending.shift();
+      walls.push({ dist: SPAWN, sides });
+    }
+  }
+
+  // ---------- shape-morph machine (4 / 5 / 6 lanes) ----------
+  function scheduleMorph(){
+    const opts = [4,5,6].filter(n => n !== SIDES);
+    pendingSides = opts[rnd(opts.length)];
+    nextMorphAt = elapsed + 9 + Math.random()*6;    // roughly every 9–15s
+  }
+  function updateMorph(dt){
+    if (morph === 'none'){
+      // don't start a morph right before a tier clear (climb mode)
+      if (elapsed >= nextMorphAt && (endless || STAGE_LEN - stageTime > 6)){
+        morph = 'drain';
+        pending.length = 0;         // drop any queued walls for the old shape
+      }
+      return;
+    }
+    if (morph === 'drain'){          // wait for the field to empty, then collapse
+      if (walls.length === 0){ morph = 'collapse'; morphT = 0; }
+      return;
+    }
+    if (morph === 'collapse'){
+      morphT += dt; world += 7*dt;
+      morphScale = Math.max(0.0001, 1 - morphT/MORPH_LEN);
+      if (morphT >= MORPH_LEN){
+        setSides(pendingSides); morph='expand'; morphT=0; beatFlash=1; pulse=1; buzz(18);
+        // announce the new shape so the change is unmistakable
+        callout(SHAPE_NAME[SIDES], false, '#7df9ff'); announce([659.25, 880], 'square');
+      }
+      return;
+    }
+    if (morph === 'expand'){
+      morphT += dt; world += 7*dt*(1 - morphT/MORPH_LEN);
+      morphScale = Math.min(1, morphT/MORPH_LEN);
+      if (morphT >= MORPH_LEN){ morphScale=1; morph='none'; distAccum=0; scheduleMorph(); }
+      return;
+    }
+  }
+
+  // ---------- update ----------
+  function update(dt){
+    const d=DIFFS[stage];
+    elapsed += dt; stageTime += dt;
+    // climb: ramp within the tier, capped. endless: ramp forever off total time.
+    const rampT = endless ? elapsed : stageTime;
+    const cap   = endless ? 320 : 190;
+    speed = Math.min(d.base + rampT*d.ramp, d.base + cap);
+
+    // progress toward the tier clear is shown by the ring meter (see render);
+    // no more spoken milestone callouts.
+    checkTimeAchievements();
+
+    // tier cleared at 60s -> climb to the next, or win (climb mode only)
+    if (!endless && stageTime >= STAGE_LEN){
+      if (stage < DIFFS.length - 1) advanceStage();
+      else { endRun(true); return; }
+    }
+
+    // player movement
+    let dir=0;
+    if (keys.left) dir-=1; if (keys.right) dir+=1;
+    if (touchDir!==0 && dir===0) dir = touchDir;
+    player = (player + dir*PLAYER_ROT*dt) % TAU;
+    if (player<0) player+=TAU;
+
+    // world spin — occasionally flip direction / retarget speed
+    spinTimer -= dt;
+    if (spinTimer<=0){ spinTimer = 3.5 + Math.random()*4; spinDir *= (Math.random()<0.45?-1:1); }
+    const targetSpin = d.spin * spinDir * (0.7 + Math.min(elapsed/40,1)*0.7);
+    spinSpeed += (targetSpin - spinSpeed) * Math.min(dt*1.5,1);
+    world += spinSpeed * dt;
+
+    // colour drift
+    hue += hueDir * d.hueRate * dt;
+    if (hue>360) hue-=360; if (hue<0) hue+=360;
+
+    // beat source: live-analyse the MP3 if one is playing, else a fixed metronome
+    if (musicMode==='file' && soundOn && audioEl && !audioEl.paused){
+      analyseBeat();
+    } else {
+      beatClock += dt;
+      if (beatClock >= BEAT){ beatClock -= BEAT; triggerBeat(1); }
+    }
+    pulse *= Math.pow(0.001, dt);      // fast decay
+    beatFlash *= Math.pow(0.002, dt);
+    cursorGlow *= Math.pow(0.0006, dt);
+
+    updateMorph(dt);
+
+    // walls — advance, then detect clearances (for close-call feedback)
+    spawnStep(dt);
+    const lane = Math.floor(player / LANE) % SIDES;
+    for (const w of walls){
+      const prevInner = w.dist + WALL_TH;
+      w.dist -= speed*dt;
+      const nowInner = w.dist + WALL_TH;
+      // a wall's inner edge just crossed inside the orbit -> we survived it
+      if (!w.cleared && prevInner >= ORBIT && nowInner < ORBIT){
+        w.cleared = true;
+        registerCloseCall(w, lane);
+      }
+    }
+    walls = walls.filter(w => w.dist + WALL_TH > -20);
+
+    // collision — forgiving at gap edges, hard head-on
+    const local = player - Math.floor(player/LANE)*LANE;   // 0..LANE within the lane
+    const moving = keys.left || keys.right || touchDir!==0;
+    const grace = EDGE_GRACE + (moving ? MOVE_GRACE : 0);
+    for (const w of walls){
+      if (!w.sides[lane]) continue;
+      // radial band shrunk by RADIAL_GRACE so the front/back edge is forgiven
+      if (ORBIT >= w.dist + RADIAL_GRACE && ORBIT <= w.dist + WALL_TH - RADIAL_GRACE){
+        // near a lane edge whose neighbour is the OPEN gap -> a side graze, forgive it
+        if (local < grace && !w.sides[(lane+SIDES-1)%SIDES]) continue;          // grazing the left gap
+        if (local > LANE - grace && !w.sides[(lane+1)%SIDES]) continue;   // grazing the right gap
+        gameOver(); break;
+      }
+    }
+
+    shake *= Math.pow(0.0005, dt);
+    scheduleAudio();
+  }
+
+  // how close was the cursor to a blocked edge when a wall passed?
+  function registerCloseCall(w, lane){
+    if (!w.sides[lane]) {
+      const local = player - Math.floor(player/LANE)*LANE;   // 0..LANE within the gap lane
+      const rightBlocked = w.sides[(lane+1)%SIDES];
+      const leftBlocked  = w.sides[(lane+SIDES-1)%SIDES];
+      let edge = Infinity;
+      if (rightBlocked) edge = Math.min(edge, LANE - local);  // dist to right boundary
+      if (leftBlocked)  edge = Math.min(edge, local);         // dist to left boundary
+      const THRESH = 0.24;                                    // ~13.8°
+      if (edge < THRESH){
+        const intensity = 1 - edge/THRESH;                    // 0..1, 1 = razor thin
+        cursorGlow = Math.max(cursorGlow, 0.5 + intensity*0.5);
+        beatFlash  = Math.max(beatFlash, intensity*0.4);
+        tick(1500 + intensity*600, 0.06 + intensity*0.06);
+        if (intensity > 0.72) buzz(12);                       // subtle haptic on razor-thin passes
+        runCloseCalls++; if (runCloseCalls >= 5) unlock('close');
+      }
+    }
+  }
+
+  // ---------- colours ----------
+  function hsl(h,s,l,a){ return 'hsla('+((h%360+360)%360).toFixed(0)+','+s+'%,'+l+'%,'+(a==null?1:a)+')'; }
+
+  // ---------- render ----------
+  function polyPoint(ang, r){ return [Math.cos(ang)*r, Math.sin(ang)*r]; }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    // background flash — brightened by the beat and by close calls
+    const bgL = 5 + pulse*3 + beatFlash*6;
+    ctx.fillStyle = hsl(hue+180, 30, bgL);
+    ctx.fillRect(0,0,W,H);
+
+    ctx.save();
+    let ox=0, oy=0;
+    if (shake>0.02){ ox=(Math.random()*2-1)*shake*14; oy=(Math.random()*2-1)*shake*14; }
+    ctx.translate(cx+ox, cy+oy);
+    const beatScale = (1 + pulse*0.035) * morphScale;   // morphScale collapses/reblooms the field
+    ctx.scale(scale*beatScale, scale*beatScale);
+    ctx.rotate(world);
+
+    const R = 900; // big enough to cover screen in virtual units
+
+    // --- background pinwheel (6 alternating wedges) ---
+    for (let i=0;i<SIDES;i++){
+      const a0=i*LANE, a1=(i+1)*LANE;
+      const p0=polyPoint(a0,R), p1=polyPoint(a1,R);
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(p0[0],p0[1]); ctx.lineTo(p1[0],p1[1]); ctx.closePath();
+      const light = (i%2===0) ? 9 : 13;
+      ctx.fillStyle = hsl(hue, 42, light + pulse*2);
+      ctx.fill();
+    }
+
+    // --- walls ---
+    for (const w of walls){
+      const rIn = w.dist, rOut = w.dist + WALL_TH;
+      if (rOut < HEX_BASE*0.6) continue;
+      for (let i=0;i<SIDES;i++){
+        if (!w.sides[i]) continue;
+        const a0=i*LANE, a1=(i+1)*LANE;
+        const iA=polyPoint(a0,rIn), iB=polyPoint(a1,rIn);
+        const oA=polyPoint(a0,rOut), oB=polyPoint(a1,rOut);
+        ctx.beginPath(); ctx.moveTo(iA[0],iA[1]); ctx.lineTo(oA[0],oA[1]); ctx.lineTo(oB[0],oB[1]); ctx.lineTo(iB[0],iB[1]); ctx.closePath();
+        ctx.fillStyle = hsl(hue, 85, 62);
+        ctx.fill();
+      }
+    }
+
+    // --- core hexagon (pulsing) ---
+    const hexR = HEX_BASE * (1 + pulse*0.10);
+    ctx.beginPath();
+    for (let i=0;i<SIDES;i++){ const p=polyPoint(i*LANE,hexR); i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]); }
+    ctx.closePath();
+    ctx.fillStyle = hsl(hue+180, 30, 7);
+    ctx.fill();
+    ctx.lineWidth = 5; ctx.lineJoin='round';
+    ctx.strokeStyle = hsl(hue, 90, 66);
+    ctx.stroke();
+
+    // --- player cursor ---
+    if (state===ST.PLAY || state===ST.OVER){
+      // close-call ring — a quick pulse of light around the cursor
+      if (cursorGlow > 0.03){
+        const rr = ORBIT + 6 + cursorGlow*10;
+        ctx.beginPath(); ctx.arc(0,0, rr, player-0.5, player+0.5);
+        ctx.lineWidth = 3 + cursorGlow*7; ctx.lineCap='round';
+        ctx.strokeStyle = hsl(hue+40, 100, 75, 0.35 + cursorGlow*0.55);
+        ctx.shadowColor = hsl(hue+40,100,70); ctx.shadowBlur = 8 + cursorGlow*22;
+        ctx.stroke(); ctx.shadowBlur=0;
+      }
+      const pr = ORBIT - 4;
+      const w0 = 0.16; // half-width in radians
+      const tip = polyPoint(player, pr+13);
+      const b1 = polyPoint(player - w0, pr);
+      const b2 = polyPoint(player + w0, pr);
+      ctx.beginPath(); ctx.moveTo(tip[0],tip[1]); ctx.lineTo(b1[0],b1[1]); ctx.lineTo(b2[0],b2[1]); ctx.closePath();
+      ctx.fillStyle = state===ST.OVER ? hsl(hue,90,80) : '#ffffff';
+      ctx.shadowColor = cursorGlow>0.03 ? hsl(hue+40,100,72) : hsl(hue,90,70);
+      ctx.shadowBlur = 12 + cursorGlow*20;
+      ctx.fill(); ctx.shadowBlur=0;
+    }
+
+    ctx.restore();
+
+    // --- progress meter: a ring at the screen edge filling toward the tier clear ---
+    if (state===ST.PLAY && !endless){
+      const prog = Math.min(stageTime / STAGE_LEN, 1);
+      const rr = Math.min(W,H) * 0.455;
+      ctx.save(); ctx.translate(cx, cy); ctx.lineCap='round';
+      ctx.beginPath(); ctx.arc(0,0,rr,0,TAU);
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(200,215,255,0.08)'; ctx.stroke();
+      ctx.beginPath(); ctx.arc(0,0,rr, -Math.PI/2, -Math.PI/2 + prog*TAU);
+      ctx.lineWidth = 4; ctx.strokeStyle = hsl(hue, 90, 66);
+      ctx.shadowColor = hsl(hue, 90, 62); ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+  }
+
+  // ---------- main loop ----------
+  let last = 0;
+  function frame(t){
+    const now=t/1000; let dt = last? now-last : 0; last=now;
+    if (dt>0.05) dt=0.05; // clamp
+    if (state===ST.PLAY){
+      // sub-step for stability at high speed
+      const steps = dt>0.02 ? 2 : 1;
+      for (let i=0;i<steps;i++) update(dt/steps);
+    } else if (state===ST.OVER){
+      shake *= Math.pow(0.0005, dt);
+      // gentle idle spin so the field keeps living
+      world += 0.15*dt; pulse *= Math.pow(0.001, dt);
+    }
+    // HUD
+    if (state===ST.PLAY){
+      document.getElementById('hudTime').textContent = fmt(elapsed);
+    }
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- PWA: install prompt + offline service worker ----------
+  const installBtn = document.getElementById('installBtn');
+  const iosHint    = document.getElementById('iosHint');
+  let deferredPrompt = null;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();              // keep the prompt so we can trigger it from our button
+    deferredPrompt = e;
+    if (!isStandalone) installBtn.classList.remove('hidden');
+  });
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    installBtn.classList.add('hidden');
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch(e){}
+    deferredPrompt = null;
+  });
+  window.addEventListener('appinstalled', () => { installBtn.classList.add('hidden'); deferredPrompt=null; });
+
+  // iOS Safari has no beforeinstallprompt — show the Share → Add to Home Screen hint
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isSafari = isIOS && !/crios|fxios/i.test(navigator.userAgent);
+  if (isSafari && !isStandalone) iosHint.classList.remove('hidden');
+
+  // service worker + "new version available" flow
+  const updateChip = document.getElementById('updateChip');
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then(reg => {
+        // a worker already waiting from a previous visit
+        if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting);
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing; if (!nw) return;
+          nw.addEventListener('statechange', () => {
+            // installed + a controller already exists => this is an UPDATE, not first install
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdate(nw);
+          });
+        });
+      }).catch(()=>{});
+      // reload ONLY when the user opted into the update (not on first-visit claim)
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (userTriggeredUpdate) location.reload();
+      });
+    });
+  }
+  let userTriggeredUpdate = false;
+  function showUpdate(worker){
+    updateChip.classList.remove('hidden');
+    updateChip.onclick = () => {
+      updateChip.textContent = 'UPDATING…';
+      userTriggeredUpdate = true;
+      worker.postMessage('skipWaiting');   // SW activates -> controllerchange -> reload
+    };
+  }
+
+  // ---------- GameVolt portal integration (guarded; no-op standalone) ----------
+  if (window.GameVolt) {
+    GameVolt.init('vector-hexagon');
+    GameVolt.save.registerMigration({
+      keys: ['vhex-best-HEXAGON','vhex-best-HEXAGONER','vhex-best-HEXAGONEST',
+             'vhex-ebest-HEXAGON','vhex-ebest-HEXAGONER','vhex-ebest-HEXAGONEST',
+             'vhex-cleared-HEXAGON','vhex-cleared-HEXAGONER','vhex-cleared-HEXAGONEST',
+             'vhex-runs'].concat(ACH.map(function(a){ return 'vhex-ach-'+a.id; })),
+      merge: function(local, cloud){
+        cloud = cloud || {};
+        var bests={}, ebests={}, cleared={}, ach={};
+        DIFFS.forEach(function(d){
+          bests[d.key]  = Math.max(parseFloat(local['vhex-best-'+d.key]) ||0, (cloud.bests &&cloud.bests[d.key]) ||0);
+          ebests[d.key] = Math.max(parseFloat(local['vhex-ebest-'+d.key])||0, (cloud.ebests&&cloud.ebests[d.key])||0);
+          if (local['vhex-cleared-'+d.key] || (cloud.cleared && cloud.cleared[d.key])) cleared[d.key]=1;
+        });
+        ACH.forEach(function(a){ if (local['vhex-ach-'+a.id] || (cloud.ach && cloud.ach[a.id])) ach[a.id]=1; });
+        var runs = Math.max(parseInt(local['vhex-runs'])||0, cloud.runs||0);
+        return { bests:bests, ebests:ebests, cleared:cleared, ach:ach, runs:runs };
+      },
+      getScores: function(local){
+        var s=[];
+        DIFFS.forEach(function(d){
+          var cl=parseFloat(local['vhex-best-'+d.key])||0, en=parseFloat(local['vhex-ebest-'+d.key])||0;
+          if (cl) s.push({ score:Math.round(cl*100), mode:'climb-'+d.key });
+          if (en) s.push({ score:Math.round(en*100), mode:'endless-'+d.key });
+        });
+        s.sort(function(a,b){ return b.score-a.score; });
+        return s;
+      },
+      getAchievements: function(local){
+        return ACH.filter(function(a){ return local['vhex-ach-'+a.id]; }).map(function(a){ return { id:a.id }; });
+      }
+    });
+  }
+
+  buildDiffs();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
