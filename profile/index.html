@@ -813,6 +813,7 @@
                     <div class="footer-column">
                         <h4>Games</h4>
                         <a href="/play/?game=hoverdash">HoverDash</a>
+                        <a href="/play/?game=vector-hexagon">Vector Hexagon</a>
                         <a href="/play/?game=snake">Snake Neo</a>
                         <a href="/play/?game=breakout">Breakout</a>
                         <a href="/play/?game=solitaire">Solitaire</a>
@@ -847,6 +848,7 @@
         'use strict';
 
         var GAME_NAMES = {
+            'vector-hexagon': 'Vector Hexagon',
             breakout: 'Breakout',
             hoverdash: 'HoverDash',
             snake: 'Snake Neo',
@@ -868,6 +870,7 @@
         };
 
         var GAME_THUMBS = {
+            'vector-hexagon': '/vector-hexagon/og-image.png',
             breakout: '/assets/thumbnails/breakout.webp',
             hoverdash: '/hoverdash/og-image.png',
             snake: '/assets/thumbnails/snake.webp',
@@ -890,6 +893,19 @@
 
         // Full trophy catalog — all definitions from all games
         var TROPHY_CATALOG = {
+            'vector-hexagon': [
+                { id:'vector-hexagon-first',   icon:'👋', name:'First Contact',  desc:'Finish your first run',       tier:'bronze' },
+                { id:'vector-hexagon-s15',     icon:'🔥', name:'Warmed Up',      desc:'Survive 15 seconds',          tier:'bronze' },
+                { id:'vector-hexagon-s30',     icon:'🎯', name:'In the Zone',    desc:'Survive 30 seconds',          tier:'bronze' },
+                { id:'vector-hexagon-endless', icon:'♾️', name:'No Finish Line', desc:'Play an Endless run',         tier:'bronze' },
+                { id:'vector-hexagon-close',   icon:'😬', name:'Daredevil',      desc:'5 close calls in one run',    tier:'bronze' },
+                { id:'vector-hexagon-runs',    icon:'🎮', name:'Hooked',         desc:'Play 25 runs',                tier:'bronze' },
+                { id:'vector-hexagon-shapes',  icon:'🔷', name:'Shapeshifter',   desc:'See all 3 shapes in one run', tier:'silver' },
+                { id:'vector-hexagon-clear',   icon:'🛡️', name:'Survivor',       desc:'Clear a tier (survive 60s)',  tier:'silver' },
+                { id:'vector-hexagon-e60',     icon:'⏱️', name:'Endurance',      desc:'Survive 60s in Endless',      tier:'silver' },
+                { id:'vector-hexagon-climb',   icon:'🧗', name:'Climber',        desc:'Reach Hexagonest in one run', tier:'gold' },
+                { id:'vector-hexagon-win',     icon:'👑', name:'Apex',           desc:'Win — clear Hexagonest',      tier:'gold' }
+            ],
             breakout: [
                 { id:'breakout-first_blood', icon:'🧱', name:'First Blood', desc:'Destroy your first brick', tier:'bronze' },
                 { id:'breakout-level_1', icon:'⭐', name:'Level 1 Clear', desc:'Clear level 1', tier:'bronze' },

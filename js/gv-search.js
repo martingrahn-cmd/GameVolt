@@ -12,6 +12,7 @@
     { id: 'sudoku',        name: 'Sudoku',         cat: 'Puzzle', thumb: '/assets/thumbnails/sudoku.webp', tags: 'puzzle number logic brain' },
     { id: 'blockstorm',    name: 'BlockStorm',     cat: 'Puzzle', thumb: '/assets/thumbnails/blockstorm.webp', tags: 'puzzle tetris block' },
     { id: 'hoverdash',     name: 'HoverDash',      cat: 'Action', thumb: '/hoverdash/og-image.png', tags: 'action runner neon dodge' },
+    { id: 'vector-hexagon', name: 'Vector Hexagon', cat: 'Arcade', thumb: '/vector-hexagon/og-image.png', tags: 'arcade twitch survival super hexagon reflex dodge neon' },
     { id: 'axeluga',       name: 'Axeluga',        cat: 'Action', thumb: '/assets/thumbnails/axeluga.webp', tags: 'action shoot space' },
     { id: 'snake',         name: 'Snake Neo',      cat: 'Arcade', thumb: '/assets/thumbnails/snake.webp', tags: 'arcade classic snake' },
     { id: 'breakout',      name: 'Breakout',       cat: 'Arcade', thumb: '/assets/thumbnails/breakout.webp', tags: 'arcade brick breaker classic' },
