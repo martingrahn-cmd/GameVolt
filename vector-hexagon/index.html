@@ -175,14 +175,15 @@
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
   }
   .hstab.sel { background: #7df9ff; color: #07060f; border-color: transparent; box-shadow: 0 0 18px rgba(125,249,255,0.4); }
-  .hstab.mfocus { outline: 2px solid rgba(125,249,255,0.7); outline-offset: 3px; }
+  .hstab.mfocus { background: rgba(125,249,255,0.22); color:#eaf9ff; border-color: rgba(125,249,255,0.7); filter: drop-shadow(0 0 8px rgba(125,249,255,0.75)); }
+  .hstab.sel.mfocus { background:#7df9ff; color:#07060f; }
   .hsboard { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 12px; }
   .hsboardname { font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.12em; font-size: 14px; color: #fff; min-width: 230px; }
   .hsarrow {
     font-family: 'Orbitron'; font-weight: 800; font-size: 13px; cursor: pointer;
     background: #0c0a1a; color: #7df9ff; border: 1px solid #241a3a; padding: 7px 12px;
   }
-  .hsarrow.mfocus, .hsact.mfocus { outline: 2px solid rgba(125,249,255,0.7); outline-offset: 2px; }
+  .hsarrow.mfocus, .hsact.mfocus { background: rgba(125,249,255,0.22); color:#eaf9ff; border-color: rgba(125,249,255,0.7); filter: drop-shadow(0 0 8px rgba(125,249,255,0.75)); }
   .hsactions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
   .hsact {
     font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.06em; font-size: 10px; cursor: pointer;
@@ -215,8 +216,10 @@
 
   /* ---- keyboard focus on the start menu ---- */
   .menubtns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  /* clip-path clips outlines, so focus is shown with a fill glow + drop-shadow */
   .diffs.mfocus, .modes.mfocus { outline: 2px solid rgba(125,249,255,0.55); outline-offset: 6px; border-radius: 3px; }
-  .menurow.mfocus { outline: 2px solid rgba(125,249,255,0.7); outline-offset: 3px; }
+  .install.mfocus { background: rgba(125,249,255,0.2); color:#eaf9ff; border-color: rgba(125,249,255,0.75); filter: drop-shadow(0 0 9px rgba(125,249,255,0.8)); }
+  .go.mfocus { filter: drop-shadow(0 0 16px rgba(125,249,255,0.95)); transform: scale(1.05); }
 
   /* ---- game-over card ---- */
   #over h1 { font-size: clamp(26px, 8vw, 60px); }
@@ -390,7 +393,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // ── VERSION ─────────────────────────────────────────────────────────────
   // Bump this AND the CACHE string in sw.js together on every deploy, so the
   // start screen shows the running version and installed apps update.
-  const VERSION = 'v2.0';
+  const VERSION = 'v2.1';
   const verEl = document.getElementById('version');
   if (verEl) verEl.textContent = VERSION;
   // ────────────────────────────────────────────────────────────────────────
