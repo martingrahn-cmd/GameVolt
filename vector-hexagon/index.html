@@ -146,20 +146,44 @@
   #toast .t-lbl { font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.18em; font-size: 9px; color: #7df9ff; }
   #toast .t-name { font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.08em; font-size: 15px; color: #fff; }
 
-  /* ---- trophies screen ---- */
-  .trophead { font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.18em; color: #7df9ff; font-size: 15px; margin-bottom: 20px; }
-  .trolist { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 420px; max-height: 58vh; overflow-y: auto; padding: 2px; }
-  .tro {
-    display: flex; align-items: center; gap: 12px; text-align: left;
-    background: #0a0714; border: 1px solid #1c1730; padding: 10px 13px;
+  /* ---- trophies screen (tier-grouped card grid) ---- */
+  .trophead { font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.18em; color: #7df9ff; font-size: 15px; margin-bottom: 18px; }
+  .trolist { width: 100%; max-width: 660px; max-height: 62vh; overflow-y: auto; padding: 2px 4px; }
+  .trophy-tier-head {
+    font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.16em; font-size: 12px;
+    text-align: left; margin: 14px 2px 8px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .trophy-tier-head:first-child { margin-top: 0; }
+  .trophy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .trophy-card {
+    display: flex; flex-direction: column; gap: 4px; text-align: left; padding: 10px;
+    min-height: 82px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); opacity: 0.5;
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
   }
-  .tro.got { border-color: #2c6b78; background: #0c1420; }
-  .tro .ico { font-size: 21px; filter: grayscale(1) opacity(0.4); }
-  .tro.got .ico { filter: none; }
-  .tro .txt .n { font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.08em; font-size: 12px; color: #6a7196; }
-  .tro.got .txt .n { color: #fff; }
-  .tro .txt .d { font-family: 'Rajdhani'; font-weight: 600; font-size: 12px; color: #545c82; }
+  .trophy-card.on { opacity: 1; border-color: rgba(125,249,255,0.3); background: rgba(125,249,255,0.05); }
+  .trophy-card .tc-icon { font-size: 20px; }
+  .trophy-card .tc-name { font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.05em; font-size: 11px; color: #aab2d8; }
+  .trophy-card.on .tc-name { color: #fff; }
+  .trophy-card .tc-desc { font-family: 'Rajdhani'; font-weight: 600; font-size: 11.5px; color: #6a7196; line-height: 1.25; }
+  @media (max-width: 560px){ .trophy-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ---- high scores screen ---- */
+  .hslist { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 7px; max-height: 58vh; overflow-y: auto; padding: 2px; }
+  .hs-row {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; text-align: left;
+    background: #0a0714; border: 1px solid #1c1730; padding: 11px 14px;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+  }
+  .hs-row .hs-board { font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.08em; font-size: 12px; color: #c8d0ee; }
+  .hs-row .hs-board small { display:block; font-family:'Rajdhani'; font-weight:600; letter-spacing:0.14em; font-size:10px; color:#5b6390; margin-top:2px; }
+  .hs-row .hs-best { font-family: 'Orbitron'; font-weight: 800; font-size: 15px; color: #7df9ff; }
+  .hs-row .hs-rank { font-family: 'Rajdhani'; font-weight: 700; font-size: 12px; color: #ffd166; min-width: 54px; text-align: right; }
+  .hs-row.empty .hs-best { color: #3f4568; }
+
+  /* ---- keyboard focus on the start menu ---- */
+  .menubtns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .diffs.mfocus, .modes.mfocus { outline: 2px solid rgba(125,249,255,0.55); outline-offset: 6px; border-radius: 3px; }
+  .menurow.mfocus { outline: 2px solid rgba(125,249,255,0.7); outline-offset: 3px; }
 
   /* ---- game-over card ---- */
   #over h1 { font-size: clamp(26px, 8vw, 60px); }
@@ -233,12 +257,15 @@
       Steer with <b>← →</b> or <b>A / D</b> · on mobile, <b>tap &amp; hold</b> the left or right half.<br>
       Slip your cursor into the gap before the wall reaches the core.
     </div>
-    <button class="go" id="goBtn">BEGIN</button>
+    <button class="go menurow" id="goBtn" data-row="go">BEGIN</button>
+    <div class="menubtns">
+      <button class="install menurow" id="hiscoresBtn" data-row="hiscores">📊 HIGH SCORES</button>
+      <button class="install menurow" id="trophyBtn" data-row="trophies">🏆 TROPHIES</button>
+    </div>
     <button class="install hidden" id="installBtn">⬇ INSTALL APP</button>
     <div class="hint installhint hidden" id="iosHint" style="margin-top:14px">
       Install: tap <b>Share</b>, then <b>Add to Home Screen</b>
     </div>
-    <button class="install" id="trophyBtn" style="margin-top:10px">🏆 TROPHIES</button>
     <button class="hidden" id="updateChip">◆ NEW VERSION — TAP TO UPDATE</button>
     <div class="ver" id="version">v—</div>
   </div>
@@ -251,6 +278,14 @@
     <button class="go" id="trophyBack" style="margin-top:20px">BACK</button>
   </div>
 
+  <!-- HIGH SCORES -->
+  <div class="overlay hidden" id="hiscores">
+    <h1>HIGH <span class="a">SCORES</span></h1>
+    <div class="trophead" id="hsWorld">WORLD RANK —</div>
+    <div class="hslist" id="hsList"></div>
+    <button class="go" id="hsBack" style="margin-top:18px">BACK</button>
+  </div>
+
   <!-- GAME OVER -->
   <div class="overlay hidden" id="over">
     <h1 id="overTitle">GAME <span class="a">OVER</span></h1>
@@ -258,8 +293,9 @@
     <div class="newbest hidden" id="newbest">◆ NEW BEST ◆</div>
     <div class="stat"><span class="big" id="finalTime">0.00</span>SECONDS SURVIVED</div>
     <div class="stat" id="overBest">BEST 0.00</div>
+    <div class="stat hidden" id="overRank"></div>
     <button class="go" id="retryBtn">RETRY</button>
-    <div class="hint" style="margin-top:16px">press <b>SPACE</b> / tap to retry · <b>ESC</b> for menu</div>
+    <div class="hint" style="margin-top:16px">press <b>SPACE</b> / tap to retry · <b>BACKSPACE</b> for menu</div>
   </div>
 
   <!-- HUD -->
@@ -294,7 +330,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // ── VERSION ─────────────────────────────────────────────────────────────
   // Bump this AND the CACHE string in sw.js together on every deploy, so the
   // start screen shows the running version and installed apps update.
-  const VERSION = 'v1.8';
+  const VERSION = 'v1.9';
   const verEl = document.getElementById('version');
   if (verEl) verEl.textContent = VERSION;
   // ────────────────────────────────────────────────────────────────────────
@@ -757,20 +793,41 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // ---------- input ----------
   const keys = { left:false, right:false };
   let touchDir = 0;
+  // Full keyboard control. Back is BACKSPACE (Escape is hijacked by fullscreen /
+  // the portal iframe, so it's only accepted as a bonus, never depended on).
+  const isBack = k => k==='backspace' || k==='escape';
   window.addEventListener('keydown', e => {
     if (e.repeat) return;
-    const k=e.key.toLowerCase();
-    if (k==='arrowleft'||k==='a') keys.left=true;
-    else if (k==='arrowright'||k==='d') keys.right=true;
-    else if (k===' '||k==='enter'){
-      if (trophiesOpen()) closeTrophies();
-      else if (state===ST.MENU) startGame();
-      else if (state===ST.OVER) startGame();
-      e.preventDefault();
-    } else if (k==='escape'||k==='backspace'){
-      if (trophiesOpen()) closeTrophies();
-      else if (state!==ST.MENU) toMenu();
-    } else if (k==='m'){ soundBtn.click(); }
+    const k = e.key.toLowerCase();
+    // sub-screens (trophies / high scores)
+    if (trophiesOpen() || hiscoresOpen()){
+      const listId = trophiesOpen() ? 'trophyList' : 'hsList';
+      if (isBack(k) || k==='enter' || k===' '){ trophiesOpen()?closeTrophies():closeHiscores(); e.preventDefault(); }
+      else if (k==='arrowdown'||k==='s'||k==='arrowup'||k==='w'){ const el=document.getElementById(listId); if(el) el.scrollBy(0,(k[5]==='d'||k==='s')?70:-70); e.preventDefault(); }
+      else if (k==='m'){ soundBtn.click(); }
+      return;
+    }
+    if (state===ST.MENU){
+      if (k==='arrowup'||k==='w') { menuMove(-1); e.preventDefault(); }
+      else if (k==='arrowdown'||k==='s') { menuMove(1); e.preventDefault(); }
+      else if (k==='arrowleft'||k==='a') { menuAdjust(-1); e.preventDefault(); }
+      else if (k==='arrowright'||k==='d') { menuAdjust(1); e.preventDefault(); }
+      else if (k==='enter'||k===' ') { menuActivate(); e.preventDefault(); }
+      else if (k==='m'){ soundBtn.click(); }
+      return;
+    }
+    if (state===ST.PLAY){
+      if (k==='arrowleft'||k==='a') keys.left=true;
+      else if (k==='arrowright'||k==='d') keys.right=true;
+      else if (isBack(k)){ toMenu(); e.preventDefault(); }
+      else if (k==='m'){ soundBtn.click(); }
+      return;
+    }
+    if (state===ST.OVER){
+      if (k===' '||k==='enter'){ startGame(); e.preventDefault(); }
+      else if (isBack(k)){ toMenu(); e.preventDefault(); }
+      else if (k==='m'){ soundBtn.click(); }
+    }
   });
   window.addEventListener('keyup', e => {
     const k=e.key.toLowerCase();
@@ -828,18 +885,28 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   modeClimb.addEventListener('click', () => setMode(false));
   modeEndless.addEventListener('click', () => setMode(true));
 
-  // trophies screen
+  // trophies screen — tier-grouped card grid
   const trophiesEl = document.getElementById('trophies');
   const trophiesOpen = () => !trophiesEl.classList.contains('hidden');
   const TIER_ICON = { bronze:'🥉', silver:'🥈', gold:'🥇', platinum:'💎' };
+  const TIER_META = { bronze:{label:'BRONZE',color:'#cd7f32'}, silver:{label:'SILVER',color:'#c0c0c0'},
+                      gold:{label:'GOLD',color:'#ffd23f'}, platinum:{label:'PLATINUM',color:'#7df9ff'} };
+  const TIER_ORDER = ['bronze','silver','gold','platinum'];
   function buildTrophies(){
-    document.getElementById('trophyCount').textContent = achCount() + ' / ' + ACH.length;
-    document.getElementById('trophyList').innerHTML = ACH.map(a => {
-      const got = hasAch(a.id);
-      const ico = got ? (TIER_ICON[a.tier] || '🏆') : '🔒';
-      return '<div class="tro'+(got?' got':'')+' t-'+(a.tier||'bronze')+'"><div class="ico">'+ico+'</div>'+
-             '<div class="txt"><div class="n">'+a.name+'</div><div class="d">'+a.desc+'</div></div></div>';
-    }).join('');
+    document.getElementById('trophyCount').textContent = achCount() + ' / ' + ACH.length + ' UNLOCKED';
+    let html = '';
+    TIER_ORDER.forEach(tier => {
+      const items = ACH.filter(a => a.tier===tier); if (!items.length) return;
+      const got = items.filter(a=>hasAch(a.id)).length; const m = TIER_META[tier];
+      html += '<div class="trophy-tier-head" style="color:'+m.color+'">'+m.label+' · '+got+'/'+items.length+'</div>';
+      html += '<div class="trophy-grid">' + items.map(a => {
+        const on = hasAch(a.id);
+        return '<div class="trophy-card'+(on?' on':'')+'">'+
+          '<div class="tc-icon">'+(on ? (TIER_ICON[a.tier]||'🏆') : '🔒')+'</div>'+
+          '<div class="tc-name">'+a.name+'</div><div class="tc-desc">'+a.desc+'</div></div>';
+      }).join('') + '</div>';
+    });
+    document.getElementById('trophyList').innerHTML = html;
   }
   function openTrophies(){
     initAudio(); blip(700); buildTrophies();
@@ -852,6 +919,82 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   }
   document.getElementById('trophyBtn').addEventListener('click', openTrophies);
   document.getElementById('trophyBack').addEventListener('click', closeTrophies);
+
+  // high scores screen — personal bests per board + world rank (SDK)
+  const hiscoresEl = document.getElementById('hiscores');
+  const hiscoresOpen = () => !hiscoresEl.classList.contains('hidden');
+  function buildHiscores(){
+    const boards = [];
+    DIFFS.forEach((d,i)=> boards.push({ mode:'CLIMB', modeKey:'climb', tier:d.key, name:d.name, best:getBest(i) }));
+    DIFFS.forEach((d,i)=> boards.push({ mode:'ENDLESS', modeKey:'endless', tier:d.key, name:d.name, best:getEBest(i) }));
+    document.getElementById('hsList').innerHTML = boards.map(bd =>
+      '<div class="hs-row'+(bd.best>0?'':' empty')+'" data-board="'+bd.modeKey+'-'+bd.tier+'">'+
+        '<div class="hs-board">'+bd.mode+'<small>'+bd.name+'</small></div>'+
+        '<div class="hs-best">'+(bd.best>0?fmt(bd.best)+'s':'—')+'</div>'+
+        '<div class="hs-rank" data-rank>'+(bd.best>0?'…':'')+'</div>'+
+      '</div>').join('');
+    fetchWorldRanks(boards);
+  }
+  // pull global rank per board from the GameVolt/Supabase leaderboard (guarded)
+  function fetchWorldRanks(boards){
+    const wEl = document.getElementById('hsWorld');
+    if (!(window.GameVolt && GameVolt.leaderboard && GameVolt.leaderboard.getRank)){
+      wEl.textContent = 'WORLD RANK — sign in on GameVolt';
+      hiscoresEl.querySelectorAll('[data-rank]').forEach(c => c.textContent = '');
+      return;
+    }
+    wEl.textContent = 'WORLD RANK';
+    let best = Infinity;
+    boards.forEach(bd => {
+      if (!(bd.best>0)) return;
+      const cell = hiscoresEl.querySelector('.hs-row[data-board="'+bd.modeKey+'-'+bd.tier+'"] [data-rank]');
+      GameVolt.leaderboard.getRank({ mode: bd.modeKey+'-'+bd.tier }).then(r => {
+        if (!hiscoresOpen()) return;
+        if (r && r.rank){ if (cell) cell.textContent = '#'+r.rank; if (r.rank<best){ best=r.rank; wEl.textContent='WORLD RANK #'+best; } }
+        else if (cell) cell.textContent = '—';
+      }).catch(()=>{ if (cell) cell.textContent=''; });
+    });
+  }
+  function openHiscores(){
+    initAudio(); blip(660); buildHiscores();
+    startEl.classList.add('hidden'); startEl.classList.remove('on');
+    hiscoresEl.classList.remove('hidden'); hiscoresEl.classList.add('on');
+  }
+  function closeHiscores(){
+    hiscoresEl.classList.add('hidden'); hiscoresEl.classList.remove('on');
+    toMenu();
+  }
+  document.getElementById('hiscoresBtn').addEventListener('click', openHiscores);
+  document.getElementById('hsBack').addEventListener('click', closeHiscores);
+
+  // ---- start-menu keyboard focus (full keyboard control; no Escape) ----
+  const modesEl = document.getElementById('modes');
+  const hiscoresBtn = document.getElementById('hiscoresBtn');
+  let menuFocus = 2;   // default on BEGIN
+  function menuRows(){
+    return [
+      { el: diffsEl, type:'diff' },
+      { el: modesEl, type:'mode' },
+      { el: goBtn, type:'act', fn: () => startGame() },
+      { el: hiscoresBtn, type:'act', fn: openHiscores },
+      { el: document.getElementById('trophyBtn'), type:'act', fn: openTrophies },
+    ];
+  }
+  function applyMenuFocus(){
+    const rows = menuRows();
+    if (menuFocus >= rows.length) menuFocus = rows.length-1;
+    rows.forEach((r,i)=> r.el && r.el.classList.toggle('mfocus', i===menuFocus));
+  }
+  function menuMove(d){ const n=menuRows().length; menuFocus=(menuFocus+d+n)%n; blip(500); applyMenuFocus(); }
+  function menuAdjust(d){
+    const r = menuRows()[menuFocus];
+    if (r.type==='diff'){ diffIdx=(diffIdx+d+DIFFS.length)%DIFFS.length; blip(560+diffIdx*80); buildDiffs(); applyMenuFocus(); }
+    else if (r.type==='mode'){ setMode(!endless); applyMenuFocus(); }
+  }
+  function menuActivate(){
+    const r = menuRows()[menuFocus];
+    if (r.type==='act') r.fn(); else startGame();   // diff/mode row: Enter starts
+  }
 
   // music source: load a local MP3 (e.g. a Suno track) to play the game to
   const musicBtn  = document.getElementById('musicbtn');
@@ -878,7 +1021,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     startEl.classList.remove('hidden'); startEl.classList.add('on');
     overEl.classList.add('hidden'); overEl.classList.remove('on');
     hudEl.classList.add('hidden');
-    buildDiffs();
+    buildDiffs(); applyMenuFocus();
   }
 
   function setHudLevel(){ document.getElementById('hudLevel').textContent = DIFFS[stage].name; }
@@ -946,6 +1089,14 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     document.getElementById('finalTime').textContent = fmt(elapsed);
     document.getElementById('overBest').textContent = 'BEST ' + fmt(modeBest(diffIdx));
     document.getElementById('newbest').classList.toggle('hidden', !isNew || victory);
+    // world rank for this board (GameVolt/Supabase, guarded)
+    const rankEl = document.getElementById('overRank'); rankEl.classList.add('hidden');
+    if (window.GameVolt && GameVolt.leaderboard && GameVolt.leaderboard.getRank){
+      const board = (endless?'endless':'climb')+'-'+DIFFS[diffIdx].key;
+      GameVolt.leaderboard.getRank({ mode: board }).then(r => {
+        if (state===ST.OVER && r && r.rank){ rankEl.textContent = 'WORLD RANK #'+r.rank; rankEl.classList.remove('hidden'); }
+      }).catch(()=>{});
+    }
     // title + clear banner
     document.getElementById('overTitle').innerHTML = victory ? 'YOU <span class="a">WIN</span>' : 'GAME <span class="a">OVER</span>';
     const cb = document.getElementById('clearBanner');
@@ -1334,7 +1485,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     });
   }
 
-  buildDiffs();
+  buildDiffs(); applyMenuFocus();
   requestAnimationFrame(frame);
 })();
 </script>
