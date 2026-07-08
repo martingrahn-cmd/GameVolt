@@ -506,16 +506,48 @@
     getRank: function(opts) {
       if (!currentUser || !sb) return Promise.resolve(null);
       opts = opts || {};
-      return leaderboard.get({ mode: opts.mode || 'default', limit: 1000 })
-        .then(function(rows) {
-          for (var i = 0; i < rows.length; i++) {
-            if (rows[i].user_id === currentUser.id) {
-              return { rank: rows[i].rank, score: rows[i].score };
-            }
-          }
+      // prefer the exact server-side rank; fall back to scanning the top 1000
+      return leaderboard.myRank(opts).then(function(r) {
+        if (r) return r;
+        return leaderboard.get({ mode: opts.mode || 'default', limit: 1000 }).then(function(rows) {
+          for (var i = 0; i < rows.length; i++)
+            if (rows[i].user_id === currentUser.id) return { rank: rows[i].rank, score: rows[i].score };
           return null;
         });
-    }
+      });
+    },
+
+    // ---- windowed leaderboard (needs the get_leaderboard_* SQL functions) ----
+    // A ranked window at an arbitrary offset — for "around me" and "jump to #N".
+    page: function(opts) {
+      if (!sb) return Promise.resolve([]);
+      opts = opts || {};
+      return sb.rpc('get_leaderboard_page', {
+        p_game_id: currentGameId, p_mode: opts.mode || 'default',
+        p_offset: Math.max(0, opts.offset || 0), p_limit: opts.limit || 20
+      }).then(function(res) { return res.data || []; }).catch(function() { return []; });
+    },
+    // Total number of players on a board.
+    count: function(opts) {
+      if (!sb) return Promise.resolve(0);
+      opts = opts || {};
+      return sb.rpc('get_leaderboard_count', {
+        p_game_id: currentGameId, p_mode: opts.mode || 'default'
+      }).then(function(res) { return (res.data == null ? 0 : res.data) | 0; }).catch(function() { return 0; });
+    },
+    // The signed-in player's own rank + best score (exact, server-side).
+    myRank: function(opts) {
+      if (!currentUser || !sb) return Promise.resolve(null);
+      opts = opts || {};
+      return sb.rpc('get_user_rank', {
+        p_game_id: currentGameId, p_mode: opts.mode || 'default', p_user_id: currentUser.id
+      }).then(function(res) {
+        var r = res.data && res.data[0];
+        return r ? { rank: Number(r.rank), score: r.score } : null;
+      }).catch(function() { return null; });
+    },
+    // The signed-in player's id (so a game can highlight its own row).
+    userId: function() { return currentUser ? currentUser.id : null; }
   };
 
   // --------------------------------------------------------

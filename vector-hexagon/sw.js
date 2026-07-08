@@ -2,7 +2,7 @@
    Cache-first for the app shell so it launches and plays with no network.
    Bump CACHE when any cached file changes to force an update. */
 /* Keep this in sync with VERSION in index.html. */
-const CACHE = 'vhex-v1.9';
+const CACHE = 'vhex-v2.0';
 const ASSETS = [
   './',
   './index.html',
