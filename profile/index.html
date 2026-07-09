@@ -1561,7 +1561,7 @@
 
         GameVolt.init('profile');
 
-        GameVolt.auth.onStateChange(function(user) {
+        function handleAuth(user) {
             // Header auth state
             var loginBtn = document.getElementById('gv-login-btn');
             var userInfo = document.getElementById('gv-user-info');
@@ -1577,7 +1577,15 @@
             }
 
             loadProfile(user);
+        }
+
+        // onStateChange never fires for guests (the SDK only notifies on an
+        // actual sign-in/out), so resolve the initial state via onReady too —
+        // otherwise logged-out visitors hang on the loading spinner forever.
+        GameVolt.onReady(function() {
+            handleAuth(GameVolt.auth.getUser());
         });
+        GameVolt.auth.onStateChange(handleAuth);
 
         function loadProfile(user) {
             var loadingEl = document.getElementById('profile-loading');
