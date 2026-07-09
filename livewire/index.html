@@ -857,5 +857,252 @@ checkTrophies(true);   // backfill från tidigare framsteg, utan toast-flod
 
 load(); requestAnimationFrame(loop);
 </script>
+
+<!-- SEO content & footer — visible standalone, hidden inside the /play/ iframe -->
+<div id="seo-content" style="display:none;">
+<style>
+  /* Standalone mode: let the page scroll so the SEO content sits below the game.
+     The game column (header/stage/rail/status/controls) already fills roughly one
+     viewport because the stage is sized with 100dvh, so we only need to unlock height. */
+  body.gv-standalone { height:auto !important; min-height:100dvh; overflow-y:auto !important; }
+  body.gv-standalone #seo-content { display:block !important; }
+  #seo-content {
+    width:100vw; margin:20px calc(50% - 50vw) calc(-1 * max(18px, env(safe-area-inset-bottom)));
+    background:#060a12; color:#a9b3c6; position:relative; z-index:20;
+    border-top:1px solid rgba(255,255,255,.06);
+    font-family:"Space Grotesk",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    user-select:text; -webkit-user-select:text; text-transform:none; letter-spacing:normal;
+  }
+  #seo-content a { color:#67e0c8; }
+  #seo-content a:hover { color:#8ceedb; }
+  .lw-breadcrumb { max-width:1200px; margin:0 auto; padding:16px 24px; font-size:0.85rem; color:#5c6880; }
+  .lw-breadcrumb a { color:#8894ab; text-decoration:none; }
+  .lw-breadcrumb a:hover { color:#67e0c8; }
+  .lw-breadcrumb .sep { color:#5c6880; margin:0 0.4rem; }
+  .lw-breadcrumb .here { color:#eef3fb; }
+  .lw-info { max-width:800px; margin:2rem auto 0; padding:0 24px 2rem; line-height:1.75; font-size:0.97rem; }
+  .lw-info h1 { color:#eef3fb; font-size:1.7rem; margin:0 0 0.5rem; font-weight:700; letter-spacing:normal; text-transform:none; white-space:normal; }
+  .lw-info h2 { color:#dde4f0; font-size:1.2rem; margin-top:1.8rem; margin-bottom:0.5rem; font-weight:600; }
+  .lw-info p { margin-bottom:1rem; }
+  .lw-info ul { margin:0 0 1rem 1.25rem; padding:0; }
+  .lw-info li { margin-bottom:0.4rem; }
+  .lw-faq { max-width:800px; margin:2.5rem auto 0; padding:0 24px; }
+  .lw-faq h2 { color:#eef3fb; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; }
+  .lw-faq details { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; }
+  .lw-faq summary { color:#dde4f0; font-weight:600; cursor:pointer; font-size:0.97rem; }
+  .lw-faq details[open] summary { color:#67e0c8; }
+  .lw-faq details > p { color:#a9b3c6; margin:0.6rem 0 0; line-height:1.7; font-size:0.92rem; }
+  .lw-related { max-width:1200px; margin:2.5rem auto 0; padding:0 24px; }
+  .lw-related h2 { color:#eef3fb; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; }
+  .lw-related-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+  .lw-card { text-decoration:none; background:rgba(255,255,255,0.04); border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); display:block; transition:border-color .2s, transform .2s; }
+  .lw-card:hover { border-color:rgba(103,224,200,0.4); transform:translateY(-2px); }
+  .lw-card img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+  .lw-card-body { padding:12px; }
+  .lw-card-title { color:#eef3fb; font-size:0.95rem; font-weight:600; }
+  .lw-card-cat { color:#76839b; font-size:0.8rem; margin-top:4px; }
+  .lw-footer { background:#060a12; border-top:1px solid rgba(255,255,255,0.06); padding:48px 24px 24px; margin-top:3rem; }
+  .lw-footer-inner { max-width:1200px; margin:0 auto; }
+  .lw-footer-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:32px; padding-bottom:32px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .lw-footer-brand { max-width:300px; }
+  .lw-footer-logo { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .lw-footer-logo-icon { width:40px; height:40px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:10px; display:flex; align-items:center; justify-content:center; }
+  .lw-footer-name { font-size:1.5rem; font-weight:700; color:#fff; }
+  .lw-footer-cols { display:flex; gap:48px; flex-wrap:wrap; }
+  .lw-footer-cols h4 { font-size:1rem; font-weight:700; margin:0 0 16px; color:#eef3fb; }
+  .lw-footer-cols a { display:block; color:#76839b; text-decoration:none; padding:4px 0; font-size:0.9rem; }
+  .lw-footer-cols a:hover { color:#67e0c8; }
+  .lw-copy { padding-top:24px; text-align:center; color:#76839b; font-size:0.85rem; }
+</style>
+
+<nav class="lw-breadcrumb" aria-label="Breadcrumb">
+  <a href="/">Home</a>
+  <span class="sep">›</span>
+  <a href="/puzzle-games/">Puzzle Games</a>
+  <span class="sep">›</span>
+  <span class="here">Livewire</span>
+</nav>
+
+<section class="lw-info">
+  <h1>Livewire — Connect the Dots Without Crossing</h1>
+  <p>
+    Play Livewire free in your browser — a relaxing line-drawing puzzle where you connect every pair
+    of same-colored dots with glowing wires. There's just one rule: wires can't cross each other or
+    brush against another dot. Draw your lines cleanly and the board lights up. With 44 hand-tuned
+    campaign levels, a date-seeded daily puzzle, an endless mode and 31 trophies to unlock, it's an
+    easy game to pick up and a hard one to put down. No download, no signup — it runs instantly on
+    desktop and mobile.
+  </p>
+
+  <h2>How to Play Livewire</h2>
+  <p>
+    Every board scatters pairs of colored dots inside a circular field. Press on a dot and drag to
+    its matching partner to lay a wire. The wire follows your finger or mouse exactly, so the puzzle
+    is all about routing: curve around obstacles, thread through gaps and leave room for the pairs
+    still to come.
+  </p>
+  <ul>
+    <li><strong>Drag</strong> from one dot to its same-colored partner to connect a pair.</li>
+    <li><strong>Wires can't cross</strong> each other — a crossing is flagged with a red X until you fix it.</li>
+    <li><strong>Wires can't touch other dots</strong> either, so plan your route carefully.</li>
+    <li><strong>Tap a wire</strong> to remove it, use <strong>Undo</strong> to step back, or <strong>Clear</strong> to restart the board.</li>
+    <li>Stuck? The <strong>Hint</strong> button highlights a pair (or shows a ghost solution on hand-made levels) — but it costs a star.</li>
+  </ul>
+
+  <h2>Campaign, Daily Puzzle & Endless Mode</h2>
+  <p>
+    The campaign spans four difficulty packs — Easy, Normal, Hard and Expert — mixing hand-crafted
+    levels with seeded generated boards that get tanglier as you go. Each level is timed and scored
+    with up to three stars: solve it without a hint and without ever leaving a crossing on the board
+    to earn a flawless three, and chase your personal best time on every level.
+  </p>
+  <p>
+    The <strong>daily challenge</strong> is generated from the date, so everyone in the world gets the
+    same puzzle each day. Complete it to build your daily streak — 3-day and 7-day streaks unlock
+    trophies. When you've cleared the campaign, <strong>endless mode</strong> serves up freshly
+    generated boards that grow from three pairs toward six, tracking your best run.
+  </p>
+
+  <h2>31 Trophies to Unlock</h2>
+  <p>
+    Livewire ships with 31 trophies across four tiers — 15 bronze, 10 silver, 5 gold and one platinum.
+    They range from connecting your first pair to solving a level in under 15 seconds, earning three
+    stars on every campaign level, or untangling a messy board back to clean. Unlock the other 30 and
+    the platinum "Live Wire" trophy is yours. Progress is saved in your browser, and if you're signed
+    in on GameVolt your trophies sync to your account.
+  </p>
+
+  <h2>Made for Touch</h2>
+  <p>
+    Livewire is a natural fit for phones and tablets: drawing wires with a fingertip feels great, the
+    board scales to any screen, and subtle haptic feedback confirms every connection on supported
+    devices. It plays just as well with a mouse or trackpad on desktop.
+  </p>
+
+  <h2>Free, Instant, No Download</h2>
+  <p>
+    Livewire is part of <a href="/">GameVolt</a> — a curated collection of original free browser
+    games. No installs and no account required: open the page and start drawing. Your levels, stars,
+    best times and trophies are stored locally, so you can pick up right where you left off.
+  </p>
+</section>
+
+<section class="lw-faq">
+  <h2>Livewire FAQ</h2>
+  <details>
+    <summary>Is Livewire free to play?</summary>
+    <p>Yes — completely free in your browser, with no download and no signup. Progress is saved locally on your device, and signing in to GameVolt keeps your trophies synced.</p>
+  </details>
+  <details>
+    <summary>What are the rules of Livewire?</summary>
+    <p>Connect every pair of same-colored dots by dragging a wire between them. Wires may not cross each other and may not touch any other dot. When all pairs are connected and the board is conflict-free, the level is complete.</p>
+  </details>
+  <details>
+    <summary>How do I earn three stars on a level?</summary>
+    <p>Finish the level without using a hint and without ever having a crossing or dot-touch on the board. Using a hint costs one star, and letting a conflict appear costs another — careful routing beats fast scribbling.</p>
+  </details>
+  <details>
+    <summary>Is the daily puzzle the same for everyone?</summary>
+    <p>Yes. The daily challenge is generated from a date-based seed, so every player worldwide gets the identical board each day. Complete it daily to build your streak and unlock the streak trophies.</p>
+  </details>
+  <details>
+    <summary>What happens if my wires cross?</summary>
+    <p>The crossing is marked with a red X and the offending dots pulse red. You can't finish the level until it's resolved — tap a wire to remove it, redraw a better route, or use Undo to step back.</p>
+  </details>
+  <details>
+    <summary>Does Livewire work on mobile?</summary>
+    <p>Yes — it's designed for touch. Drag wires with your finger, and enjoy haptic feedback on devices that support it. The board automatically scales to fit your screen.</p>
+  </details>
+</section>
+
+<section class="lw-related">
+  <h2>You Might Also Like</h2>
+  <div class="lw-related-grid">
+    <a href="/one-stroke/" class="lw-card">
+      <img src="/assets/thumbnails/one-stroke.webp" alt="Play One Stroke online free" loading="lazy">
+      <div class="lw-card-body">
+        <div class="lw-card-title">One Stroke</div>
+        <div class="lw-card-cat">Path Puzzle</div>
+      </div>
+    </a>
+    <a href="/chain-reaction/" class="lw-card">
+      <img src="/assets/thumbnails/chain-reaction.webp" alt="Play Chain Reaction online free" loading="lazy">
+      <div class="lw-card-body">
+        <div class="lw-card-title">Chain Reaction</div>
+        <div class="lw-card-cat">2048-Style Puzzle</div>
+      </div>
+    </a>
+    <a href="/minesweeper/" class="lw-card">
+      <img src="/assets/thumbnails/minesweeper.webp" alt="Play Minesweeper online free" loading="lazy">
+      <div class="lw-card-body">
+        <div class="lw-card-title">Minesweeper</div>
+        <div class="lw-card-cat">Logic Puzzle</div>
+      </div>
+    </a>
+    <a href="/golden-glyphs/" class="lw-card">
+      <img src="/assets/thumbnails/golden-glyphs.webp" alt="Play Golden Glyphs online free" loading="lazy">
+      <div class="lw-card-body">
+        <div class="lw-card-title">Golden Glyphs</div>
+        <div class="lw-card-cat">Block Puzzle</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<footer class="lw-footer">
+  <div class="lw-footer-inner">
+    <div class="lw-footer-top">
+      <div class="lw-footer-brand">
+        <div class="lw-footer-logo">
+          <div class="lw-footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+          <span class="lw-footer-name">GameVolt</span>
+        </div>
+        <p style="color:#76839b;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+      </div>
+      <div class="lw-footer-cols">
+        <div>
+          <h4>Games</h4>
+          <a href="/sudoku/">Sudoku</a>
+          <a href="/one-stroke/">One Stroke</a>
+          <a href="/golden-glyphs/">Golden Glyphs</a>
+          <a href="/blockstorm/">BlockStorm</a>
+          <a href="/manga-match3/">Manga Match</a>
+          <a href="/hoverdash/">HoverDash</a>
+          <a href="/snake/">Snake Neo</a>
+          <a href="/breakout/">Breakout</a>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <a href="/arcade-games/">Arcade</a>
+          <a href="/action-games/">Action</a>
+          <a href="/puzzle-games/">Puzzle</a>
+          <a href="/board-games/">Board Games</a>
+        </div>
+        <div>
+          <h4>Info</h4>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/privacy/">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="lw-copy">© 2026 GameVolt. All rights reserved.</div>
+  </div>
+</footer>
+</div>
+<script>
+// Reveal SEO content only when loaded standalone — hide everything in iframe (e.g. /play/?game=livewire)
+if (window.parent === window) {
+  document.body.classList.add('gv-standalone');
+  document.getElementById('seo-content').style.display = 'block';
+}
+</script>
+
+<noscript>
+  <div style="padding:2rem;color:#a9b3c6;text-align:center">
+    <h1>Livewire Online</h1>
+    <p>Play Livewire free in your browser — connect every pair of same-colored dots without letting the wires cross. JavaScript is required.</p>
+  </div>
+</noscript>
 </body>
 </html>
