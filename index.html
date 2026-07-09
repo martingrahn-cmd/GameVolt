@@ -1127,6 +1127,14 @@
             object-fit: cover;
             display: block;
         }
+        /* Vector Hexagon featured art — drawn in the app-icon style */
+        .ec-thumb .vhex-art {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
 
         .ec-thumb .preview-video {
             position: absolute;
@@ -1795,6 +1803,50 @@
                 <h2 class="section-title">Editor's Choice</h2>
             </div>
             <div class="ec-grid">
+                <!-- Vector Hexagon (newest) — hero art in the app-icon style -->
+                <a href="/play/?game=vector-hexagon" class="ec-card">
+                    <div class="ec-thumb">
+                        <svg class="vhex-art" viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                            <defs>
+                                <radialGradient id="vhexBg" cx="50%" cy="50%" r="72%">
+                                    <stop offset="0%" stop-color="#101a2c"/>
+                                    <stop offset="100%" stop-color="#04050b"/>
+                                </radialGradient>
+                                <filter id="vhexGlow" x="-40%" y="-40%" width="180%" height="180%">
+                                    <feGaussianBlur stdDeviation="3.2" result="b"/>
+                                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                </filter>
+                            </defs>
+                            <rect width="320" height="180" fill="url(#vhexBg)"/>
+                            <!-- faint depth wedges radiating from the centre, like the icon -->
+                            <g opacity="0.5">
+                                <polygon points="160,92 -40,-40 160,-40" fill="#132139"/>
+                                <polygon points="160,92 360,220 160,220" fill="#132139"/>
+                                <polygon points="160,92 -40,220 -40,-40" fill="#0b1322"/>
+                                <polygon points="160,92 360,-40 360,220" fill="#0b1322"/>
+                            </g>
+                            <!-- dark inner hexagon -->
+                            <polygon points="160,58 189.4,75 189.4,109 160,126 130.6,109 130.6,75" fill="#04050a"/>
+                            <!-- glowing cyan hexagon ring -->
+                            <polygon points="160,28 215.4,60 215.4,124 160,156 104.6,124 104.6,60"
+                                     fill="none" stroke="#6fe6f7" stroke-width="7" stroke-linejoin="round" filter="url(#vhexGlow)"/>
+                            <!-- player cursor -->
+                            <polygon points="160,7 171,27 149,27" fill="#ffffff" filter="url(#vhexGlow)"/>
+                        </svg>
+                        <div class="ec-play-overlay">
+                            <div class="ec-play-btn">
+                                <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+                            </div>
+                        </div>
+                        <span class="ec-star">★</span>
+                    </div>
+                    <div class="ec-info">
+                        <div class="ec-name">Vector Hexagon</div>
+                        <div class="ec-desc">Super Hexagon-style twitch survival — shifting shapes, signature walls, tier climb & 31 trophies</div>
+                        <span class="ec-cta">▶ Play Instantly</span>
+                    </div>
+                </a>
+
                 <!-- Minesweeper (newest) -->
                 <a href="/play/?game=minesweeper" class="ec-card">
                     <div class="ec-thumb">
