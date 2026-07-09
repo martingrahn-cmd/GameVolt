@@ -2740,5 +2740,253 @@
     <script src="js/menu.js"></script>
     <script src="js/background.js"></script>
     <script src="js/main.js"></script>
+
+<!-- SEO content & footer — visible standalone, hidden inside the /play/ iframe -->
+<div id="seo-content" style="display:none;">
+<style>
+  /* When the page runs standalone, make the (normally fullscreen, overflow:hidden)
+     document scrollable: the game keeps the first viewport, SEO content scrolls below. */
+  html.gv-standalone, body.gv-standalone { height:auto !important; min-height:100vh; overflow:auto !important; }
+  body.gv-standalone #gameContainer { height:100vh !important; height:100dvh !important; }
+  body.gv-standalone #seo-content { display:block !important; }
+  #seo-content { background:#0a0e1a; color:#b0b0b0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; position:relative; z-index:20; }
+  #seo-content a { color:#a78bfa; }
+  #seo-content a:hover { color:#7c5cfc; }
+  .as-breadcrumb { max-width:1200px; margin:0 auto; padding:16px 24px; font-size:0.85rem; color:#626580; }
+  .as-breadcrumb a { color:#a0a4c0; text-decoration:none; }
+  .as-breadcrumb a:hover { color:#a78bfa; }
+  .as-breadcrumb .sep { color:#626580; margin:0 0.4rem; }
+  .as-breadcrumb .here { color:#f0f0ff; }
+  .as-info { max-width:800px; margin:2rem auto 0; padding:0 24px 2rem; line-height:1.75; font-size:0.97rem; }
+  .as-info h1 { color:#f0f0ff; font-size:1.7rem; margin-bottom:0.5rem; font-weight:700; }
+  .as-info h2 { color:#e0e0e0; font-size:1.2rem; margin-top:1.8rem; margin-bottom:0.5rem; font-weight:600; }
+  .as-info p { margin-bottom:1rem; }
+  .as-info ul { margin:0 0 1rem 1.25rem; padding:0; }
+  .as-info li { margin-bottom:0.4rem; }
+  .as-related { max-width:1200px; margin:2.5rem auto 0; padding:0 24px; }
+  .as-related h2 { color:#f0f0ff; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; }
+  .as-related-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+  .as-card { text-decoration:none; background:rgba(255,255,255,0.04); border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); display:block; transition:border-color .2s, transform .2s; }
+  .as-card:hover { border-color:rgba(124,92,252,0.4); transform:translateY(-2px); }
+  .as-card img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+  .as-card-body { padding:12px; }
+  .as-card-title { color:#f0f0ff; font-size:0.95rem; font-weight:600; }
+  .as-card-cat { color:#888; font-size:0.8rem; margin-top:4px; }
+  .as-faq { max-width:800px; margin:2.5rem auto 0; padding:0 24px; }
+  .as-faq h2 { color:#f0f0ff; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; }
+  .as-faq details { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; }
+  .as-faq summary { color:#e0e0e0; font-weight:600; cursor:pointer; font-size:0.97rem; }
+  .as-faq details[open] summary { color:#a78bfa; }
+  .as-faq details > p { color:#b0b0b0; margin-top:0.6rem; line-height:1.7; font-size:0.92rem; }
+  .as-footer { background:#0a0e1a; border-top:1px solid rgba(255,255,255,0.06); padding:48px 24px 24px; margin-top:3rem; }
+  .as-footer-inner { max-width:1200px; margin:0 auto; }
+  .as-footer-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:32px; padding-bottom:32px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .as-footer-brand { max-width:300px; }
+  .as-footer-logo { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .as-footer-logo-icon { width:40px; height:40px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:10px; display:flex; align-items:center; justify-content:center; }
+  .as-footer-name { font-size:1.5rem; font-weight:700; color:#fff; }
+  .as-footer-cols { display:flex; gap:48px; flex-wrap:wrap; }
+  .as-footer-cols h4 { font-size:1rem; font-weight:700; margin:0 0 16px; color:#f0f0ff; }
+  .as-footer-cols a { display:block; color:#888; text-decoration:none; padding:4px 0; font-size:0.9rem; }
+  .as-footer-cols a:hover { color:#a78bfa; }
+  .as-copy { padding-top:24px; text-align:center; color:#888; font-size:0.85rem; }
+</style>
+
+<nav class="as-breadcrumb" aria-label="Breadcrumb">
+  <a href="/">Home</a>
+  <span class="sep">›</span>
+  <a href="/action-games/">Action Games</a>
+  <span class="sep">›</span>
+  <span class="here">Asteroid Storm</span>
+</nav>
+
+<section class="as-info">
+  <h1>Asteroid Storm — Free Online Space Shooter</h1>
+  <p>
+    Play Asteroid Storm free in your browser. The classic asteroids arcade formula gets a modern
+    real-time 3D overhaul: blast asteroids into fragments, dogfight hostile UFOs, take down giant
+    boss asteroids, and unlock <strong>9 unique ships</strong> in the hangar. With 30 challenge
+    missions, local two-player co-op, 31 trophies and global leaderboards, there is always another
+    reason to climb back into the cockpit. No download, no signup — just thrust, aim and fire.
+  </p>
+
+  <h2>How to Play</h2>
+  <p>
+    Rotate your ship, thrust through the void, and shoot everything that drifts your way. Big
+    asteroids split into smaller, faster fragments, so pick your shots carefully. When things get
+    crowded, hit teleport to blink out of danger — it recharges over time. Chain kills to build your
+    combo multiplier and keep your score soaring.
+  </p>
+  <ul>
+    <li><strong>Arrow keys</strong> rotate, thrust and brake; <strong>/</strong> or <strong>.</strong> to shoot; <strong>Right Shift</strong> to teleport.</li>
+    <li>All keys are rebindable in Settings, and gamepads are fully supported.</li>
+    <li><strong>M</strong> toggles sound, <strong>F</strong> toggles fullscreen.</li>
+    <li>Grab power-ups for spread shots, railguns, homing missiles, shields and screen-clearing bombs.</li>
+  </ul>
+
+  <h2>9 Ships to Unlock</h2>
+  <p>
+    Visit the hangar and earn your way from the trusty Raptor through the X-Wing, Corsair, Phantom,
+    Interceptor, Heavy Bomber, Javelin and Stealth, all the way to the mighty Titan. Each ship is
+    rendered in 3D and handles differently, so finding your favourite is half the fun — and
+    unlocking the whole fleet earns a trophy of its own.
+  </p>
+
+  <h2>30 Challenge Missions & Boss Battles</h2>
+  <p>
+    Beyond the endless arcade mode, 30 hand-crafted challenge missions test specific skills: pure
+    survival in Endurance, precision in Sharpshooter and Glass Sniper, crowd control in Swarm and
+    Hell Swarm, and multi-stage boss fights against colossal Titan asteroids that split as you chip
+    them down — culminating in Twin Titans and the aptly named Impossible Run.
+  </p>
+
+  <h2>Local Co-op Mode</h2>
+  <p>
+    Share the keyboard (or plug in two gamepads) and defend the sector together. Player one flies
+    with the arrow keys while player two uses WASD with Space to shoot — each pilot gets their own
+    lives, shield and teleport charge on screen.
+  </p>
+
+  <h2>Trophies, Highscores & Leaderboards</h2>
+  <p>
+    Earn 31 trophies across four tiers — 15 bronze, 10 silver, 5 gold and 1 platinum — from your
+    first asteroid kill to a 25× combo, a 100,000-point run and clearing all 30 missions. Local
+    top-10 highscore tables track every mode, and signing in to GameVolt syncs your trophies and
+    submits your best scores to the global leaderboard.
+  </p>
+
+  <h2>Play on Mobile</h2>
+  <p>
+    Asteroid Storm works great on phones and tablets in landscape mode. A virtual joystick on the
+    left half of the screen steers and thrusts, tapping the right half fires, and a dedicated button
+    handles teleport. The full campaign, challenges, hangar and trophies are all available on touch.
+  </p>
+
+  <h2>Free, Instant, No Download</h2>
+  <p>
+    Asteroid Storm is part of <a href="/">GameVolt</a> — a curated collection of original free
+    browser games. No installs and no account required to play. Progress is saved locally; sign in
+    to sync trophies and scores across devices.
+  </p>
+</section>
+
+<section class="as-faq">
+  <h2>Asteroid Storm FAQ</h2>
+  <details>
+    <summary>Is Asteroid Storm free to play?</summary>
+    <p>Yes. 100% free in your browser, no download or signup needed. Sign in to GameVolt only if you want cloud-synced trophies and a spot on the global leaderboard.</p>
+  </details>
+  <details>
+    <summary>How do I unlock new ships?</summary>
+    <p>Open the Hangar from the main menu. There are 9 ships to unlock, from the starting Raptor to the Titan, and each one flies differently. Unlocking the entire fleet awards the "all ships" trophy.</p>
+  </details>
+  <details>
+    <summary>Can I play Asteroid Storm with a friend?</summary>
+    <p>Yes — pick Co-op from the main menu for local two-player on one keyboard (arrows vs. WASD) or with two gamepads. Co-op is desktop-only, since touch screens only support one pilot.</p>
+  </details>
+  <details>
+    <summary>How does teleport work?</summary>
+    <p>Teleport instantly blinks your ship to safety when you are cornered — press Right Shift (player one) or Left Shift (player two). It has a recharge bar shown in the HUD, so save it for emergencies.</p>
+  </details>
+  <details>
+    <summary>Are there boss fights?</summary>
+    <p>Yes. Giant boss asteroids take many hits and break apart in stages as you wear them down. Several challenge missions are built around them, including Titan I–III and Twin Titans.</p>
+  </details>
+  <details>
+    <summary>Does it work on phones and tablets?</summary>
+    <p>Yes. Rotate to landscape and you get a virtual joystick for steering, tap-to-shoot on the right side of the screen, and a teleport button. All modes except co-op are available on mobile.</p>
+  </details>
+</section>
+
+<section class="as-related">
+  <h2>You Might Also Like</h2>
+  <div class="as-related-grid">
+    <a href="/axeluga/" class="as-card">
+      <img src="/assets/thumbnails/axeluga.webp" alt="Play Axeluga online free">
+      <div class="as-card-body">
+        <div class="as-card-title">Axeluga</div>
+        <div class="as-card-cat">Space Shooter</div>
+      </div>
+    </a>
+    <a href="/gravitywell/" class="as-card">
+      <img src="/assets/thumbnails/gravitywell.webp" alt="Play Gravity Well online free">
+      <div class="as-card-body">
+        <div class="as-card-title">Gravity Well</div>
+        <div class="as-card-cat">Arcade</div>
+      </div>
+    </a>
+    <a href="/hoverdash/" class="as-card">
+      <img src="/hoverdash/og-image.png" alt="Play HoverDash online free">
+      <div class="as-card-body">
+        <div class="as-card-title">HoverDash</div>
+        <div class="as-card-cat">Action</div>
+      </div>
+    </a>
+    <a href="/breakout/" class="as-card">
+      <img src="/assets/thumbnails/breakout.webp" alt="Play Breakout online free">
+      <div class="as-card-body">
+        <div class="as-card-title">Breakout</div>
+        <div class="as-card-cat">Arcade</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<footer class="as-footer">
+  <div class="as-footer-inner">
+    <div class="as-footer-top">
+      <div class="as-footer-brand">
+        <div class="as-footer-logo">
+          <div class="as-footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+          <span class="as-footer-name">GameVolt</span>
+        </div>
+        <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+      </div>
+      <div class="as-footer-cols">
+        <div>
+          <h4>Games</h4>
+          <a href="/axeluga/">Axeluga</a>
+          <a href="/gravitywell/">Gravity Well</a>
+          <a href="/hoverdash/">HoverDash</a>
+          <a href="/breakout/">Breakout</a>
+          <a href="/snake/">Snake Neo</a>
+          <a href="/minesweeper/">Minesweeper</a>
+          <a href="/sudoku/">Sudoku</a>
+          <a href="/blockstorm/">BlockStorm</a>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <a href="/arcade-games/">Arcade</a>
+          <a href="/action-games/">Action</a>
+          <a href="/puzzle-games/">Puzzle</a>
+          <a href="/board-games/">Board Games</a>
+        </div>
+        <div>
+          <h4>Info</h4>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/privacy/">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="as-copy">© 2026 GameVolt. All rights reserved.</div>
+  </div>
+</footer>
+</div>
+<script>
+// Reveal SEO content only when loaded standalone — hide everything in iframe (e.g. /play/?game=asteroid-storm)
+if (window.parent === window) {
+  document.documentElement.classList.add('gv-standalone');
+  document.body.classList.add('gv-standalone');
+  document.getElementById('seo-content').style.display = 'block';
+}
+</script>
+
+<noscript>
+  <div style="padding:2rem;color:#c8cce0;text-align:center">
+    <h1>Asteroid Storm Online</h1>
+    <p>Blast asteroids, fight UFOs and unlock 9 ships in this free browser space shooter. JavaScript is required.</p>
+  </div>
+</noscript>
 </body>
 </html>
