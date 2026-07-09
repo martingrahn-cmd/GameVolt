@@ -407,6 +407,7 @@ let draw0=null,ghost=null,ghostT=null,winning=false,prevBad=0,hintHi=null;
 let muted=store.get("fb_mute",false);
 const doneByDiff={easy:new Set(store.get("fb_done_easy",[])),normal:new Set(store.get("fb_done_normal",[])),hard:new Set(store.get("fb_done_hard",[])),expert:new Set(store.get("fb_done_expert",[]))};
 let endlessBest=store.get("fb_ebest",0);
+let endlessSolved=store.get("fb_esolved",0);
 let T=0,parts=[],pulses=[],flash=null,transScale=1,trans=null;
 const DOT_R=3.4,HIT=8,TOUCH=2.6,MINSTEP=0.5,FIELD_R=42,FIT_R=37,BOARD_DY=0;
 const clampDisc=p=>{const dx=p.x-50,dy=p.y-50,r=Math.hypot(dx,dy);if(r<=FIELD_R)return p;const k=FIELD_R/r;return{x:50+dx*k,y:50+dy*k};};
@@ -619,9 +620,9 @@ function checkWin(){ if(winning||!used.every(Boolean)||conflicts().bP.size>0)ret
     if(stars>dailyStars){ dailyStars=stars; store.set("fb_daily_stars",stars); }
     if(!dailyBest||ms<dailyBest){ dailyBest=ms; store.set("fb_daily_best",ms); } }
   else{ endlessBest=Math.max(endlessBest,dots.length/2); store.set("fb_ebest",endlessBest);
-    const esolved=store.get("fb_esolved",0)+1; store.set("fb_esolved",esolved);
-    if(window.GameVolt){ try{ GameVolt.leaderboard.submit(esolved,{mode:"endless"}); }catch(e){} }
-    gvPost("high_score",{score:esolved,mode:"endless"}); }
+    endlessSolved++; store.set("fb_esolved",endlessSolved);
+    if(window.GameVolt){ try{ GameVolt.leaderboard.submit(endlessSolved,{mode:"endless"}); }catch(e){} }
+    gvPost("high_score",{score:endlessSolved,mode:"endless"}); }
   sndWin(); haptic([0,30,40,30,40,70]); flash={text:pick(["Nice!","Clean!","Great!","Sweet!","Done!"]),life:46,max:46};
   for(const d of dots)for(let i=0;i<7;i++){const a=Math.random()*Math.PI*2,s=.4+Math.random()*1.3;
     parts.push({x:d.x,y:d.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-.4,r:.6+Math.random()*1.1,life:30+Math.random()*26,max:56,c:d.c});}
@@ -708,7 +709,7 @@ const TROPHIES=[
   {id:'use_undo',    name:'Rewind',            desc:'Undo a move',                      icon:'↩️',  tier:'bronze'},
   {id:'easy_done',   name:'Easy Rider',        desc:'Finish every Easy level',          icon:'🟢',  tier:'bronze'},
   {id:'daily_first', name:'Daily Dose',        desc:'Complete a Daily puzzle',          icon:'📅',  tier:'bronze'},
-  {id:'endless_5',   name:'Endless Start',     desc:'Reach 5 pairs in Endless',         icon:'♾️',  tier:'bronze'},
+  {id:'endless_5',   name:'Endless Start',     desc:'Solve 5 boards in Endless',        icon:'♾️',  tier:'bronze'},
   {id:'pairs_50',    name:'Fifty Links',       desc:'Connect 50 pairs in total',        icon:'🧮',  tier:'bronze'},
   {id:'speed_30',    name:'Quick Hands',       desc:'Solve a level in under 30s',       icon:'⏱️',  tier:'bronze'},
   {id:'normal_reach',name:'Step Up',           desc:'Complete a Normal level',          icon:'🔼',  tier:'bronze'},
@@ -720,7 +721,7 @@ const TROPHIES=[
   {id:'speed_15',      name:'Lightning Fingers',desc:'Solve a level in under 15s',      icon:'⚡',  tier:'silver'},
   {id:'no_hint_10',    name:'Self-Reliant',     desc:'Clear 10 levels without a hint',  icon:'🧠',  tier:'silver'},
   {id:'daily_streak_3',name:'Regular',          desc:'Reach a 3-day Daily streak',      icon:'📆',  tier:'silver'},
-  {id:'endless_10',    name:'Endless Adept',    desc:'Reach 10 pairs in Endless',       icon:'♾️',  tier:'silver'},
+  {id:'endless_10',    name:'Endless Adept',    desc:'Solve 10 boards in Endless',      icon:'♾️',  tier:'silver'},
   {id:'pairs_500',     name:'Master Linker',    desc:'Connect 500 pairs in total',      icon:'🧵',  tier:'silver'},
   {id:'hard_done',     name:'Untangled',        desc:'Finish every Hard level',         icon:'🎚️', tier:'silver'},
   {id:'all_3star_easy',name:'Spotless: Easy',   desc:'3 stars on every Easy level',     icon:'✨',  tier:'silver'},
@@ -729,7 +730,7 @@ const TROPHIES=[
   {id:'expert_done',   name:'Grid Master',     desc:'Finish every Expert level',        icon:'👑',  tier:'gold'},
   {id:'all_3star_all', name:'Immaculate',      desc:'3 stars on every campaign level',  icon:'💯',  tier:'gold'},
   {id:'daily_streak_7',name:'Devoted',         desc:'Reach a 7-day Daily streak',       icon:'🗓️', tier:'gold'},
-  {id:'endless_20',    name:'Endless Legend',  desc:'Reach 20 pairs in Endless',        icon:'🏆',  tier:'gold'},
+  {id:'endless_20',    name:'Endless Legend',  desc:'Solve 20 boards in Endless',       icon:'🏆',  tier:'gold'},
   {id:'campaign_done', name:'Circuit Complete',desc:'Finish the whole campaign',        icon:'🎖️', tier:'gold'},
   // Platina (1) — låses upp när de övriga 30 är klara
   {id:'platinum',      name:'Live Wire',       desc:'Unlock all 30 trophies',           icon:'🌟',  tier:'platinum'}
@@ -787,7 +788,7 @@ function checkTrophies(silent){
   if(st('undoUsed'))U('use_undo');
   if(_diffDone('easy'))U('easy_done');
   if(dailyDone)U('daily_first');
-  if(endlessBest>=5)U('endless_5');
+  if(endlessSolved>=5||endlessBest>=5)U('endless_5');   // endlessBest grandfathers the old "5 pairs" criterion
   if(st('pairsConnected')>=50)U('pairs_50');
   if(_bestUnder(30000))U('speed_30');
   if(doneByDiff.normal.size>=1)U('normal_reach');
@@ -799,7 +800,7 @@ function checkTrophies(silent){
   if(_bestUnder(15000))U('speed_15');
   if(st('noHintClears')>=10)U('no_hint_10');
   if(dailyStreak>=3)U('daily_streak_3');
-  if(endlessBest>=10)U('endless_10');
+  if(endlessSolved>=10)U('endless_10');
   if(st('pairsConnected')>=500)U('pairs_500');
   if(_diffDone('hard'))U('hard_done');
   if(_allStars('easy'))U('all_3star_easy');
@@ -808,7 +809,7 @@ function checkTrophies(silent){
   if(_diffDone('expert'))U('expert_done');
   if(DIFFS.every(_allStars))U('all_3star_all');
   if(dailyStreak>=7)U('daily_streak_7');
-  if(endlessBest>=20)U('endless_20');
+  if(endlessSolved>=20)U('endless_20');
   if(DIFFS.every(_diffDone))U('campaign_done');
   // Platina
   if(TROPHIES.every(t=>t.id==='platinum'||Achievements.isUnlocked(t.id)))U('platinum');
