@@ -1741,5 +1741,274 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   requestAnimationFrame(frame);
 })();
 </script>
+
+<!-- SEO content & footer — visible standalone, hidden inside the /play/ iframe -->
+<div id="seo-content" style="display:none;">
+<style>
+  /* Standalone mode: the page becomes scrollable while the game (fixed #stage +
+     fixed overlays) keeps filling the first viewport. #seo-content is pushed one
+     viewport down with a solid background and a higher z-index, so it slides
+     over the fixed canvas/overlays as you scroll. */
+  html.gv-standalone, body.gv-standalone {
+    height: auto !important; overflow: auto !important; touch-action: auto !important;
+  }
+  body.gv-standalone { min-height: 100vh; }
+  body.gv-standalone #seo-content { display: block !important; margin-top: 100vh; }
+  #seo-content {
+    position: relative; z-index: 10; background: #07060f; color: #aab2d8;
+    font-family: 'Rajdhani', system-ui, sans-serif; font-size: 17px;
+    user-select: text; -webkit-user-select: text;
+    border-top: 1px solid rgba(125,249,255,0.18);
+  }
+  #seo-content a { color: #7df9ff; }
+  #seo-content a:hover { color: #b8fbff; }
+  .vh-breadcrumb { max-width: 1200px; margin: 0 auto; padding: 16px 24px; font-size: 0.85rem; color: #5b6390; }
+  .vh-breadcrumb a { color: #8a93b8; text-decoration: none; }
+  .vh-breadcrumb a:hover { color: #7df9ff; }
+  .vh-breadcrumb .sep { color: #5b6390; margin: 0 0.4rem; }
+  .vh-breadcrumb .here { color: #eaf2ff; }
+  .vh-info { max-width: 800px; margin: 2rem auto 0; padding: 0 24px 2rem; line-height: 1.75; font-size: 0.97rem; }
+  .vh-info h1 { font-family: 'Orbitron', sans-serif; color: #eaf2ff; font-size: 1.7rem; margin: 0 0 0.5rem; font-weight: 700; letter-spacing: 0.02em; line-height: 1.25; text-shadow: none; }
+  .vh-info h2 { font-family: 'Orbitron', sans-serif; color: #dfe6ff; font-size: 1.15rem; margin: 1.8rem 0 0.5rem; font-weight: 600; letter-spacing: 0.02em; }
+  .vh-info p { margin: 0 0 1rem; }
+  .vh-info ul { margin: 0 0 1rem 1.25rem; padding: 0; }
+  .vh-info li { margin-bottom: 0.4rem; }
+  .vh-info strong { color: #dfe6ff; }
+  .vh-faq { max-width: 800px; margin: 2.5rem auto 0; padding: 0 24px; }
+  .vh-faq h2 { font-family: 'Orbitron', sans-serif; color: #eaf2ff; font-size: 1.3rem; font-weight: 700; margin-bottom: 1.2rem; }
+  .vh-faq details { background: rgba(255,255,255,0.03); border: 1px solid rgba(125,249,255,0.12); border-radius: 10px; padding: 0.9rem 1.1rem; margin-bottom: 0.6rem; }
+  .vh-faq summary { color: #dfe6ff; font-weight: 600; cursor: pointer; font-size: 0.97rem; }
+  .vh-faq details[open] summary { color: #7df9ff; }
+  .vh-faq details > p { color: #aab2d8; margin: 0.6rem 0 0; line-height: 1.7; font-size: 0.92rem; }
+  .vh-related { max-width: 1200px; margin: 2.5rem auto 0; padding: 0 24px; }
+  .vh-related h2 { font-family: 'Orbitron', sans-serif; color: #eaf2ff; font-size: 1.3rem; font-weight: 700; margin-bottom: 1.2rem; }
+  .vh-related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+  .vh-card { text-decoration: none; background: rgba(255,255,255,0.04); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); display: block; transition: border-color .2s, transform .2s; }
+  .vh-card:hover { border-color: rgba(125,249,255,0.4); transform: translateY(-2px); }
+  .vh-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+  .vh-card-body { padding: 12px; }
+  .vh-card-title { color: #eaf2ff; font-size: 0.95rem; font-weight: 600; }
+  .vh-card-cat { color: #6a7196; font-size: 0.8rem; margin-top: 4px; }
+  .vh-footer { background: #07060f; border-top: 1px solid rgba(255,255,255,0.06); padding: 48px 24px 24px; margin-top: 3rem; }
+  .vh-footer-inner { max-width: 1200px; margin: 0 auto; }
+  .vh-footer-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 32px; padding-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .vh-footer-brand { max-width: 300px; }
+  .vh-footer-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .vh-footer-logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg,#6366f1,#8b5cf6); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .vh-footer-name { font-size: 1.5rem; font-weight: 700; color: #fff; }
+  .vh-footer-cols { display: flex; gap: 48px; flex-wrap: wrap; }
+  .vh-footer-cols h4 { font-size: 1rem; font-weight: 700; margin: 0 0 16px; color: #eaf2ff; }
+  .vh-footer-cols a { display: block; color: #8a93b8; text-decoration: none; padding: 4px 0; font-size: 0.9rem; }
+  .vh-footer-cols a:hover { color: #7df9ff; }
+  .vh-copy { padding-top: 24px; text-align: center; color: #6a7196; font-size: 0.85rem; }
+</style>
+
+<nav class="vh-breadcrumb" aria-label="Breadcrumb">
+  <a href="/">Home</a>
+  <span class="sep">›</span>
+  <a href="/arcade-games/">Arcade Games</a>
+  <span class="sep">›</span>
+  <span class="here">Vector Hexagon</span>
+</nav>
+
+<section class="vh-info">
+  <h1>Vector Hexagon — Free Twitch Survival Game</h1>
+  <p>
+    Play Vector Hexagon free in your browser — a twitch survival game inspired by the legendary
+    <strong>Super Hexagon</strong>. You steer a tiny cursor around a pulsing core while walls of
+    neon geometry collapse inward from every direction. Each wall leaves one gap. Slip into it
+    before the wall reaches the center, or the run is over. Runs are measured in seconds, deaths
+    take milliseconds, and "one more try" turns into an hour. No download, no signup — it loads
+    instantly in any browser.
+  </p>
+
+  <h2>How to Play Vector Hexagon</h2>
+  <p>
+    The controls are one axis: rotate left or right. Everything else is reading the walls.
+  </p>
+  <ul>
+    <li><strong>Keyboard:</strong> steer with the <strong>arrow keys</strong> or <strong>A / D</strong>. Press <strong>Space</strong> to retry instantly, <strong>Backspace</strong> for the menu, and <strong>M</strong> to mute.</li>
+    <li><strong>Touch:</strong> tap and hold the <strong>left or right half</strong> of the screen to rotate that way.</li>
+    <li><strong>Mouse:</strong> hold the left or right side of the play field — handy on trackpads.</li>
+  </ul>
+  <p>
+    A fullscreen button is available where the browser supports it, and your mute preference is
+    remembered between visits. Watch out mid-run: the arena itself morphs between a square, a
+    pentagon and the full hexagon, changing how many lanes you have to think about.
+  </p>
+
+  <h2>Climb the Tiers: Hexagon, Hexagoner, Hexagonest</h2>
+  <p>
+    In <strong>Climb mode</strong> you face three difficulty tiers — <strong>Hexagon</strong>,
+    <strong>Hexagoner</strong> and <strong>Hexagonest</strong> — each faster, tighter and more
+    twisted than the last. Survive 60 seconds and the tier is cleared; the game announces the next
+    tier and pushes you straight into it. A progress ring around the edge of the screen shows how
+    close you are to the clear. Start on Hexagon for the full climb, or jump straight to a harder
+    tier if you have the nerve. Clear Hexagonest and you have beaten the game — few players ever do.
+  </p>
+
+  <h2>Endless Mode & Global Leaderboards</h2>
+  <p>
+    <strong>Endless mode</strong> removes the finish line: there is no 60-second clear, and the
+    speed keeps ramping forever. It is the pure survival test, with its own separate best times.
+    The high-scores screen has two tabs — <strong>Local</strong>, your personal bests on this
+    device, and <strong>Global</strong>, a worldwide leaderboard with a board for every mode and
+    tier combination. Jump to the top, page through the rankings, or hit "around me" to see
+    exactly where your best run lands against the rest of the world.
+  </p>
+
+  <h2>Signature Wall Patterns</h2>
+  <p>
+    Beyond the procedural chaos, Vector Hexagon mixes in hand-authored set-pieces whose names
+    flash on screen as they begin: the <strong>Spiral Staircase</strong>, the hypnotic
+    <strong>Pendulum</strong>, <strong>The Bait</strong> (a comfortable rhythm that snaps to the
+    opposite side, fast), <strong>Twin Helix</strong>, the breath-holding <strong>Pinch</strong>
+    and the fake-out <strong>Ladder Reversal</strong>. Learning to recognise each signature by
+    name — and by shape — is half the skill ceiling.
+  </p>
+
+  <h2>31 Trophies to Chase</h2>
+  <p>
+    Earn <strong>31 trophies</strong> across four tiers — 15 bronze, 10 silver, 5 gold and 1
+    platinum. They range from surviving your first ten seconds to threading a wall by a hair,
+    stacking twenty close calls in a single run, winning a full climb from Hexagon, and finally
+    the platinum "Vector Master" for unlocking everything else.
+  </p>
+
+  <h2>Tips for Survival</h2>
+  <ul>
+    <li><strong>Look at the gap, not the wall.</strong> Your eyes should always be on where you need to be next.</li>
+    <li><strong>Small taps beat long holds.</strong> Overshooting the gap kills more runs than slow reactions.</li>
+    <li><strong>Use the whole rotation.</strong> Sometimes the short way around is blocked — commit to the long sweep early.</li>
+    <li><strong>Learn the signatures.</strong> When "The Bait" flashes up, expect the snap to the opposite side.</li>
+    <li><strong>Play with sound on.</strong> The field pulses in time with the soundtrack, and rhythm helps timing.</li>
+  </ul>
+
+  <h2>Play on Mobile or Desktop</h2>
+  <p>
+    Vector Hexagon is built mobile-first: hold-to-steer touch controls, a canvas that scales to
+    any screen, and an install option that puts it on your home screen as a full-screen app that
+    works offline. On desktop it runs in any modern browser — no plugin required.
+  </p>
+
+  <h2>Free, Instant, No Download</h2>
+  <p>
+    Vector Hexagon is part of <a href="/">GameVolt</a> — a curated collection of original free
+    browser games. No installs and no account required. Your best times and trophies are saved
+    locally; sign in to sync progress across devices and post your runs to the global leaderboard.
+  </p>
+</section>
+
+<section class="vh-faq">
+  <h2>Vector Hexagon FAQ</h2>
+  <details>
+    <summary>Is Vector Hexagon free to play?</summary>
+    <p>Yes — 100% free in your browser, with no download and no signup. Sign in to GameVolt only if you want your trophies synced across devices and your best times on the global leaderboard.</p>
+  </details>
+  <details>
+    <summary>How do the difficulty tiers work?</summary>
+    <p>Climb mode has three tiers: Hexagon, Hexagoner and Hexagonest. Survive 60 seconds on a tier to clear it and advance to the next, faster one. You can start on any tier from the menu. Clearing Hexagonest wins the game and unlocks the gold "Apex" trophy.</p>
+  </details>
+  <details>
+    <summary>What is the difference between Climb and Endless mode?</summary>
+    <p>Climb is the campaign: clear each 60-second tier to advance and ultimately beat Hexagonest. Endless has no finish line — difficulty keeps ramping forever, and it keeps its own separate best times and leaderboards. It is the mode for pure survival records.</p>
+  </details>
+  <details>
+    <summary>What are the signature wall patterns?</summary>
+    <p>They are hand-authored set-pieces mixed into the procedural walls, each named on screen as it begins: Spiral Staircase, Pendulum, The Bait, Twin Helix, The Pinch and Ladder Reversal. Gentler ones appear from the first tier; the nastier ones ramp in with difficulty.</p>
+  </details>
+  <details>
+    <summary>How do the leaderboards work?</summary>
+    <p>The high-scores screen has a Local tab (your own bests on this device) and a Global tab with a worldwide board for every mode-and-tier combination — Climb and Endless across Hexagon, Hexagoner and Hexagonest. You can browse the top, page through, or jump straight to the ranks around your own best.</p>
+  </details>
+  <details>
+    <summary>Does Vector Hexagon work on mobile?</summary>
+    <p>Yes. Tap and hold the left or right half of the screen to steer. The game is built mobile-first and can be installed to your home screen as an app that works offline.</p>
+  </details>
+</section>
+
+<section class="vh-related">
+  <h2>You Might Also Like</h2>
+  <div class="vh-related-grid">
+    <a href="/hoverdash/" class="vh-card">
+      <img src="/hoverdash/og-image.png" alt="Play HoverDash online free">
+      <div class="vh-card-body">
+        <div class="vh-card-title">HoverDash</div>
+        <div class="vh-card-cat">Neon Lane Runner</div>
+      </div>
+    </a>
+    <a href="/gravitywell/" class="vh-card">
+      <img src="/assets/thumbnails/gravitywell.webp" alt="Play Gravity Well online free">
+      <div class="vh-card-body">
+        <div class="vh-card-title">Gravity Well</div>
+        <div class="vh-card-cat">Black Hole Arcade</div>
+      </div>
+    </a>
+    <a href="/taprush/" class="vh-card">
+      <img src="/assets/thumbnails/taprush.webp" alt="Play Tap Rush online free">
+      <div class="vh-card-body">
+        <div class="vh-card-title">Tap Rush</div>
+        <div class="vh-card-cat">Reaction Time Test</div>
+      </div>
+    </a>
+    <a href="/asteroid-storm/" class="vh-card">
+      <img src="/assets/thumbnails/asteroid-storm.webp" alt="Play Asteroid Storm online free">
+      <div class="vh-card-body">
+        <div class="vh-card-title">Asteroid Storm</div>
+        <div class="vh-card-cat">Space Shooter</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<footer class="vh-footer">
+  <div class="vh-footer-inner">
+    <div class="vh-footer-top">
+      <div class="vh-footer-brand">
+        <div class="vh-footer-logo">
+          <div class="vh-footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+          <span class="vh-footer-name">GameVolt</span>
+        </div>
+        <p style="color:#8a93b8;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+      </div>
+      <div class="vh-footer-cols">
+        <div>
+          <h4>Games</h4>
+          <a href="/hoverdash/">HoverDash</a>
+          <a href="/gravitywell/">Gravity Well</a>
+          <a href="/taprush/">Tap Rush</a>
+          <a href="/asteroid-storm/">Asteroid Storm</a>
+          <a href="/snake/">Snake Neo</a>
+          <a href="/breakout/">Breakout</a>
+          <a href="/sudoku/">Sudoku</a>
+          <a href="/blockstorm/">BlockStorm</a>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <a href="/arcade-games/">Arcade</a>
+          <a href="/action-games/">Action</a>
+          <a href="/puzzle-games/">Puzzle</a>
+          <a href="/board-games/">Board Games</a>
+        </div>
+        <div>
+          <h4>Info</h4>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/privacy/">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="vh-copy">© 2026 GameVolt. All rights reserved.</div>
+  </div>
+</footer>
+</div>
+<script>
+// Reveal SEO content only when loaded standalone — hide everything in iframe (e.g. /play/?game=vector-hexagon)
+if (window.parent === window) {
+  document.documentElement.classList.add('gv-standalone');
+  document.body.classList.add('gv-standalone');
+  document.getElementById('seo-content').style.display = 'block';
+}
+</script>
 </body>
 </html>
