@@ -238,18 +238,18 @@
   #hud .best { font-family: 'Rajdhani'; font-weight: 600; letter-spacing: 0.06em; font-size: 13px; color: #7df9ff; margin-top: 3px; }
   #hud .lvl { font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.16em; font-size: clamp(11px, 2.4vw, 13px); color: #ffd166; margin-top: 6px; }
 
-  #sound {
-    position: fixed; bottom: 14px; left: 14px; z-index: 6; cursor: pointer;
-    font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.12em; font-size: 12px;
-    color: #9aa3c8; background: #0c0a1a; border: 1px solid #241a3a; padding: 8px 12px;
-  }
-  .credit { position: fixed; bottom: 12px; right: 14px; z-index: 4; font-size: 11px; letter-spacing: 0.14em; color: #3f4568; font-family: 'Orbitron'; pointer-events: none; }
-
-  #musicbtn {
-    position: fixed; bottom: 14px; left: 128px; z-index: 6; cursor: pointer;
+  #controls { position: fixed; bottom: 14px; left: 14px; z-index: 6; display: flex; gap: 8px; flex-wrap: wrap; }
+  .ctlbtn {
+    cursor: pointer; border: 0; -webkit-appearance: none;
     font-family: 'Orbitron'; font-weight: 700; letter-spacing: 0.1em; font-size: 12px;
-    color: #9aa3c8; background: #0c0a1a; border: 1px solid #241a3a; padding: 8px 12px;
+    color: #9aa3c8; background: #0c0a1a; border: 1px solid #241a3a; padding: 8px 12px; user-select: none;
   }
+  .ctlbtn:hover { color: #7df9ff; border-color: #2c6b78; }
+  #sound.muted { color: #ff5e8a; border-color: #5a2540; }
+  .credit { position: fixed; bottom: 12px; right: 14px; z-index: 4; font-size: 11px; letter-spacing: 0.14em; color: #3f4568; font-family: 'Orbitron'; pointer-events: none; }
+  .overbtns { display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+  .overbtns .go { margin-top: 0; }
+  .overbtns .install { margin-top: 0; }
 
   /* ---- announcer callout ---- */
   #callout {
@@ -357,8 +357,11 @@
     <div class="stat"><span class="big" id="finalTime">0.00</span>SECONDS SURVIVED</div>
     <div class="stat" id="overBest">BEST 0.00</div>
     <div class="stat hidden" id="overRank"></div>
-    <button class="go" id="retryBtn">RETRY</button>
-    <div class="hint" style="margin-top:16px">press <b>SPACE</b> / tap to retry · <b>BACKSPACE</b> for menu</div>
+    <div class="overbtns">
+      <button class="go" id="retryBtn">RETRY</button>
+      <button class="install" id="menuBtn">☰ MENU</button>
+    </div>
+    <div class="hint" style="margin-top:14px">press <b>SPACE</b> to retry · <b>BACKSPACE</b> for menu</div>
   </div>
 
   <!-- HUD -->
@@ -372,8 +375,11 @@
   <div id="callout"></div>
   <div id="toast" class="hidden"></div>
 
-  <div id="sound">♪ SOUND: ON</div>
-  <div id="musicbtn">＋ LOAD MP3</div>
+  <div id="controls">
+    <div id="sound" class="ctlbtn">🔊 SOUND</div>
+    <button id="fsbtn" class="ctlbtn hidden">⛶ FULLSCREEN</button>
+    <div id="musicbtn" class="ctlbtn">＋ LOAD MP3</div>
+  </div>
   <input type="file" id="musicfile" accept="audio/*" style="display:none" />
   <div class="credit">SLIPSTREAM</div>
 
@@ -393,7 +399,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // ── VERSION ─────────────────────────────────────────────────────────────
   // Bump this AND the CACHE string in sw.js together on every deploy, so the
   // start screen shows the running version and installed apps update.
-  const VERSION = 'v2.2';
+  const VERSION = 'v2.3';
   const verEl = document.getElementById('version');
   if (verEl) verEl.textContent = VERSION;
   // ────────────────────────────────────────────────────────────────────────
@@ -694,8 +700,10 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // difficulty-weighted pattern pick (by current tier / endless depth)
   function nextPattern(){
     const hard = endless ? Math.min(2 + Math.floor(elapsed/45), 4) : stage;
-    const pool = [0,1,1,2,3,4,5];
-    if (hard>=1) pool.push(1,2,5,6, 10,11,13);        // + spiral staircase, pendulum, twin helix
+    // gentle signatures (staircase, pendulum) show from the very first tier so
+    // everyone meets them; the nasty ones ramp in with difficulty
+    const pool = [0,1,1,2,3,4,5, 10,11];
+    if (hard>=1) pool.push(1,2,5,6, 10,11,13);        // + twin helix, more spirals
     if (hard>=2) pool.push(2,5,6,7,9, 12,15,10,11);   // + the bait, ladder reversal
     if (hard>=3) pool.push(6,7,8,9, 14,12,15,10);     // + the pinch (deep)
     // brief grace at the start of each tier: only calm patterns
@@ -708,7 +716,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // field pulses/flashes in time with whichever is playing:
   //   'synth' — a procedural WebAudio groove (default, always available)
   //   'file'  — a loaded MP3 (e.g. a Suno track) analysed live for its beat
-  let ac=null, master=null, soundOn=true, audioBeat=0;
+  let ac=null, master=null, soundOn = localStorage.getItem('vhex-muted') !== '1', audioBeat=0;
   let musicMode='synth';
   let audioEl=null, mediaSrc=null, analyser=null, freqData=null;
   let bassAvg=0, lastBeatT=0;
@@ -717,7 +725,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     if (ac) return;
     try {
       ac = new (window.AudioContext||window.webkitAudioContext)();
-      master = ac.createGain(); master.gain.value = 0.5; master.connect(ac.destination);
+      master = ac.createGain(); master.gain.value = soundOn ? 0.5 : 0; master.connect(ac.destination);
     } catch(e){ ac=null; }
   }
 
@@ -843,10 +851,37 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     const t0=ac.currentTime;
     seq.forEach((f,i)=> tone(f, t0 + i*0.075, 0.16, type||'square', 0.13));
   }
-  soundBtn.addEventListener('click', () => {
-    soundOn=!soundOn; soundBtn.textContent = '♪ SOUND: ' + (soundOn?'ON':'OFF');
-    if (master) master.gain.value = soundOn?0.5:0;
-  });
+  // stable mute — persists, mutes music + SFX together (master gain), works
+  // even before the audio context exists (applied when it's created)
+  function applySoundUI(){
+    soundBtn.textContent = soundOn ? '🔊 SOUND' : '🔇 MUTED';
+    soundBtn.classList.toggle('muted', !soundOn);
+  }
+  function setMuted(mute){
+    soundOn = !mute;
+    try { localStorage.setItem('vhex-muted', mute ? '1' : '0'); } catch(e){}
+    if (master) master.gain.value = soundOn ? 0.5 : 0;
+    if (!soundOn && 'speechSynthesis' in window) { try { speechSynthesis.cancel(); } catch(e){} }
+    applySoundUI();
+  }
+  soundBtn.addEventListener('click', () => { initAudio(); setMuted(soundOn); });
+  applySoundUI();
+
+  // fullscreen — shown only where element fullscreen actually works (not iOS)
+  const fsbtn = document.getElementById('fsbtn');
+  const fsRoot = document.documentElement;
+  const reqFS = fsRoot.requestFullscreen || fsRoot.webkitRequestFullscreen;
+  const exitFS = document.exitFullscreen || document.webkitExitFullscreen;
+  const inFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  if (reqFS && (document.fullscreenEnabled !== false)) fsbtn.classList.remove('hidden');
+  function applyFsUI(){ fsbtn.textContent = inFS() ? '⛶ EXIT FS' : '⛶ FULLSCREEN'; }
+  fsbtn.addEventListener('click', () => { try { inFS() ? exitFS.call(document) : reqFS.call(fsRoot); } catch(e){} });
+  document.addEventListener('fullscreenchange', applyFsUI);
+  document.addEventListener('webkitfullscreenchange', applyFsUI);
+  applyFsUI();
+
+  // game-over MENU button
+  document.getElementById('menuBtn').addEventListener('click', () => { blip(440); toMenu(); });
 
   // ---------- announcer voice (Web Speech, desktop only) ----------
   // On iOS, speechSynthesis is usually silent AND interrupts the audio session,
