@@ -617,11 +617,12 @@ export class Game {
         const stats = this.scoring.getFinalStats();
 
         // Trophies + global leaderboard. This method serves Neo and Nokia;
-        // Nokia earns only the nostalgia trophy and does not submit a score.
+        // Nokia earns only the nostalgia trophy but still submits to its own board.
         const _mode = this.endlessMode ? "nokia" : "neo";
         try { recordRun(_mode, stats); } catch (e) { /* ignore */ }
-        if (_mode === "neo" && stats.score > 0 && window.GameVolt && window.GameVolt.leaderboard) {
-            try { window.GameVolt.leaderboard.submit(stats.score, { mode: "default" }); } catch (e) { /* ignore */ }
+        if (stats.score > 0 && window.GameVolt && window.GameVolt.leaderboard) {
+            const _board = _mode === "neo" ? "default" : "nokia";
+            try { window.GameVolt.leaderboard.submit(stats.score, { mode: _board }); } catch (e) { /* ignore */ }
         }
 
         // Hide pause button
