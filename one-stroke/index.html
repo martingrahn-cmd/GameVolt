@@ -521,5 +521,244 @@
     </script>
 
     <script type="module" src="src/main.js"></script>
+
+    <!-- SEO content & footer — visible standalone, hidden inside the /play/ iframe -->
+    <div id="seo-content" style="display:none;">
+    <style>
+      /* Standalone mode: keep the game filling the first viewport, let the SEO
+         content flow in below it. The one-stroke body already scrolls naturally,
+         so we only pin it open and make sure fixed backdrops stay put. */
+      body.gv-standalone { height:auto !important; min-height:100vh; overflow-x:hidden; overflow-y:auto !important; }
+      body.gv-standalone .app-shell { min-height:calc(100vh - 52px); }
+      body.gv-standalone .ambient-blur { position:fixed !important; }
+      body.gv-standalone #seo-content { display:block !important; }
+      @media (max-width:760px) {
+        body.gv-standalone .app-shell { min-height:calc(100vh - 60px); }
+        body.gv-standalone #seo-content { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
+      }
+      #seo-content { background:#08141b; color:#a9c0cd; font-family:"Plus Jakarta Sans","Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,sans-serif; position:relative; z-index:5; border-top:1px solid #2b5a6d; margin-top:2rem; }
+      #seo-content a { color:#1ed6a5; }
+      #seo-content a:hover { color:#6bcbff; }
+      .os-breadcrumb { max-width:1200px; margin:0 auto; padding:16px 24px; font-size:0.85rem; color:#7f9ba9; }
+      .os-breadcrumb a { color:#a9c0cd; text-decoration:none; }
+      .os-breadcrumb a:hover { color:#1ed6a5; }
+      .os-breadcrumb .sep { color:#7f9ba9; margin:0 0.4rem; }
+      .os-breadcrumb .here { color:#eaf4fb; }
+      .os-info { max-width:800px; margin:2rem auto 0; padding:0 24px 2rem; line-height:1.75; font-size:0.97rem; }
+      .os-info h1 { color:#eaf4fb; font-size:1.7rem; margin-bottom:0.5rem; font-weight:700; font-family:"Oxanium","Sora",sans-serif; }
+      .os-info h2 { color:#dcebf4; font-size:1.2rem; margin-top:1.8rem; margin-bottom:0.5rem; font-weight:600; }
+      .os-info p { margin-bottom:1rem; }
+      .os-info ul { margin:0 0 1rem 1.25rem; padding:0; }
+      .os-info li { margin-bottom:0.4rem; }
+      .os-related { max-width:1200px; margin:2.5rem auto 0; padding:0 24px; }
+      .os-related h2 { color:#eaf4fb; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; }
+      .os-related-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+      .os-card { text-decoration:none; background:rgba(255,255,255,0.04); border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); display:block; transition:border-color .2s, transform .2s; }
+      .os-card:hover { border-color:rgba(30,214,165,0.4); transform:translateY(-2px); }
+      .os-card img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+      .os-card-body { padding:12px; }
+      .os-card-title { color:#eaf4fb; font-size:0.95rem; font-weight:600; }
+      .os-card-cat { color:#7f9ba9; font-size:0.8rem; margin-top:4px; }
+      .os-faq { max-width:800px; margin:2.5rem auto 0; padding:0 24px; }
+      .os-faq h2 { color:#eaf4fb; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; }
+      .os-faq details { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; }
+      .os-faq summary { color:#dcebf4; font-weight:600; cursor:pointer; font-size:0.97rem; }
+      .os-faq details[open] summary { color:#1ed6a5; }
+      .os-faq details > p { color:#a9c0cd; margin-top:0.6rem; line-height:1.7; font-size:0.92rem; }
+      .os-footer { background:#08141b; border-top:1px solid rgba(255,255,255,0.06); padding:48px 24px 24px; margin-top:3rem; }
+      .os-footer-inner { max-width:1200px; margin:0 auto; }
+      .os-footer-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:32px; padding-bottom:32px; border-bottom:1px solid rgba(255,255,255,0.06); }
+      .os-footer-brand { max-width:300px; }
+      .os-footer-logo { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+      .os-footer-logo-icon { width:40px; height:40px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:10px; display:flex; align-items:center; justify-content:center; }
+      .os-footer-name { font-size:1.5rem; font-weight:700; color:#fff; }
+      .os-footer-cols { display:flex; gap:48px; flex-wrap:wrap; }
+      .os-footer-cols h4 { font-size:1rem; font-weight:700; margin:0 0 16px; color:#eaf4fb; }
+      .os-footer-cols a { display:block; color:#7f9ba9; text-decoration:none; padding:4px 0; font-size:0.9rem; }
+      .os-footer-cols a:hover { color:#1ed6a5; }
+      .os-copy { padding-top:24px; text-align:center; color:#7f9ba9; font-size:0.85rem; }
+    </style>
+
+    <nav class="os-breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a>
+      <span class="sep">›</span>
+      <a href="/puzzle-games/">Puzzle Games</a>
+      <span class="sep">›</span>
+      <span class="here">One Stroke</span>
+    </nav>
+
+    <section class="os-info">
+      <h1>One Stroke — One-Line Drawing Puzzle Game</h1>
+      <p>
+        Play One Stroke free in your browser — a clean, modern take on the classic one-line drawing
+        puzzle. Each board is a Hamiltonian path challenge: visit every playable node exactly once in
+        a single connected stroke. With <strong>200 campaign levels</strong>, a daily challenge with
+        its own leaderboard and 31 trophies to unlock, it's easy to pick up and genuinely hard to put
+        down. No download, no signup — just draw.
+      </p>
+
+      <h2>How to Play One Stroke</h2>
+      <p>
+        Drag from the highlighted start node to any neighbouring node to begin your path. Keep
+        extending the line one step at a time — the level is solved the moment every node has been
+        visited exactly once. There is no fixed goal cell: any node can be the end of your stroke.
+      </p>
+      <ul>
+        <li><strong>Drag</strong> (mouse or finger) from node to node — orthogonal steps only.</li>
+        <li><strong>Drag back</strong> along your path, or press <strong>Z</strong>, to undo one step.</li>
+        <li><strong>R</strong> resets the level, <strong>H</strong> shows a hint for the next recommended node, <strong>N</strong> jumps to the next level.</li>
+        <li>Hints are free in campaign mode but cost score in the daily challenge.</li>
+      </ul>
+
+      <h2>200 Campaign Levels, Four Difficulties</h2>
+      <p>
+        The campaign takes you from gentle warm-up grids to genuinely brain-bending boards across
+        four difficulty tiers: Easy, Medium, Hard and Very Hard. A full level-select screen lets you
+        search and filter every level by difficulty and status, and your stats — best time, average
+        time and win rate per difficulty — are tracked as you go.
+      </p>
+
+      <h2>Daily Challenge & Streaks</h2>
+      <p>
+        Every day brings a fresh set of five levels that are the same for every player in the world.
+        Race through them for the best combined score and time, share your result, and see where you
+        land on today's leaderboard. Play every day to build your daily streak — and you can even
+        send a challenge code to a friend for a head-to-head comparison on the exact same boards.
+      </p>
+
+      <h2>Trophies & Leaderboards</h2>
+      <p>
+        One Stroke includes <strong>31 trophies</strong> across four tiers — 15 bronze, 10 silver,
+        5 gold and 1 platinum — covering campaign milestones, challenge feats and everything in
+        between. Your challenge runs are saved to a local high-score history with detailed per-run
+        stats, and signing in to GameVolt syncs your achievements across devices.
+      </p>
+
+      <h2>Plays Great on Mobile</h2>
+      <p>
+        One Stroke is built mobile-first. Draw your path with a fingertip, use the bottom tab bar to
+        flip between the board, menu and stats, and reach Undo, Reset, Hint and Next from dedicated
+        touch controls right below the board. The grid scales to any screen size, from phone to
+        desktop.
+      </p>
+
+      <h2>Free, Instant, No Download</h2>
+      <p>
+        One Stroke is part of <a href="/">GameVolt</a> — a curated collection of original free
+        browser games. Nothing to install and no account required to play. Progress is saved locally;
+        sign in to sync across devices.
+      </p>
+    </section>
+
+    <section class="os-faq">
+      <h2>One Stroke FAQ</h2>
+      <details>
+        <summary>Is One Stroke free to play?</summary>
+        <p>Yes. One Stroke is 100% free in your browser with no download and no signup. Sign in to GameVolt only if you want your trophies and progress synced across devices.</p>
+      </details>
+      <details>
+        <summary>What kind of puzzle is One Stroke?</summary>
+        <p>It's a Hamiltonian path puzzle, often called a one-line or one-stroke drawing puzzle. You must visit every playable node on the board exactly once in a single connected path, moving only in orthogonal steps.</p>
+      </details>
+      <details>
+        <summary>Do I have to finish the path on a specific node?</summary>
+        <p>No. One Stroke uses a free end node — the level is complete as soon as every node has been visited exactly once, no matter where your stroke ends.</p>
+      </details>
+      <details>
+        <summary>How many levels does the campaign have?</summary>
+        <p>There are 200 campaign levels spread across four difficulties: Easy, Medium, Hard and Very Hard. A full level-select screen lets you filter by difficulty and by solved, unsolved or locked status.</p>
+      </details>
+      <details>
+        <summary>Is the daily challenge the same for everyone?</summary>
+        <p>Yes — each day, all players get the same set of five levels. Compare your score and time on today's leaderboard, share your result, and keep your daily streak alive.</p>
+      </details>
+      <details>
+        <summary>Does One Stroke work on phones and tablets?</summary>
+        <p>Yes. Just drag your finger from node to node to draw the path. A bottom tab bar and dedicated touch buttons for Undo, Reset, Hint and Next make one-handed play comfortable on any screen.</p>
+      </details>
+    </section>
+
+    <section class="os-related">
+      <h2>You Might Also Like</h2>
+      <div class="os-related-grid">
+        <a href="/livewire/" class="os-card">
+          <img src="/assets/thumbnails/livewire.webp" alt="Play Livewire online free" loading="lazy">
+          <div class="os-card-body">
+            <div class="os-card-title">Livewire</div>
+            <div class="os-card-cat">Connection Puzzle</div>
+          </div>
+        </a>
+        <a href="/minesweeper/" class="os-card">
+          <img src="/assets/thumbnails/minesweeper.webp" alt="Play Minesweeper online free" loading="lazy">
+          <div class="os-card-body">
+            <div class="os-card-title">Minesweeper</div>
+            <div class="os-card-cat">Logic Puzzle</div>
+          </div>
+        </a>
+        <a href="/golden-glyphs/" class="os-card">
+          <img src="/assets/thumbnails/golden-glyphs.webp" alt="Play Golden Glyphs online free" loading="lazy">
+          <div class="os-card-body">
+            <div class="os-card-title">Golden Glyphs</div>
+            <div class="os-card-cat">Block Puzzle</div>
+          </div>
+        </a>
+        <a href="/sudoku/" class="os-card">
+          <img src="/assets/thumbnails/sudoku.webp" alt="Play Sudoku online free" loading="lazy">
+          <div class="os-card-body">
+            <div class="os-card-title">Sudoku</div>
+            <div class="os-card-cat">Logic Puzzle</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <footer class="os-footer">
+      <div class="os-footer-inner">
+        <div class="os-footer-top">
+          <div class="os-footer-brand">
+            <div class="os-footer-logo">
+              <div class="os-footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+              <span class="os-footer-name">GameVolt</span>
+            </div>
+            <p style="color:#7f9ba9;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+          </div>
+          <div class="os-footer-cols">
+            <div>
+              <h4>Games</h4>
+              <a href="/sudoku/">Sudoku</a>
+              <a href="/minesweeper/">Minesweeper</a>
+              <a href="/golden-glyphs/">Golden Glyphs</a>
+              <a href="/blockstorm/">BlockStorm</a>
+              <a href="/manga-match3/">Manga Match</a>
+              <a href="/hoverdash/">HoverDash</a>
+              <a href="/snake/">Snake Neo</a>
+              <a href="/breakout/">Breakout</a>
+            </div>
+            <div>
+              <h4>Categories</h4>
+              <a href="/arcade-games/">Arcade</a>
+              <a href="/action-games/">Action</a>
+              <a href="/puzzle-games/">Puzzle</a>
+              <a href="/board-games/">Board Games</a>
+            </div>
+            <div>
+              <h4>Info</h4>
+              <a href="/about/">About</a>
+              <a href="/contact/">Contact</a>
+              <a href="/privacy/">Privacy Policy</a>
+            </div>
+          </div>
+        </div>
+        <div class="os-copy">© 2026 GameVolt. All rights reserved.</div>
+      </div>
+    </footer>
+    </div>
+    <script>
+      // Reveal SEO content only when loaded standalone — hide everything in iframe (e.g. /play/?game=one-stroke)
+      if (window.parent === window) {
+        document.body.classList.add('gv-standalone');
+        document.getElementById('seo-content').style.display = 'block';
+      }
+    </script>
   </body>
 </html>
