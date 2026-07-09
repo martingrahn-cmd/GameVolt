@@ -393,7 +393,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // ── VERSION ─────────────────────────────────────────────────────────────
   // Bump this AND the CACHE string in sw.js together on every deploy, so the
   // start screen shows the running version and installed apps update.
-  const VERSION = 'v2.1';
+  const VERSION = 'v2.2';
   const verEl = document.getElementById('version');
   if (verEl) verEl.textContent = VERSION;
   // ────────────────────────────────────────────────────────────────────────
@@ -631,6 +631,9 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   const HALF = () => Math.floor(SIDES/2);                       // "opposite" lane offset
   const openMask = gap => { const s=Array(SIDES).fill(true); s[((gap%SIDES)+SIDES)%SIDES]=false; return s; };
   const twoGap = (g1,g2) => { const s=Array(SIDES).fill(true); s[((g1%SIDES)+SIDES)%SIDES]=false; s[((g2%SIDES)+SIDES)%SIDES]=false; return s; };
+  // a wall carrying a spacing multiplier — lets authored patterns set their own
+  // rhythm (tight bursts < 1, breathers > 1). Plain masks default to 1× spacing.
+  const wm = (mask, mul) => ({ mask, mul: mul||1 });
 
   // each pattern returns an array of masks (spawned in order, evenly spaced),
   // all sized to the current SIDES since the shape can't change mid-group
@@ -658,14 +661,43 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
             const back=Array.from({length:k},(_,i)=>openMask(g+d*(k-1)-d*i)); return out.concat(back); },
     // stutter — same gap with a teasing double-gap breather in the middle
     () => { const g=rnd(SIDES); return [ openMask(g), openMask(g), twoGap(g, g+HALF()), openMask(g) ]; },
+
+    // ---- signature set-pieces (authored rhythm via wm(mask, spacingMul)) ----
+    // 10 SPIRAL STAIRCASE — a long, steady single-direction climb, tightly spaced
+    () => { const g=rnd(SIDES), d=Math.random()<0.5?1:-1, n=7+rnd(4);
+            return Array.from({length:n},(_,i)=>wm(openMask(g+d*i), 0.84)); },
+    // 11 PENDULUM — the gap swings out to one side and back, hypnotic
+    () => { const g=rnd(SIDES), amp=Math.min(SIDES-1,3), d=Math.random()<0.5?1:-1, seq=[];
+            for(let i=0;i<=amp;i++) seq.push(g+d*i);
+            for(let i=amp-1;i>=-amp;i--) seq.push(g+d*i);
+            for(let i=-amp+1;i<=0;i++) seq.push(g+d*i);
+            return seq.map(x=>wm(openMask(x), 0.9)); },
+    // 12 THE BAIT — a few comfortable walls, then the gap snaps opposite FAST
+    () => { const g=rnd(SIDES), o=g+HALF(), k=3+rnd(2);
+            return [ ...Array.from({length:k},()=>openMask(g)),
+                     wm(openMask(o), 0.62),
+                     ...Array.from({length:2},()=>openMask(o)) ]; },
+    // 13 TWIN HELIX — two opposite gaps spiral together; follow either thread
+    () => { const g=rnd(SIDES), d=Math.random()<0.5?1:-1, n=5+rnd(3);
+            return Array.from({length:n},(_,i)=>wm(twoGap(g+d*i, g+d*i+HALF()), 0.95)); },
+    // 14 THE PINCH — exhale, a fast straight burst you hold through, exhale
+    () => { const g=rnd(SIDES);
+            return [ wm(openMask(g),1.35),
+                     ...Array.from({length:4+rnd(2)},()=>wm(openMask(g),0.58)),
+                     wm(openMask(g),1.4) ]; },
+    // 15 LADDER REVERSAL — tight spiral out, then a clean reverse (fake-out)
+    () => { const g=rnd(SIDES), d=Math.random()<0.5?1:-1, k=4+rnd(2);
+            const out=Array.from({length:k},(_,i)=>wm(openMask(g+d*i),0.86));
+            const back=Array.from({length:k},(_,i)=>wm(openMask(g+d*(k-1)-d*i),0.86));
+            return out.concat(back); },
   ];
   // difficulty-weighted pattern pick (by current tier / endless depth)
   function nextPattern(){
     const hard = endless ? Math.min(2 + Math.floor(elapsed/45), 4) : stage;
     const pool = [0,1,1,2,3,4,5];
-    if (hard>=1) pool.push(1,2,5,6);          // 180 reversal enters
-    if (hard>=2) pool.push(2,2,5,1,6,7,9);    // closing spiral + stutter
-    if (hard>=3) pool.push(6,7,8,9,2);        // double-back fake-outs (endless deep)
+    if (hard>=1) pool.push(1,2,5,6, 10,11,13);        // + spiral staircase, pendulum, twin helix
+    if (hard>=2) pool.push(2,5,6,7,9, 12,15,10,11);   // + the bait, ladder reversal
+    if (hard>=3) pool.push(6,7,8,9, 14,12,15,10);     // + the pinch (deep)
     // brief grace at the start of each tier: only calm patterns
     if (stageTime < 3 && !endless) return PATTERNS[3+rnd(2)]; // spike or breather
     return PATTERNS[pool[rnd(pool.length)]];
@@ -1222,16 +1254,22 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
 
   // ---------- spawning ----------
   function furthest(){ let m=-Infinity; for (const w of walls) if (w.dist>m) m=w.dist; return m===-Infinity?0:m; }
+  // turn a pattern's mixed output (plain masks or wm(mask,mul)) into queued walls
+  // each carrying the distance gap that must pass before it spawns
+  function normalizePattern(arr, base){
+    return arr.map(el => Array.isArray(el)
+      ? { sides: el, space: base }
+      : { sides: el.mask, space: base * (el.mul || 1) });
+  }
   function spawnStep(dt){
     if (morph !== 'none') return;          // no spawning while the field is morphing
     const d=DIFFS[stage];
     distAccum += speed*dt;
-    const spacing = d.spacing;
-    if (distAccum >= spacing){
-      distAccum -= spacing;
-      if (pending.length===0) pending = nextPattern()();
-      const sides = pending.shift();
-      walls.push({ dist: SPAWN, sides });
+    if (pending.length===0) pending = normalizePattern(nextPattern()(), d.spacing);
+    if (pending.length && distAccum >= pending[0].space){
+      distAccum -= pending[0].space;
+      const it = pending.shift();
+      walls.push({ dist: SPAWN, sides: it.sides });
     }
   }
 
