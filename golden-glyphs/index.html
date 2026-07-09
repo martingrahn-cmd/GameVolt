@@ -204,5 +204,250 @@
         audioDiv.addEventListener('click', enableAudio);
         audioDiv.addEventListener('touchstart', enableAudio, {passive: false});
     </script>
+
+<!-- SEO content & footer — visible standalone, hidden inside the /play/ iframe -->
+<div id="seo-content" style="display:none;">
+<style>
+  /* Standalone mode: make the (normally fullscreen, overflow:hidden) page scrollable.
+     The game canvas keeps the first viewport; SEO content scrolls in below it. */
+  html.gv-standalone, body.gv-standalone {
+    height:auto !important;
+    min-height:100vh;
+    overflow:auto !important;
+    display:block !important;
+    touch-action:auto !important;
+  }
+  /* The game JS sizes the canvas from window.innerWidth/innerHeight, so pin its
+     CSS box to the viewport instead of the now-auto-height body. */
+  body.gv-standalone #gameCanvas { width:100% !important; height:100vh !important; touch-action:none; }
+  /* Overlays are position:absolute + height:100% — with a scrollable body they would
+     stretch over the whole document. Fix them to the viewport instead. */
+  body.gv-standalone .overlay { position:fixed !important; height:100vh !important; }
+  body.gv-standalone #seo-content { display:block !important; user-select:text; -webkit-user-select:text; }
+  #seo-content { background:#0b0f16; color:#b0b0b0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; position:relative; z-index:20; }
+  #seo-content a { color:#ffd700; }
+  #seo-content a:hover { color:#ffe680; }
+  .gg-breadcrumb { max-width:1200px; margin:0 auto; padding:16px 24px; font-size:0.85rem; color:#626580; }
+  .gg-breadcrumb a { color:#a0a4c0; text-decoration:none; }
+  .gg-breadcrumb a:hover { color:#ffd700; }
+  .gg-breadcrumb .gg-sep { color:#626580; margin:0 0.4rem; }
+  .gg-breadcrumb .gg-here { color:#f0f0ff; }
+  .gg-info { max-width:800px; margin:2rem auto 0; padding:0 24px 2rem; line-height:1.75; font-size:0.97rem; }
+  .gg-info h1 { color:#f0f0ff; font-size:1.7rem; margin:0 0 0.5rem; font-weight:700; text-shadow:none; }
+  .gg-info h2 { color:#e0e0e0; font-size:1.2rem; margin-top:1.8rem; margin-bottom:0.5rem; font-weight:600; text-shadow:none; }
+  .gg-info p { margin-bottom:1rem; }
+  .gg-info ul { margin:0 0 1rem 1.25rem; padding:0; }
+  .gg-info li { margin-bottom:0.4rem; }
+  .gg-related { max-width:1200px; margin:2.5rem auto 0; padding:0 24px; }
+  .gg-related h2 { color:#f0f0ff; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; text-shadow:none; }
+  .gg-related-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+  .gg-card { text-decoration:none; background:rgba(255,255,255,0.04); border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); display:block; transition:border-color .2s, transform .2s; }
+  .gg-card:hover { border-color:rgba(255,215,0,0.4); transform:translateY(-2px); }
+  .gg-card img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+  .gg-card-body { padding:12px; }
+  .gg-card-title { color:#f0f0ff; font-size:0.95rem; font-weight:600; }
+  .gg-card-cat { color:#888; font-size:0.8rem; margin-top:4px; }
+  .gg-faq { max-width:800px; margin:2.5rem auto 0; padding:0 24px; }
+  .gg-faq h2 { color:#f0f0ff; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; text-shadow:none; }
+  .gg-faq details { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; }
+  .gg-faq summary { color:#e0e0e0; font-weight:600; cursor:pointer; font-size:0.97rem; }
+  .gg-faq details[open] summary { color:#ffd700; }
+  .gg-faq details > p { color:#b0b0b0; margin-top:0.6rem; line-height:1.7; font-size:0.92rem; }
+  .gg-footer { background:#0b0f16; border-top:1px solid rgba(255,255,255,0.06); padding:48px 24px 24px; margin-top:3rem; }
+  .gg-footer-inner { max-width:1200px; margin:0 auto; }
+  .gg-footer-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:32px; padding-bottom:32px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .gg-footer-brand { max-width:300px; }
+  .gg-footer-logo { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .gg-footer-logo-icon { width:40px; height:40px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:10px; display:flex; align-items:center; justify-content:center; }
+  .gg-footer-name { font-size:1.5rem; font-weight:700; color:#fff; }
+  .gg-footer-cols { display:flex; gap:48px; flex-wrap:wrap; }
+  .gg-footer-cols h4 { font-size:1rem; font-weight:700; margin:0 0 16px; color:#f0f0ff; }
+  .gg-footer-cols a { display:block; color:#888; text-decoration:none; padding:4px 0; font-size:0.9rem; }
+  .gg-footer-cols a:hover { color:#ffd700; }
+  .gg-copy { padding-top:24px; text-align:center; color:#888; font-size:0.85rem; }
+</style>
+
+<nav class="gg-breadcrumb" aria-label="Breadcrumb">
+  <a href="/">Home</a>
+  <span class="gg-sep">›</span>
+  <a href="/puzzle-games/">Puzzle Games</a>
+  <span class="gg-sep">›</span>
+  <span class="gg-here">Golden Glyphs</span>
+</nav>
+
+<section class="gg-info">
+  <h1>Golden Glyphs — Free 100-Level Block Puzzle</h1>
+  <p>
+    Play Golden Glyphs free in your browser — a mystical block puzzle where you drag glowing glyph
+    pieces onto an ancient board until every cell is filled. Work through <strong>100 hand-crafted
+    campaign levels across four worlds</strong>, take on a fresh daily challenge, race the clock in
+    Time Attack, or unwind in Zen mode. No download, no signup — the puzzle starts the moment the
+    page loads.
+  </p>
+
+  <h2>How to Play Golden Glyphs</h2>
+  <p>
+    Every level gives you a board and a tray of glyph-shaped pieces. Drag each piece from the tray
+    onto the grid and rotate your thinking, not the pieces — it's a pure spatial puzzle in the
+    tangram tradition. Fill the board completely and the level is solved. Finish quickly to earn up
+    to three stars, and spend earned gold on hints when a layout has you stuck.
+  </p>
+
+  <h2>Campaign: 100 Levels Across 4 Worlds</h2>
+  <ul>
+    <li><strong>Jungle Ruins</strong> — 25 levels that teach the fundamentals among overgrown temples.</li>
+    <li><strong>Frozen Peaks</strong> — 25 trickier boards; unlock it by collecting 25 stars.</li>
+    <li><strong>Inferno Core</strong> — 25 levels of serious spatial reasoning, open at 50 stars.</li>
+    <li><strong>Neon Nexus</strong> — the final 25 arcane puzzles, reserved for players with 100 stars.</li>
+  </ul>
+  <p>
+    Star ratings are based on your completion time, so every solved level is an invitation to come
+    back and solve it faster.
+  </p>
+
+  <h2>Daily Challenge, Time Attack &amp; Zen Mode</h2>
+  <p>
+    Beyond the campaign there are three ways to play. The <strong>Daily Challenge</strong> serves a
+    new puzzle every day — clear it to keep your completion count climbing. <strong>Time
+    Attack</strong> chains levels against the clock for a high score you can push onto the
+    leaderboard. And <strong>Zen mode</strong> strips away timers and win screens entirely, flowing
+    from one board to the next for pure, relaxed puzzling.
+  </p>
+
+  <h2>Trophies, Leaderboards &amp; the Glyph Shop</h2>
+  <p>
+    Chase <strong>31 trophies</strong> across four tiers — 15 bronze, 10 silver, 5 gold and 1
+    platinum — covering everything from your first solved level to daily-challenge dedication and
+    Time Attack mastery. Gold earned from levels is spent in the shop on cosmetic block skins, drag
+    trails, board themes and hint gear. Sign in to GameVolt to sync trophies across devices and
+    submit your Time Attack score to the global leaderboard.
+  </p>
+
+  <h2>Plays Great on Mobile</h2>
+  <p>
+    Golden Glyphs is built for touch. Drag pieces with a fingertip, play one-handed in portrait
+    mode, and the board scales itself to any phone, tablet or desktop screen. Your progress, gold
+    and trophies are saved locally, so you can pick up exactly where you left off.
+  </p>
+
+  <h2>Free, Instant, No Download</h2>
+  <p>
+    Golden Glyphs is part of <a href="/">GameVolt</a> — a curated collection of original free
+    browser games. Nothing to install and no account required to play; sign in only if you want
+    your progress and leaderboard scores synced across devices.
+  </p>
+</section>
+
+<section class="gg-faq">
+  <h2>Golden Glyphs FAQ</h2>
+  <details>
+    <summary>Is Golden Glyphs really free?</summary>
+    <p>Yes. The full game — all 100 campaign levels, the daily challenge, Time Attack and Zen mode — is 100% free in your browser. Signing in to GameVolt is optional and only adds cloud sync and global leaderboards.</p>
+  </details>
+  <details>
+    <summary>How do I earn three stars on a level?</summary>
+    <p>Stars are awarded for speed: the faster you fill the board after starting a level, the more stars you earn, up to three. Stars also matter for progression — later worlds unlock at 25, 50 and 100 total stars.</p>
+  </details>
+  <details>
+    <summary>What are the four worlds?</summary>
+    <p>Jungle Ruins, Frozen Peaks, Inferno Core and Neon Nexus — each with 25 levels and its own look. Jungle Ruins is open from the start; the rest unlock as your star total grows.</p>
+  </details>
+  <details>
+    <summary>What's the difference between Time Attack and Zen mode?</summary>
+    <p>Time Attack is the competitive mode: solve a chain of levels against the clock to build a score, then compare it on the leaderboard. Zen mode is the opposite — no timer, no scores, no win screens, just an endless flow of boards to solve at your own pace.</p>
+  </details>
+  <details>
+    <summary>What can I buy in the shop?</summary>
+    <p>Cosmetics and hints, all paid for with gold you earn by solving levels: block skins, drag trails, board themes and hint gear. Nothing is required to finish the game — hints are just there when you want a nudge.</p>
+  </details>
+  <details>
+    <summary>Does Golden Glyphs work on phones and tablets?</summary>
+    <p>Yes. The game is designed for portrait-mode touch play — drag pieces with your finger and the board resizes to fit your screen. It works just as well with a mouse on desktop.</p>
+  </details>
+</section>
+
+<section class="gg-related">
+  <h2>You Might Also Like</h2>
+  <div class="gg-related-grid">
+    <a href="/blockstorm/" class="gg-card">
+      <img src="/assets/thumbnails/blockstorm.webp" alt="Play BlockStorm online free">
+      <div class="gg-card-body">
+        <div class="gg-card-title">BlockStorm</div>
+        <div class="gg-card-cat">Tetris-Style</div>
+      </div>
+    </a>
+    <a href="/one-stroke/" class="gg-card">
+      <img src="/assets/thumbnails/one-stroke.webp" alt="Play One Stroke online free">
+      <div class="gg-card-body">
+        <div class="gg-card-title">One Stroke</div>
+        <div class="gg-card-cat">Path Puzzle</div>
+      </div>
+    </a>
+    <a href="/minesweeper/" class="gg-card">
+      <img src="/assets/thumbnails/minesweeper.webp" alt="Play Minesweeper online free">
+      <div class="gg-card-body">
+        <div class="gg-card-title">Minesweeper</div>
+        <div class="gg-card-cat">Logic Puzzle</div>
+      </div>
+    </a>
+    <a href="/manga-match3/" class="gg-card">
+      <img src="/assets/thumbnails/manga-match3.webp" alt="Play Manga Match online free">
+      <div class="gg-card-body">
+        <div class="gg-card-title">Manga Match</div>
+        <div class="gg-card-cat">Match-3 Puzzle</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<footer class="gg-footer">
+  <div class="gg-footer-inner">
+    <div class="gg-footer-top">
+      <div class="gg-footer-brand">
+        <div class="gg-footer-logo">
+          <div class="gg-footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+          <span class="gg-footer-name">GameVolt</span>
+        </div>
+        <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+      </div>
+      <div class="gg-footer-cols">
+        <div>
+          <h4>Games</h4>
+          <a href="/minesweeper/">Minesweeper</a>
+          <a href="/sudoku/">Sudoku</a>
+          <a href="/one-stroke/">One Stroke</a>
+          <a href="/blockstorm/">BlockStorm</a>
+          <a href="/manga-match3/">Manga Match</a>
+          <a href="/hoverdash/">HoverDash</a>
+          <a href="/snake/">Snake Neo</a>
+          <a href="/breakout/">Breakout</a>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <a href="/arcade-games/">Arcade</a>
+          <a href="/action-games/">Action</a>
+          <a href="/puzzle-games/">Puzzle</a>
+          <a href="/board-games/">Board Games</a>
+        </div>
+        <div>
+          <h4>Info</h4>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/privacy/">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="gg-copy">© 2026 GameVolt. All rights reserved.</div>
+  </div>
+</footer>
+</div>
+<script>
+// Reveal SEO content only when loaded standalone — hide everything in iframe (e.g. /play/?game=golden-glyphs)
+if (window.parent === window) {
+  document.documentElement.classList.add('gv-standalone');
+  document.body.classList.add('gv-standalone');
+  document.getElementById('seo-content').style.display = 'block';
+}
+</script>
 </body>
 </html>

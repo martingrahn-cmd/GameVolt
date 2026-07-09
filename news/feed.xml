@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>GameVolt News</title>
+    <link>https://gamevolt.io/news/</link>
+    <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
+    <language>en</language>
+    <lastBuildDate>Thu, 09 Jul 2026 12:00:00 GMT</lastBuildDate>
+    <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>Vector Hexagon is live — our new twitch survival game</title>
+      <link>https://gamevolt.io/news/vector-hexagon-launch/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/vector-hexagon-launch/</guid>
+      <pubDate>Thu, 09 Jul 2026 12:00:00 GMT</pubDate>
+      <description>One cursor, six lanes, walls closing in. Our Super Hexagon-inspired reflex game launches with a three-tier climb mode, endless mode, signature wall patterns, 31 trophies and a global leaderboard — free in your browser, no download.</description>
+    </item>
+
+    <item>
+      <title>Snake Neo update: 31 trophies and global high scores</title>
+      <link>https://gamevolt.io/news/snake-neo-trophies-update/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/snake-neo-trophies-update/</guid>
+      <pubDate>Thu, 09 Jul 2026 09:00:00 GMT</pubDate>
+      <description>Snake Neo joins the full GameVolt experience — 31 unlockable trophies with in-game toasts, local and global high score boards, and cloud sync when you sign in.</description>
+    </item>
+  </channel>
+</rss>

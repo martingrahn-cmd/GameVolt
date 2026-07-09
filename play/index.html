@@ -735,6 +735,7 @@
           sudoku: 'Sudoku — Free Number Puzzle',
           'manga-match3': 'Manga Match — Free Match-3 Puzzle',
           'golden-glyphs': 'Golden Glyphs — Free Block Puzzle',
+          'one-stroke': 'One Stroke — Free One-Line Path Puzzle',
           'asteroid-storm': 'Asteroid Storm — Free Space Arcade Shooter',
           minesweeper: 'Minesweeper — Free Online Classic Puzzle',
           'type-or-die': 'Type or Die — Free Typing Zombie Game & WPM Test',
@@ -1019,6 +1020,7 @@
 
     let currentGame = null;
     let sessionStart = null;
+    let sessionAccum = 0;   // display ms accumulated before the current sessionStart (survives tab switches)
     let sessionTimerInterval = null;
 
     function getGameParam() {
@@ -1031,7 +1033,7 @@
       clearInterval(sessionTimerInterval);
       sessionTimerInterval = setInterval(function() {
         if (!sessionStart) return;
-        var elapsed = Date.now() - sessionStart;
+        var elapsed = sessionAccum + (Date.now() - sessionStart);
         var mins = Math.floor(elapsed / 60000);
         var secs = Math.floor((elapsed % 60000) / 1000);
         sessionTimeEl.textContent = mins + ':' + String(secs).padStart(2, '0');
@@ -1076,6 +1078,7 @@
       // Start session tracking
       if (window.GVTracker) {
         sessionStart = GVTracker.startSession(key);
+        sessionAccum = 0;
         sessionTimeEl.textContent = '0:00';
         startSessionTimer();
       }
@@ -1087,9 +1090,10 @@
       refreshFavButton();
       refreshRatingWidget(key);
 
-      const url = '/play/?game=' + key;
-      if (window.location.search !== '?game=' + key) {
-        history.pushState({ game: key }, '', url);
+      // Only rewrite the URL when the game actually changed (sidebar navigation) —
+      // this keeps extra params like ?challenge= intact on the initial load.
+      if (new URLSearchParams(window.location.search).get('game') !== key) {
+        history.pushState({ game: key }, '', '/play/?game=' + key);
       }
     }
 
@@ -1176,6 +1180,7 @@
       if (!window.GVTracker || !currentGame) return;
       if (document.hidden) {
         if (sessionStart) {
+          sessionAccum += Date.now() - sessionStart;
           GVTracker.endSession(currentGame, sessionStart);
           sessionStart = null;
           clearInterval(sessionTimerInterval);

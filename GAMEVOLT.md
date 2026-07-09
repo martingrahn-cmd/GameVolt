@@ -48,15 +48,15 @@ When writing code for this project, follow these rules:
 ## Game Catalog
 
 Status legend: ✅ = init + leaderboard + achievements + registerMigration, ⚠️ = partial, ❌ = not yet.
-Last verified by auditing the code on 2026-04-17.
+Last verified by auditing the code on 2026-07-09.
 
 | # | Game | Status | SDK |
 |---|---|---|---|
 | 1 | Breakout | ✅ Live | ✅ Full |
 | 2 | TapRush | ✅ Live | ✅ Full (31 trophies, added 2026-04-17) |
 | 3 | BlockStorm (Tetris) | ✅ Live | ✅ Full |
-| 4 | Solitaire Collection | ✅ Live | ⚠️ init only on some variants; no leaderboard / achievements / migration |
-| 5 | Snake Neo (3 modes) | ✅ Live | ❌ Not yet |
+| 4 | Solitaire Collection | ✅ Live | ⚠️ achievements + migration via SDK; leaderboard still on legacy Firebase (`pulsegames-solitaire`) — migrate to Supabase |
+| 5 | Snake Neo (3 modes) | ✅ Live | ✅ Full (31 trophies + leaderboard, added 2026-07-09) |
 | 6 | Connect 4 | ✅ Live | ✅ Full |
 | 7 | Flappy Bird (404 page) | ✅ Live | ❌ Not yet (not planned) |
 | 8 | HoverDash | ✅ Live | ✅ Full (pilot) |
@@ -67,8 +67,13 @@ Last verified by auditing the code on 2026-04-17.
 | 13 | Golden Glyphs | ✅ Live | ✅ Full |
 | 14 | One Stroke | ✅ Live | ✅ Full |
 | 15 | Minesweeper | ✅ Live | ✅ Full (31 trophies, added 2026-05-15) |
+| 16 | Asteroid Storm | ✅ Live | ✅ Full |
+| 17 | Type or Die | ✅ Live | ⚠️ init + achievements + migration via SDK; leaderboard via its own Supabase edge function (`tod-submit-run`, server-validated) — intentional, not the SDK path |
+| 18 | Chain Reaction | ✅ Live | ✅ Full |
+| 19 | Livewire | ✅ Live | ✅ Full (endless leaderboard added 2026-07-09) |
+| 20 | Vector Hexagon | ✅ Live | ✅ Full (two-tab climb/endless leaderboards) |
 
-**Remaining work:** SDK rollout to Snake; full integration (leaderboard + achievements + migration) for the Solitaire variants.
+**Remaining work:** migrate the Solitaire leaderboard from legacy Firebase to the Supabase SDK path.
 
 ---
 
@@ -364,8 +369,8 @@ Spec, rebranding, Supabase, SDK v1, HoverDash pilot — all done.
 - [x] Upload Golden Glyphs to portal
 
 ### Phase 2 — Engagement (in progress)
-SDK + leaderboards + profile page done. Breakout & Connect 4 integrated.
-- [ ] Roll out SDK to remaining games (Snake; Solitaire variants still need leaderboard + achievements + migration)
+SDK + leaderboards + profile page done. All games integrated (see catalog).
+- [x] Roll out SDK to remaining games (Snake done 2026-07-09; only the Solitaire Firebase→Supabase leaderboard migration remains)
 - [ ] Submit HoverDash to Poki (clean version without SDK)
 - [ ] Submit HoverDash to CrazyGames (clean version without SDK)
 
@@ -410,7 +415,7 @@ HoverDash (and future games) target multiple platforms from one codebase:
 
 ### Remaining
 - [ ] Decide: redirect pulsegames.eu → gamevolt.io, or let it expire
-- [ ] Roll out SDK to remaining games (Snake; Solitaire variants still need leaderboard + achievements + migration)
+- [ ] Migrate the Solitaire leaderboard from legacy Firebase (`pulsegames-solitaire`) to the Supabase SDK path
 - [ ] Update GameMonetize developer profile with new URL
 - [ ] Update portal submissions / social media with new URL
 
@@ -637,6 +642,51 @@ gvPost('achievement', { id: 'trophy_id', name: 'Name', tier: 'bronze' });
 
 ---
 
+## News Publishing Checklist
+
+Use this every time a game launches or gets a major update. The News section lives
+at `/news/` — a hand-maintained static section (no generator), so every step below
+is manual. Articles are written in English, fact-checked against the actual game
+code (never invent features).
+
+### 1. Write the article
+
+- [ ] Create `/news/{slug}/index.html` — copy an existing article
+  (`/news/vector-hexagon-launch/` for launches, `/news/snake-neo-trophies-update/`
+  for updates) and replace the content
+- [ ] Update in `<head>`: `<title>`, meta description, canonical URL, OG tags
+  (`og:url`, `og:title`, `og:description`, `og:image`, `article:published_time`),
+  Twitter card
+- [ ] Update the `NewsArticle` JSON-LD: `headline`, `description`, `url`,
+  `mainEntityOfPage`, `image`, `datePublished`/`dateModified`, and the `about`
+  VideoGame object (name + url of the game)
+- [ ] Update the `BreadcrumbList` JSON-LD (Home › News › {Article})
+- [ ] Body: date/category label ("New Game" or "Update"), h1, lead, hero image,
+  sections, play CTA button (`/play/?game=slug`), link to the game page
+  `/{slug}/` with a descriptive anchor
+- [ ] Only verified facts — check the game's code/meta before claiming features
+
+### 2. Register the article everywhere
+
+- [ ] `/news/index.html` — add a news card at the TOP of the list (newest first)
+- [ ] `/news/feed.xml` — add an `<item>` at the top (title, link, guid, pubDate in
+  RFC 822 format e.g. `Thu, 09 Jul 2026 12:00:00 GMT`, description); update
+  `<lastBuildDate>`
+- [ ] Homepage `index.html` — update the "Latest News" strip: add the new card,
+  drop the oldest (keep 2)
+- [ ] `sitemap.xml` — add the article URL (`changefreq yearly`), bump `lastmod`
+  on `/news/`, the homepage, and the game page the article links to
+- [ ] `llms.txt` — update the "Latest:" line in the News section
+
+### 3. Verify
+
+- [ ] Article loads without JS errors, JSON-LD parses as valid JSON
+- [ ] All internal links point at canonical `/{slug}/` paths (never `/games/…`)
+- [ ] Images referenced actually exist in the repo
+- [ ] `sitemap.xml` and `feed.xml` are well-formed XML
+
+---
+
 ## Open Questions
 
 - [ ] Keep PulseGames.eu as redirect, or drop the domain?
@@ -697,6 +747,7 @@ Optional: Transfer domain to Cloudflare to save ~100-200 kr/year.
 ├── snake/                        ← Snake Neo (3 modes)
 ├── solitaire/                    ← Solitaire Collection
 ├── taprush/                      ← TapRush (was ClickRush)
+├── news/                         ← News section (index + one folder per article + feed.xml)
 ├── action-games/                 ← Category landing page
 ├── arcade-games/                 ← Category landing page
 ├── board-games/                  ← Category landing page

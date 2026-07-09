@@ -714,9 +714,11 @@
             <div class="header-right">
                 <nav class="nav-links">
                     <a href="/" class="nav-link">Home</a>
+                    <a href="/news/" class="nav-link">News</a>
                     <a href="/leaderboards/" class="nav-link">Leaderboards</a>
                     <a href="/profile/" class="nav-link active">Profile</a>
                     <a href="/about/" class="nav-link">About</a>
+                    <a href="/contact/" class="nav-link">Contact</a>
                 </nav>
                 <div id="gv-user-area">
                     <button id="gv-login-btn" class="gv-login-btn" onclick="if(window.GameVolt)GameVolt.auth.login()">LOG IN</button>
@@ -812,22 +814,38 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
-                        <a href="/play/?game=hoverdash">HoverDash</a>
-                        <a href="/play/?game=vector-hexagon">Vector Hexagon</a>
-                        <a href="/play/?game=snake">Snake Neo</a>
-                        <a href="/play/?game=breakout">Breakout</a>
-                        <a href="/play/?game=solitaire">Solitaire</a>
-                        <a href="/play/?game=blockstorm">BlockStorm</a>
-                        <a href="/play/?game=connect4">Connect 4</a>
-                        <a href="/play/?game=axeluga">Axeluga</a>
-                        <a href="/play/?game=manga-match3">Manga Match</a>
-                        <a href="/play/?game=golden-glyphs">Golden Glyphs</a>
-                        <a href="/play/?game=one-stroke">One Stroke</a>
-                        <a href="/play/?game=asteroid-storm">Asteroid Storm</a>
-                        <a href="/play/?game=livewire">Livewire</a>
+                        <a href="/hoverdash/">HoverDash</a>
+                        <a href="/vector-hexagon/">Vector Hexagon</a>
+                        <a href="/snake/">Snake Neo</a>
+                        <a href="/breakout/">Breakout</a>
+                        <a href="/taprush/">Tap Rush</a>
+                        <a href="/solitaire/">Solitaire</a>
+                        <a href="/blockstorm/">BlockStorm</a>
+                        <a href="/connect4/">Connect 4</a>
+                        <a href="/axeluga/">Axeluga</a>
+                        <a href="/gravitywell/">Gravity Well</a>
+                        <a href="/sudoku/">Sudoku</a>
+                        <a href="/manga-match3/">Manga Match</a>
+                        <a href="/golden-glyphs/">Golden Glyphs</a>
+                        <a href="/one-stroke/">One Stroke</a>
+                        <a href="/asteroid-storm/">Asteroid Storm</a>
+                        <a href="/minesweeper/">Minesweeper</a>
+                        <a href="/type-or-die/">Type or Die</a>
+                        <a href="/chain-reaction/">Chain Reaction</a>
+                        <a href="/livewire/">Livewire</a>
+                    </div>
+                    <div class="footer-column">
+                        <h4>Categories</h4>
+                        <a href="/arcade-games/">Arcade</a>
+                        <a href="/action-games/">Action</a>
+                        <a href="/puzzle-games/">Puzzle</a>
+                        <a href="/board-games/">Board Games</a>
+                        <a href="/word-games/">Word</a>
                     </div>
                     <div class="footer-column">
                         <h4>Info</h4>
+                        <a href="/news/">News</a>
+                        <a href="/favorites/">My Favorites</a>
                         <a href="/about/">About</a>
                         <a href="/contact/">Contact</a>
                         <a href="/privacy/">Privacy Policy</a>
@@ -1315,7 +1333,7 @@
                 { id:'livewire-use_undo', icon:'↩️', name:'Rewind', desc:'Undo a move', tier:'bronze' },
                 { id:'livewire-easy_done', icon:'🟢', name:'Easy Rider', desc:'Finish every Easy level', tier:'bronze' },
                 { id:'livewire-daily_first', icon:'📅', name:'Daily Dose', desc:'Complete a Daily puzzle', tier:'bronze' },
-                { id:'livewire-endless_5', icon:'♾️', name:'Endless Start', desc:'Reach 5 pairs in Endless', tier:'bronze' },
+                { id:'livewire-endless_5', icon:'♾️', name:'Endless Start', desc:'Solve 5 boards in Endless', tier:'bronze' },
                 { id:'livewire-pairs_50', icon:'🧮', name:'Fifty Links', desc:'Connect 50 pairs in total', tier:'bronze' },
                 { id:'livewire-speed_30', icon:'⏱️', name:'Quick Hands', desc:'Solve a level in under 30s', tier:'bronze' },
                 { id:'livewire-normal_reach', icon:'🔼', name:'Step Up', desc:'Complete a Normal level', tier:'bronze' },
@@ -1326,7 +1344,7 @@
                 { id:'livewire-speed_15', icon:'⚡', name:'Lightning Fingers', desc:'Solve a level in under 15s', tier:'silver' },
                 { id:'livewire-no_hint_10', icon:'🧠', name:'Self-Reliant', desc:'Clear 10 levels without a hint', tier:'silver' },
                 { id:'livewire-daily_streak_3', icon:'📆', name:'Regular', desc:'Reach a 3-day Daily streak', tier:'silver' },
-                { id:'livewire-endless_10', icon:'♾️', name:'Endless Adept', desc:'Reach 10 pairs in Endless', tier:'silver' },
+                { id:'livewire-endless_10', icon:'♾️', name:'Endless Adept', desc:'Solve 10 boards in Endless', tier:'silver' },
                 { id:'livewire-pairs_500', icon:'🧵', name:'Master Linker', desc:'Connect 500 pairs in total', tier:'silver' },
                 { id:'livewire-hard_done', icon:'🎚️', name:'Untangled', desc:'Finish every Hard level', tier:'silver' },
                 { id:'livewire-all_3star_easy', icon:'✨', name:'Spotless: Easy', desc:'3 stars on every Easy level', tier:'silver' },
@@ -1334,7 +1352,7 @@
                 { id:'livewire-expert_done', icon:'👑', name:'Grid Master', desc:'Finish every Expert level', tier:'gold' },
                 { id:'livewire-all_3star_all', icon:'💯', name:'Immaculate', desc:'3 stars on every campaign level', tier:'gold' },
                 { id:'livewire-daily_streak_7', icon:'🗓️', name:'Devoted', desc:'Reach a 7-day Daily streak', tier:'gold' },
-                { id:'livewire-endless_20', icon:'🏆', name:'Endless Legend', desc:'Reach 20 pairs in Endless', tier:'gold' },
+                { id:'livewire-endless_20', icon:'🏆', name:'Endless Legend', desc:'Solve 20 boards in Endless', tier:'gold' },
                 { id:'livewire-campaign_done', icon:'🎖️', name:'Circuit Complete', desc:'Finish the whole campaign', tier:'gold' },
                 { id:'livewire-platinum', icon:'🌟', name:'Live Wire', desc:'Unlock all 30 trophies', tier:'platinum' }
             ],
@@ -1561,7 +1579,7 @@
 
         GameVolt.init('profile');
 
-        GameVolt.auth.onStateChange(function(user) {
+        function handleAuth(user) {
             // Header auth state
             var loginBtn = document.getElementById('gv-login-btn');
             var userInfo = document.getElementById('gv-user-info');
@@ -1577,7 +1595,15 @@
             }
 
             loadProfile(user);
+        }
+
+        // onStateChange never fires for guests (the SDK only notifies on an
+        // actual sign-in/out), so resolve the initial state via onReady too —
+        // otherwise logged-out visitors hang on the loading spinner forever.
+        GameVolt.onReady(function() {
+            handleAuth(GameVolt.auth.getUser());
         });
+        GameVolt.auth.onStateChange(handleAuth);
 
         function loadProfile(user) {
             var loadingEl = document.getElementById('profile-loading');

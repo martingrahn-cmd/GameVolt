@@ -998,5 +998,246 @@
     if (DEV && CR.runTests) CR.runTests();
   })();
   </script>
+
+<!-- SEO content & footer — visible standalone, hidden inside the /play/ iframe -->
+<div id="seo-content" style="display:none;">
+<style>
+  /* Standalone mode: html+body are normally height:100%/overflow:hidden with
+     touch-action:none for swipe input. Unlock scrolling so the SEO content
+     flows below the game, which keeps its own 100vh/100dvh via #app. */
+  html.gv-standalone, body.gv-standalone { height:auto !important; min-height:100vh; overflow-x:hidden !important; overflow-y:auto !important; }
+  body.gv-standalone { touch-action:pan-y !important; }
+  /* Swipes on the board must keep steering tiles, not scroll the page
+     (the game's touch listeners are passive and rely on touch-action). */
+  body.gv-standalone #board { touch-action:none; }
+  body.gv-standalone #seo-content { display:block !important; }
+  /* Opaque panel above the fixed #bg canvas and the body::after scanlines. */
+  #seo-content { position:relative; z-index:2; background:#07070f; color:#b0b0c0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; user-select:text; -webkit-user-select:text; border-top:1px solid rgba(124,92,252,0.25); }
+  #seo-content a { color:#21e6ff; }
+  #seo-content a:hover { color:#7c5cfc; }
+  .cr-breadcrumb { max-width:1200px; margin:0 auto; padding:16px 24px; font-size:0.85rem; color:#626580; }
+  .cr-breadcrumb a { color:#a0a4c0; text-decoration:none; }
+  .cr-breadcrumb a:hover { color:#21e6ff; }
+  .cr-breadcrumb .sep { color:#626580; margin:0 0.4rem; }
+  .cr-breadcrumb .here { color:#f0f0ff; }
+  .cr-info { max-width:800px; margin:2rem auto 0; padding:0 24px 2rem; line-height:1.75; font-size:0.97rem; }
+  .cr-info h1 { color:#f0f0ff; font-size:1.7rem; margin-bottom:0.5rem; font-weight:700; }
+  .cr-info h2 { color:#e0e0e0; font-size:1.2rem; margin-top:1.8rem; margin-bottom:0.5rem; font-weight:600; }
+  .cr-info p { margin-bottom:1rem; }
+  .cr-info ul { margin:0 0 1rem 1.25rem; padding:0; }
+  .cr-info li { margin-bottom:0.4rem; }
+  .cr-related { max-width:1200px; margin:2.5rem auto 0; padding:0 24px; }
+  .cr-related h2 { color:#f0f0ff; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; }
+  .cr-related-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+  .cr-card { text-decoration:none; background:rgba(255,255,255,0.04); border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.06); display:block; transition:border-color .2s, transform .2s; }
+  .cr-card:hover { border-color:rgba(33,230,255,0.4); transform:translateY(-2px); }
+  .cr-card img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+  .cr-card-body { padding:12px; }
+  .cr-card-title { color:#f0f0ff; font-size:0.95rem; font-weight:600; }
+  .cr-card-cat { color:#888; font-size:0.8rem; margin-top:4px; }
+  .cr-faq { max-width:800px; margin:2.5rem auto 0; padding:0 24px; }
+  .cr-faq h2 { color:#f0f0ff; font-size:1.3rem; font-weight:700; margin-bottom:1.2rem; }
+  .cr-faq details { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.6rem; }
+  .cr-faq summary { color:#e0e0e0; font-weight:600; cursor:pointer; font-size:0.97rem; }
+  .cr-faq details[open] summary { color:#21e6ff; }
+  .cr-faq details > p { color:#b0b0c0; margin-top:0.6rem; line-height:1.7; font-size:0.92rem; }
+  .cr-footer { background:#07070f; border-top:1px solid rgba(255,255,255,0.06); padding:48px 24px 24px; margin-top:3rem; }
+  .cr-footer-inner { max-width:1200px; margin:0 auto; }
+  .cr-footer-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:32px; padding-bottom:32px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .cr-footer-brand { max-width:300px; }
+  .cr-footer-logo { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  .cr-footer-logo-icon { width:40px; height:40px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:10px; display:flex; align-items:center; justify-content:center; }
+  .cr-footer-name { font-size:1.5rem; font-weight:700; color:#fff; }
+  .cr-footer-cols { display:flex; gap:48px; flex-wrap:wrap; }
+  .cr-footer-cols h4 { font-size:1rem; font-weight:700; margin:0 0 16px; color:#f0f0ff; }
+  .cr-footer-cols a { display:block; color:#888; text-decoration:none; padding:4px 0; font-size:0.9rem; }
+  .cr-footer-cols a:hover { color:#21e6ff; }
+  .cr-copy { padding-top:24px; text-align:center; color:#888; font-size:0.85rem; }
+</style>
+
+<nav class="cr-breadcrumb" aria-label="Breadcrumb">
+  <a href="/">Home</a>
+  <span class="sep">›</span>
+  <a href="/puzzle-games/">Puzzle Games</a>
+  <span class="sep">›</span>
+  <span class="here">Chain Reaction</span>
+</nav>
+
+<section class="cr-info">
+  <h1>Chain Reaction — Free 2048 Puzzle Game Online</h1>
+  <p>
+    Play Chain Reaction free in your browser — a neon-drenched take on the classic 2048 number
+    puzzle with one electric twist: merges don't stop at one. When a merge lines up a new matching
+    pair, the board <strong>cascades automatically</strong>, chaining merge after merge while a
+    combo multiplier pumps up your score. Slide, merge, reach the 2048 tile, and keep going in
+    endless mode. No download, no signup — just pure merge-puzzle strategy.
+  </p>
+
+  <h2>How to Play Chain Reaction</h2>
+  <p>
+    The rules take seconds to learn. On a 4×4 grid, every move slides all tiles in one direction
+    at once. Two tiles with the same number slam together into a single tile worth double —
+    2 and 2 make 4, 4 and 4 make 8, all the way up to 2048 and beyond.
+  </p>
+  <ul>
+    <li><strong>Swipe</strong> (mobile) or use the <strong>arrow keys / WASD</strong> (desktop) to slide tiles.</li>
+    <li>Match equal tiles to merge them into double the value.</li>
+    <li>Made a mistake? <strong>Undo</strong> rewinds your last move — once per game in Normal, three times in Easy mode.</li>
+    <li>The run ends when the board fills up and no merges are left. Reach 2048 first and you win — then continue in endless mode.</li>
+  </ul>
+
+  <h2>The Chain Reaction Twist vs Classic 2048</h2>
+  <p>
+    In classic 2048, one swipe means one round of merges. Here, if a merge creates a fresh matching
+    pair in the same direction, the board keeps sliding on its own — a chain reaction. Every extra
+    cascade step multiplies the points it scores: step two pays double, step three pays triple, and
+    so on. Setting up long chains is the heart of the strategy — a well-planned swipe can rack up
+    more points than a dozen ordinary moves. Classic wisdom still applies: keep your biggest tile
+    locked in a corner and build toward it.
+  </p>
+
+  <h2>Trophies, Goals & Global Leaderboard</h2>
+  <p>
+    Every run rolls three random goals to chase, and there are <strong>31 trophies</strong> to
+    unlock across four tiers — 15 bronze, 10 silver, 5 gold and 1 platinum — covering everything
+    from your first chain to monster tiles and marathon combos. Detailed stats track your games
+    played, best score, max tile, longest chain and total moves. Sign in to GameVolt to submit
+    your high scores to the global leaderboard and see how your best run stacks up worldwide.
+  </p>
+
+  <h2>Plays Great on Mobile</h2>
+  <p>
+    Chain Reaction is built mobile-first: swipe anywhere on the board to move, with haptic
+    feedback on supported phones and a board that scales to any screen. Your run is saved
+    automatically, so you can close the tab mid-game and resume exactly where you left off.
+    Prefer a gentler ride? Easy mode spawns fewer 4-tiles and grants extra undos.
+  </p>
+
+  <h2>Free, Instant, No Download</h2>
+  <p>
+    Chain Reaction is part of <a href="/">GameVolt</a> — a curated collection of original free
+    browser games. Nothing to install and no account required to play. Progress is saved locally;
+    sign in to sync trophies and scores across devices.
+  </p>
+</section>
+
+<section class="cr-faq">
+  <h2>Chain Reaction FAQ</h2>
+  <details>
+    <summary>Is Chain Reaction really free to play?</summary>
+    <p>Yes. 100% free in your browser, no download and no signup needed. Sign in only if you want your trophies synced and a spot on the global leaderboard.</p>
+  </details>
+  <details>
+    <summary>How is Chain Reaction different from classic 2048?</summary>
+    <p>In classic 2048 each swipe resolves once. In Chain Reaction, when a merge creates a new matching pair, the board automatically slides again in the same direction — and each extra cascade step multiplies the points it earns (x2, x3, x4...). Long chains are where the big scores come from.</p>
+  </details>
+  <details>
+    <summary>What happens after I reach the 2048 tile?</summary>
+    <p>You win the run — and you can keep playing in endless mode, building even bigger tiles and pushing your high score and longest chain further.</p>
+  </details>
+  <details>
+    <summary>Can I undo a move?</summary>
+    <p>Yes. Normal difficulty gives you one undo per game, so spend it wisely. Easy mode grants three undos and also spawns fewer 4-tiles.</p>
+  </details>
+  <details>
+    <summary>Does it work on phones and tablets?</summary>
+    <p>Yes. Swipe on the board to slide tiles, with haptic feedback where supported. Your run auto-saves, so you can resume any time on the same device.</p>
+  </details>
+  <details>
+    <summary>How do the trophies and leaderboard work?</summary>
+    <p>There are 31 trophies in four tiers (15 bronze, 10 silver, 5 gold, 1 platinum), earned for tiles, chains, scores and more. High scores are kept locally, and signing in to GameVolt submits your best to the global leaderboard.</p>
+  </details>
+</section>
+
+<section class="cr-related">
+  <h2>You Might Also Like</h2>
+  <div class="cr-related-grid">
+    <a href="/blockstorm/" class="cr-card">
+      <img src="/assets/thumbnails/blockstorm.webp" alt="Play BlockStorm online free">
+      <div class="cr-card-body">
+        <div class="cr-card-title">BlockStorm</div>
+        <div class="cr-card-cat">Tetris-Style</div>
+      </div>
+    </a>
+    <a href="/golden-glyphs/" class="cr-card">
+      <img src="/assets/thumbnails/golden-glyphs.webp" alt="Play Golden Glyphs online free">
+      <div class="cr-card-body">
+        <div class="cr-card-title">Golden Glyphs</div>
+        <div class="cr-card-cat">Block Puzzle</div>
+      </div>
+    </a>
+    <a href="/one-stroke/" class="cr-card">
+      <img src="/assets/thumbnails/one-stroke.webp" alt="Play One Stroke online free">
+      <div class="cr-card-body">
+        <div class="cr-card-title">One Stroke</div>
+        <div class="cr-card-cat">Path Puzzle</div>
+      </div>
+    </a>
+    <a href="/livewire/" class="cr-card">
+      <img src="/assets/thumbnails/livewire.webp" alt="Play Livewire online free">
+      <div class="cr-card-body">
+        <div class="cr-card-title">Livewire</div>
+        <div class="cr-card-cat">Logic Puzzle</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<footer class="cr-footer">
+  <div class="cr-footer-inner">
+    <div class="cr-footer-top">
+      <div class="cr-footer-brand">
+        <div class="cr-footer-logo">
+          <div class="cr-footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
+          <span class="cr-footer-name">GameVolt</span>
+        </div>
+        <p style="color:#888;font-size:0.9rem;margin:0;">Free browser games for everyone.</p>
+      </div>
+      <div class="cr-footer-cols">
+        <div>
+          <h4>Games</h4>
+          <a href="/sudoku/">Sudoku</a>
+          <a href="/one-stroke/">One Stroke</a>
+          <a href="/golden-glyphs/">Golden Glyphs</a>
+          <a href="/blockstorm/">BlockStorm</a>
+          <a href="/manga-match3/">Manga Match</a>
+          <a href="/hoverdash/">HoverDash</a>
+          <a href="/snake/">Snake Neo</a>
+          <a href="/breakout/">Breakout</a>
+        </div>
+        <div>
+          <h4>Categories</h4>
+          <a href="/arcade-games/">Arcade</a>
+          <a href="/action-games/">Action</a>
+          <a href="/puzzle-games/">Puzzle</a>
+          <a href="/board-games/">Board Games</a>
+        </div>
+        <div>
+          <h4>Info</h4>
+          <a href="/about/">About</a>
+          <a href="/contact/">Contact</a>
+          <a href="/privacy/">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+    <div class="cr-copy">© 2026 GameVolt. All rights reserved.</div>
+  </div>
+</footer>
+</div>
+<script>
+// Reveal SEO content only when loaded standalone — hide everything in iframe (e.g. /play/?game=chain-reaction)
+if (window.parent === window) {
+  document.documentElement.classList.add('gv-standalone');
+  document.body.classList.add('gv-standalone');
+  document.getElementById('seo-content').style.display = 'block';
+}
+</script>
+
+<noscript>
+  <div style="padding:2rem;color:#c8cce0;text-align:center">
+    <h1>Chain Reaction — 2048 Combo Puzzle Online</h1>
+    <p>Play Chain Reaction free in your browser — a 2048-style merge puzzle where merges cascade into combo chains. JavaScript is required.</p>
+  </div>
+</noscript>
 </body>
 </html>
