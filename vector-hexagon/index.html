@@ -261,6 +261,21 @@
   }
   #callout.show { animation: callout 1.15s cubic-bezier(.2,.8,.2,1) forwards; }
   #callout.hold { animation: calloutHold 1.9s cubic-bezier(.2,.8,.2,1) forwards; }
+  /* ---- signature set-piece name tag (subtle, sits below the HUD) ---- */
+  #patname {
+    position: fixed; left: 0; right: 0; top: 15%; z-index: 4; text-align: center;
+    pointer-events: none; font-family: 'Orbitron', sans-serif; font-weight: 800;
+    letter-spacing: 0.34em; text-transform: uppercase; color: #7df9ff; opacity: 0;
+    font-size: clamp(10px, 2.6vw, 15px); text-shadow: 0 0 16px rgba(125,249,255,0.7);
+    padding-left: 0.34em;
+  }
+  #patname.show { animation: patname 2.1s cubic-bezier(.2,.8,.2,1) forwards; }
+  @keyframes patname {
+    0%   { opacity: 0; transform: translateY(-6px); letter-spacing: 0.6em; }
+    16%  { opacity: 0.95; transform: translateY(0); letter-spacing: 0.34em; }
+    72%  { opacity: 0.95; }
+    100% { opacity: 0; transform: translateY(2px); }
+  }
   @keyframes callout {
     0%   { opacity: 0; transform: scale(0.55); letter-spacing: 0.5em; }
     18%  { opacity: 1; transform: scale(1.12); letter-spacing: 0.12em; }
@@ -373,6 +388,7 @@
   </div>
 
   <div id="callout"></div>
+  <div id="patname"></div>
   <div id="toast" class="hidden"></div>
 
   <div id="controls">
@@ -399,7 +415,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   // ── VERSION ─────────────────────────────────────────────────────────────
   // Bump this AND the CACHE string in sw.js together on every deploy, so the
   // start screen shows the running version and installed apps update.
-  const VERSION = 'v2.3';
+  const VERSION = 'v2.4';
   const verEl = document.getElementById('version');
   if (verEl) verEl.textContent = VERSION;
   // ────────────────────────────────────────────────────────────────────────
@@ -697,7 +713,13 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
             const back=Array.from({length:k},(_,i)=>wm(openMask(g+d*(k-1)-d*i),0.86));
             return out.concat(back); },
   ];
-  // difficulty-weighted pattern pick (by current tier / endless depth)
+  // names for the authored signature set-pieces (shown on-screen when they begin)
+  const PATTERN_NAMES = {
+    10: 'SPIRAL STAIRCASE', 11: 'PENDULUM', 12: 'THE BAIT',
+    13: 'TWIN HELIX', 14: 'THE PINCH', 15: 'LADDER REVERSAL',
+  };
+  // difficulty-weighted pattern pick (by current tier / endless depth).
+  // Returns a PATTERNS index so the caller can name the signature set-pieces.
   function nextPattern(){
     const hard = endless ? Math.min(2 + Math.floor(elapsed/45), 4) : stage;
     // gentle signatures (staircase, pendulum) show from the very first tier so
@@ -707,8 +729,8 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     if (hard>=2) pool.push(2,5,6,7,9, 12,15,10,11);   // + the bait, ladder reversal
     if (hard>=3) pool.push(6,7,8,9, 14,12,15,10);     // + the pinch (deep)
     // brief grace at the start of each tier: only calm patterns
-    if (stageTime < 3 && !endless) return PATTERNS[3+rnd(2)]; // spike or breather
-    return PATTERNS[pool[rnd(pool.length)]];
+    if (stageTime < 3 && !endless) return 3+rnd(2);   // spike or breather
+    return pool[rnd(pool.length)];
   }
 
   // ---------- audio ----------
@@ -915,6 +937,15 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     calloutEl.classList.remove('show','hold');
     void calloutEl.offsetWidth;                 // restart the animation
     calloutEl.classList.add(hold ? 'hold' : 'show');
+  }
+  // subtle name tag for authored signature set-pieces (kept out of the arena)
+  const patnameEl = document.getElementById('patname');
+  let lastNamedPattern = -1;
+  function patternName(text){
+    patnameEl.textContent = '‹ ' + text + ' ›';
+    patnameEl.classList.remove('show');
+    void patnameEl.offsetWidth;                 // restart the animation
+    patnameEl.classList.add('show');
   }
 
   // ---------- haptics ----------
@@ -1216,7 +1247,7 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     elapsed=0; speed=d.base; world=0; spinDir=1; spinSpeed=d.spin*0.6; spinTimer=2.5;
     morph='none'; morphScale=1; morphT=0; scheduleMorph();  // scheduleMorph AFTER elapsed=0
     hue = TIER_HUE[stage]; hueDir=1; distAccum=0; shake=0; pulse=0; beatClock=0;
-    cursorGlow=0; beatFlash=0;
+    cursorGlow=0; beatFlash=0; pending=[]; lastNamedPattern=-1;
     runShapes = new Set([6]); runCloseCalls = 0; runClears = 0;   // reset per-run achievement stats
     stepIdx=0; if (ac) audioBeat = ac.currentTime + 0.06;
     if (ac && ac.state==='suspended') ac.resume();
@@ -1300,7 +1331,16 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     if (morph !== 'none') return;          // no spawning while the field is morphing
     const d=DIFFS[stage];
     distAccum += speed*dt;
-    if (pending.length===0) pending = normalizePattern(nextPattern()(), d.spacing);
+    if (pending.length===0){
+      const pi = nextPattern();
+      pending = normalizePattern(PATTERNS[pi](), d.spacing);
+      if (pi >= 10){                       // authored signature — name it on-screen
+        if (pi !== lastNamedPattern) patternName(PATTERN_NAMES[pi]);
+        lastNamedPattern = pi;
+      } else {
+        lastNamedPattern = -1;             // a plain pattern between lets it re-announce
+      }
+    }
     if (pending.length && distAccum >= pending[0].space){
       distAccum -= pending[0].space;
       const it = pending.shift();
