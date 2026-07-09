@@ -48,15 +48,15 @@ When writing code for this project, follow these rules:
 ## Game Catalog
 
 Status legend: ✅ = init + leaderboard + achievements + registerMigration, ⚠️ = partial, ❌ = not yet.
-Last verified by auditing the code on 2026-04-17.
+Last verified by auditing the code on 2026-07-09.
 
 | # | Game | Status | SDK |
 |---|---|---|---|
 | 1 | Breakout | ✅ Live | ✅ Full |
 | 2 | TapRush | ✅ Live | ✅ Full (31 trophies, added 2026-04-17) |
 | 3 | BlockStorm (Tetris) | ✅ Live | ✅ Full |
-| 4 | Solitaire Collection | ✅ Live | ⚠️ init only on some variants; no leaderboard / achievements / migration |
-| 5 | Snake Neo (3 modes) | ✅ Live | ❌ Not yet |
+| 4 | Solitaire Collection | ✅ Live | ⚠️ achievements + migration via SDK; leaderboard still on legacy Firebase (`pulsegames-solitaire`) — migrate to Supabase |
+| 5 | Snake Neo (3 modes) | ✅ Live | ✅ Full (31 trophies + leaderboard, added 2026-07-09) |
 | 6 | Connect 4 | ✅ Live | ✅ Full |
 | 7 | Flappy Bird (404 page) | ✅ Live | ❌ Not yet (not planned) |
 | 8 | HoverDash | ✅ Live | ✅ Full (pilot) |
@@ -67,8 +67,13 @@ Last verified by auditing the code on 2026-04-17.
 | 13 | Golden Glyphs | ✅ Live | ✅ Full |
 | 14 | One Stroke | ✅ Live | ✅ Full |
 | 15 | Minesweeper | ✅ Live | ✅ Full (31 trophies, added 2026-05-15) |
+| 16 | Asteroid Storm | ✅ Live | ✅ Full |
+| 17 | Type or Die | ✅ Live | ⚠️ init + achievements + migration via SDK; leaderboard via its own Supabase edge function (`tod-submit-run`, server-validated) — intentional, not the SDK path |
+| 18 | Chain Reaction | ✅ Live | ✅ Full |
+| 19 | Livewire | ✅ Live | ✅ Full (endless leaderboard added 2026-07-09) |
+| 20 | Vector Hexagon | ✅ Live | ✅ Full (two-tab climb/endless leaderboards) |
 
-**Remaining work:** SDK rollout to Snake; full integration (leaderboard + achievements + migration) for the Solitaire variants.
+**Remaining work:** migrate the Solitaire leaderboard from legacy Firebase to the Supabase SDK path.
 
 ---
 
@@ -364,8 +369,8 @@ Spec, rebranding, Supabase, SDK v1, HoverDash pilot — all done.
 - [x] Upload Golden Glyphs to portal
 
 ### Phase 2 — Engagement (in progress)
-SDK + leaderboards + profile page done. Breakout & Connect 4 integrated.
-- [ ] Roll out SDK to remaining games (Snake; Solitaire variants still need leaderboard + achievements + migration)
+SDK + leaderboards + profile page done. All games integrated (see catalog).
+- [x] Roll out SDK to remaining games (Snake done 2026-07-09; only the Solitaire Firebase→Supabase leaderboard migration remains)
 - [ ] Submit HoverDash to Poki (clean version without SDK)
 - [ ] Submit HoverDash to CrazyGames (clean version without SDK)
 
@@ -410,7 +415,7 @@ HoverDash (and future games) target multiple platforms from one codebase:
 
 ### Remaining
 - [ ] Decide: redirect pulsegames.eu → gamevolt.io, or let it expire
-- [ ] Roll out SDK to remaining games (Snake; Solitaire variants still need leaderboard + achievements + migration)
+- [ ] Migrate the Solitaire leaderboard from legacy Firebase (`pulsegames-solitaire`) to the Supabase SDK path
 - [ ] Update GameMonetize developer profile with new URL
 - [ ] Update portal submissions / social media with new URL
 

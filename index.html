@@ -2699,7 +2699,8 @@
                     'Authorization': 'Bearer ' + SB_KEY
                 },
                 body: JSON.stringify(params || {})
-            }).then(function(r) { return r.ok ? r.json() : []; });
+            }).then(function(r) { return r.ok ? r.json() : []; })
+              .catch(function() { return []; });
         }
 
         function timeAgo(dateStr) {
