@@ -369,9 +369,9 @@ function patchGameForMode(mode) {
 
             if (position > 0) {
                 if (window.audioNeoSFX) window.audioNeoSFX.newHighscore();
-                this.highscoreListScreen.show(() => {
+                this.highScoresScreen.show(() => {
                     gameOver16bit.show(stats, () => this._restart16bit(), () => this._returnToMenu());
-                }, position);
+                }, "16bit");
             } else {
                 gameOver16bit.show(stats, () => this._restart16bit(), () => this._returnToMenu());
             }

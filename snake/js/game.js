@@ -15,8 +15,8 @@ import { GameOverScreen } from "./gameover.js";
 import { PauseScreen } from "./pause.js";
 import { LevelCompleteScreen } from "./levelcomplete.js";
 import { OptionsScreen } from "./options.js";
-import { recordRun } from "./achievements.js";
-import { HighscoreManager, HighscoreEntryScreen, HighscoreListScreen } from "./highscore.js";
+import { recordRun, HighScoresScreen } from "./achievements.js";
+import { HighscoreManager } from "./highscore.js";
 
 export class Game {
     constructor() {
@@ -55,10 +55,9 @@ export class Game {
         this.optionsScreen = new OptionsScreen();
         // Enable ads: this.levelCompleteScreen.setAdEnabled(true);
         
-        // Highscore system
+        // Highscore system — local storage layer + the modern LOCAL/GLOBAL board
         this.highscoreManager = new HighscoreManager();
-        this.highscoreEntryScreen = new HighscoreEntryScreen(this.highscoreManager);
-        this.highscoreListScreen = new HighscoreListScreen(this.highscoreManager);
+        this.highScoresScreen = new HighScoresScreen();
         
         // Sound hooks are set on prototype by patchGameForMode in main.js
     }
@@ -136,7 +135,7 @@ export class Game {
 
         // Keyboard shortcuts for background/music
         window.addEventListener("keydown", e => {
-            // Ignore shortcuts when typing in an input field (e.g. highscore name entry)
+            // Ignore shortcuts when the user is typing in a text field
             if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
 
             // B = Toggle background mode (lite/full)
@@ -179,7 +178,7 @@ export class Game {
     // ------------------------------------------------------------
     _handleDirection(dir) {
         // Don't handle directions if options or highscores are showing
-        if (this.optionsScreen?.isShowing || this.highscoreListScreen?.isShowing) {
+        if (this.optionsScreen?.isShowing || this.highScoresScreen?.isShowing) {
             return;
         }
         
@@ -219,7 +218,7 @@ export class Game {
         }
         
         // Don't handle actions if options or highscores are showing
-        if (this.optionsScreen?.isShowing || this.highscoreListScreen?.isShowing) {
+        if (this.optionsScreen?.isShowing || this.highScoresScreen?.isShowing) {
             return;
         }
         
@@ -591,9 +590,9 @@ export class Game {
     }
 
     _showHighscoresFromPause() {
-        this.highscoreListScreen.show(() => {
+        this.highScoresScreen.show(() => {
             // Return to pause menu (already showing)
-        });
+        }, this.endlessMode ? "nokia" : "neo");
     }
 
     _resume() {
@@ -637,11 +636,11 @@ export class Game {
         }
 
         if (position > 0) {
-            // New highscore — play sound, show list
+            // New highscore — play sound, show the modern board for this mode
             if (window.audioNeoSFX) window.audioNeoSFX.newHighscore();
-            this.highscoreListScreen.show(() => {
+            this.highScoresScreen.show(() => {
                 this._showGameOverScreen(stats);
-            }, position);
+            }, _mode === "neo" ? "neo" : "nokia");
         } else {
             // No highscore — game over directly
             if (window.audioNeoSFX) window.audioNeoSFX.gameOver();
@@ -702,10 +701,10 @@ export class Game {
         const prevState = this.state;
         this.state = "highscores";
         
-        this.highscoreListScreen.show(() => {
+        this.highScoresScreen.show(() => {
             this.state = prevState;
             this.last = performance.now();
-        });
+        }, this.endlessMode ? "nokia" : "neo");
     }
 
     // ------------------------------------------------------------

@@ -1925,9 +1925,10 @@
             </a>
 
             <!-- Snake -->
-            <a href="/play/?game=snake" class="game-card" data-category="coffee-break">
+            <a href="/play/?game=snake" class="game-card" data-category="coffee-break" data-preview="/snake/preview.mp4">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/snake.webp" alt="Play Snake Neo online free" fetchpriority="high">
+                    <video class="preview-video" muted loop playsinline preload="none"></video>
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Snake Neo</h3>
@@ -2537,7 +2538,7 @@
         if (!window.GVTracker) return;
 
         var GAME_META = {
-            snake:     { name: "Snake Neo",  thumb: "/assets/thumbnails/snake.webp" },
+            snake:     { name: "Snake Neo",  thumb: "/assets/thumbnails/snake.webp", preview: "/snake/preview.mp4" },
             breakout:  { name: "Breakout",   thumb: "/assets/thumbnails/breakout.webp", preview: "/breakout/preview.mp4" },
             taprush:   { name: "Tap Rush",   thumb: "/assets/thumbnails/taprush.webp" },
             solitaire: { name: "Solitaire",  thumb: "/assets/thumbnails/solitaire.webp" },
@@ -2606,7 +2607,7 @@
     // localStorage when guest). Hidden when empty; refreshes on auth state change.
     (function() {
         var FAV_META = {
-            snake:           { name: "Snake Neo",     thumb: "/assets/thumbnails/snake.webp" },
+            snake:           { name: "Snake Neo",     thumb: "/assets/thumbnails/snake.webp", preview: "/snake/preview.mp4" },
             breakout:        { name: "Breakout",      thumb: "/assets/thumbnails/breakout.webp", preview: "/breakout/preview.mp4" },
             taprush:         { name: "Tap Rush",      thumb: "/assets/thumbnails/taprush.webp" },
             solitaire:       { name: "Solitaire",     thumb: "/assets/thumbnails/solitaire.webp" },
