@@ -331,8 +331,17 @@ export class HighScoresScreen {
         this.reqId = 0;
     }
 
-    show(onClose) {
+    // isShowing lets the game's input guards treat this like the old screen.
+    get isShowing() { return !!this.element; }
+
+    // boardKey (optional): "neo" | "nokia" | "16bit" — open straight to that
+    // mode's board (used on game over so players see the board they just played).
+    show(onClose, boardKey) {
         this.onClose = onClose || null;
+        if (boardKey) {
+            const idx = HS_BOARDS.findIndex(b => b.key === boardKey);
+            if (idx >= 0) this.board = idx;
+        }
         const div = document.createElement("div");
         div.id = "snakeHighScores";
         div.innerHTML = `
