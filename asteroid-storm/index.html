@@ -876,8 +876,7 @@
         .touch-device #remapScreen,
         .touch-device #pauseScreen,
         .touch-device #gameOverScreen,
-        .touch-device #worldsScreen,
-        .touch-device #hangarScreen {
+        .touch-device #worldsScreen {
             overflow-y: auto !important;
             -webkit-overflow-scrolling: touch;
             justify-content: flex-start !important;
@@ -912,50 +911,62 @@
             display: none;
         }
 
-        /* Hangar on mobile: vertical stack, canvas top, info + buttons below */
-        .touch-device #hangarScreen {
-            flex-direction: column !important;
-        }
-        .touch-device #hangarCanvas {
-            position: relative !important;
-            width: 80vw !important;
-            height: 50vh !important;
-            flex-shrink: 0;
-            margin: 0 auto;
-        }
-        .touch-device #hangarOverlay {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 8px 16px;
-            flex: 1;
-        }
-        .touch-device .hangar-top {
-            position: relative;
-            top: auto; left: auto;
-            transform: none;
-            text-align: center;
-            margin-bottom: 8px;
-        }
-        .touch-device .hangar-bottom {
-            position: relative;
-            bottom: auto; left: auto; right: auto;
-            transform: none;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .touch-device .hangar-info {
-            text-align: center;
-            margin-bottom: 8px;
-        }
-        .touch-device .hangar-actions {
-            flex-direction: column;
-            gap: 6px;
-            width: 90vw;
-            max-width: 400px;
+        /* Hangar — PORTRAIT ONLY: vertical stack (canvas strip on top, info +
+           buttons below). Asteroid Storm is landscape-locked in the player, so
+           in landscape (the real play orientation) the full-bleed floating
+           layout from the base #hangarScreen/#hangarOverlay rules is used
+           instead — 3D fills the screen with the title floating at the top and
+           the ship info + browse/equip controls floating at the bottom. */
+        @media (orientation: portrait) {
+            .touch-device #hangarScreen {
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+                justify-content: flex-start !important;
+                padding-top: 3vh;
+                padding-bottom: 3vh;
+                flex-direction: column !important;
+            }
+            .touch-device #hangarCanvas {
+                position: relative !important;
+                width: 80vw !important;
+                height: 50vh !important;
+                flex-shrink: 0;
+                margin: 0 auto;
+            }
+            .touch-device #hangarOverlay {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 8px 16px;
+                flex: 1;
+            }
+            .touch-device .hangar-top {
+                position: relative;
+                top: auto; left: auto;
+                transform: none;
+                text-align: center;
+                margin-bottom: 8px;
+            }
+            .touch-device .hangar-bottom {
+                position: relative;
+                bottom: auto; left: auto; right: auto;
+                transform: none;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .touch-device .hangar-info {
+                text-align: center;
+                margin-bottom: 8px;
+            }
+            .touch-device .hangar-actions {
+                flex-direction: column;
+                gap: 6px;
+                width: 90vw;
+                max-width: 400px;
+            }
         }
         /* Prev/next ship browse buttons (mobile only) */
         .hangar-browse-btns {
