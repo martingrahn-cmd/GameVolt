@@ -82,8 +82,25 @@
     ]
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "Is this the real Nokia 3310 Snake?", "acceptedAnswer": {"@type": "Answer", "text": "It's a faithful browser recreation of the Snake that shipped on the Nokia 3310 in 2000 — the same monochrome green screen, blocky pixels, single-speed movement and wall-death rules. It's not an emulator or the original ROM, but it plays and looks like the phone you remember."}},
+      {"@type": "Question", "name": "Is Nokia 3310 Snake free to play?", "acceptedAnswer": {"@type": "Answer", "text": "Yes — 100% free, no ads and no download. Sign in free only if you want to save your high score across devices and unlock trophies."}},
+      {"@type": "Question", "name": "Does Nokia 3310 Snake work on mobile?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Swipe or use the on-screen pad on a phone or tablet, or the arrow keys on desktop. It runs in any modern browser with nothing to install."}},
+      {"@type": "Question", "name": "How do I get a high score in Nokia Snake?", "acceptedAnswer": {"@type": "Answer", "text": "Stay near the walls early, plan two moves ahead once the snake gets long, and spiral inward at high length so apples land inside your path. Your best score is saved automatically."}},
+      {"@type": "Question", "name": "What's the difference between this and the other Snake modes?", "acceptedAnswer": {"@type": "Answer", "text": "This is the pure retro Nokia mode. GameVolt's Snake Neo collection also has a neon synthwave mode and a colorful 16-bit Fruit Chain mode, each with its own speed and twist."}}
+    ]
+  }
+  </script>
 
   <style>
+    .nok-faq details { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 8px; }
+    .nok-faq summary { color: var(--nokia-green); font-weight: 700; cursor: pointer; }
+    .nok-faq details[open] summary { color: var(--text-bright); }
+    .nok-faq details > p { margin-top: 8px; color: var(--text-medium); }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --primary: #7c5cfc; --primary-light: #a78bfa;
@@ -251,6 +268,15 @@
 
       <h2>Free to play, nothing to install</h2>
       <p>This page is part of <a href="/snake/">GameVolt's Snake Neo collection</a>, which also includes a synthwave Neo mode and a colorful 16-bit Fruit Chain mode. Everything runs in your browser. No download, no signup, no ads. Sign in (free, magic link) to save your high score across devices and unlock 31 trophies.</p>
+
+      <h2>Nokia 3310 Snake FAQ</h2>
+      <div class="nok-faq">
+        <details><summary>Is this the real Nokia 3310 Snake?</summary><p>It's a faithful browser recreation of the Snake that shipped on the Nokia 3310 in 2000 — the same monochrome green screen, blocky pixels, single-speed movement and wall-death rules. It's not an emulator or the original ROM, but it plays and looks like the phone you remember.</p></details>
+        <details><summary>Is it free to play?</summary><p>Yes — 100% free, no ads and no download. Sign in free only if you want to save your high score across devices and unlock trophies.</p></details>
+        <details><summary>Does Nokia 3310 Snake work on mobile?</summary><p>Yes. Swipe or use the on-screen pad on a phone or tablet, or the arrow keys on desktop. It runs in any modern browser with nothing to install.</p></details>
+        <details><summary>How do I get a high score?</summary><p>Stay near the walls early, plan two moves ahead once the snake gets long, and spiral inward at high length so apples land inside your path. Your best score is saved automatically.</p></details>
+        <details><summary>What's the difference between this and the other Snake modes?</summary><p>This is the pure retro Nokia mode. GameVolt's <a href="/snake/">Snake Neo collection</a> also has a neon synthwave mode and a colorful 16-bit Fruit Chain mode, each with its own speed and twist.</p></details>
+      </div>
 
       <div class="secondary-cta">
         <a href="/snake/">▶ All three Snake modes</a>
