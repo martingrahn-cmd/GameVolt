@@ -20,6 +20,10 @@
   var readyCallbacks = [];
   var stateChangeCallbacks = [];
   var migrationConfig = null;
+  // Set of the current game's already-unlocked achievement ids (bare, no game
+  // prefix), loaded from the cloud on login. Lets a fresh device suppress
+  // re-toasting trophies the player already earned on another device.
+  var cloudUnlocked = null;
 
   // --------------------------------------------------------
   // Supabase loader
@@ -278,6 +282,28 @@
         return null;
       })
       .catch(function() { return null; });
+  }
+
+  // Load (and cache) the bare ids of this game's achievements the signed-in
+  // user has already unlocked in the cloud. Source of truth is
+  // user_achievements (written on every unlock), not the save blob.
+  function fetchCloudUnlocked() {
+    if (!currentUser || !sb) { cloudUnlocked = new Set(); return Promise.resolve(cloudUnlocked); }
+    var prefix = currentGameId + '-';
+    return sb.from('user_achievements')
+      .select('achievement_id')
+      .eq('user_id', currentUser.id)
+      .like('achievement_id', prefix + '%')
+      .then(function(res) {
+        var set = new Set();
+        (res.data || []).forEach(function(r) {
+          var id = r.achievement_id;
+          if (id && id.indexOf(prefix) === 0) set.add(id.slice(prefix.length));
+        });
+        cloudUnlocked = set;
+        return set;
+      })
+      .catch(function() { cloudUnlocked = cloudUnlocked || new Set(); return cloudUnlocked; });
   }
 
   // --------------------------------------------------------
@@ -572,6 +598,8 @@
         return Promise.resolve();
       }
 
+      if (cloudUnlocked) cloudUnlocked.add(id); // keep the cache fresh this session
+
       return sb.auth.getSession().then(function(s) {
         var token = s.data && s.data.session ? s.data.session.access_token : SUPABASE_KEY;
         return fetch(SUPABASE_URL + '/rest/v1/user_achievements?on_conflict=user_id,achievement_id', {
@@ -589,6 +617,20 @@
           })
         });
       });
+    },
+
+    // The set of this game's achievement ids the signed-in user has already
+    // unlocked in the cloud (bare ids). Loaded on login; games call this to
+    // back-fill their local "already unlocked" flags so a fresh device does
+    // not re-toast trophies earned elsewhere. Resolves to an empty Set for
+    // guests or before load.
+    getUnlockedIds: function() {
+      if (cloudUnlocked) return Promise.resolve(cloudUnlocked);
+      return fetchCloudUnlocked();
+    },
+    // Synchronous check against the cached set (false until it has loaded).
+    isUnlocked: function(id) {
+      return !!(cloudUnlocked && cloudUnlocked.has(id));
     },
 
     getAll: function() {
@@ -1324,11 +1366,12 @@
               sessionStorage.setItem(migratedKey, '1');
               save.migrate();
             }
-            notifyStateChange();
+            fetchCloudUnlocked().then(notifyStateChange);
           });
         } else if (!currentUser && prevUser) {
           // Just signed out
           userProfile = null;
+          cloudUnlocked = null;
           notifyStateChange();
         }
       });
@@ -1338,7 +1381,7 @@
         if (res.data && res.data.session) {
           currentUser = res.data.session.user;
           fetchProfile(currentUser.id).then(function() {
-            notifyStateChange();
+            fetchCloudUnlocked().then(notifyStateChange);
           });
         }
         ready = true;
