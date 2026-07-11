@@ -743,7 +743,7 @@ const Achievements={
   isUnlocked(id){ return !!this._u()[id]; },
   getUnlockedCount(){ return Object.keys(this._u()).length; },
   getAll(){ const u=this._u(); return TROPHIES.map(t=>({...t,unlocked:!!u[t.id],unlockedAt:u[t.id]||null})); },
-  unlock(id){ if(this.isUnlocked(id))return null; const t=TROPHIES.find(x=>x.id===id); if(!t)return null;
+  unlock(id){ if(this.isUnlocked(id) || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(id)))return null; const t=TROPHIES.find(x=>x.id===id); if(!t)return null;
     const d=this._u(); d[id]=Date.now(); this._wu(d);
     if(window.GameVolt){ try{ GameVolt.achievements.unlock(id); }catch(e){} }   // GameVolt prefixar spel-id automatiskt
     return t; },
@@ -857,6 +857,22 @@ if(window.GameVolt){ try{ GameVolt.init("livewire");
     getScores:l=>{ const s=(l&&l["fb_esolved"])||0; return s>0?[{score:s,mode:"endless"}]:[]; },
     getAchievements:l=>{ const t=(l&&l["fb_ach"])||{}; return Object.keys(t).map(id=>({id,unlocked_at:t[id]})); }
   });
+  // Cross-device: pull cloud-earned trophies into the local fb_ach store on login
+  // so this device doesn't re-toast them (id → timestamp, matching the local shape).
+  function backfillTrophies(user){
+    if(!user||!GameVolt.achievements.getUnlockedIds)return;
+    GameVolt.achievements.getUnlockedIds().then(function(ids){
+      if(!ids||!ids.forEach)return;
+      const d=Achievements._u(); let changed=false;
+      ids.forEach(function(id){ if(!d[id]){ d[id]=Date.now(); changed=true; } });
+      if(changed)Achievements._wu(d);
+      updateTrophyChip();
+      const ov=document.getElementById("trophyOv");
+      if(ov&&ov.classList.contains("show"))renderTrophies();
+    });
+  }
+  if(GameVolt.auth&&GameVolt.auth.onStateChange)GameVolt.auth.onStateChange(backfillTrophies);
+  if(GameVolt.auth&&GameVolt.auth.getUser){ const u=GameVolt.auth.getUser(); if(u)backfillTrophies(u); }
 }catch(e){} }
 checkTrophies(true);   // backfill från tidigare framsteg, utan toast-flod
 

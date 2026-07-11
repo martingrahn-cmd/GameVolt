@@ -80,7 +80,7 @@ const Achievements = {
 
     // Unlock a trophy — returns the trophy object if newly unlocked, null if already had it
     unlock(id) {
-        if (this.isUnlocked(id)) return null;
+        if (this.isUnlocked(id) || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(id))) return null;
         const trophy = TROPHIES.find(t => t.id === id);
         if (!trophy) return null;
 

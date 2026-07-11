@@ -145,7 +145,11 @@
       DEFS.forEach(function (d) {
         // `have` grows during the pass, so platinum can unlock in the same
         // check that completes the set (it's defined last).
-        if (have.indexOf(d.id) === -1 && d.test(ctx, have)) {
+        // Also skip anything already earned in the cloud on another device
+        // (isUnlocked reads the SDK's cached set) so it isn't re-toasted here.
+        if (have.indexOf(d.id) === -1 &&
+            !(window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(d.id)) &&
+            d.test(ctx, have)) {
           have.push(d.id);
           newly.push(d);
         }

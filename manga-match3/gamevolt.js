@@ -52,7 +52,7 @@ const unlocked = loadUnlocked();
 function isUnlocked(id) { return unlocked.has(id); }
 
 function unlock(id) {
-  if (unlocked.has(id)) return false;
+  if (unlocked.has(id) || (window.GameVolt && window.GameVolt.achievements.isUnlocked && window.GameVolt.achievements.isUnlocked(id))) return false;
   unlocked.add(id);
   saveUnlocked(unlocked);
   if (window.GameVolt) {
@@ -199,6 +199,22 @@ function init() {
     window.GameVolt.auth.onStateChange((user) => {
       if (user) syncLocalTrophies();
     });
+
+    // Cross-device: pull trophies already earned in the cloud into the local
+    // unlocked set so this device does not re-toast them (fixes counts too).
+    var backfillTrophies = function (user) {
+      if (!user || !window.GameVolt.achievements.getUnlockedIds) return;
+      window.GameVolt.achievements.getUnlockedIds().then(function (ids) {
+        if (!ids || !ids.forEach) return;
+        ids.forEach(function (id) { unlocked.add(id); });
+        saveUnlocked(unlocked);
+      });
+    };
+    window.GameVolt.auth.onStateChange(backfillTrophies);
+    if (window.GameVolt.auth.getUser) {
+      var u = window.GameVolt.auth.getUser();
+      if (u) backfillTrophies(u);
+    }
   }
 }
 

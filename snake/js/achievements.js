@@ -82,7 +82,7 @@ let snStats = loadStats();
 let snTrophies = loadTrophies();
 
 function unlock(id) {
-    if (snTrophies.has(id)) return false;
+    if (snTrophies.has(id) || (window.GameVolt && window.GameVolt.achievements && window.GameVolt.achievements.isUnlocked && window.GameVolt.achievements.isUnlocked(id))) return false;
     snTrophies.add(id);
     saveTrophies(snTrophies);
     try { if (window.GameVolt && window.GameVolt.achievements) window.GameVolt.achievements.unlock(id); } catch (e) { /* offline */ }
@@ -209,6 +209,21 @@ export function initSnakeAchievements() {
                 return { snake_stats: merged, snake_trophies: Array.from(union) };
             });
         }
+    } catch (e) { /* ignore */ }
+    // Cross-device: when signed in, pull trophies already earned in the cloud
+    // into local storage so this device does not re-toast them. The SDK has the
+    // cloud set cached by the time onStateChange fires with a user.
+    function backfillTrophies(user) {
+        if (!user || !window.GameVolt.achievements.getUnlockedIds) return;
+        window.GameVolt.achievements.getUnlockedIds().then(function (ids) {
+            if (!ids || !ids.forEach) return;
+            ids.forEach(function (id) { snTrophies.add(id); });
+            saveTrophies(snTrophies);
+        });
+    }
+    try {
+        if (window.GameVolt.auth && window.GameVolt.auth.onStateChange) window.GameVolt.auth.onStateChange(backfillTrophies);
+        if (window.GameVolt.auth && window.GameVolt.auth.getUser) { const u = window.GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
     } catch (e) { /* ignore */ }
 }
 

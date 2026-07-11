@@ -5,7 +5,7 @@
 
 import { SpeedTest } from "./speedtest.js";
 import { ZombieGame } from "./zombie.js";
-import { TROPHIES, TIERS, loadProfile, unlockedCount, registerCloudMigration } from "./trophies.js";
+import { TROPHIES, TIERS, loadProfile, unlockedCount, registerCloudMigration, backfillTrophies } from "./trophies.js";
 import { topScores } from "./leaderboard.js";
 import { todayKey } from "./daily.js";
 import { initRemote, remoteEnabled, board } from "./api.js";
@@ -546,6 +546,23 @@ initRemote();
   window.GameVolt.onReady?.(paint);
   window.GameVolt.auth?.onStateChange?.(paint);
   paint();
+
+  // Cross-device trophy sync: pull cloud-earned trophies into the local profile
+  // on sign-in so a second signed-in device doesn't re-toast them (and the
+  // trophy count is correct). Fires after the SDK has cached the cloud set.
+  function backfill(user) {
+    if (!user || !window.GameVolt.achievements?.getUnlockedIds) return;
+    window.GameVolt.achievements.getUnlockedIds().then((ids) => {
+      if (backfillTrophies(ids)) {
+        // Refresh the trophy case if it's currently open.
+        const overlay = $("trophy-overlay");
+        if (overlay && !overlay.hidden) openTrophies();
+      }
+    });
+  }
+  window.GameVolt.auth?.onStateChange?.(backfill);
+  const current = window.GameVolt.auth?.getUser?.();
+  if (current) backfill(current);
 })();
 
 // Desktop-only (GDD §9): gate touch-only devices (no real keyboard). A

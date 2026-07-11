@@ -498,6 +498,20 @@ if(window.GameVolt){
       return out;
     }
   });
+  // Cross-device: pull cloud-earned trophies into local storage so this
+  // device does not re-toast them. SDK caches the set before onStateChange.
+  function backfillTrophies(user){
+    if(!user||!GameVolt.achievements.getUnlockedIds) return;
+    GameVolt.achievements.getUnlockedIds().then(function(ids){
+      if(!ids||!ids.forEach) return;
+      ids.forEach(function(id){ hdData.unlocked[id]=hdData.unlocked[id]||Date.now(); });
+      saveHDData();
+      var tc=document.getElementById('tab-trophies');
+      if(tc&&tc.classList.contains('active')) renderTrophyGrid();
+    });
+  }
+  GameVolt.auth.onStateChange(backfillTrophies);
+  if(GameVolt.auth.getUser){var u=GameVolt.auth.getUser();if(u) backfillTrophies(u);}
 }
 
 // Score list
@@ -2359,7 +2373,7 @@ function getStatValue(s){
 
 
 function tryUnlock(ach){
-  if(hdData.unlocked[ach.id]) return false;
+  if(hdData.unlocked[ach.id] || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(ach.id))) return false;
   hdData.unlocked[ach.id]=Date.now();saveHDData();
   if(window.GameVolt) GameVolt.ui.achievementToast(ach);
   gvPost('achievement',{id:ach.id,name:ach.name});

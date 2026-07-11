@@ -1165,7 +1165,7 @@
     // ========================================
 
     function tryUnlock(ach){
-      if(bsData.unlocked[ach.id]) return false;
+      if(bsData.unlocked[ach.id] || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(ach.id))) return false;
       bsData.unlocked[ach.id]=Date.now();saveBSData();
       if(window.GameVolt) GameVolt.ui.achievementToast(ach);
       gvPost('achievement',{id:ach.id,name:ach.name});
@@ -1319,6 +1319,22 @@
           if(loginBtn) loginBtn.style.display='';
         }
       });
+
+      // Cross-device: pull cloud-earned trophies into bsData so this device
+      // doesn't re-toast them. The SDK has the cloud set cached by the time
+      // onStateChange fires with a user.
+      function backfillTrophies(user){
+        if(!user||!GameVolt.achievements.getUnlockedIds) return;
+        GameVolt.achievements.getUnlockedIds().then(function(ids){
+          if(!ids||!ids.forEach) return;
+          ids.forEach(function(id){ bsData.unlocked[id]=bsData.unlocked[id]||Date.now(); });
+          saveBSData();
+          var to=document.getElementById('trophyOverlay');
+          if(to&&to.classList.contains('visible')&&window.renderTrophyGrid) window.renderTrophyGrid();
+        });
+      }
+      GameVolt.auth.onStateChange(backfillTrophies);
+      if(GameVolt.auth.getUser){ var u=GameVolt.auth.getUser(); if(u) backfillTrophies(u); }
     }
 
     // ========================================
@@ -1376,6 +1392,7 @@
         }
         trophyCountEl.textContent = n + ' / ' + ACHIEVEMENTS.length;
       }
+      window.renderTrophyGrid = renderTrophyGrid;
 
       trophyBtn.addEventListener('click', function() {
         renderTrophyGrid();

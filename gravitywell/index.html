@@ -751,7 +751,7 @@ function getAchStatValue(stat) {
 }
 
 function tryUnlock(ach) {
-  if (gwData.unlocked[ach.id]) return false;
+  if (gwData.unlocked[ach.id] || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(ach.id))) return false;
   gwData.unlocked[ach.id] = Date.now();
   saveGWData();
   if (window.GameVolt) GameVolt.ui.achievementToast(ach);
@@ -3268,6 +3268,22 @@ showMenu(false);
       loginBtn.onclick = function() { GameVolt.auth.login(); };
     }
   });
+
+  // --- Cross-device trophy sync ---
+  // Pull cloud-earned trophies into gwData so this device doesn't re-toast
+  // them. The SDK has the cloud set cached by the time onStateChange fires.
+  function backfillTrophies(user) {
+    if (!user || !GameVolt.achievements.getUnlockedIds) return;
+    GameVolt.achievements.getUnlockedIds().then(function(ids) {
+      if (!ids || !ids.forEach) return;
+      ids.forEach(function(id) { gwData.unlocked[id] = gwData.unlocked[id] || Date.now(); });
+      saveGWData();
+      var tab = document.getElementById('tab-trophies');
+      if (tab && tab.classList.contains('active')) renderTrophyGrid();
+    });
+  }
+  GameVolt.auth.onStateChange(backfillTrophies);
+  if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
 
   // --- Patch endGame to submit score + postMessage ---
   var _origEndGame = endGame;
