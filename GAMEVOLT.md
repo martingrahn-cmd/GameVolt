@@ -606,6 +606,20 @@ if (window.GameVolt) GameVolt.achievements.unlock('trophy_id');
 ```
 > The SDK auto-prefixes with gameId: `unlock('first_win')` → `connect4-first_win`
 
+> ⚠️ **`unlock()` only PERSISTS the trophy (localStorage for guests, Supabase
+> when signed in). It does NOT show a toast.** The player-facing notification is
+> a separate call — either the SDK's standard toast or the game's own in-game
+> notification. Every game MUST show one on the unlock path, or trophies unlock
+> silently:
+> ```javascript
+> if (window.GameVolt && GameVolt.ui && GameVolt.ui.achievementToast) {
+>   GameVolt.ui.achievementToast({ icon: '🏆', name: 'Trophy Name', tier: 'bronze' });
+> }
+> ```
+> Toast fields: `{ icon, name (or title), tier }`. Games with their own animated
+> notification (e.g. golden-glyphs on canvas, vector-hexagon/chain-reaction toast
+> queues) can use that instead — the requirement is that *something* visible fires.
+
 **E. postMessage to portal:**
 ```javascript
 function gvPost(action, payload) {
