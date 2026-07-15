@@ -45,6 +45,7 @@
   // --------------------------------------------------------
 
   var modal = null;
+  var pendingEmail = ''; // email the OTP code was sent to (for verifyOtp)
 
   function createModal() {
     if (modal) return;
@@ -68,10 +69,15 @@
         '<div class="gv-divider"><span>or</span></div>' +
         '<form class="gv-form">' +
           '<input type="email" class="gv-email" placeholder="your@email.com" required autocomplete="email">' +
-          '<button type="submit" class="gv-btn">SEND MAGIC LINK</button>' +
+          '<button type="submit" class="gv-btn">EMAIL ME A CODE</button>' +
+        '</form>' +
+        '<form class="gv-code-form" style="display:none">' +
+          '<input type="text" class="gv-code" placeholder="6-digit code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*">' +
+          '<button type="submit" class="gv-btn gv-verify-btn">VERIFY &amp; SIGN IN</button>' +
+          '<button type="button" class="gv-code-back">Use a different email</button>' +
         '</form>' +
         '<p class="gv-msg"></p>' +
-        '<p class="gv-note">No password needed. Sign in with Google or a magic link.</p>' +
+        '<p class="gv-note">No password needed. Sign in with Google, or we\'ll email you a code (and a link).</p>' +
       '</div>';
 
     var css = document.createElement('style');
@@ -85,8 +91,12 @@
       '.gv-logo{font-size:22px;font-weight:bold;letter-spacing:3px;color:#00e5ff;margin-bottom:4px}' +
       '.gv-sub{color:#999;font-size:14px;margin:8px 0 20px}' +
       '.gv-form{display:flex;flex-direction:column;gap:12px}' +
-      '.gv-email{padding:12px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font-size:16px;outline:none}' +
-      '.gv-email:focus{border-color:#00e5ff}' +
+      '.gv-email,.gv-code{padding:12px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font-size:16px;outline:none}' +
+      '.gv-email:focus,.gv-code:focus{border-color:#00e5ff}' +
+      '.gv-code{text-align:center;letter-spacing:6px;font-size:20px}' +
+      '.gv-code-form{display:flex;flex-direction:column;gap:12px}' +
+      '.gv-code-back{background:none;border:none;color:#888;font-size:12px;cursor:pointer;padding:4px;text-decoration:underline}' +
+      '.gv-code-back:hover{color:#fff}' +
       '.gv-btn{padding:12px;border-radius:8px;border:none;background:#00e5ff;color:#000;font-weight:bold;font-size:14px;cursor:pointer;letter-spacing:1px;text-transform:uppercase}' +
       '.gv-btn:hover{background:#33ecff}' +
       '.gv-btn:disabled{opacity:0.5;cursor:default}' +
@@ -111,6 +121,32 @@
       if (!email) return;
       sendMagicLink(email);
     };
+    modal.querySelector('.gv-code-form').onsubmit = function(e) {
+      e.preventDefault();
+      var code = modal.querySelector('.gv-code').value.trim();
+      if (!code) return;
+      verifyCode(code);
+    };
+    modal.querySelector('.gv-code-back').onclick = showEmailStep;
+  }
+
+  // Toggle the modal between the email step and the code-entry step.
+  function showCodeStep() {
+    if (!modal) return;
+    modal.querySelector('.gv-form').style.display = 'none';
+    modal.querySelector('.gv-code-form').style.display = 'flex';
+    var code = modal.querySelector('.gv-code');
+    code.value = '';
+    code.focus();
+  }
+  function showEmailStep() {
+    if (!modal) return;
+    modal.querySelector('.gv-code-form').style.display = 'none';
+    modal.querySelector('.gv-form').style.display = 'flex';
+    var msg = modal.querySelector('.gv-msg');
+    msg.textContent = '';
+    msg.className = 'gv-msg';
+    modal.querySelector('.gv-btn').disabled = false;
   }
 
   function openModal() {
@@ -119,6 +155,7 @@
     modal.querySelector('.gv-msg').textContent = '';
     modal.querySelector('.gv-msg').className = 'gv-msg';
     modal.querySelector('.gv-btn').disabled = false;
+    showEmailStep(); // always start on the email step, not a stale code step
     modal.classList.add('open');
     modal.querySelector('.gv-email').focus();
   }
@@ -168,10 +205,44 @@
           msg.className = 'gv-msg error';
           btn.disabled = false;
         } else {
-          msg.textContent = 'Check your email for the magic link!';
+          // Advance to the code step. Works inside an iOS home-screen app
+          // (standalone PWA) where tapping the emailed link would open Safari —
+          // a separate storage jar — and leave this app signed out. Entering the
+          // code keeps sign-in in this context. The link still works elsewhere.
+          pendingEmail = email;
+          btn.disabled = false;
+          showCodeStep();
+          msg.textContent = 'We emailed you a 6-digit code (and a link). Enter the code here.';
           msg.className = 'gv-msg';
+        }
+      })
+      .catch(function() {
+        msg.textContent = 'Something went wrong. Try again.';
+        msg.className = 'gv-msg error';
+        btn.disabled = false;
+      });
+  }
+
+  // Verify the 6-digit code from the email. On success Supabase establishes the
+  // session in THIS context (onAuthStateChange then closes the modal), so it
+  // works even in an iOS home-screen app where the emailed link can't.
+  function verifyCode(code) {
+    if (!sb || !pendingEmail) return;
+    var btn = modal.querySelector('.gv-verify-btn');
+    var msg = modal.querySelector('.gv-msg');
+    btn.disabled = true;
+    msg.textContent = 'Verifying...';
+    msg.className = 'gv-msg';
+
+    sb.auth.verifyOtp({ email: pendingEmail, token: code, type: 'email' })
+      .then(function(res) {
+        if (res.error) {
+          msg.textContent = res.error.message || 'That code was invalid or expired.';
+          msg.className = 'gv-msg error';
           btn.disabled = false;
         }
+        // On success, onAuthStateChange (SIGNED_IN) fetches the profile and
+        // closes the modal — nothing more to do here.
       })
       .catch(function() {
         msg.textContent = 'Something went wrong. Try again.';
