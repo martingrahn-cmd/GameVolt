@@ -1350,7 +1350,15 @@
         return;
       }
 
-      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      // Implicit flow (token in the redirect URL) instead of the default PKCE.
+      // PKCE stashes a code-verifier in the localStorage of the browser that
+      // REQUESTS the magic link; if the link is opened anywhere else — a mail
+      // app's in-app browser, another device — the verifier is missing and the
+      // exchange fails. Implicit carries the session in the URL, so a magic link
+      // works no matter where it's opened. Google OAuth is unaffected either way.
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { flowType: 'implicit' }
+      });
 
       // Listen for auth state changes
       sb.auth.onAuthStateChange(function(event, session) {
