@@ -506,6 +506,13 @@ function trUnlock(id) {
   var meta = TR_TROPHIES.find(function(t) { return t.id === id; });
   if (window.GameVolt) {
     try { GameVolt.achievements.unlock(id); } catch (e) {}
+    // Toast the unlock — TR_TROPHIES has no icon, so pick one by tier.
+    try {
+      if (meta && GameVolt.ui && GameVolt.ui.achievementToast) {
+        var trIcon = { bronze: '🥉', silver: '🥈', gold: '🥇', platinum: '🏆' }[meta.tier] || '🏆';
+        GameVolt.ui.achievementToast({ icon: trIcon, name: meta.title, tier: meta.tier });
+      }
+    } catch (e) {}
   }
   trPost('achievement', {
     id: id,

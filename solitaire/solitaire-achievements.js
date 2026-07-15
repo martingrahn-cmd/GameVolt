@@ -84,6 +84,13 @@
     trophies[id] = true;
     saveTrophies(trophies);
     try { if (window.GameVolt && window.GameVolt.achievements) window.GameVolt.achievements.unlock(id); } catch (e) {}
+    // Toast the unlock so the player is notified in the moment.
+    try {
+      var meta = SOL_TROPHIES.find(function (t) { return t.id === id; });
+      if (meta && window.GameVolt && window.GameVolt.ui && window.GameVolt.ui.achievementToast) {
+        window.GameVolt.ui.achievementToast({ icon: meta.icon, name: meta.name, tier: meta.tier });
+      }
+    } catch (e) {}
   }
 
   function checks(run) {
