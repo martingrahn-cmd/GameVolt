@@ -449,18 +449,29 @@
             <button class="filter-pill" data-period="day">Today</button>
         </div>
 
+        <!-- All games with a GameVolt (Supabase) leaderboard. buildGamePills()
+             reorders these by score count and drops in the right mode; games
+             with no scores yet still show a pill (the board shows an empty
+             state). Solitaire (Firebase) and Type or Die (own board) live on
+             their own pages, so they're intentionally not here. -->
         <div class="filter-row" id="score-filters" style="display:none">
             <button class="filter-pill active" data-game="hoverdash">HoverDash</button>
             <button class="filter-pill" data-game="vector-hexagon">Vector Hexagon</button>
+            <button class="filter-pill" data-game="asteroid-storm">Asteroid Storm</button>
+            <button class="filter-pill" data-game="snake">Snake Neo</button>
             <button class="filter-pill" data-game="breakout">Breakout</button>
-            <button class="filter-pill" data-game="connect4">Connect 4</button>
             <button class="filter-pill" data-game="blockstorm">BlockStorm</button>
             <button class="filter-pill" data-game="gravitywell">Gravity Well</button>
+            <button class="filter-pill" data-game="connect4">Connect 4</button>
             <button class="filter-pill" data-game="sudoku">Sudoku</button>
+            <button class="filter-pill" data-game="minesweeper">Minesweeper</button>
+            <button class="filter-pill" data-game="chain-reaction">Chain Reaction</button>
             <button class="filter-pill" data-game="manga-match3">Manga Match</button>
             <button class="filter-pill" data-game="golden-glyphs">Golden Glyphs</button>
-            <button class="filter-pill" data-game="asteroid-storm">Asteroid Storm</button>
-            <button class="filter-pill" data-game="chain-reaction">Chain Reaction</button>
+            <button class="filter-pill" data-game="axeluga">Axeluga</button>
+            <button class="filter-pill" data-game="livewire">Livewire</button>
+            <button class="filter-pill" data-game="one-stroke">One Stroke</button>
+            <button class="filter-pill" data-game="taprush">Tap Rush</button>
         </div>
 
         <!-- Leaderboard content -->
@@ -697,39 +708,58 @@
             'vector-hexagon': 'Vector Hexagon'
         };
 
-        // Build game pills from the games that actually have scores, each pointing at
-        // the mode where its data lives — so no pill shows an empty board and populated
-        // boards (e.g. Axeluga) aren't hidden. Keeps the static fallback pills on failure.
+        // Every game with a GameVolt (Supabase) leaderboard, in a sensible
+        // default order. buildGamePills() reorders games that have scores to the
+        // front and leaves the rest here, so ALL of them always get a pill (an
+        // empty board just shows "No entries yet"). Solitaire (Firebase) and
+        // Type or Die (own board) are deliberately excluded — they have no rows
+        // in the Supabase scores table.
+        var LEADERBOARD_GAMES = [
+            'hoverdash', 'vector-hexagon', 'asteroid-storm', 'snake', 'breakout',
+            'blockstorm', 'gravitywell', 'connect4', 'sudoku', 'minesweeper',
+            'chain-reaction', 'manga-match3', 'golden-glyphs', 'axeluga',
+            'livewire', 'one-stroke', 'taprush'
+        ];
+
+        function renderGamePills(order) {
+            var html = '';
+            order.forEach(function(g) {
+                if (!GAME_NAMES[g]) return;
+                html += '<button class="filter-pill' + (g === _activeGame ? ' active' : '') + '" data-game="' + g + '">' + escHtml(GAME_NAMES[g]) + '</button>';
+            });
+            document.getElementById('score-filters').innerHTML = html;
+        }
+
+        // Reorder the pills so games with scores come first (most first), and map
+        // each of those to the mode where its data actually lives. Games without
+        // scores keep their default order and fall back to a default mode.
         function buildGamePills() {
             fetch(SB_URL + '/rest/v1/scores?select=game_id,mode', {
                 headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
             }).then(function(r) { return r.ok ? r.json() : []; }).then(function(rows) {
-                if (!rows || !rows.length) return;
+                if (!rows || !rows.length) return; // keep the full default order
                 var byGame = {};
                 rows.forEach(function(row) {
                     var g = row.game_id;
-                    if (!GAME_NAMES[g]) return; // skip unknown / legacy ids
+                    if (LEADERBOARD_GAMES.indexOf(g) === -1) return; // skip legacy / non-Supabase ids
                     var m = row.mode || 'default';
                     if (!byGame[g]) byGame[g] = { total: 0, modes: {} };
                     byGame[g].total++;
                     byGame[g].modes[m] = (byGame[g].modes[m] || 0) + 1;
                 });
-                var games = Object.keys(byGame);
-                if (!games.length) return;
-                games.sort(function(a, b) { return byGame[b].total - byGame[a].total; });
+                var withScores = Object.keys(byGame).sort(function(a, b) { return byGame[b].total - byGame[a].total; });
+                var rest = LEADERBOARD_GAMES.filter(function(g) { return !byGame[g]; });
+                var ordered = withScores.concat(rest);
+
                 _gameModes = {};
-                games.forEach(function(g) {
+                withScores.forEach(function(g) {
                     var modes = byGame[g].modes;
                     _gameModes[g] = Object.keys(modes).sort(function(a, b) { return modes[b] - modes[a]; })[0];
                 });
-                _activeGame = byGame[_activeGame] ? _activeGame : games[0];
-                var html = '';
-                games.forEach(function(g) {
-                    html += '<button class="filter-pill' + (g === _activeGame ? ' active' : '') + '" data-game="' + g + '">' + escHtml(GAME_NAMES[g]) + '</button>';
-                });
-                document.getElementById('score-filters').innerHTML = html;
+                _activeGame = ordered.indexOf(_activeGame) !== -1 ? _activeGame : ordered[0];
+                renderGamePills(ordered);
                 if (_activeTab === 'scores') loadData();
-            }).catch(function() { /* keep static fallback pills */ });
+            }).catch(function() { /* keep the full default order already in the DOM */ });
         }
 
         // ─── Auth state ───
