@@ -227,11 +227,13 @@
   // session in THIS context (onAuthStateChange then closes the modal), so it
   // works even in an iOS home-screen app where the emailed link can't.
   //
-  // The verify `type` depends on the account: an existing user's OTP is 'email',
-  // but a brand-new user (first ever sign-in, created by signInWithOtp) gets a
-  // 'signup' confirmation code. The emailed link works for both because it's
-  // verified server-side; here we must pass the right type, so we try the likely
-  // ones in order and stop at the first that signs in.
+  // The verify `type` depends on the account. For an existing user, signInWithOtp
+  // sends a magic-link OTP verified as 'email' or 'magiclink'; a brand-new user
+  // (created by signInWithOtp on first sign-in) gets a 'signup' code. The emailed
+  // link works for all of them because it's verified server-side; here we must
+  // pass the right type, so we try the likely ones in order (existing-user types
+  // first, so the common case resolves in the fewest attempts) and stop at the
+  // first that signs in.
   function verifyCode(code) {
     if (!sb || !pendingEmail) return;
     var btn = modal.querySelector('.gv-verify-btn');
@@ -240,7 +242,7 @@
     msg.textContent = 'Verifying...';
     msg.className = 'gv-msg';
 
-    var types = ['email', 'signup', 'magiclink'];
+    var types = ['email', 'magiclink', 'signup'];
     var i = 0;
     function attempt() {
       sb.auth.verifyOtp({ email: pendingEmail, token: code, type: types[i] })
