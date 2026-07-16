@@ -227,13 +227,13 @@
   // session in THIS context (onAuthStateChange then closes the modal), so it
   // works even in an iOS home-screen app where the emailed link can't.
   //
-  // The verify `type` must match how the emailed token was issued. signInWithOtp
-  // sends the "Magic Link" email, whose link (which DOES work) verifies as
-  // type=magiclink — so the token is a magiclink token and the code must be
-  // verified the same way. We try 'magiclink' FIRST for exactly that reason:
-  // GoTrue can invalidate the token on a wrong-type attempt, so hitting the right
-  // type first matters. 'email'/'signup' follow only as fallbacks for other
-  // setups (e.g. brand-new users when email confirmation is on → 'signup').
+  // ONE clean attempt with type 'email' — the type the Supabase docs specify for
+  // a signInWithOtp email code. Earlier we tried several types in sequence, but a
+  // failed wrong-type attempt can consume the single-use token, so the first
+  // wrong guess would burn the code before the right type ran. A single call
+  // avoids that. The full error (message + code + status) is surfaced so a
+  // persistent "expired or invalid" is diagnosable (stale/superseded code,
+  // consumed token, or a Supabase OTP setting — not something more types fix).
   function verifyCode(code) {
     if (!sb || !pendingEmail) return;
     var btn = modal.querySelector('.gv-verify-btn');
@@ -242,33 +242,27 @@
     msg.textContent = 'Verifying...';
     msg.className = 'gv-msg';
 
-    var types = ['magiclink', 'email', 'signup'];
-    var i = 0;
-    function attempt() {
-      sb.auth.verifyOtp({ email: pendingEmail, token: code, type: types[i] })
-        .then(function(res) {
-          if (res.error) {
-            i++;
-            if (i < types.length) { attempt(); return; }
-            var detail = res.error.message || 'That code was invalid or expired.';
-            if (res.error.code) detail += ' (' + res.error.code + ')';
-            msg.textContent = detail;
-            msg.className = 'gv-msg error';
-            btn.disabled = false;
-            return;
-          }
-          // Success: onAuthStateChange (SIGNED_IN) fetches the profile and
-          // closes the modal — nothing more to do here.
-        })
-        .catch(function() {
-          i++;
-          if (i < types.length) { attempt(); return; }
-          msg.textContent = 'Something went wrong. Try again.';
+    sb.auth.verifyOtp({ email: pendingEmail, token: code, type: 'email' })
+      .then(function(res) {
+        if (res.error) {
+          var detail = res.error.message || 'That code was invalid or expired.';
+          var tags = [];
+          if (res.error.code) tags.push(res.error.code);
+          if (res.error.status) tags.push('HTTP ' + res.error.status);
+          if (tags.length) detail += ' (' + tags.join(', ') + ')';
+          msg.textContent = detail;
           msg.className = 'gv-msg error';
           btn.disabled = false;
-        });
-    }
-    attempt();
+          return;
+        }
+        // Success: onAuthStateChange (SIGNED_IN) fetches the profile and closes
+        // the modal — nothing more to do here.
+      })
+      .catch(function() {
+        msg.textContent = 'Something went wrong. Try again.';
+        msg.className = 'gv-msg error';
+        btn.disabled = false;
+      });
   }
 
   // --------------------------------------------------------
