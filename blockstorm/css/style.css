@@ -47,14 +47,18 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  
+
   font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
   color: #c8e6e3;
-  
+
   z-index: 100;
-  
+
   transition: opacity 0.4s ease;
-  overflow: hidden;
+  /* Scroll when the menu is taller than a short screen so PLAY and the buttons
+     below it stay reachable (with align-items:center + overflow:hidden the top
+     was clipped and unscrollable). .start-menu uses margin:auto to center. */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 #touchBlocker::before {
@@ -84,9 +88,13 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  padding: 20px;
+  padding: 24px 20px;
   position: relative;
   z-index: 1;
+  /* Centers within #touchBlocker when there's room, but collapses to a
+     scrollable top-aligned layout when the menu is taller than the screen
+     (unlike align-items:center, which would clip the top unscrollably). */
+  margin: auto;
 }
 
 .title {
