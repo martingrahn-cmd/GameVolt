@@ -72,7 +72,7 @@
           '<button type="submit" class="gv-btn">EMAIL ME A CODE</button>' +
         '</form>' +
         '<form class="gv-code-form" style="display:none">' +
-          '<input type="text" class="gv-code" placeholder="6-digit code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*">' +
+          '<input type="text" class="gv-code" placeholder="Enter code" inputmode="numeric" autocomplete="one-time-code" maxlength="12">' +
           '<button type="submit" class="gv-btn gv-verify-btn">VERIFY &amp; SIGN IN</button>' +
           '<button type="button" class="gv-code-back">Use a different email</button>' +
         '</form>' +
@@ -93,7 +93,7 @@
       '.gv-form{display:flex;flex-direction:column;gap:12px}' +
       '.gv-email,.gv-code{padding:12px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font-size:16px;outline:none}' +
       '.gv-email:focus,.gv-code:focus{border-color:#00e5ff}' +
-      '.gv-code{text-align:center;letter-spacing:6px;font-size:20px}' +
+      '.gv-code{text-align:center;letter-spacing:4px;font-size:20px}' +
       '.gv-code-form{display:flex;flex-direction:column;gap:12px}' +
       '.gv-code-back{background:none;border:none;color:#888;font-size:12px;cursor:pointer;padding:4px;text-decoration:underline}' +
       '.gv-code-back:hover{color:#fff}' +
@@ -123,7 +123,7 @@
     };
     modal.querySelector('.gv-code-form').onsubmit = function(e) {
       e.preventDefault();
-      var code = modal.querySelector('.gv-code').value.trim();
+      var code = modal.querySelector('.gv-code').value.replace(/\D/g, '');
       if (!code) return;
       verifyCode(code);
     };
@@ -212,7 +212,7 @@
           pendingEmail = email;
           btn.disabled = false;
           showCodeStep();
-          msg.textContent = 'We emailed you a 6-digit code (and a link). Enter the code here.';
+          msg.textContent = 'We emailed you a code (and a link). Enter it here.';
           msg.className = 'gv-msg';
         }
       })
@@ -223,7 +223,8 @@
       });
   }
 
-  // Verify the 6-digit code from the email. On success Supabase establishes the
+  // Verify the code from the email (Supabase OTP length is configurable — the
+  // input accepts up to 10 digits). On success Supabase establishes the
   // session in THIS context (onAuthStateChange then closes the modal), so it
   // works even in an iOS home-screen app where the emailed link can't.
   //
