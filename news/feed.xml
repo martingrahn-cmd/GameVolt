@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Thu, 09 Jul 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 16 Jul 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>Signing in is now simpler — Google or a quick email code</title>
+      <link>https://gamevolt.io/news/simpler-sign-in/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/simpler-sign-in/</guid>
+      <pubDate>Thu, 16 Jul 2026 12:00:00 GMT</pubDate>
+      <description>GameVolt's sign-in is reworked: no passwords, just one tap with Google or a quick one-time email code. Trophies, high scores and saves now sync across phone, tablet and desktop, and the code works inside the installed home-screen app.</description>
+    </item>
 
     <item>
       <title>Vector Hexagon is live — our new twitch survival game</title>
