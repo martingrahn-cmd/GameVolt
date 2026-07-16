@@ -475,45 +475,45 @@
     });
 
     async function startGame() {
-      if (typeof window.GameVoltTracker !== 'undefined') window.GameVoltTracker.start('BlockStorm');
       const g = window.PULSE_TETRIS;
       if (!g) return;
 
       const audio = g.audio;
       const ctx = audio.ctx;
 
-      // Unlock audio
-      await ctx.resume();
+      // Unlock audio synchronously inside the tap gesture (iOS needs it), but
+      // never await it — resume()/decode can stall or reject on iOS Safari, and
+      // the game must NOT be gated on audio or the menu gets stuck on "PLAY".
+      try {
+        ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.value = 0.001;
+        osc.connect(gain).connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.04);
+      } catch (err) { console.warn("Audio unlock failed:", err); }
 
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      gain.gain.value = 0.001;
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.04);
-
-      for (const name in audio.urls) {
-        try {
-          const res = await fetch(audio.urls[name]);
-          const buf = await res.arrayBuffer();
-          audio.buffers[name] = await ctx.decodeAudioData(buf);
-        } catch (err) {
-          console.error("Decode ERROR:", name, err);
-        }
-      }
-
-      audio.unlocked = true;
-      
-      // Init och starta musik
-      await audio.initMusic();
-      audio.playMusic();
-
-      // Set game mode and start
+      // Start the game immediately.
+      if (typeof window.GameVoltTracker !== 'undefined') window.GameVoltTracker.start('BlockStorm');
       blocker.classList.add("hidden");
       currentScreen = 'game';
       g.setGameMode(selectedMode);
       g.setStartLevel(selectedLevel);
       g.start();
+
+      // Load sound effects + music in the background (best effort).
+      (async () => {
+        for (const name in audio.urls) {
+          try {
+            const res = await fetch(audio.urls[name]);
+            const buf = await res.arrayBuffer();
+            audio.buffers[name] = await ctx.decodeAudioData(buf);
+          } catch (err) { console.error("Decode ERROR:", name, err); }
+        }
+        audio.unlocked = true;
+        try { await audio.initMusic(); audio.playMusic(); } catch (err) { console.warn("Music init failed:", err); }
+      })();
     }
 
     // Restart button handler - mouse/touch
