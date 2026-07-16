@@ -226,6 +226,12 @@
   // Verify the 6-digit code from the email. On success Supabase establishes the
   // session in THIS context (onAuthStateChange then closes the modal), so it
   // works even in an iOS home-screen app where the emailed link can't.
+  //
+  // The verify `type` depends on the account: an existing user's OTP is 'email',
+  // but a brand-new user (first ever sign-in, created by signInWithOtp) gets a
+  // 'signup' confirmation code. The emailed link works for both because it's
+  // verified server-side; here we must pass the right type, so we try the likely
+  // ones in order and stop at the first that signs in.
   function verifyCode(code) {
     if (!sb || !pendingEmail) return;
     var btn = modal.querySelector('.gv-verify-btn');
@@ -234,21 +240,31 @@
     msg.textContent = 'Verifying...';
     msg.className = 'gv-msg';
 
-    sb.auth.verifyOtp({ email: pendingEmail, token: code, type: 'email' })
-      .then(function(res) {
-        if (res.error) {
-          msg.textContent = res.error.message || 'That code was invalid or expired.';
+    var types = ['email', 'signup', 'magiclink'];
+    var i = 0;
+    function attempt() {
+      sb.auth.verifyOtp({ email: pendingEmail, token: code, type: types[i] })
+        .then(function(res) {
+          if (res.error) {
+            i++;
+            if (i < types.length) { attempt(); return; }
+            msg.textContent = res.error.message || 'That code was invalid or expired.';
+            msg.className = 'gv-msg error';
+            btn.disabled = false;
+            return;
+          }
+          // Success: onAuthStateChange (SIGNED_IN) fetches the profile and
+          // closes the modal — nothing more to do here.
+        })
+        .catch(function() {
+          i++;
+          if (i < types.length) { attempt(); return; }
+          msg.textContent = 'Something went wrong. Try again.';
           msg.className = 'gv-msg error';
           btn.disabled = false;
-        }
-        // On success, onAuthStateChange (SIGNED_IN) fetches the profile and
-        // closes the modal — nothing more to do here.
-      })
-      .catch(function() {
-        msg.textContent = 'Something went wrong. Try again.';
-        msg.className = 'gv-msg error';
-        btn.disabled = false;
-      });
+        });
+    }
+    attempt();
   }
 
   // --------------------------------------------------------
