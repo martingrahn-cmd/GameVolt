@@ -1036,9 +1036,32 @@
                 padding: 24px 16px;
             }
 
+            /* Two compact cards per row on phones (19 games — one-at-a-time
+               felt too sparse). Thumbnail + title + Play; the description and
+               tags are kept in the DOM for SEO/desktop but hidden here. */
             .games-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+
+            .games-grid .game-info {
+                padding: 12px;
+            }
+
+            .games-grid .game-title {
+                font-size: 1rem;
+                margin-bottom: 10px;
+            }
+
+            .games-grid .game-description,
+            .games-grid .game-tags {
+                display: none;
+            }
+
+            .games-grid .play-btn {
+                padding: 9px 12px;
+                font-size: 0.85rem;
+                width: 100%;
             }
 
             .features-section {
