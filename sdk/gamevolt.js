@@ -12,6 +12,12 @@
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a2pheXNldWh2dnBrZGdwaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzQxMzYsImV4cCI6MjA4Nzk1MDEzNn0.lGCRdYlgxWJlzM6_XpML3f8AKUJG3tLmzNRLTPR0TnU';
   var SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
 
+  // Bump on every SDK change. Shown in the login modal footer and the page
+  // footer so you can tell at a glance whether a browser has the latest SDK
+  // (Cloudflare caches this file, so an old copy can linger). Also on
+  // GameVolt.version and logged to the console on init.
+  var SDK_VERSION = '2026.07.16-1';
+
   var sb = null; // Supabase client
   var currentUser = null;
   var userProfile = null;
@@ -78,6 +84,7 @@
         '</form>' +
         '<p class="gv-msg"></p>' +
         '<p class="gv-note">No password needed. Sign in with Google, or we\'ll email you a code (and a link).</p>' +
+        '<p class="gv-note" style="opacity:0.5;font-size:11px">SDK v' + SDK_VERSION + '</p>' +
       '</div>';
 
     var css = document.createElement('style');
@@ -1426,6 +1433,12 @@
 
   function init(gameId) {
     currentGameId = gameId;
+    try { console.log('[GameVolt] SDK v' + SDK_VERSION); } catch (e) {}
+    // Stamp the version into any element the page provides for it.
+    try {
+      var vEls = document.querySelectorAll('#gv-version, [data-gv-version]');
+      for (var vi = 0; vi < vEls.length; vi++) vEls[vi].textContent = 'v' + SDK_VERSION;
+    } catch (e) {}
     createWidget();
 
     loadSupabase().then(function() {
@@ -1603,6 +1616,7 @@
   // --------------------------------------------------------
 
   window.GameVolt = {
+    version: SDK_VERSION,
     init: init,
     onReady: onReady,
     auth: auth,
