@@ -100,6 +100,35 @@ export function unlockedCount(p = loadProfile()) {
   return TROPHIES.filter((t) => p.unlocked[t.id]).length;
 }
 
+// True if the SDK's cached cloud set already holds this (bare) trophy id — used
+// to gate toasts so a trophy earned on another device isn't re-toasted here.
+function cloudUnlocked(id) {
+  return !!(
+    window.GameVolt &&
+    window.GameVolt.achievements?.isUnlocked &&
+    window.GameVolt.achievements.isUnlocked(id)
+  );
+}
+
+// Cross-device: merge cloud-earned trophy ids into the local profile so a
+// second signed-in device shows the right count and never re-toasts them.
+// `ids` is the Set (or iterable) from GameVolt.achievements.getUnlockedIds().
+// Returns true if anything new was merged.
+export function backfillTrophies(ids) {
+  if (!ids || !ids.forEach) return false;
+  const p = loadProfile();
+  const today = todayKey();
+  let changed = false;
+  ids.forEach((id) => {
+    if (!p.unlocked[id]) {
+      p.unlocked[id] = today;
+      changed = true;
+    }
+  });
+  if (changed) save(p);
+  return changed;
+}
+
 // Register a localStorage → cloud migration so a guest's trophies and career
 // stats follow them when they sign in (the SDK runs this once per session on
 // sign-in). Scores are deliberately NOT migrated: the GameVolt board for this
@@ -166,7 +195,9 @@ export function recordRun(run) {
   const newly = [];
   for (const t of TROPHIES) {
     if (t.tier === "platinum") continue;
-    if (!p.unlocked[t.id] && t.check(ctx)) {
+    // Skip anything already earned locally, or in the cloud on another device
+    // (isUnlocked reads the SDK's cached set), so it isn't re-toasted here.
+    if (!p.unlocked[t.id] && !cloudUnlocked(t.id) && t.check(ctx)) {
       p.unlocked[t.id] = today;
       newly.push(t);
     }
@@ -175,6 +206,7 @@ export function recordRun(run) {
   const plat = TROPHIES.find((t) => t.tier === "platinum");
   if (
     !p.unlocked[plat.id] &&
+    !cloudUnlocked(plat.id) &&
     TROPHIES.every((t) => t.tier === "platinum" || p.unlocked[t.id])
   ) {
     p.unlocked[plat.id] = today;

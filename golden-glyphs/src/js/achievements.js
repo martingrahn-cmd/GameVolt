@@ -59,7 +59,7 @@ export class AchievementSystem {
     }
 
     unlock(id) {
-        if (this.isUnlocked(id)) return false;
+        if (this.isUnlocked(id) || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(id))) return false;
         if (!ACHIEVEMENTS[id]) return false;
         this.unlocked[id] = Date.now();
         this.save();

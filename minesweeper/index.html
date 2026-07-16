@@ -1424,6 +1424,20 @@ function init() {
       }
     });
     GameVolt.auth.onStateChange(user => { if(user) loadFromCloud(); });
+
+    // Cross-device: pull cloud-earned trophies into local storage so this
+    // device does not re-toast them. SDK caches the set before onStateChange.
+    function backfillTrophies(user){
+      if(!user || !GameVolt.achievements.getUnlockedIds) return;
+      GameVolt.achievements.getUnlockedIds().then(ids => {
+        if(!ids || !ids.forEach) return;
+        ids.forEach(id => { unlockedAchs[id]=unlockedAchs[id]||new Date().toISOString(); });
+        saveAchievements();
+        if($trophyModal && $trophyModal.classList.contains('show')) showTrophies();
+      });
+    }
+    GameVolt.auth.onStateChange(backfillTrophies);
+    if(GameVolt.auth.getUser){ const u=GameVolt.auth.getUser(); if(u) backfillTrophies(u); }
   }
 }
 
@@ -2043,7 +2057,7 @@ function trophySfx(tier){
 }
 
 function unlockAchievement(id){
-  if(unlockedAchs[id])return;unlockedAchs[id]=new Date().toISOString();saveAchievements();
+  if(unlockedAchs[id] || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(id)))return;unlockedAchs[id]=new Date().toISOString();saveAchievements();
   const ach=ACHIEVEMENTS.find(a=>a.id===id);if(!ach)return;
   if(window.GameVolt){
     GameVolt.achievements.unlock(id).catch(()=>{});

@@ -1597,7 +1597,10 @@ export class OneStrokeApp {
       if (result.tier === "platinum") {
         return result;
       }
-      const persistedUnlocked = Boolean(this.achievementUnlocks?.[result.id]);
+      const persistedUnlocked = Boolean(
+        this.achievementUnlocks?.[result.id] ||
+        (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(result.id))
+      );
       const unlocked = persistedUnlocked || result.unlocked;
       if (unlocked && !persistedUnlocked) {
         this.achievementUnlocks[result.id] = true;
@@ -1617,7 +1620,10 @@ export class OneStrokeApp {
     const platinumIndex = results.findIndex((result) => result.tier === "platinum");
     if (platinumIndex >= 0) {
       const platinumId = results[platinumIndex].id;
-      const persistedPlatinum = Boolean(this.achievementUnlocks?.[platinumId]);
+      const persistedPlatinum = Boolean(
+        this.achievementUnlocks?.[platinumId] ||
+        (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(platinumId))
+      );
       const platinumUnlocked = allNonPlatinumUnlocked || persistedPlatinum;
       if (platinumUnlocked && !persistedPlatinum) {
         this.achievementUnlocks[platinumId] = true;
@@ -1643,6 +1649,25 @@ export class OneStrokeApp {
       }
     }
     return results;
+  }
+
+  // Merge cloud-earned trophy ids into the local unlock store so an already
+  // earned trophy doesn't re-toast on a second signed-in device (also fixes
+  // the trophy panel counts). Called from the SDK auth state hook once the
+  // cloud set is cached.
+  mergeCloudTrophies(ids) {
+    if (!ids || !ids.forEach) return;
+    let changed = false;
+    ids.forEach((id) => {
+      if (!this.achievementUnlocks[id]) {
+        this.achievementUnlocks[id] = true;
+        changed = true;
+      }
+    });
+    if (changed) {
+      saveAchievementUnlocks(this.achievementUnlocks);
+      this.renderAchievementView();
+    }
   }
 
   renderAchievementView() {

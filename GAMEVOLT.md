@@ -606,6 +606,20 @@ if (window.GameVolt) GameVolt.achievements.unlock('trophy_id');
 ```
 > The SDK auto-prefixes with gameId: `unlock('first_win')` → `connect4-first_win`
 
+> ⚠️ **`unlock()` only PERSISTS the trophy (localStorage for guests, Supabase
+> when signed in). It does NOT show a toast.** The player-facing notification is
+> a separate call — either the SDK's standard toast or the game's own in-game
+> notification. Every game MUST show one on the unlock path, or trophies unlock
+> silently:
+> ```javascript
+> if (window.GameVolt && GameVolt.ui && GameVolt.ui.achievementToast) {
+>   GameVolt.ui.achievementToast({ icon: '🏆', name: 'Trophy Name', tier: 'bronze' });
+> }
+> ```
+> Toast fields: `{ icon, name (or title), tier }`. Games with their own animated
+> notification (e.g. golden-glyphs on canvas, vector-hexagon/chain-reaction toast
+> queues) can use that instead — the requirement is that *something* visible fires.
+
 **E. postMessage to portal:**
 ```javascript
 function gvPost(action, payload) {
@@ -614,6 +628,55 @@ function gvPost(action, payload) {
 gvPost('score', { score: 1234 });
 gvPost('achievement', { id: 'trophy_id', name: 'Name', tier: 'bronze' });
 ```
+
+**F. Cross-device trophy sync (REQUIRED for any game with trophies):**
+
+Trophy toasts are gated on the game's own localStorage flags, and the SDK
+migration only ever runs local → cloud. So without this step, a signed-in
+player who earned trophies on device A and then plays on device B (fresh
+localStorage) gets every already-earned trophy **re-toasted** when its
+condition is met again. Correctness isn't affected (the DB upsert ignores
+duplicates) but it's an annoying UX bug.
+
+The SDK caches the player's already-earned trophy ids on login and exposes:
+
+```javascript
+GameVolt.achievements.getUnlockedIds()  // → Promise<Set<bareId>> (cloud-earned)
+GameVolt.achievements.isUnlocked(id)    // → bool, sync, from the cached set
+```
+
+Every game MUST do two things (all `id`s are the BARE id passed to `unlock()`):
+
+1. **Gate the toast on `isUnlocked` too** — in the game's "already earned?"
+   check inside its unlock/toast function:
+   ```javascript
+   function unlock(id) {
+     if (earned(id) ||
+         (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(id))) return;
+     // ...set local flag, show toast, GameVolt.achievements.unlock(id)...
+   }
+   ```
+
+2. **Back-fill local flags from the cloud on login** — so `earned(id)` is
+   true on the new device (fixes trophy counts + the toast-before-cache race).
+   Register on `auth.onStateChange` (fires with the cache already loaded):
+   ```javascript
+   if (window.GameVolt) {
+     function backfillTrophies(user) {
+       if (!user || !GameVolt.achievements.getUnlockedIds) return;
+       GameVolt.achievements.getUnlockedIds().then(function (ids) {
+         if (!ids || !ids.forEach) return;
+         ids.forEach(function (id) { /* merge id into the game's local earned store, then persist */ });
+         // refresh any visible trophy count/panel
+       });
+     }
+     GameVolt.auth.onStateChange(backfillTrophies);
+     if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
+   }
+   ```
+
+> Reference implementation: `vector-hexagon/index.html` (search `backfillTrophies`).
+> Both hooks are guarded by `window.GameVolt`, so standalone/guest play is unaffected.
 
 **Common pitfalls:**
 - `GameVolt.init()` is required — without it, Supabase never connects

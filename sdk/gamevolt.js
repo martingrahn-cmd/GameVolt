@@ -20,6 +20,10 @@
   var readyCallbacks = [];
   var stateChangeCallbacks = [];
   var migrationConfig = null;
+  // Set of the current game's already-unlocked achievement ids (bare, no game
+  // prefix), loaded from the cloud on login. Lets a fresh device suppress
+  // re-toasting trophies the player already earned on another device.
+  var cloudUnlocked = null;
 
   // --------------------------------------------------------
   // Supabase loader
@@ -41,6 +45,7 @@
   // --------------------------------------------------------
 
   var modal = null;
+  var pendingEmail = ''; // email the OTP code was sent to (for verifyOtp)
 
   function createModal() {
     if (modal) return;
@@ -64,10 +69,15 @@
         '<div class="gv-divider"><span>or</span></div>' +
         '<form class="gv-form">' +
           '<input type="email" class="gv-email" placeholder="your@email.com" required autocomplete="email">' +
-          '<button type="submit" class="gv-btn">SEND MAGIC LINK</button>' +
+          '<button type="submit" class="gv-btn">EMAIL ME A CODE</button>' +
+        '</form>' +
+        '<form class="gv-code-form" style="display:none">' +
+          '<input type="text" class="gv-code" placeholder="6-digit code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*">' +
+          '<button type="submit" class="gv-btn gv-verify-btn">VERIFY &amp; SIGN IN</button>' +
+          '<button type="button" class="gv-code-back">Use a different email</button>' +
         '</form>' +
         '<p class="gv-msg"></p>' +
-        '<p class="gv-note">No password needed. Sign in with Google or a magic link.</p>' +
+        '<p class="gv-note">No password needed. Sign in with Google, or we\'ll email you a code (and a link).</p>' +
       '</div>';
 
     var css = document.createElement('style');
@@ -81,8 +91,12 @@
       '.gv-logo{font-size:22px;font-weight:bold;letter-spacing:3px;color:#00e5ff;margin-bottom:4px}' +
       '.gv-sub{color:#999;font-size:14px;margin:8px 0 20px}' +
       '.gv-form{display:flex;flex-direction:column;gap:12px}' +
-      '.gv-email{padding:12px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font-size:16px;outline:none}' +
-      '.gv-email:focus{border-color:#00e5ff}' +
+      '.gv-email,.gv-code{padding:12px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font-size:16px;outline:none}' +
+      '.gv-email:focus,.gv-code:focus{border-color:#00e5ff}' +
+      '.gv-code{text-align:center;letter-spacing:6px;font-size:20px}' +
+      '.gv-code-form{display:flex;flex-direction:column;gap:12px}' +
+      '.gv-code-back{background:none;border:none;color:#888;font-size:12px;cursor:pointer;padding:4px;text-decoration:underline}' +
+      '.gv-code-back:hover{color:#fff}' +
       '.gv-btn{padding:12px;border-radius:8px;border:none;background:#00e5ff;color:#000;font-weight:bold;font-size:14px;cursor:pointer;letter-spacing:1px;text-transform:uppercase}' +
       '.gv-btn:hover{background:#33ecff}' +
       '.gv-btn:disabled{opacity:0.5;cursor:default}' +
@@ -107,6 +121,32 @@
       if (!email) return;
       sendMagicLink(email);
     };
+    modal.querySelector('.gv-code-form').onsubmit = function(e) {
+      e.preventDefault();
+      var code = modal.querySelector('.gv-code').value.trim();
+      if (!code) return;
+      verifyCode(code);
+    };
+    modal.querySelector('.gv-code-back').onclick = showEmailStep;
+  }
+
+  // Toggle the modal between the email step and the code-entry step.
+  function showCodeStep() {
+    if (!modal) return;
+    modal.querySelector('.gv-form').style.display = 'none';
+    modal.querySelector('.gv-code-form').style.display = 'flex';
+    var code = modal.querySelector('.gv-code');
+    code.value = '';
+    code.focus();
+  }
+  function showEmailStep() {
+    if (!modal) return;
+    modal.querySelector('.gv-code-form').style.display = 'none';
+    modal.querySelector('.gv-form').style.display = 'flex';
+    var msg = modal.querySelector('.gv-msg');
+    msg.textContent = '';
+    msg.className = 'gv-msg';
+    modal.querySelector('.gv-btn').disabled = false;
   }
 
   function openModal() {
@@ -115,6 +155,7 @@
     modal.querySelector('.gv-msg').textContent = '';
     modal.querySelector('.gv-msg').className = 'gv-msg';
     modal.querySelector('.gv-btn').disabled = false;
+    showEmailStep(); // always start on the email step, not a stale code step
     modal.classList.add('open');
     modal.querySelector('.gv-email').focus();
   }
@@ -164,10 +205,44 @@
           msg.className = 'gv-msg error';
           btn.disabled = false;
         } else {
-          msg.textContent = 'Check your email for the magic link!';
+          // Advance to the code step. Works inside an iOS home-screen app
+          // (standalone PWA) where tapping the emailed link would open Safari —
+          // a separate storage jar — and leave this app signed out. Entering the
+          // code keeps sign-in in this context. The link still works elsewhere.
+          pendingEmail = email;
+          btn.disabled = false;
+          showCodeStep();
+          msg.textContent = 'We emailed you a 6-digit code (and a link). Enter the code here.';
           msg.className = 'gv-msg';
+        }
+      })
+      .catch(function() {
+        msg.textContent = 'Something went wrong. Try again.';
+        msg.className = 'gv-msg error';
+        btn.disabled = false;
+      });
+  }
+
+  // Verify the 6-digit code from the email. On success Supabase establishes the
+  // session in THIS context (onAuthStateChange then closes the modal), so it
+  // works even in an iOS home-screen app where the emailed link can't.
+  function verifyCode(code) {
+    if (!sb || !pendingEmail) return;
+    var btn = modal.querySelector('.gv-verify-btn');
+    var msg = modal.querySelector('.gv-msg');
+    btn.disabled = true;
+    msg.textContent = 'Verifying...';
+    msg.className = 'gv-msg';
+
+    sb.auth.verifyOtp({ email: pendingEmail, token: code, type: 'email' })
+      .then(function(res) {
+        if (res.error) {
+          msg.textContent = res.error.message || 'That code was invalid or expired.';
+          msg.className = 'gv-msg error';
           btn.disabled = false;
         }
+        // On success, onAuthStateChange (SIGNED_IN) fetches the profile and
+        // closes the modal — nothing more to do here.
       })
       .catch(function() {
         msg.textContent = 'Something went wrong. Try again.';
@@ -278,6 +353,28 @@
         return null;
       })
       .catch(function() { return null; });
+  }
+
+  // Load (and cache) the bare ids of this game's achievements the signed-in
+  // user has already unlocked in the cloud. Source of truth is
+  // user_achievements (written on every unlock), not the save blob.
+  function fetchCloudUnlocked() {
+    if (!currentUser || !sb) { cloudUnlocked = new Set(); return Promise.resolve(cloudUnlocked); }
+    var prefix = currentGameId + '-';
+    return sb.from('user_achievements')
+      .select('achievement_id')
+      .eq('user_id', currentUser.id)
+      .like('achievement_id', prefix + '%')
+      .then(function(res) {
+        var set = new Set();
+        (res.data || []).forEach(function(r) {
+          var id = r.achievement_id;
+          if (id && id.indexOf(prefix) === 0) set.add(id.slice(prefix.length));
+        });
+        cloudUnlocked = set;
+        return set;
+      })
+      .catch(function() { cloudUnlocked = cloudUnlocked || new Set(); return cloudUnlocked; });
   }
 
   // --------------------------------------------------------
@@ -572,6 +669,8 @@
         return Promise.resolve();
       }
 
+      if (cloudUnlocked) cloudUnlocked.add(id); // keep the cache fresh this session
+
       return sb.auth.getSession().then(function(s) {
         var token = s.data && s.data.session ? s.data.session.access_token : SUPABASE_KEY;
         return fetch(SUPABASE_URL + '/rest/v1/user_achievements?on_conflict=user_id,achievement_id', {
@@ -589,6 +688,20 @@
           })
         });
       });
+    },
+
+    // The set of this game's achievement ids the signed-in user has already
+    // unlocked in the cloud (bare ids). Loaded on login; games call this to
+    // back-fill their local "already unlocked" flags so a fresh device does
+    // not re-toast trophies earned elsewhere. Resolves to an empty Set for
+    // guests or before load.
+    getUnlockedIds: function() {
+      if (cloudUnlocked) return Promise.resolve(cloudUnlocked);
+      return fetchCloudUnlocked();
+    },
+    // Synchronous check against the cached set (false until it has loaded).
+    isUnlocked: function(id) {
+      return !!(cloudUnlocked && cloudUnlocked.has(id));
     },
 
     getAll: function() {
@@ -1308,7 +1421,15 @@
         return;
       }
 
-      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      // Implicit flow (token in the redirect URL) instead of the default PKCE.
+      // PKCE stashes a code-verifier in the localStorage of the browser that
+      // REQUESTS the magic link; if the link is opened anywhere else — a mail
+      // app's in-app browser, another device — the verifier is missing and the
+      // exchange fails. Implicit carries the session in the URL, so a magic link
+      // works no matter where it's opened. Google OAuth is unaffected either way.
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { flowType: 'implicit' }
+      });
 
       // Listen for auth state changes
       sb.auth.onAuthStateChange(function(event, session) {
@@ -1324,11 +1445,12 @@
               sessionStorage.setItem(migratedKey, '1');
               save.migrate();
             }
-            notifyStateChange();
+            fetchCloudUnlocked().then(notifyStateChange);
           });
         } else if (!currentUser && prevUser) {
           // Just signed out
           userProfile = null;
+          cloudUnlocked = null;
           notifyStateChange();
         }
       });
@@ -1338,7 +1460,7 @@
         if (res.data && res.data.session) {
           currentUser = res.data.session.user;
           fetchProfile(currentUser.id).then(function() {
-            notifyStateChange();
+            fetchCloudUnlocked().then(notifyStateChange);
           });
         }
         ready = true;

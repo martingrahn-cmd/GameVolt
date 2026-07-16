@@ -533,7 +533,9 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
   const achCount = () => ACH.reduce((n,a)=>n+(hasAch(a.id)?1:0),0);
   let toastQ = [], toastActive = false;
   function unlock(id){
-    if (hasAch(id)) return;
+    // Suppress if already earned — locally, or in the cloud on another device
+    // (isUnlocked reads the SDK's cached cloud set, so no re-toast cross-device).
+    if (hasAch(id) || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(id))) return;
     try { localStorage.setItem(achKey(id),'1'); } catch(e){}
     const a = ACH.find(x=>x.id===id); if (!a) return;
     toastQ.push(a); pumpToast();
@@ -1735,6 +1737,22 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
         return ACH.filter(function(a){ return local['vhex-ach-'+a.id]; }).map(function(a){ return { id:a.id }; });
       }
     });
+
+    // Cross-device: when signed in, pull trophies already earned in the cloud
+    // into local storage so this device does not re-toast them. The SDK has the
+    // cloud set cached by the time onStateChange fires with a user.
+    function backfillTrophies(user){
+      if (!user || !GameVolt.achievements.getUnlockedIds) return;
+      GameVolt.achievements.getUnlockedIds().then(function(ids){
+        if (!ids || !ids.forEach) return;
+        ids.forEach(function(id){ try { localStorage.setItem(achKey(id),'1'); } catch(e){} });
+        // Refresh the trophy panel count if it happens to be open.
+        var tr = document.getElementById('trophies');
+        if (tr && !tr.classList.contains('hidden')) buildTrophies();
+      });
+    }
+    GameVolt.auth.onStateChange(backfillTrophies);
+    if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
   }
 
   buildDiffs(); applyMenuFocus();

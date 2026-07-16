@@ -983,6 +983,26 @@
             },
           });
         }
+        // Cross-device: when signed in, pull trophies already earned in the
+        // cloud into local storage so this device does not re-toast them. The
+        // SDK has the cloud set cached by the time onStateChange fires.
+        var backfillTrophies = function (user) {
+          if (!user || !GameVolt.achievements.getUnlockedIds) return;
+          GameVolt.achievements.getUnlockedIds().then(function (ids) {
+            if (!ids || !ids.forEach) return;
+            var have = CR.Achievements.unlocked();
+            var changed = false;
+            ids.forEach(function (id) {
+              if (have.indexOf(id) === -1) { have.push(id); changed = true; }
+            });
+            if (changed) CR.Achievements._save(have);
+            // Refresh the achievements screen if it happens to be open.
+            var ach = document.getElementById("achievements");
+            if (ach && ach.classList.contains("show")) openAchievements();
+          });
+        };
+        GameVolt.auth.onStateChange(backfillTrophies);
+        if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
       } catch (e) { /* ignore */ }
     }
 

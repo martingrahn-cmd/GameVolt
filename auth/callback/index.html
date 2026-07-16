@@ -26,8 +26,38 @@
     var SUPABASE_URL = 'https://nwkjayseuhvvpkdgpivm.supabase.co';
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a2pheXNldWh2dnBrZGdwaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzQxMzYsImV4cCI6MjA4Nzk1MDEzNn0.lGCRdYlgxWJlzM6_XpML3f8AKUJG3tLmzNRLTPR0TnU';
 
-    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     var msgEl = document.getElementById('msg');
+
+    // Supabase puts errors (expired/invalid/consumed link) in the URL — as a
+    // query string OR the hash fragment. Surface the real reason instead of a
+    // generic "couldn't sign in", so a dead magic link is diagnosable. Checked
+    // before the client is created since it needs nothing but the URL.
+    function urlError() {
+      var q = new URLSearchParams(window.location.search);
+      var h = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+      var desc = q.get('error_description') || h.get('error_description');
+      var code = q.get('error_code') || h.get('error_code');
+      if (!desc && !q.get('error') && !h.get('error')) return null;
+      var text = desc ? desc.replace(/\+/g, ' ') : (q.get('error') || h.get('error'));
+      if (code === 'otp_expired') {
+        text = 'This magic link has expired or was already used. Request a new one and open it in the same browser.';
+      }
+      return text;
+    }
+
+    var err = urlError();
+    if (err) {
+      msgEl.textContent = 'Sign-in failed: ' + err;
+      msgEl.className = 'msg error';
+      setTimeout(function() { window.location.href = '/'; }, 4000);
+      throw new Error('auth callback: ' + err);
+    }
+
+    // Implicit flow — must match the SDK client so the session token in the
+    // URL is parsed the same way (see sdk/gamevolt.js).
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { flowType: 'implicit' }
+    });
 
     // Supabase handles the code exchange automatically when it detects
     // the auth params in the URL hash/query. We just need to wait for

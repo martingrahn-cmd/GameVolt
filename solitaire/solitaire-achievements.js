@@ -80,10 +80,17 @@
   }
 
   function unlock(id) {
-    if (trophies[id]) return;
+    if (trophies[id] || (window.GameVolt && window.GameVolt.achievements && window.GameVolt.achievements.isUnlocked && window.GameVolt.achievements.isUnlocked(id))) return;
     trophies[id] = true;
     saveTrophies(trophies);
     try { if (window.GameVolt && window.GameVolt.achievements) window.GameVolt.achievements.unlock(id); } catch (e) {}
+    // Toast the unlock so the player is notified in the moment.
+    try {
+      var meta = SOL_TROPHIES.find(function (t) { return t.id === id; });
+      if (meta && window.GameVolt && window.GameVolt.ui && window.GameVolt.ui.achievementToast) {
+        window.GameVolt.ui.achievementToast({ icon: meta.icon, name: meta.name, tier: meta.tier });
+      }
+    } catch (e) {}
   }
 
   function checks(run) {
@@ -184,6 +191,20 @@
           return { solitaire_trophies: setToArr(trophies) };
         });
       }
+    } catch (e) {}
+    // Cross-device: when signed in, pull cloud-earned trophies into the local
+    // store so this device does not re-toast them (SDK caches the set on login).
+    function backfillTrophies(user) {
+      if (!user || !window.GameVolt.achievements.getUnlockedIds) return;
+      window.GameVolt.achievements.getUnlockedIds().then(function (ids) {
+        if (!ids || !ids.forEach) return;
+        ids.forEach(function (id) { if (!trophies[id]) trophies[id] = true; });
+        saveTrophies(trophies);
+      });
+    }
+    try {
+      if (window.GameVolt.auth && window.GameVolt.auth.onStateChange) window.GameVolt.auth.onStateChange(backfillTrophies);
+      if (window.GameVolt.auth && window.GameVolt.auth.getUser) { var u = window.GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
     } catch (e) {}
   }
 

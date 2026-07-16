@@ -1,5 +1,6 @@
 import Game from "./Game.js";
 import UIManager from "./UI.js";
+import { saveBOData } from "./Achievements.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d", { alpha: false });
@@ -98,4 +99,21 @@ if (window.GameVolt) {
       return out;
     }
   });
+
+  // Cross-device: pull cloud-earned trophies into bo_data so this device
+  // doesn't re-toast them. The SDK has the cloud set cached by the time
+  // onStateChange fires with a user.
+  function backfillTrophies(user) {
+    if (!user || !GameVolt.achievements.getUnlockedIds) return;
+    GameVolt.achievements.getUnlockedIds().then(function(ids) {
+      if (!ids || !ids.forEach) return;
+      var d = game && game.ui ? game.ui.boData : null;
+      if (!d || !d.unlocked) return;
+      ids.forEach(function(id) { d.unlocked[id] = d.unlocked[id] || Date.now(); });
+      saveBOData(d);
+      if (game.ui.renderTrophyGrid) game.ui.renderTrophyGrid();
+    });
+  }
+  GameVolt.auth.onStateChange(backfillTrophies);
+  if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
 }

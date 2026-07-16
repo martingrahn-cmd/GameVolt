@@ -500,12 +500,19 @@ function trPost(action, payload) {
 }
 
 function trUnlock(id) {
-  if (trTrophies.has(id)) return false;
+  if (trTrophies.has(id) || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(id))) return false;
   trTrophies.add(id);
   trSaveTrophies(trTrophies);
   var meta = TR_TROPHIES.find(function(t) { return t.id === id; });
   if (window.GameVolt) {
     try { GameVolt.achievements.unlock(id); } catch (e) {}
+    // Toast the unlock — TR_TROPHIES has no icon, so pick one by tier.
+    try {
+      if (meta && GameVolt.ui && GameVolt.ui.achievementToast) {
+        var trIcon = { bronze: '🥉', silver: '🥈', gold: '🥇', platinum: '🏆' }[meta.tier] || '🏆';
+        GameVolt.ui.achievementToast({ icon: trIcon, name: meta.title, tier: meta.tier });
+      }
+    } catch (e) {}
   }
   trPost('achievement', {
     id: id,
@@ -606,6 +613,18 @@ if (window.GameVolt) {
       }
     });
   } catch (e) {}
+  // Cross-device: pull cloud-earned trophies into local storage so this
+  // device does not re-toast them. SDK caches the set before onStateChange.
+  function backfillTrophies(user) {
+    if (!user || !GameVolt.achievements.getUnlockedIds) return;
+    GameVolt.achievements.getUnlockedIds().then(function(ids) {
+      if (!ids || !ids.forEach) return;
+      ids.forEach(function(id) { trTrophies.add(id); });
+      trSaveTrophies(trTrophies);
+    });
+  }
+  GameVolt.auth.onStateChange(backfillTrophies);
+  if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
 }
 
 

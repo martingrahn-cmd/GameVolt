@@ -415,7 +415,7 @@ export default class UIManager {
   }
 
   tryUnlock(id) {
-    if (this.boData.unlocked[id] > 0) return false;
+    if (this.boData.unlocked[id] > 0 || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(id))) return false;
     this.boData.unlocked[id] = Date.now();
     saveBOData(this.boData);
 

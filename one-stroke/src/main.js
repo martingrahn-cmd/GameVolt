@@ -36,6 +36,20 @@ const app = new OneStrokeApp();
 // Expose for devtools debugging
 window.__oneStroke = app;
 
+// Cross-device: pull cloud-earned trophies into the local unlock store on login
+// so this device doesn't re-toast already-earned trophies.
+if (window.GameVolt) {
+  var backfillTrophies = function(user) {
+    if (!user || !GameVolt.achievements.getUnlockedIds) return;
+    GameVolt.achievements.getUnlockedIds().then(function(ids) {
+      if (!ids || !ids.forEach) return;
+      app.mergeCloudTrophies(ids);
+    });
+  };
+  GameVolt.auth.onStateChange(backfillTrophies);
+  if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
+}
+
 // Register service worker for PWA / offline support
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").catch(() => {});

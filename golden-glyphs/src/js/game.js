@@ -274,6 +274,20 @@ function initSystems() {
         }
       }
     });
+    // Cross-device: pull cloud-earned trophies into the local store so this
+    // device doesn't re-toast them (also fixes the trophy count/panel).
+    function backfillTrophies(user) {
+      if (!user || !GameVolt.achievements.getUnlockedIds) return;
+      GameVolt.achievements.getUnlockedIds().then(function(ids) {
+        if (!ids || !ids.forEach) return;
+        ids.forEach(function(id) {
+          if (achievements && !achievements.unlocked[id]) achievements.unlocked[id] = Date.now();
+        });
+        if (achievements) achievements.save();
+      });
+    }
+    GameVolt.auth.onStateChange(backfillTrophies);
+    if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
   }
   if (typeof gvPost === 'function') gvPost('game_start', {});
   if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.start('Golden Glyphs');

@@ -5586,7 +5586,9 @@ export class Game {
 
     // ─── Trophy System ───
     tryUnlockTrophy(id) {
-        if (this.trophyData[id]) return false;
+        // Skip if already earned — locally, or in the cloud on another device
+        // (isUnlocked reads the SDK's cached cloud set) so it isn't re-toasted.
+        if (this.trophyData[id] || (window.GameVolt && GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(id))) return false;
         const trophy = TROPHIES.find(t => t.id === id);
         if (!trophy) return false;
 
@@ -5609,6 +5611,22 @@ export class Game {
             if (count >= 30) this.tryUnlockTrophy('platinum');
         }
         return true;
+    }
+
+    // Cross-device: when signed in, merge trophies already earned in the cloud
+    // into local storage so this device does not re-toast them. The SDK has the
+    // cloud set cached by the time onStateChange fires with a user. The canvas
+    // trophy screen reads this.trophyData each frame, so it refreshes itself.
+    backfillTrophies(user) {
+        if (!user || !window.GameVolt || !GameVolt.achievements.getUnlockedIds) return;
+        GameVolt.achievements.getUnlockedIds().then((ids) => {
+            if (!ids || !ids.forEach) return;
+            let changed = false;
+            ids.forEach((id) => {
+                if (!this.trophyData[id]) { this.trophyData[id] = Date.now(); changed = true; }
+            });
+            if (changed) saveTrophyData(this.trophyData);
+        });
     }
 
 

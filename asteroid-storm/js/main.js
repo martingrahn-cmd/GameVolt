@@ -2801,6 +2801,23 @@ function initGame() {
                         });
                     }
                 });
+
+                // Cross-device: pull cloud-earned trophies into local storage so
+                // this device doesn't re-toast them (also fixes the trophy count).
+                var backfillTrophies = function(user) {
+                    if (!user || !GameVolt.achievements.getUnlockedIds) return;
+                    GameVolt.achievements.getUnlockedIds().then(function(ids) {
+                        if (!ids || !ids.forEach) return;
+                        var data = Achievements._readUnlocked();
+                        ids.forEach(function(id) { if (!data[id]) data[id] = Date.now(); });
+                        Achievements._writeUnlocked(data);
+                        if (window.menuSystem && typeof window.menuSystem.populateAchievements === 'function') {
+                            window.menuSystem.populateAchievements();
+                        }
+                    });
+                };
+                GameVolt.auth.onStateChange(backfillTrophies);
+                if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
             }
 
             // Note: play-time tracking (GameVoltTracker.start) is fired from
