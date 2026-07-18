@@ -5742,7 +5742,7 @@ export class Game {
             ov.classList.remove('hidden');
             ov.scrollTop = 0;
             const btn = ov.querySelector('.ax-tr-close');
-            if (btn) btn.onclick = () => this.closeTrophiesOverlay();
+            if (btn) { btn.onclick = () => this.closeTrophiesOverlay(); try { btn.focus(); } catch (e) {} }
         }
         this._trophiesOverlayOpen = true;
         if (this.audio) this.audio.menuClick();
@@ -5809,7 +5809,7 @@ export class Game {
             ov.classList.remove('hidden');
             ov.scrollTop = 0;
             const btn = ov.querySelector('.ax-sc-close');
-            if (btn) btn.onclick = () => this.closeScoresOverlay();
+            if (btn) { btn.onclick = () => this.closeScoresOverlay(); try { btn.focus(); } catch (e) {} }
         }
         this._scoresOverlayOpen = true;
         if (this.audio) this.audio.menuClick();
