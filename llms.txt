@@ -37,7 +37,7 @@ Every game runs instantly in any modern browser, works on phone, tablet and desk
 
 ## About
 
-- [GameVolt News](https://gamevolt.io/news/) — Game launches and major updates (RSS: https://gamevolt.io/news/feed.xml). Latest: [Simpler sign-in](https://gamevolt.io/news/simpler-sign-in/) (2026-07-16), [Vector Hexagon launch](https://gamevolt.io/news/vector-hexagon-launch/) (2026-07-09) and [Snake Neo trophies update](https://gamevolt.io/news/snake-neo-trophies-update/) (2026-07-09).
+- [GameVolt News](https://gamevolt.io/news/) — Game launches and major updates (RSS: https://gamevolt.io/news/feed.xml). Latest: [Axeluga leaderboards update](https://gamevolt.io/news/axeluga-leaderboards-update/) (2026-07-18), [Simpler sign-in](https://gamevolt.io/news/simpler-sign-in/) (2026-07-16) and [Vector Hexagon launch](https://gamevolt.io/news/vector-hexagon-launch/) (2026-07-09).
 - [About GameVolt](https://gamevolt.io/about/) — Independent game studio from Sweden
 - [Privacy policy](https://gamevolt.io/privacy/)
 - [Contact](https://gamevolt.io/contact/)

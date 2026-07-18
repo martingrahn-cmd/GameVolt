@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Thu, 16 Jul 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 18 Jul 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>Axeluga leveled up: local &amp; global leaderboards and gamepad-friendly menus</title>
+      <link>https://gamevolt.io/news/axeluga-leaderboards-update/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/axeluga-leaderboards-update/</guid>
+      <pubDate>Sat, 18 Jul 2026 12:00:00 GMT</pubDate>
+      <description>Axeluga — our neon retro-arcade shoot-em-up — gets a LOCAL/GLOBAL leaderboard, fairer skill-based scoring so clean clears no longer tie, and modernized Achievements/Scores menus you can fully navigate with keyboard and gamepad.</description>
+    </item>
 
     <item>
       <title>Signing in is now simpler — Google or a quick email code</title>
