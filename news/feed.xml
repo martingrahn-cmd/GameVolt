@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Sat, 18 Jul 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 18 Jul 2026 15:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>Breakout: Neon Drift — the brick breaker with a twist</title>
+      <link>https://gamevolt.io/news/breakout-neon-drift-update/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/breakout-neon-drift-update/</guid>
+      <pubDate>Sat, 18 Jul 2026 15:00:00 GMT</pubDate>
+      <description>Our Breakout overhaul is live. Neon Drift adds the Perfect Drift skill-shot — slide the paddle into the ball to curve and aim your shot — plus a synthwave-arcade look, power-ups, a neon final boss, 31 trophies and a global leaderboard.</description>
+    </item>
 
     <item>
       <title>Axeluga leveled up: local &amp; global leaderboards and gamepad-friendly menus</title>

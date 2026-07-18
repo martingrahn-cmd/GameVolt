@@ -712,7 +712,10 @@ export default class UIManager {
     for (var t = 0; t < tiers.length; t++) {
       var tier = tiers[t];
       var tierAchs = ACHIEVEMENTS.filter(function(a) { return a.tier === tier; });
-      html += '<div class="trophy-tier-header ' + tier + '">' + tierNames[tier] + '</div>';
+      var boData = this.boData;
+      var tierUnlocked = tierAchs.filter(function(a) { return boData.unlocked[a.id] > 0; }).length;
+      html += '<div class="trophy-tier-header ' + tier + '">' + tierNames[tier] +
+              ' <span class="trophy-tier-count">' + tierUnlocked + '/' + tierAchs.length + '</span></div>';
 
       for (var i = 0; i < tierAchs.length; i++) {
         var a = tierAchs[i];
