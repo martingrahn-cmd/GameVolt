@@ -948,9 +948,7 @@ export class Game {
                             this._loadScores();
                             this.frame = 0;
                         } else if (i === 2) {
-                            this.state = 'trophies';
-                            this.trophyScrollY = 0;
-                            this.frame = 0;
+                            this.openTrophiesOverlay();
                         } else if (i === 3) {
                             this.state = 'options';
                             this.optionsCursor = 0;
@@ -1372,6 +1370,17 @@ export class Game {
 
         if (this.state === 'menu') {
             this.flashAlpha = 0; // clear any lingering flash
+            // While the HTML achievements overlay is open, freeze the menu behind
+            // it. It scrolls natively; close on confirm / Escape (the ✕ also closes).
+            if (this._trophiesOverlayOpen) {
+                if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
+                    this.closeTrophiesOverlay();
+                }
+                this._escPrev = this.input.keys['Escape'];
+                this._kConfirmPrev = this.input.keys['Enter'] || this.input.keys['Space'];
+                this._gpTapPrev = this.input.gpButtons.tap;
+                return;
+            }
             // Start title music — only works after user gesture activates AudioContext
             if (!this._titleMusicPlaying) {
                 this.audio.startTitleBGM();
@@ -1399,10 +1408,8 @@ export class Game {
                     this._loadScores();
                     this.frame = 0;
                 } else if (this.menuCursor === 2) {
-                    // TROPHIES
-                    this.state = 'trophies';
-                    this.trophyScrollY = 0;
-                    this.frame = 0;
+                    // TROPHIES → HTML overlay
+                    this.openTrophiesOverlay();
                 } else if (this.menuCursor === 3) {
                     // OPTIONS
                     this.state = 'options';
@@ -5696,6 +5703,69 @@ export class Game {
             if (this.trophyData[t.id]) n++;
         }
         return n;
+    }
+
+    // ─── HTML achievements overlay (styled like Vector Hexagon) ───
+    _trophyUnlocked(id) {
+        return !!this.trophyData[id] ||
+            !!(window.GameVolt && GameVolt.achievements && GameVolt.achievements.isUnlocked &&
+               GameVolt.achievements.isUnlocked(id));
+    }
+
+    buildTrophiesOverlay() {
+        const body = document.getElementById('ax-tr-body');
+        if (!body) return;
+        const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+        const tierOrder = ['bronze', 'silver', 'gold', 'platinum'];
+        const tierColors = { bronze: '#cd7f32', silver: '#c0c0c0', gold: '#ffd700', platinum: '#b4ffff' };
+        let html = '';
+        let total = 0, got = 0;
+        for (const tier of tierOrder) {
+            const items = TROPHIES.filter((t) => t.tier === tier);
+            if (!items.length) continue;
+            const c = tierColors[tier];
+            const on = items.filter((t) => this._trophyUnlocked(t.id)).length;
+            total += items.length; got += on;
+            html += '<div class="ax-tr-tier" style="color:' + c + ';border-color:' + c + '44">' +
+                    tier.toUpperCase() + ' · ' + on + '/' + items.length + '</div>';
+            html += '<div class="ax-tr-grid">' + items.map((t) => {
+                const o = this._trophyUnlocked(t.id);
+                const cardStyle = o ? ' style="opacity:1;border-color:' + c + '66;background:' + c + '14"' : '';
+                return '<div class="ax-tr-card' + (o ? ' on' : '') + '"' + cardStyle + '>' +
+                       '<div class="ax-tr-ico">' + (t.icon || '🏆') + '</div>' +
+                       '<div class="ax-tr-name"' + (o ? ' style="color:#fff"' : '') + '>' + esc(t.name) + '</div>' +
+                       '<div class="ax-tr-desc">' + esc(t.desc) + '</div>' +
+                       '</div>';
+            }).join('') + '</div>';
+        }
+        body.innerHTML = html;
+        const cnt = document.getElementById('ax-tr-count');
+        if (cnt) cnt.textContent = got + ' / ' + total;
+    }
+
+    openTrophiesOverlay() {
+        this.buildTrophiesOverlay();
+        const ov = document.getElementById('ax-trophies');
+        if (ov) {
+            ov.classList.remove('hidden');
+            ov.scrollTop = 0;
+            const btn = ov.querySelector('.ax-tr-close');
+            if (btn) btn.onclick = () => this.closeTrophiesOverlay();
+        }
+        this._trophiesOverlayOpen = true;
+        if (this.audio) this.audio.menuClick();
+        // Debounce so the keypress that opened it doesn't immediately close it.
+        this._escPrev = true; this._kConfirmPrev = true; this._gpTapPrev = true;
+        this._touchConfirm = false;
+    }
+
+    closeTrophiesOverlay() {
+        const ov = document.getElementById('ax-trophies');
+        if (ov) ov.classList.add('hidden');
+        this._trophiesOverlayOpen = false;
+        if (this.audio) this.audio.menuClick();
+        this._escPrev = true; this._kConfirmPrev = true; this._gpTapPrev = true;
+        this._touchConfirm = false;
     }
 
     // ─── Score History & Leaderboard ───
