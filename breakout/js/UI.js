@@ -1,4 +1,13 @@
 import { ACHIEVEMENTS, loadBOData, saveBOData } from './Achievements.js';
+import { LEADERBOARD_MODE } from './Scoring.js';
+import {
+  MAX_SELECTABLE_LEVEL,
+  clampStartLevel,
+  getHorizontalLevelTarget,
+  getMaxUnlockedStartLevel,
+  getVerticalLevelTarget,
+  isRankedStartLevel
+} from './LevelSelect.js';
 
 function _escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -6,6 +15,11 @@ export default class UIManager {
   constructor(game) {
     this.game = game;
     this.boData = loadBOData();
+    let savedStartLevel = 1;
+    try {
+      savedStartLevel = parseInt(localStorage.getItem('bo_start_level'), 10) || 1;
+    } catch (e) {}
+    this.selectedStartLevel = clampStartLevel(savedStartLevel, this.boData.bestLevel);
     // Per-game stats (reset each game)
     this.pg = {};
     this.levelsWithoutDeath = 0;
@@ -24,6 +38,10 @@ export default class UIManager {
     this.pauseOverlay = document.getElementById('pause-overlay');
     this.pauseBtn = document.getElementById('pause-btn');
     this.startBtn = document.getElementById('start-btn');
+    this.startLevelPicker = document.getElementById('start-level-picker');
+    this.startLevelGrid = document.getElementById('start-level-grid');
+    this.startLevelValue = document.getElementById('start-level-value');
+    this.startLevelMode = document.getElementById('start-level-mode');
     this.continueBtn = document.getElementById('continue-btn');
     this.menuBtn = document.getElementById('menu-btn');
     this.gameTitle = document.getElementById('game-title');
@@ -38,6 +56,8 @@ export default class UIManager {
     this.scoresEmpty = document.getElementById('scores-empty');
     this.musicBtn = document.getElementById('music-btn');
     this.sfxBtn = document.getElementById('sfx-btn');
+    this.fxBtn = document.getElementById('fx-btn');
+    this.shakeBtn = document.getElementById('shake-btn');
     this.pauseResume = document.getElementById('pause-resume');
     this.instructions = document.getElementById('instructions');
     this.studioCredit = document.getElementById('studio-credit');
@@ -54,6 +74,7 @@ export default class UIManager {
     document.querySelectorAll('.tab-btn').forEach(b => {
       b.addEventListener('click', () => this.switchTab(b.dataset.tab));
     });
+    this.overlay.addEventListener('pointerdown', () => this.clearMenuFocus(), { passive: true });
 
     // Buttons
     this.startBtn.addEventListener('click', () => this.onStartClick());
@@ -65,6 +86,8 @@ export default class UIManager {
     // Settings
     this.musicBtn.addEventListener('click', () => this.toggleMusic());
     this.sfxBtn.addEventListener('click', () => this.toggleSfx());
+    this.fxBtn.addEventListener('click', () => this.cycleEffects());
+    this.shakeBtn.addEventListener('click', () => this.toggleShake());
 
     // Leaderboard toggle
     this.lbLocalBtn.addEventListener('click', () => {
@@ -94,9 +117,326 @@ export default class UIManager {
     if (name === 'trophies') this.renderTrophyGrid();
   }
 
+  getActiveTabButton() {
+    return document.querySelector('.tab-btn.active');
+  }
+
+  getActiveTabControls() {
+    const activeContent = document.querySelector('.tab-content.active');
+    if (!activeContent) return [];
+    return Array.from(activeContent.querySelectorAll('button, [tabindex]:not([tabindex="-1"])'))
+      .filter(element =>
+        !element.disabled &&
+        element.tabIndex >= 0 &&
+        element.offsetParent !== null
+      );
+  }
+
+  clearMenuFocus() {
+    this.overlay.querySelectorAll('.menu-key-focus').forEach(element => {
+      element.classList.remove('menu-key-focus');
+    });
+  }
+
+  focusMenuElement(element) {
+    if (!element) return false;
+    this.clearMenuFocus();
+    element.classList.add('menu-key-focus');
+    try {
+      element.focus({ preventScroll: true });
+    } catch (e) {
+      element.focus();
+    }
+    return true;
+  }
+
+  scrollActiveMenu(direction) {
+    const activeContent = document.querySelector('.tab-content.active');
+    if (!activeContent) return false;
+    const candidates = [activeContent].concat(Array.from(activeContent.querySelectorAll('*')));
+    const scrollTarget = candidates.find(element => element.scrollHeight > element.clientHeight + 2);
+    if (!scrollTarget) return false;
+    scrollTarget.scrollBy({
+      top: direction * 90,
+      behavior: this.game.effectsLevel === 'off' ? 'auto' : 'smooth'
+    });
+    return true;
+  }
+
+  handleMenuNavigation(key) {
+    if (this.overlay.classList.contains('hidden')) return false;
+
+    const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+    const activeTab = this.getActiveTabButton();
+    const activeElement = document.activeElement;
+    const activeTabIndex = Math.max(0, tabs.indexOf(activeTab));
+    const controls = this.getActiveTabControls();
+    const controlIndex = controls.indexOf(activeElement);
+    const scoreToggleFocused = activeTab &&
+      activeTab.dataset.tab === 'scores' &&
+      (activeElement === this.lbLocalBtn || activeElement === this.lbGlobalBtn);
+    const activeLevelCard = activeElement &&
+      activeElement.classList &&
+      activeElement.classList.contains('level-card')
+      ? activeElement
+      : null;
+    const activeLevel = activeLevelCard
+      ? parseInt(activeLevelCard.dataset.level, 10)
+      : 0;
+
+    if (key === 'ArrowLeft' || key === 'ArrowRight') {
+      const direction = key === 'ArrowRight' ? 1 : -1;
+
+      if (activeLevelCard) {
+        const targetLevel = getHorizontalLevelTarget(
+          activeLevel,
+          direction,
+          this.boData.bestLevel
+        );
+        if (targetLevel !== activeLevel) {
+          this.focusLevelCard(targetLevel);
+        }
+        return true;
+      }
+
+      // LOCAL / GLOBAL is a nested horizontal choice inside SCORES.
+      if (scoreToggleFocused) {
+        const scoreControls = [this.lbLocalBtn, this.lbGlobalBtn]
+          .filter(element => element.offsetParent !== null);
+        const scoreIndex = Math.max(0, scoreControls.indexOf(activeElement));
+        const nextScoreIndex = (scoreIndex + direction + scoreControls.length) % scoreControls.length;
+        this.focusMenuElement(scoreControls[nextScoreIndex]);
+        return true;
+      }
+
+      const nextIndex = (activeTabIndex + direction + tabs.length) % tabs.length;
+      this.switchTab(tabs[nextIndex].dataset.tab);
+      this.focusMenuElement(tabs[nextIndex]);
+      return true;
+    }
+
+    if (key === 'ArrowUp' || key === 'ArrowDown') {
+      const direction = key === 'ArrowDown' ? 1 : -1;
+
+      // PLAY always has a predictable first step: Down moves from the tab
+      // row (or an unfocused menu) directly to START / RETRY.
+      if (
+        direction > 0 &&
+        activeTab &&
+        activeTab.dataset.tab === 'play' &&
+        (tabs.includes(activeElement) || !this.overlay.contains(activeElement))
+      ) {
+        const primaryAction = controls.find(control => control === this.startBtn);
+        if (primaryAction) {
+          this.focusMenuElement(primaryAction);
+          return true;
+        }
+      }
+
+      if (activeTab && activeTab.dataset.tab === 'play') {
+        if (activeElement === this.startBtn && direction < 0) {
+          this.focusLevelCard(this.selectedStartLevel);
+          return true;
+        }
+
+        if (activeLevelCard) {
+          const targetLevel = getVerticalLevelTarget(
+            activeLevel,
+            direction,
+            this.boData.bestLevel
+          );
+          if (targetLevel > 0) {
+            this.focusLevelCard(targetLevel);
+          } else if (direction > 0) {
+            this.focusMenuElement(this.startBtn);
+          } else {
+            this.focusMenuElement(activeTab);
+          }
+          return true;
+        }
+      }
+
+      if (tabs.includes(activeElement)) {
+        if (controls.length > 0) {
+          this.focusMenuElement(controls[direction > 0 ? 0 : controls.length - 1]);
+        } else {
+          this.scrollActiveMenu(direction);
+        }
+        return true;
+      }
+
+      if (controlIndex >= 0) {
+        const nextControlIndex = controlIndex + direction;
+        if (nextControlIndex >= 0 && nextControlIndex < controls.length) {
+          this.focusMenuElement(controls[nextControlIndex]);
+        } else if (activeTab) {
+          this.focusMenuElement(activeTab);
+        }
+        return true;
+      }
+
+      if (controls.length > 0) {
+        this.focusMenuElement(controls[direction > 0 ? 0 : controls.length - 1]);
+      } else if (!this.scrollActiveMenu(direction) && activeTab) {
+        this.focusMenuElement(activeTab);
+      }
+      return true;
+    }
+
+    if (key === 'Enter' || key === ' ') {
+      if (activeElement && activeElement.tagName === 'BUTTON' && this.overlay.contains(activeElement)) {
+        activeElement.click();
+      } else if (activeTab && activeTab.dataset.tab === 'play') {
+        this.onStartClick();
+      } else if (activeTab) {
+        this.focusMenuElement(activeTab);
+      }
+      return true;
+    }
+
+    return false;
+  }
+
   // --- OVERLAY STATES ---
 
+  setStartLevel(level) {
+    this.selectedStartLevel = clampStartLevel(level, this.boData.bestLevel);
+    try {
+      localStorage.setItem('bo_start_level', String(this.selectedStartLevel));
+    } catch (e) {}
+    this.renderStartLevelPicker();
+  }
+
+  focusLevelCard(level) {
+    const safeLevel = clampStartLevel(level, this.boData.bestLevel);
+    this.setStartLevel(safeLevel);
+    const card = this.startLevelGrid.querySelector(`[data-level="${safeLevel}"]`);
+    return this.focusMenuElement(card);
+  }
+
+  buildLevelCards() {
+    if (this.startLevelGrid.children.length > 0) return;
+
+    for (let level = 1; level <= MAX_SELECTABLE_LEVEL; level++) {
+      const levelData = this.game.bricks.getLevelData(level);
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'level-card';
+      card.dataset.level = String(level);
+      card.setAttribute('role', 'option');
+
+      const preview = document.createElement('canvas');
+      preview.width = 112;
+      preview.height = 63;
+      preview.setAttribute('aria-hidden', 'true');
+      card.appendChild(preview);
+
+      const number = document.createElement('span');
+      number.className = 'level-card-number';
+      number.textContent = String(level);
+      card.appendChild(number);
+
+      const lock = document.createElement('span');
+      lock.className = 'level-lock';
+      lock.setAttribute('aria-hidden', 'true');
+      card.appendChild(lock);
+
+      card.addEventListener('click', event => {
+        if (card.disabled) return;
+        this.setStartLevel(level);
+        this.focusMenuElement(card);
+        if (event.detail === 0) this.onStartClick();
+      });
+
+      this.startLevelGrid.appendChild(card);
+      this.drawLevelThumbnail(preview, levelData.map, level);
+    }
+  }
+
+  drawLevelThumbnail(canvas, map, level) {
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const paddingX = 5;
+    const brickWidth = (width - paddingX * 2) / 10;
+    const brickHeight = Math.min(8, (height - 14) / map.length);
+    const formationHeight = brickHeight * map.length;
+    const startY = (height - formationHeight) / 2;
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, '#09051f');
+    gradient.addColorStop(1, '#03000d');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    for (let row = 0; row < map.length; row++) {
+      for (let col = 0; col < map[row].length; col++) {
+        const hp = map[row][col];
+        if (hp <= 0) continue;
+        const x = paddingX + col * brickWidth;
+        const y = startY + row * brickHeight;
+        ctx.fillStyle = this.game.bricks.getColorForHP(hp);
+        ctx.fillRect(x + 0.7, y + 0.7, brickWidth - 1.4, brickHeight - 1.4);
+        ctx.fillStyle = 'rgba(255,255,255,0.38)';
+        ctx.fillRect(x + 1, y + 1, brickWidth - 2, 1);
+      }
+    }
+
+    if (level === 10) {
+      const coreX = paddingX + brickWidth * 4;
+      const coreY = startY + brickHeight * 2;
+      ctx.fillStyle = '#ff00ff';
+      ctx.fillRect(
+        coreX + 1,
+        coreY + 1,
+        brickWidth * 2 - 2,
+        brickHeight * 2 - 2
+      );
+      ctx.strokeStyle = '#00eaff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(
+        coreX + 1.5,
+        coreY + 1.5,
+        brickWidth * 2 - 3,
+        brickHeight * 2 - 3
+      );
+    }
+  }
+
+  renderStartLevelPicker() {
+    this.buildLevelCards();
+    const maxLevel = getMaxUnlockedStartLevel(this.boData.bestLevel);
+    this.selectedStartLevel = clampStartLevel(this.selectedStartLevel, this.boData.bestLevel);
+    const levelData = this.game.bricks.getLevelData(this.selectedStartLevel);
+
+    this.startLevelValue.textContent =
+      `LVL ${this.selectedStartLevel} · ${levelData.name}`;
+
+    this.startLevelGrid.querySelectorAll('.level-card').forEach(card => {
+      const level = parseInt(card.dataset.level, 10);
+      const cardData = this.game.bricks.getLevelData(level);
+      const locked = level > maxLevel;
+      card.disabled = locked;
+      card.classList.toggle('selected', level === this.selectedStartLevel);
+      card.setAttribute('aria-selected', level === this.selectedStartLevel ? 'true' : 'false');
+      card.setAttribute(
+        'aria-label',
+        locked
+          ? `Level ${level}, ${cardData.name}, locked. Clear level ${level - 1} to unlock.`
+          : `Level ${level}, ${cardData.name}, unlocked. Press Enter to start.`
+      );
+    });
+
+    const ranked = isRankedStartLevel(this.selectedStartLevel);
+    this.startLevelMode.textContent = ranked
+      ? 'FULL RUN · LEADERBOARD ON'
+      : 'PRACTICE · NO LEADERBOARD';
+    this.startLevelMode.classList.toggle('ranked', ranked);
+    this.startLevelMode.classList.toggle('practice', !ranked);
+  }
+
   showMenu() {
+    this.overlay.classList.remove('victory');
     this.overlay.classList.remove('hidden');
     this.pauseBtn.classList.remove('show');
     this.gameTitle.textContent = 'BREAKOUT';
@@ -107,36 +447,61 @@ export default class UIManager {
     this.menuHiscore.style.display = '';
     this.menuHiscore.textContent = 'HI-SCORE: ' + this.boData.bestScore;
     this.startBtn.textContent = 'START';
+    this.startLevelPicker.style.display = '';
+    this.startLevelMode.style.display = '';
     this.continueBtn.style.display = 'none';
     this.menuBtn.style.display = 'none';
     this.instructions.style.display = '';
     this.studioCredit.style.display = '';
+    this.renderStartLevelPicker();
     this.switchTab('play');
     this.game.state = 'menu';
+    this.focusMenuElement(this.getActiveTabButton());
   }
 
-  showGameOver() {
+  recordRunResult(outcome) {
     var g = this.game;
+    var rankedRun = g.isRankedRun !== false;
 
-    // Update persistent data
     this.boData.totalGames++;
     this.boData.totalBricks += (this.pg.bricksThisGame || 0);
-    if (g.score > this.boData.bestScore) this.boData.bestScore = g.score;
+    if (rankedRun && g.score > this.boData.bestScore) this.boData.bestScore = g.score;
     if (g.level > this.boData.bestLevel) this.boData.bestLevel = g.level;
-    this.saveScore(g.score, g.level);
+    if (rankedRun) {
+      this.saveScore(g.score, g.level);
+    } else {
+      this._lastSavedScore = null;
+    }
     saveBOData(this.boData);
 
     // Check endgame achievements
     this.checkEndgameAchievements();
 
     // postMessage
-    gvPost('game_over', { score: g.score, level: g.level, mode: 'default' });
-    GameVoltTracker.end({score: g.score, level: g.level, outcome: 'lose'});
-    if (g.score >= this.boData.bestScore) {
-      gvPost('high_score', { score: g.score, mode: 'default' });
+    var runMode = rankedRun ? LEADERBOARD_MODE : 'practice';
+    gvPost('game_over', {
+      score: g.score,
+      level: g.level,
+      mode: runMode,
+      outcome: outcome
+    });
+    GameVoltTracker.end({score: g.score, level: g.level, outcome: outcome});
+    if (rankedRun && g.score >= this.boData.bestScore) {
+      gvPost('high_score', { score: g.score, mode: LEADERBOARD_MODE });
     }
-    if (window.GameVolt) { GameVolt.leaderboard.submit(g.score, { mode: 'default' }); this._lbCache = null; }
+    if (rankedRun && window.GameVolt) {
+      GameVolt.leaderboard.submit(g.score, { mode: LEADERBOARD_MODE });
+      this._lbCache = null;
+    }
 
+    return rankedRun;
+  }
+
+  showGameOver() {
+    var g = this.game;
+    var rankedRun = this.recordRunResult('lose');
+
+    this.overlay.classList.remove('victory');
     this.overlay.classList.remove('hidden');
     this.pauseBtn.classList.remove('show');
     this.switchTab('play');
@@ -147,17 +512,59 @@ export default class UIManager {
     this.finalScore.style.display = 'block';
     this.finalScore.textContent = 'SCORE: ' + g.score;
     this.bestScore.style.display = 'block';
-    this.bestScore.textContent = 'BEST: ' + this.boData.bestScore;
+    this.bestScore.textContent = rankedRun
+      ? 'BEST: ' + this.boData.bestScore
+      : 'PRACTICE · NO LEADERBOARD';
     this.menuHiscore.style.display = 'none';
     this.startBtn.textContent = 'RETRY';
+    this.startLevelPicker.style.display = '';
+    this.startLevelMode.style.display = '';
+    this.continueBtn.textContent = 'CONTINUE LEVEL';
     this.continueBtn.style.display = '';
     this.menuBtn.style.display = '';
     this.instructions.style.display = 'none';
     this.studioCredit.style.display = 'none';
+    this.renderStartLevelPicker();
+    this.focusMenuElement(this.getActiveTabButton());
+  }
+
+  showVictory() {
+    var g = this.game;
+    var rankedRun = this.recordRunResult('win');
+
+    this.overlay.classList.add('victory');
+    this.overlay.classList.remove('hidden');
+    this.pauseBtn.classList.remove('show');
+    this.switchTab('play');
+    this.gameTitle.textContent = 'NEON GOD';
+    this.gameSubtitle.textContent = 'DEFEATED // SYSTEM LIBERATED';
+    this.finalLevel.style.display = 'block';
+    this.finalLevel.textContent = 'FINAL CLEAR · LEVEL 10';
+    this.finalScore.style.display = 'block';
+    this.finalScore.textContent = 'SCORE: ' + g.score;
+    this.bestScore.style.display = 'block';
+    this.bestScore.textContent = rankedRun
+      ? 'BEST: ' + this.boData.bestScore
+      : 'PRACTICE CLEAR';
+    this.menuHiscore.style.display = 'none';
+    this.startLevelPicker.style.display = 'none';
+    this.startLevelMode.style.display = 'none';
+    this.startBtn.textContent = 'NEW RUN';
+    this.continueBtn.textContent = 'ENDLESS MODE';
+    this.continueBtn.style.display = '';
+    this.menuBtn.style.display = '';
+    this.instructions.style.display = 'none';
+    this.studioCredit.style.display = 'none';
+    this.renderStartLevelPicker();
+    this.focusMenuElement(this.getActiveTabButton());
   }
 
   hideOverlay() {
+    if (this.overlay.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
     this.overlay.classList.add('hidden');
+    window.scrollTo(0, 0);
     this.pauseBtn.classList.add('show');
   }
 
@@ -165,17 +572,35 @@ export default class UIManager {
 
   onStartClick() {
     this.resetPGStats();
-    this.game.start();
+    const startLevel = this.game.state === 'victory'
+      ? 1
+      : this.selectedStartLevel;
+    if (startLevel !== this.selectedStartLevel) {
+      this.setStartLevel(startLevel);
+    }
+    this.game.start(startLevel);
     this.hideOverlay();
-    gvPost('game_start', { mode: 'default' });
+    gvPost('game_start', {
+      mode: this.game.isRankedRun ? LEADERBOARD_MODE : 'practice',
+      startLevel: startLevel
+    });
     GameVoltTracker.start('Breakout');
   }
 
   onContinueClick() {
     this.resetPGStats();
-    this.game.continueGame();
+    const endlessMode = this.game.state === 'victory';
+    if (endlessMode) {
+      this.game.continueEndless();
+    } else {
+      this.game.continueGame();
+    }
     this.hideOverlay();
-    gvPost('game_start', { mode: 'default' });
+    gvPost('game_start', {
+      mode: this.game.isRankedRun ? LEADERBOARD_MODE : 'practice',
+      startLevel: this.game.startLevel
+    });
+    if (endlessMode) GameVoltTracker.start('Breakout Endless');
   }
 
   // --- PAUSE ---
@@ -202,9 +627,9 @@ export default class UIManager {
             self.game.paused = false;
             self.pauseBtn.textContent = 'II';
             self.resetPGStats();
-            self.game.start();
+            self.game.start(self.game.startLevel || 1);
             self.hideOverlay();
-            gvPost('game_start', { mode: 'default' });
+            gvPost('game_start', { mode: LEADERBOARD_MODE });
             GameVoltTracker.start('Breakout');
           },
           onQuit: function() {
@@ -251,12 +676,29 @@ export default class UIManager {
     this.sfxBtn.classList.toggle('on', on);
   }
 
+  cycleEffects() {
+    const levels = ['high', 'low', 'off'];
+    const currentIndex = Math.max(0, levels.indexOf(this.game.effectsLevel));
+    const nextLevel = levels[(currentIndex + 1) % levels.length];
+    this.game.setEffectsLevel(nextLevel);
+    this.updateSettingsUI();
+  }
+
+  toggleShake() {
+    this.game.setShakeEnabled(!this.game.shakeEnabled);
+    this.updateSettingsUI();
+  }
+
   updateSettingsUI() {
     var a = this.game.audio;
     this.musicBtn.textContent = a.musicMuted ? 'OFF' : 'ON';
     this.musicBtn.classList.toggle('on', !a.musicMuted);
     this.sfxBtn.textContent = a.sfxMuted ? 'OFF' : 'ON';
     this.sfxBtn.classList.toggle('on', !a.sfxMuted);
+    this.fxBtn.textContent = this.game.effectsLevel.toUpperCase();
+    this.fxBtn.classList.toggle('on', this.game.effectsLevel !== 'off');
+    this.shakeBtn.textContent = this.game.shakeEnabled ? 'ON' : 'OFF';
+    this.shakeBtn.classList.toggle('on', this.game.shakeEnabled);
   }
 
   // --- TROPHY GRID ---
@@ -352,7 +794,7 @@ export default class UIManager {
     if (this._lbCache !== null) { this._renderGlobalRows(this._lbCache); return; }
     this.scoresList.innerHTML = '<div class="lb-loading">LOADING...</div>';
     var self = this;
-    GameVolt.leaderboard.get({ mode: 'default', limit: 50 }).then(function(rows) {
+    GameVolt.leaderboard.get({ mode: LEADERBOARD_MODE, limit: 50 }).then(function(rows) {
       self._lbCache = rows;
       self._renderGlobalRows(rows);
     }).catch(function() {
@@ -444,10 +886,12 @@ export default class UIManager {
     var score = g.score;
     var level = g.level;
 
-    if (score >= 5000) this.tryUnlock('score_5k');
-    if (score >= 10000) this.tryUnlock('score_10k');
-    if (score >= 25000) this.tryUnlock('score_25k');
-    if (score >= 50000) this.tryUnlock('score_50k');
+    if (g.isRankedRun !== false) {
+      if (score >= 5000) this.tryUnlock('score_5k');
+      if (score >= 10000) this.tryUnlock('score_10k');
+      if (score >= 25000) this.tryUnlock('score_25k');
+      if (score >= 50000) this.tryUnlock('score_50k');
+    }
 
     if (level >= 3) this.tryUnlock('level_3');
     if (level >= 5) this.tryUnlock('halfway');
@@ -504,6 +948,14 @@ export default class UIManager {
   }
 
   onLevelCleared(level, elapsedSeconds) {
+    // Reaching the next level unlocks it immediately, even if the player
+    // closes the game before a later game-over screen.
+    const nextLevel = level + 1;
+    if (nextLevel > this.boData.bestLevel) {
+      this.boData.bestLevel = nextLevel;
+      saveBOData(this.boData);
+    }
+
     // Level 1 clear
     if (level === 1) this.tryUnlock('level_1');
 

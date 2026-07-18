@@ -22,25 +22,16 @@ export default class InputHandler {
       const ui = this.game.ui;
       const state = this.game.state;
 
-      // Menu / Game Over: Enter or Space → START / RETRY
-      if (e.key === 'Enter' || (e.key === ' ' && (state === 'menu' || state === 'gameover'))) {
-        if (state === 'menu' || state === 'gameover') {
-          e.preventDefault();
-          if (ui) ui.onStartClick();
-          return;
-        }
+      // Menu / Game Over: full arrow-key focus navigation.
+      if (ui && ui.handleMenuNavigation && ui.handleMenuNavigation(e.key)) {
+        e.preventDefault();
+        return;
       }
 
       // Game Over: C → CONTINUE LEVEL, Escape → MENU
       if (state === 'gameover') {
         if (e.key === 'c' || e.key === 'C') { if (ui) ui.onContinueClick(); return; }
         if (e.key === 'Escape') { e.preventDefault(); if (ui) ui.showMenu(); return; }
-      }
-
-      // Tab switching (menu, gameover, or paused): 1-5 (skip if SDK pause is open)
-      if (state === 'menu' || state === 'gameover' || (this.game.paused && !(window.GameVolt && GameVolt.ui.isPaused()))) {
-        var tabKeys = { '1': 'play', '2': 'scores', '3': 'trophies', '4': 'guide', '5': 'settings' };
-        if (tabKeys[e.key]) { if (ui) ui.switchTab(tabKeys[e.key]); return; }
       }
 
       // Music toggle: M (any non-gameplay state)

@@ -1,6 +1,11 @@
+import { isPerfectDrift, getDriftAimBoost } from './Drift.js';
+
 export class Ball {
-  constructor(game) {
+  constructor(game, options = {}) {
     this.game = game;
+    this.powerUpDropScale = typeof options.powerUpDropScale === 'number'
+      ? Math.max(0, options.powerUpDropScale)
+      : 1;
     this.reset();
   }
 
@@ -22,6 +27,7 @@ export class Ball {
     this.y = this.game.height * 0.8;
     this.vx = 0;
     this.vy = 0;
+    this.trail = [];
   }
 
   launch() {
@@ -36,8 +42,23 @@ export class Ball {
     this.vy = Math.sin(angle) * this.baseSpeed;
   }
 
+  resize(scaleX, scaleY, newHeight) {
+    const speedScale = Math.min(scaleX, scaleY);
+    this.x *= scaleX;
+    this.y *= scaleY;
+    this.radius = Math.max(6, newHeight * 0.015);
+    this.baseSpeed *= speedScale;
+    this.speed *= speedScale;
+    this.vx *= speedScale;
+    this.vy *= speedScale;
+    this.trail.forEach(point => {
+      point.x *= scaleX;
+      point.y *= scaleY;
+    });
+  }
+
   update(dt) {
-    if (dt > 0.05) dt = 0.05; 
+    if (dt > 0.05) dt = 0.05;
     const g = this.game;
 
     if (!this.isLaunched) {
@@ -46,67 +67,113 @@ export class Ball {
       return;
     }
 
-    this.x += this.vx * dt;
-    this.y += this.vy * dt;
+    // Split fast frames into small collision steps. This prevents the ball
+    // from tunnelling through thin bricks as speed increases on later levels.
+    const maxTravel = Math.max(Math.abs(this.vx), Math.abs(this.vy)) * dt;
+    const maxStepDistance = Math.max(4, this.radius * 0.75);
+    const steps = Math.min(16, Math.max(1, Math.ceil(maxTravel / maxStepDistance)));
+    const stepDt = dt / steps;
 
-    // Väggar
-    if (this.x < this.radius) {
-      this.x = this.radius;
-      this.vx = Math.abs(this.vx);
-      g.audio.play('wall_hit');
-      g.shake(0.1, 2);
-    }
-    if (this.x > g.width - this.radius) {
-      this.x = g.width - this.radius;
-      this.vx = -Math.abs(this.vx);
-      g.audio.play('wall_hit');
-      g.shake(0.1, 2);
-    }
-    if (this.y < this.radius) {
-      this.y = this.radius;
-      this.vy = Math.abs(this.vy);
-      g.audio.play('wall_hit');
-      g.shake(0.1, 2);
+    for (let step = 0; step < steps; step++) {
+      this.x += this.vx * stepDt;
+      this.y += this.vy * stepDt;
+
+      // Väggar
+      if (this.x < this.radius) {
+        this.x = this.radius;
+        this.vx = Math.abs(this.vx);
+        g.audio.play('wall_hit');
+        g.shake(0.1, 2);
+        g.particles.impact(this.x, this.y, '#00eaff', 0.45);
+      }
+      if (this.x > g.width - this.radius) {
+        this.x = g.width - this.radius;
+        this.vx = -Math.abs(this.vx);
+        g.audio.play('wall_hit');
+        g.shake(0.1, 2);
+        g.particles.impact(this.x, this.y, '#00eaff', 0.45);
+      }
+      if (this.y < this.radius) {
+        this.y = this.radius;
+        this.vy = Math.abs(this.vy);
+        g.audio.play('wall_hit');
+        g.shake(0.1, 2);
+        g.particles.impact(this.x, this.y, '#00eaff', 0.45);
+      }
+
+      // Paddel
+      const p = g.paddle;
+      if (
+        this.y + this.radius > p.y &&
+        this.y - this.radius < p.y + p.height &&
+        this.x > p.x &&
+        this.x < p.x + p.width &&
+        this.vy > 0
+      ) {
+        this.y = p.y - this.radius;
+        g.audio.play('paddle_hit');
+
+        const hit = (this.x - (p.x + p.width / 2)) / (p.width / 2);
+        const perfectDrift = isPerfectDrift(hit, p.velocityX, g.width);
+
+        if (perfectDrift) {
+          g.registerPerfectDrift(hit, this.x, this.y);
+        } else {
+          g.resetCombo();
+          g.particles.impact(this.x, this.y, '#00eaff', 0.8);
+        }
+
+        const driftBoost = perfectDrift ? getDriftAimBoost(p.velocityX, g.width) : 0;
+        const aimedHit = Math.max(-1, Math.min(1, hit + driftBoost));
+        const angle = aimedHit * (Math.PI / 3);
+
+        // Öka med 2% per träff, upp till 1.6x basfarten.
+        this.speed = Math.min(this.baseSpeed * 1.6, this.speed * 1.02);
+        this.vx = Math.sin(angle) * this.speed;
+        this.vy = -Math.cos(angle) * this.speed;
+        g.bricks.onPaddleHit();
+      }
+
+      g.bricks.checkCollision(this);
     }
 
-    // Paddel
-    const p = g.paddle;
-    if (
-      this.y + this.radius > p.y &&
-      this.y - this.radius < p.y + p.height &&
-      this.x > p.x &&
-      this.x < p.x + p.width &&
-      this.vy > 0
-    ) {
-      this.y = p.y - this.radius;
-      g.audio.play('paddle_hit');
-      
-      g.combo = 0; // Reset combo
-      
-      const hit = (this.x - (p.x + p.width / 2)) / (p.width / 2);
-      const angle = hit * (Math.PI / 3);
-      
-      // --- FIX: MILD ACCELERATION ---
-      // Öka bara med 2% per träff (var 5% förut)
-      // Maxhastighet är 1.6x basfarten (var 2.0x förut)
-      this.speed = Math.min(this.baseSpeed * 1.6, this.speed * 1.02);
-      
-      // Applicera nya farten med vinkeln
-      this.vx = Math.sin(angle) * this.speed;
-      this.vy = -Math.cos(angle) * this.speed;
+    const trailLength = g.effectsLevel === 'high' ? 12 : (g.effectsLevel === 'low' ? 6 : 0);
+    if (trailLength > 0) {
+      this.trail.push({ x: this.x, y: this.y });
+      if (this.trail.length > trailLength) {
+        this.trail.splice(0, this.trail.length - trailLength);
+      }
+    } else if (this.trail.length > 0) {
+      this.trail = [];
     }
-
-    g.bricks.checkCollision(this);
   }
 
   draw(ctx) {
+    const ballColor = this.game.overdriveActive ? '#ff5cff' : '#00eaff';
+
+    if (this.trail.length > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < this.trail.length; i++) {
+        const point = this.trail[i];
+        const progress = (i + 1) / this.trail.length;
+        ctx.globalAlpha = progress * 0.28;
+        ctx.fillStyle = ballColor;
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, this.radius * (0.25 + progress * 0.55), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "#00eaff";
+    ctx.fillStyle = ballColor;
     
-    // Liten glöd
-    ctx.shadowBlur = 5;
-    ctx.shadowColor = "#00eaff";
+    ctx.shadowBlur = this.game.effectsLevel === 'off'
+      ? 0
+      : (this.game.overdriveActive ? 10 : 5);
+    ctx.shadowColor = ballColor;
     ctx.fill();
     ctx.shadowBlur = 0;
   }
