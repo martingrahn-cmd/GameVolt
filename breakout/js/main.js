@@ -1,6 +1,7 @@
 import Game from "./Game.js";
 import UIManager from "./UI.js";
 import { saveBOData } from "./Achievements.js";
+import { SCORE_VERSION, LEADERBOARD_MODE } from "./Scoring.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d", { alpha: false });
@@ -75,19 +76,31 @@ if (window.GameVolt) {
     merge: function(local, cloud) {
       var l = local['bo_data'] || {};
       var c = cloud || {};
+      var lIsV2 = l.scoreVersion === SCORE_VERSION;
+      var cIsV2 = c.scoreVersion === SCORE_VERSION;
+      var lScores = lIsV2 ? (l.scores || []) : [];
+      var cScores = cIsV2 ? (c.scores || []) : [];
       return {
         totalGames: Math.max(l.totalGames || 0, c.totalGames || 0),
         totalBricks: Math.max(l.totalBricks || 0, c.totalBricks || 0),
-        bestScore: Math.max(l.bestScore || 0, c.bestScore || 0),
+        scoreVersion: SCORE_VERSION,
+        bestScore: Math.max(lIsV2 ? (l.bestScore || 0) : 0, cIsV2 ? (c.bestScore || 0) : 0),
         bestLevel: Math.max(l.bestLevel || 0, c.bestLevel || 0),
-        scores: (l.scores && l.scores.length > 0) ? l.scores : (c.scores || []),
+        scores: lScores.length > 0 ? lScores : cScores,
+        legacyBestScore: Math.max(
+          l.legacyBestScore || (!lIsV2 ? (l.bestScore || 0) : 0),
+          c.legacyBestScore || (!cIsV2 ? (c.bestScore || 0) : 0)
+        ),
+        legacyScores: (l.legacyScores && l.legacyScores.length > 0)
+          ? l.legacyScores
+          : (c.legacyScores || (!cIsV2 ? (c.scores || []) : [])),
         unlocked: Object.assign({}, c.unlocked || {}, l.unlocked || {})
       };
     },
     getScores: function(local) {
       var d = local['bo_data'];
-      if (!d || !d.scores || d.scores.length === 0) return [];
-      return [{ score: d.scores[0].score, mode: 'default' }];
+      if (!d || d.scoreVersion !== SCORE_VERSION || !d.scores || d.scores.length === 0) return [];
+      return [{ score: d.scores[0].score, mode: LEADERBOARD_MODE }];
     },
     getAchievements: function(local) {
       var d = local['bo_data'];

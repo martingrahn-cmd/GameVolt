@@ -1,4 +1,5 @@
 // Achievement definitions + localStorage persistence for Breakout
+import { SCORE_VERSION } from './Scoring.js';
 
 export const ACHIEVEMENTS = [
   // BRONZE (15)
@@ -47,9 +48,12 @@ function defaultData() {
   var d = {
     totalGames: 0,
     totalBricks: 0,
+    scoreVersion: SCORE_VERSION,
     bestScore: 0,
     bestLevel: 0,
     scores: [],
+    legacyBestScore: 0,
+    legacyScores: [],
     unlocked: {}
   };
   for (var i = 0; i < ACHIEVEMENTS.length; i++) {
@@ -63,8 +67,22 @@ export function loadBOData() {
     var raw = localStorage.getItem(BO_KEY);
     if (raw) {
       var d = JSON.parse(raw);
-      // Migration: add any new fields
+
+      // Scoring v2 removed the old active-ball multiplier. Preserve old local
+      // records as legacy data rather than mixing incomparable score systems.
+      if (d.scoreVersion !== SCORE_VERSION) {
+        d.legacyBestScore = Math.max(d.legacyBestScore || 0, d.bestScore || 0);
+        d.legacyScores = (d.legacyScores || []).concat(d.scores || []).slice(0, 10);
+        d.bestScore = 0;
+        d.scores = [];
+        d.scoreVersion = SCORE_VERSION;
+        try { localStorage.setItem(BO_KEY, JSON.stringify(d)); } catch (e) {}
+      }
+
       if (!d.scores) d.scores = [];
+      if (!d.legacyScores) d.legacyScores = [];
+      if (!d.legacyBestScore) d.legacyBestScore = 0;
+      if (!d.unlocked) d.unlocked = {};
       for (var i = 0; i < ACHIEVEMENTS.length; i++) {
         if (!(ACHIEVEMENTS[i].id in d.unlocked)) d.unlocked[ACHIEVEMENTS[i].id] = 0;
       }
@@ -76,7 +94,7 @@ export function loadBOData() {
   var d = defaultData();
   try {
     var old = parseInt(localStorage.getItem('neonDriftHighscore')) || 0;
-    if (old > 0) d.bestScore = old;
+    if (old > 0) d.legacyBestScore = old;
   } catch (e) {}
   return d;
 }

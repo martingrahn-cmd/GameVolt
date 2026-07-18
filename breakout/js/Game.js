@@ -8,6 +8,15 @@ import Laser from './Laser.js';
 import FloatingText from './FloatingText.js';
 import { Ball } from './Ball.js';
 import HUD from './HUD.js';
+import { isOverdriveCombo } from './Scoring.js';
+import { isRankedStartLevel } from './LevelSelect.js';
+import {
+  EXTRA_BALL_DROP_SCALE,
+  LASER_VOLLEY_CAPACITY,
+  getPowerUpDropChance,
+  consumeLaserVolley,
+  restoreNormalDropForSingleBall
+} from './PowerUpBalance.js';
 
 export default class Game {
   constructor(canvas, ctx) {
@@ -19,21 +28,30 @@ export default class Game {
     this.state = 'menu';
     this.paused = false;
     this.level = 1;
+    this.startLevel = 1;
+    this.isRankedRun = true;
     this.score = 0;
     this.lives = 3;
     this.combo = 0;
+    this.overdriveActive = false;
+    this.comboPulse = 0;
+    this.overdrivePulse = 0;
     this.timeScale = 1.0;
     this.highScore = 0; // Set by UIManager from bo_data
+
+    const savedEffects = localStorage.getItem('bo_fx');
+    this.effectsLevel = ['high', 'low', 'off'].includes(savedEffects) ? savedEffects : 'high';
+    this.shakeEnabled = localStorage.getItem('bo_shake') !== '0';
+    document.body.dataset.fx = this.effectsLevel;
 
     this.ui = null; // Set by main.js after construction
 
     // Powerup status
     this.laserActive = false;
-    this.laserTimer = 0;
+    this.laserVolleys = 0;
     this.lastShotTime = 0;
 
     this.safetyFloorActive = false;
-    this.safetyFloorTimer = 0;
     this.safetyFloorHits = 0;
 
     this.widePaddleActive = false;
@@ -70,32 +88,45 @@ export default class Game {
 
   get ball() { return this.balls[0]; }
 
-  start() {
+  start(startLevel = 1) {
+    const safeStartLevel = Math.max(1, Math.floor(Number(startLevel) || 1));
     this.state = 'running';
     this.paused = false;
     this.score = 0;
-    this.level = 1;
+    this.level = safeStartLevel;
+    this.startLevel = safeStartLevel;
+    this.isRankedRun = isRankedStartLevel(safeStartLevel);
     this.lives = 3;
     this.combo = 0;
+    this.overdriveActive = false;
+    this.comboPulse = 0;
+    this.overdrivePulse = 0;
     this.timeScale = 1.0;
     this._levelStartTime = performance.now();
 
+    this.paddle.baseScale = Math.max(0.5, 1.0 - (this.level - 1) * 0.05);
     this.resetPowerUps();
     this.bricks.loadLevel(this.level);
 
     this.balls = [new Ball(this)];
     this.ball.reset();
+    this.announceLevelMechanic();
   }
 
-  resetPowerUps() {
+  resetPowerUps(preserveShield = false) {
+    const keepShield = preserveShield && this.safetyFloorActive;
+    const shieldHits = this.safetyFloorHits;
+
     this.powerUps = [];
     this.lasers = [];
     this.floatingTexts = [];
 
     this.laserActive = false;
-    this.safetyFloorActive = false;
+    this.laserVolleys = 0;
+    this.safetyFloorActive = keepShield;
+    this.safetyFloorHits = keepShield ? shieldHits : 0;
     this.widePaddleActive = false;
-    this.paddle.setScale(1.0);
+    this.paddle.setScale(this.paddle.baseScale || 1.0);
   }
 
   nextLevel() {
@@ -107,17 +138,15 @@ export default class Game {
     this.audio.play('level_clear');
     this._levelStartTime = performance.now();
 
+    const newScale = Math.max(0.5, 1.0 - (this.level - 1) * 0.05);
+    this.paddle.baseScale = newScale;
+    this.resetPowerUps(true);
+
     const levelBonus = 2000;
     this.addScore(levelBonus, this.width / 2, this.height / 2, true);
 
-    const newScale = Math.max(0.5, 1.0 - (this.level - 1) * 0.05);
-    this.paddle.baseScale = newScale;
-    this.paddle.setScale(newScale);
-
-    this.powerUps = [];
-    this.lasers = [];
-
     this.bricks.loadLevel(this.level);
+    this.announceLevelMechanic();
 
     this.balls.forEach(b => {
         if (b.y < this.height * 0.5) {
@@ -133,8 +162,41 @@ export default class Game {
     this.timeScale = 0.1;
   }
 
-  spawnPowerUp(x, y) {
-    if (Math.random() < 0.12) {
+  completeFinal() {
+    if (this.state !== 'running') return;
+    const elapsed = (performance.now() - this._levelStartTime) / 1000;
+    if (this.ui) this.ui.onLevelCleared(this.level, elapsed);
+    this.state = 'victory';
+    this.paused = false;
+    this.resetCombo();
+    if (this.ui) this.ui.showVictory();
+  }
+
+  continueEndless() {
+    this.state = 'running';
+    this.paused = false;
+    this.level = 11;
+    this.startLevel = 11;
+    this.isRankedRun = false;
+    this.score = 0;
+    this.lives = 3;
+    this.combo = 0;
+    this.overdriveActive = false;
+    this.comboPulse = 0;
+    this.overdrivePulse = 0;
+    this.timeScale = 1;
+    this._levelStartTime = performance.now();
+
+    this.paddle.baseScale = Math.max(0.5, 1.0 - (this.level - 1) * 0.05);
+    this.resetPowerUps();
+    this.bricks.loadLevel(this.level);
+    this.balls = [new Ball(this)];
+    this.ball.reset();
+    this.announceLevelMechanic();
+  }
+
+  spawnPowerUp(x, y, dropScale = 1) {
+    if (Math.random() < getPowerUpDropChance(dropScale)) {
         const rand = Math.random();
         let type = 'wide';
 
@@ -165,23 +227,24 @@ export default class Game {
     if (type === 'wide') {
         this.widePaddleActive = true;
         this.widePaddleTimer = 10.0;
-        this.paddle.setScale(1.5);
+        this.paddle.setScale((this.paddle.baseScale || 1.0) * 1.5);
         this.showFloatingText("+WIDE", textX, textY, "#33ff33");
     }
     else if (type === 'multi') {
         if (this.balls.length >= 3) {
-            this.addScore(500, textX, textY);
+            this.showFloatingText("MULTI MAX", textX, textY, "#00eaff");
             return;
         }
         this.showFloatingText("+MULTIBALL", textX, textY, "#00eaff");
 
-        const sourceBall = this.balls[0];
+        const sourceBall = this.balls.find(ball => ball.isLaunched) || this.balls[0];
         if (!sourceBall) return;
-        for (let i = 0; i < 2; i++) {
-            const newBall = new Ball(this);
+        const ballsToAdd = 3 - this.balls.length;
+        for (let i = 0; i < ballsToAdd; i++) {
+            const newBall = new Ball(this, { powerUpDropScale: EXTRA_BALL_DROP_SCALE });
             newBall.x = sourceBall.x; newBall.y = sourceBall.y;
             newBall.isLaunched = true; newBall.speed = sourceBall.speed;
-            const angleOffset = (i === 0) ? -0.5 : 0.5;
+            const angleOffset = (i % 2 === 0) ? -0.5 : 0.5;
             newBall.vx = sourceBall.vx + angleOffset * 150;
             newBall.vy = sourceBall.vy;
             const speed = Math.sqrt(newBall.vx*newBall.vx + newBall.vy*newBall.vy);
@@ -193,21 +256,23 @@ export default class Game {
         if (this.ui) this.ui.onBallCountChange(this.balls.length);
     }
     else if (type === 'life') {
-        this.lives++;
-        if (this.lives > 5) this.lives = 5;
-        this.showFloatingText("+1 UP", textX, textY, "#ff00ff");
-        this.addScore(1000, textX, textY);
+        if (this.lives < 5) {
+            this.lives++;
+            this.showFloatingText("+1 UP", textX, textY, "#ff00ff");
+        } else {
+            this.showFloatingText("LIFE MAX", textX, textY, "#ff00ff");
+        }
     }
     else if (type === 'laser') {
         this.laserActive = true;
-        this.laserTimer = 10.0;
-        this.showFloatingText("LASER!", textX, textY, "#ff0000");
+        this.laserVolleys = LASER_VOLLEY_CAPACITY;
+        this.lastShotTime = 0;
+        this.showFloatingText("LASER x12", textX, textY, "#ff0000");
     }
     else if (type === 'floor') {
         this.safetyFloorActive = true;
-        this.safetyFloorTimer = 10.0;
         this.safetyFloorHits = 0;
-        this.showFloatingText("SHIELD", textX, textY, "#ffd700");
+        this.showFloatingText("SHIELD READY", textX, textY, "#ffd700");
     }
   }
 
@@ -219,18 +284,91 @@ export default class Game {
             this.audio.play('laser_shoot');
             this.lasers.push(new Laser(this.paddle.x + 5, this.paddle.y));
             this.lasers.push(new Laser(this.paddle.x + this.paddle.width - 9, this.paddle.y));
+            this.laserVolleys = consumeLaserVolley(this.laserVolleys);
+            if (this.laserVolleys === 0) {
+                this.laserActive = false;
+                this.showFloatingText(
+                  "LASER EMPTY",
+                  this.paddle.x + this.paddle.width / 2,
+                  this.paddle.y - 18,
+                  "#ff5555"
+                );
+            }
         }
     }
   }
 
   shake(duration, magnitude) {
+    if (!this.shakeEnabled || this.effectsLevel === 'off') return;
+    if (this.effectsLevel === 'low') magnitude *= 0.4;
     this.shakeTime = duration;
     this.shakeMagnitude = magnitude;
   }
 
-  addScore(points, x = 0, y = 0, big = false) {
+  setEffectsLevel(level) {
+    if (!['high', 'low', 'off'].includes(level)) return;
+    this.effectsLevel = level;
+    localStorage.setItem('bo_fx', level);
+    document.body.dataset.fx = level;
+
+    if (level === 'off') {
+      this.shakeTime = 0;
+      this.particles.clear();
+      this.balls.forEach(ball => { ball.trail = []; });
+    }
+  }
+
+  setShakeEnabled(enabled) {
+    this.shakeEnabled = !!enabled;
+    localStorage.setItem('bo_shake', this.shakeEnabled ? '1' : '0');
+    if (!this.shakeEnabled) this.shakeTime = 0;
+  }
+
+  incrementCombo(x = 0, y = 0) {
+    const wasActive = this.overdriveActive;
+    this.combo++;
+    this.comboPulse = 1;
+    this.overdriveActive = isOverdriveCombo(this.combo);
+
+    if (this.ui) this.ui.onComboUpdate(this.combo);
+
+    if (!wasActive && this.overdriveActive) {
+      this.overdrivePulse = 1;
+      this.audio.play('powerup_laser');
+      this.showFloatingText('OVERDRIVE x2', this.width / 2, this.height * 0.55, '#ff3dff');
+      this.particles.impact(this.width / 2, this.height * 0.48, '#ff3dff', 2);
+      this.shake(0.25, 7);
+    }
+
+    return this.combo;
+  }
+
+  resetCombo() {
+    this.combo = 0;
+    this.overdriveActive = false;
+    this.comboPulse = 0;
+  }
+
+  registerPerfectDrift(hitPosition, x, y) {
+    const direction = Math.sign(hitPosition) || 1;
+    this.paddle.driftFlash = 1;
+    this.paddle.driftFlashDirection = direction;
+    this.comboPulse = Math.max(this.comboPulse, 0.7);
+    this.overdrivePulse = Math.max(this.overdrivePulse, 0.35);
+    const feedbackX = Math.max(this.width * 0.15, Math.min(this.width * 0.85, x));
+    this.showFloatingText(
+      'PERFECT DRIFT',
+      feedbackX,
+      y - 12,
+      '#ff5cff'
+    );
+    this.particles.impact(x, y, '#ff3dff', 1.6);
+    this.shake(0.12, 4);
+  }
+
+  addScore(points, x = 0, y = 0, big = false, colorOverride = null) {
     this.score += points;
-    if (this.score > this.highScore) {
+    if (this.isRankedRun && this.score > this.highScore) {
         this.highScore = this.score;
     }
     // Check score-based achievements
@@ -238,7 +376,7 @@ export default class Game {
 
     if (x !== 0 && y !== 0) {
         let text = `+${points}`;
-        let color = "#ffffff";
+        let color = colorOverride || "#ffffff";
         if (big) { text = `LEVEL CLEARED! +${points}`; color = "#ffff00"; }
         this.showFloatingText(text, x, y, color);
     }
@@ -248,9 +386,20 @@ export default class Game {
       this.floatingTexts.push(new FloatingText(x, y, text, color));
   }
 
+  announceLevelMechanic() {
+    if (!this.currentLevelMechanic) return;
+    this.showFloatingText(
+      this.currentLevelMechanic,
+      this.width / 2,
+      this.height * 0.62,
+      this.bricks.designID === 10 ? '#ff5cff' : '#00eaff'
+    );
+  }
+
   loseLife() {
     this.lives--;
     this.shake(0.4, 10);
+    this.resetCombo();
     this.resetPowerUps();
 
     if (this.ui) this.ui.onLifeLost();
@@ -272,26 +421,72 @@ export default class Game {
     this.score = 0;
     this.lives = 3;
     this.combo = 0;
+    this.overdriveActive = false;
+    this.comboPulse = 0;
+    this.overdrivePulse = 0;
     this.timeScale = 1.0;
     this._levelStartTime = performance.now();
 
-    this.paddle.setScale(1.0);
+    this.paddle.baseScale = Math.max(0.5, 1.0 - (this.level - 1) * 0.05);
     this.resetPowerUps();
     this.bricks.loadLevel(this.level);
 
     this.balls = [new Ball(this)];
     this.ball.reset();
+    this.announceLevelMechanic();
   }
 
   resize(w, h) {
+    if (!w || !h) return;
+
+    const oldW = this.width || w;
+    const oldH = this.height || h;
+    const scaleX = w / oldW;
+    const scaleY = h / oldH;
+    const paddleCenterRatio = this.paddle
+      ? (this.paddle.x + this.paddle.width / 2) / oldW
+      : 0.5;
+
     this.width = w;
     this.height = h;
-    if (this.paddle.resize) this.paddle.resize();
-    if (this.state === 'running') {
-       this.balls = [new Ball(this)];
-       this.ball.reset();
-       this.bricks.loadLevel(this.level);
+
+    if (this.paddle && this.paddle.resize) {
+      this.paddle.resize();
+      this.paddle.moveTo(paddleCenterRatio * w);
+      this.paddle.resetMotionTracking();
     }
+
+    this.balls.forEach(ball => ball.resize(scaleX, scaleY, h));
+    this.bricks.resize(scaleX, scaleY);
+
+    this.powerUps.forEach(powerUp => {
+      powerUp.x *= scaleX;
+      powerUp.y *= scaleY;
+    });
+
+    this.lasers.forEach(laser => {
+      laser.x *= scaleX;
+      laser.y *= scaleY;
+    });
+
+    this.particles.particles.forEach(particle => {
+      particle.x *= scaleX;
+      particle.y *= scaleY;
+    });
+    this.particles.rings.forEach(ring => {
+      ring.x *= scaleX;
+      ring.y *= scaleY;
+      ring.radius *= Math.min(scaleX, scaleY);
+      ring.maxRadius *= Math.min(scaleX, scaleY);
+    });
+
+    this.floatingTexts.forEach(text => {
+      text.x *= scaleX;
+      text.y *= scaleY;
+    });
+
+    this.scanlineY *= scaleY;
+    this.lastTime = performance.now();
   }
 
   update(dt) {
@@ -307,16 +502,6 @@ export default class Game {
     if (this.shakeTime > 0) {
         this.shakeTime -= dt;
         if (this.shakeTime < 0) this.shakeTime = 0;
-    }
-
-    if (this.laserActive) {
-        this.laserTimer -= gameDt;
-        if (this.laserTimer <= 0) this.laserActive = false;
-    }
-
-    if (this.safetyFloorActive) {
-        this.safetyFloorTimer -= gameDt;
-        if (this.safetyFloorTimer <= 0) this.safetyFloorActive = false;
     }
 
     if (this.widePaddleActive) {
@@ -342,13 +527,29 @@ export default class Game {
                 b.vy = -Math.abs(b.vy);
                 this.audio.play('wall_hit');
                 this.safetyFloorHits++;
-                if (this.safetyFloorHits >= 1) this.safetyFloorActive = false;
+                this.safetyFloorActive = false;
+                this.particles.impact(b.x, safetyY, '#ffd700', 1.2);
+                this.showFloatingText("SHIELD SAVE", b.x, safetyY - 12, "#ffd700");
             }
         }
     });
 
+    if (this.bricks.consumeFleetBreach()) {
+        this.loseLife();
+        if (this.state === 'running') {
+            this.showFloatingText(
+              'FLEET BREACH',
+              this.width / 2,
+              this.height * 0.62,
+              '#ff3344'
+            );
+        }
+        return;
+    }
+
     var prevBallCount = this.balls.length;
     this.balls = this.balls.filter(b => b.y < this.height + 50);
+    restoreNormalDropForSingleBall(this.balls);
     // Notify ball count change (balls lost)
     if (this.balls.length !== prevBallCount && this.ui) {
         this.ui.onBallCountChange(this.balls.length);
@@ -361,29 +562,8 @@ export default class Game {
     this.lasers.forEach(l => l.update(gameDt));
     this.lasers = this.lasers.filter(l => !l.delete);
 
-    for (const l of this.lasers) {
-        for (const brick of this.bricks.bricks) {
-            if (!brick.delete &&
-                l.x > brick.x && l.x < brick.x + brick.width &&
-                l.y > brick.y && l.y < brick.y + brick.height) {
-
-                l.delete = true;
-                brick.hit();
-                this.addScore(5, brick.x, brick.y);
-                if (brick.hp <= 0) {
-                    this.spawnPowerUp(brick.x + brick.width/2, brick.y);
-                    this.particles.explode(brick.x, brick.y, brick.color);
-                    this.audio.play('brick_hit');
-                    // Achievement: brick destroyed by laser
-                    if (this.ui) {
-                        this.ui.onBrickDestroyed();
-                        this.ui.onLaserBrickDestroyed();
-                    }
-                }
-                break;
-            }
-        }
-    }
+    this.lasers.forEach(laser => this.bricks.checkLaserCollision(laser));
+    this.lasers = this.lasers.filter(laser => !laser.delete);
 
     this.bricks.update(gameDt);
     this.particles.update(gameDt);
@@ -424,10 +604,11 @@ export default class Game {
     }
 
     ctx.save();
+    const scanColor = this.overdriveActive ? '255, 61, 255' : '0, 234, 255';
     const gradient = ctx.createLinearGradient(0, this.scanlineY, 0, this.scanlineY + 40);
-    gradient.addColorStop(0, "rgba(0, 234, 255, 0)");
-    gradient.addColorStop(0.5, "rgba(0, 234, 255, 0.15)");
-    gradient.addColorStop(1, "rgba(0, 234, 255, 0)");
+    gradient.addColorStop(0, `rgba(${scanColor}, 0)`);
+    gradient.addColorStop(0.5, `rgba(${scanColor}, 0.15)`);
+    gradient.addColorStop(1, `rgba(${scanColor}, 0)`);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, this.scanlineY, this.width, 40);
     ctx.restore();

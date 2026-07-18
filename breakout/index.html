@@ -163,6 +163,21 @@
     @keyframes flicker {
       0% { opacity: 0.97; } 5% { opacity: 0.99; } 10% { opacity: 0.94; } 15% { opacity: 0.98; } 100% { opacity: 0.97; }
     }
+
+    body[data-fx="low"] canvas {
+      animation: turnOn 1.2s ease-out forwards;
+    }
+    body[data-fx="low"] #crt-overlay {
+      opacity: 0.35;
+    }
+    body[data-fx="off"] canvas {
+      opacity: 1;
+      animation: none;
+      filter: none;
+    }
+    body[data-fx="off"] #crt-overlay {
+      display: none;
+    }
     
     .rotate-icon {
       font-size: 60px;
@@ -182,7 +197,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
+      box-sizing: border-box;
+      padding: clamp(8px, 2vh, 18px) clamp(8px, 2vw, 20px) clamp(8px, 2vh, 18px);
       z-index: 5;
       background: radial-gradient(ellipse at center, rgba(5,0,16,0.88) 0%, rgba(5,0,16,0.96) 70%);
       font-family: 'Press Start 2P', monospace;
@@ -193,7 +210,7 @@
     #tab-bar {
       display: flex;
       gap: 0;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
       border-bottom: 2px solid rgba(0,234,255,0.2);
       flex-shrink: 0;
     }
@@ -218,13 +235,24 @@
       border-bottom-color: #00eaff;
       text-shadow: 0 0 10px rgba(0,234,255,0.25);
     }
+    .tab-btn:focus-visible,
+    .gv-btn:focus-visible,
+    .setting-toggle:focus-visible,
+    .lb-toggle-btn:focus-visible,
+    .menu-key-focus {
+      outline: 2px solid #fff;
+      outline-offset: 3px;
+      box-shadow: 0 0 0 5px rgba(0,234,255,0.2), 0 0 18px rgba(0,234,255,0.55);
+    }
     .tab-content {
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       width: 100%;
-      max-height: calc(100% - 60px);
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-y;
@@ -261,6 +289,154 @@
       text-align: center;
     }
 
+    /* START LEVEL SELECT */
+    #start-level-picker {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: min(88vw, 460px);
+      margin: 2px 0;
+      font-family: 'Press Start 2P', monospace;
+    }
+    #start-level-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 5px;
+      width: 100%;
+    }
+    .level-card {
+      position: relative;
+      display: block;
+      min-width: 0;
+      aspect-ratio: 16 / 9;
+      padding: 0;
+      overflow: hidden;
+      color: #00eaff;
+      background: #070719;
+      border: 1px solid rgba(0, 234, 255, 0.3);
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+    }
+    .level-card canvas {
+      display: block;
+      position: static !important;
+      width: 100%;
+      height: 100%;
+      opacity: 1 !important;
+      animation: none !important;
+      filter: none;
+      transform: none !important;
+      box-shadow: none;
+    }
+    .level-card-number {
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      z-index: 2;
+      color: #fff;
+      font-size: clamp(6px, 1vw, 8px);
+      line-height: 1;
+      text-shadow: 0 1px 3px #000, 0 0 5px #000;
+    }
+    .level-card.selected {
+      border-color: #00eaff;
+      box-shadow: inset 0 0 0 1px #fff, 0 0 10px rgba(0,234,255,0.5);
+    }
+    .level-card:not(:disabled):hover,
+    .level-card.menu-key-focus,
+    .level-card:focus-visible {
+      z-index: 3;
+      border-color: #fff;
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+      transform: scale(1.06);
+      box-shadow: 0 0 0 3px rgba(0,234,255,0.26), 0 0 18px rgba(0,234,255,0.72);
+    }
+    .level-card:disabled {
+      cursor: default;
+      border-color: rgba(90, 100, 125, 0.22);
+    }
+    .level-card:disabled canvas {
+      filter: grayscale(1) brightness(0.5) !important;
+      opacity: 0.84 !important;
+    }
+    .level-lock {
+      display: none;
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 3, 12, 0.36);
+    }
+    .level-card:disabled .level-lock {
+      display: flex;
+    }
+    .level-lock::before {
+      content: "";
+      position: absolute;
+      width: 15px;
+      height: 12px;
+      margin-top: 8px;
+      background: #8890a8;
+      border: 2px solid #c6cbe0;
+      box-shadow: 0 0 8px rgba(150,160,190,0.4);
+    }
+    .level-lock::after {
+      content: "";
+      position: absolute;
+      width: 11px;
+      height: 10px;
+      margin-top: -8px;
+      border: 3px solid #c6cbe0;
+      border-bottom: 0;
+      border-radius: 8px 8px 0 0;
+    }
+    #start-level-detail {
+      width: 100%;
+      min-height: 28px;
+      padding-top: 5px;
+      color: #00eaff;
+      text-align: center;
+    }
+    .level-select-label {
+      display: inline;
+      font-size: clamp(6px, 1.2vw, 8px);
+      letter-spacing: 2px;
+      opacity: 0.68;
+      margin-right: 8px;
+    }
+    #start-level-value {
+      display: inline;
+      font-size: clamp(9px, 1.8vw, 12px);
+      letter-spacing: 1px;
+      line-height: 1.35;
+    }
+    #start-level-mode {
+      min-height: 12px;
+      margin: 3px 0 5px;
+      color: #556;
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(6px, 1vw, 8px);
+      letter-spacing: 1px;
+      text-align: center;
+    }
+    #start-level-mode.ranked { color: #7cff8a; }
+    #start-level-mode.practice { color: #ff9df4; }
+
+    @media screen and (max-height: 520px) and (orientation: landscape) {
+      #game-title { font-size: clamp(24px, 6vw, 38px); }
+      #game-subtitle { margin-bottom: 6px; }
+      #menu-hiscore { margin-bottom: 6px; }
+      #start-level-picker { width: min(78vw, 400px); }
+      #start-level-grid { gap: 3px; }
+      #start-level-detail { min-height: 22px; padding-top: 3px; }
+      #start-level-mode { margin: 1px 0 2px; }
+      #instructions { margin-top: 5px; line-height: 1.7; }
+      #studio-credit { bottom: 5px; }
+    }
+
     /* ACTION BUTTONS */
     .gv-btn {
       padding: 12px 36px;
@@ -294,6 +470,32 @@
       background: rgba(0,234,255,0.8);
       border-color: rgba(0,234,255,0.8);
     }
+    .gv-btn.menu-key-focus,
+    .gv-btn:focus-visible {
+      color: #050010;
+      background: #f4ffff;
+      border-color: #ffffff;
+      transform: scale(1.06);
+      text-shadow: none;
+      box-shadow:
+        0 0 0 3px rgba(0,234,255,0.35),
+        0 0 18px rgba(255,255,255,0.9),
+        0 0 34px rgba(0,234,255,0.75);
+    }
+    .gv-btn.secondary.menu-key-focus,
+    .gv-btn.secondary:focus-visible {
+      color: #050010;
+      background: #bffaff;
+      border-color: #ffffff;
+    }
+    #overlay .lb-toggle-btn.menu-key-focus,
+    #overlay .lb-toggle-btn:focus-visible,
+    #overlay .setting-toggle.menu-key-focus,
+    #overlay .setting-toggle:focus-visible {
+      color: #050010;
+      background: #f4ffff;
+      border-color: #ffffff;
+    }
 
     /* SCORE DISPLAY (game over) */
     #final-level, #final-score, #best-score {
@@ -306,6 +508,44 @@
     #final-level { font-size: clamp(9px, 1.8vw, 12px); color: rgba(0,234,255,0.6); }
     #final-score { font-size: clamp(14px, 3vw, 20px); color: #fff; }
     #best-score { font-size: clamp(9px, 1.8vw, 12px); color: rgba(0,234,255,0.5); margin-bottom: 16px; }
+
+    /* FINAL VICTORY */
+    #overlay.victory {
+      background:
+        radial-gradient(circle at 50% 38%, rgba(255,0,255,0.2), transparent 34%),
+        radial-gradient(ellipse at center, rgba(5,0,16,0.9) 0%, rgba(5,0,16,0.98) 72%);
+    }
+    #overlay.victory #game-title {
+      background: linear-gradient(180deg, #ffffcc 0%, #ff44ff 48%, #00eaff 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      filter: drop-shadow(0 0 18px rgba(255,0,255,0.75));
+      animation: victoryPulse 1.6s ease-in-out infinite;
+    }
+    #overlay.victory #game-subtitle {
+      color: #ffff88;
+      font-size: clamp(9px, 2vw, 13px);
+      text-shadow: 0 0 18px rgba(255,255,0,0.55);
+    }
+    #overlay.victory #final-level {
+      color: #00eaff;
+    }
+    #overlay.victory #final-score {
+      color: #fff;
+      text-shadow: 0 0 16px rgba(255,0,255,0.8);
+    }
+    #overlay.victory #continue-btn {
+      color: #ff9df4;
+      border-color: rgba(255,0,255,0.65);
+      box-shadow: 0 0 18px rgba(255,0,255,0.16);
+    }
+    @keyframes victoryPulse {
+      0%, 100% { filter: drop-shadow(0 0 12px rgba(255,0,255,0.55)); }
+      50% { filter: drop-shadow(0 0 26px rgba(0,234,255,0.85)); }
+    }
+    body[data-fx="off"] #overlay.victory #game-title {
+      animation: none;
+    }
 
     /* INSTRUCTIONS */
     #instructions {
@@ -641,14 +881,14 @@
       <div id="pause-hint"><span class="kh">P</span> / <span class="kh">ESC</span> to resume</div>
     </div>
 
-    <!-- Main overlay (menu / game over) -->
-    <div id="overlay">
-      <div id="tab-bar">
-        <button class="tab-btn active" data-tab="play"><span class="kh">1</span> PLAY</button>
-        <button class="tab-btn" data-tab="scores"><span class="kh">2</span> SCORES</button>
-        <button class="tab-btn" data-tab="trophies"><span class="kh">3</span> 🏆 ACHIEVEMENTS</button>
-        <button class="tab-btn" data-tab="guide"><span class="kh">4</span> GUIDE</button>
-        <button class="tab-btn" data-tab="settings"><span class="kh">5</span> SETTINGS</button>
+      <!-- Main overlay (menu / game over) -->
+      <div id="overlay">
+        <div id="tab-bar">
+        <button class="tab-btn active" data-tab="play">PLAY</button>
+        <button class="tab-btn" data-tab="scores">SCORES</button>
+        <button class="tab-btn" data-tab="trophies">🏆 ACHIEVEMENTS</button>
+        <button class="tab-btn" data-tab="guide">GUIDE</button>
+        <button class="tab-btn" data-tab="settings">SETTINGS</button>
       </div>
 
       <!-- PLAY TAB -->
@@ -659,6 +899,14 @@
         <div id="final-level"></div>
         <div id="final-score"></div>
         <div id="best-score"></div>
+        <div id="start-level-picker">
+          <div id="start-level-grid" role="listbox" aria-label="Select start level"></div>
+          <div id="start-level-detail" aria-live="polite">
+            <span class="level-select-label">START LEVEL</span>
+            <span id="start-level-value">LVL 1 · THE ARROW</span>
+          </div>
+        </div>
+        <div id="start-level-mode" class="ranked">FULL RUN · LEADERBOARD ON</div>
         <button id="start-btn" class="gv-btn">START <span class="kh">ENTER</span></button>
         <button id="continue-btn" class="gv-btn secondary" style="display:none">CONTINUE LEVEL <span class="kh">C</span></button>
         <button id="menu-btn" class="gv-btn secondary" style="display:none">MENU <span class="kh">ESC</span></button>
@@ -695,29 +943,50 @@
         <div class="guide-title">HOW TO PLAY</div>
         <div id="guide-wrap">
           <div class="guide-section">CONTROLS</div>
+          <div class="guide-row"><span class="gl">Navigate menus</span><span class="gv">&larr; &rarr; / &uarr; &darr;</span></div>
+          <div class="guide-row"><span class="gl">Select</span><span class="gv">ENTER / SPACE</span></div>
+          <div class="guide-row"><span class="gl">Choose start level</span><span class="gv">&uarr; from START, then &larr; &rarr;</span></div>
+          <div class="guide-note">Clearing a level unlocks the next one. Starting above level 1 is Practice mode and does not enter the leaderboard.</div>
           <div class="guide-row"><span class="gl">Move paddle</span><span class="gv">&larr; &rarr; / Mouse / Touch</span></div>
           <div class="guide-row"><span class="gl">Launch ball</span><span class="gv">SPACE / Tap</span></div>
           <div class="guide-row"><span class="gl">Shoot laser</span><span class="gv">SPACE / Tap</span></div>
           <div class="guide-row"><span class="gl">Pause</span><span class="gv">P / ESC</span></div>
 
+          <div class="guide-section">NEON DRIFT</div>
+          <div class="guide-row"><span class="gl">Perfect Drift</span><span class="gv">Moving outer-grip catch</span></div>
+          <div class="guide-note">Move toward the paddle edge that catches the ball. A Perfect Drift preserves your combo and adds extra aim.</div>
+          <div class="guide-row"><span class="gl">Overdrive</span><span class="gv">COMBO x10 = 2x score</span></div>
+          <div class="guide-note">Overdrive lasts until a normal paddle catch breaks the combo.</div>
+
           <div class="guide-section">POWER-UPS</div>
           <div class="guide-row"><span class="gl">W (Green)</span><span class="gv">Wide paddle</span></div>
           <div class="guide-row"><span class="gl">M (Cyan)</span><span class="gv">Multiball x3</span></div>
-          <div class="guide-row"><span class="gl">L (Red)</span><span class="gv">Laser cannons</span></div>
-          <div class="guide-row"><span class="gl">S (Gold)</span><span class="gv">Floor shield</span></div>
+          <div class="guide-note">Extra multiballs have a 90% lower power-up drop chance.</div>
+          <div class="guide-row"><span class="gl">L (Red)</span><span class="gv">Laser · 12 volleys</span></div>
+          <div class="guide-row"><span class="gl">S (Gold)</span><span class="gv">Shield · lasts until used</span></div>
           <div class="guide-row"><span class="gl">&hearts; (Pink)</span><span class="gv">Extra life</span></div>
 
           <div class="guide-section">SCORING</div>
           <div class="guide-row"><span class="gl">Brick base</span><span class="gv">10 pts</span></div>
-          <div class="guide-row"><span class="gl">Combo bonus</span><span class="gv">+10 per hit</span></div>
-          <div class="guide-row"><span class="gl">Multiball</span><span class="gv">x balls active</span></div>
+          <div class="guide-row"><span class="gl">Combo bonus</span><span class="gv">+10 after first hit</span></div>
+          <div class="guide-row"><span class="gl">Multiball</span><span class="gv">More scoring hits</span></div>
           <div class="guide-row"><span class="gl">Level clear</span><span class="gv">+2000 pts</span></div>
           <div class="guide-row"><span class="gl">Power-up</span><span class="gv">+500 pts</span></div>
-          <div class="guide-note">Combo resets when ball hits paddle</div>
+          <div class="guide-note">Normal paddle catches reset combo. Perfect Drifts keep it alive.</div>
 
           <div class="guide-section">LEVELS</div>
-          <div class="guide-row"><span class="gl">10 unique designs</span><span class="gv">cycle with +HP</span></div>
-          <div class="guide-note">Paddle shrinks 5% each level. Ball speeds up.</div>
+          <div class="guide-row"><span class="gl">1 · Arrow</span><span class="gv">Classic</span></div>
+          <div class="guide-row"><span class="gl">2 · Stripes</span><span class="gv">Row chain +250</span></div>
+          <div class="guide-row"><span class="gl">3 · Pillars</span><span class="gv">Silver armor</span></div>
+          <div class="guide-row"><span class="gl">4 · Checkmate</span><span class="gv">Linked pairs</span></div>
+          <div class="guide-row"><span class="gl">5 · Bunker</span><span class="gv">Blast bricks</span></div>
+          <div class="guide-row"><span class="gl">6 · X-Factor</span><span class="gv">Shifting rows</span></div>
+          <div class="guide-row"><span class="gl">7 · Invaders</span><span class="gv">Descending fleet</span></div>
+          <div class="guide-row"><span class="gl">8 · Diamond</span><span class="gv">Prism deflection</span></div>
+          <div class="guide-row"><span class="gl">9 · Maze</span><span class="gv">Switch gates</span></div>
+          <div class="guide-row"><span class="gl">10 · Neon God</span><span class="gv">Final boss</span></div>
+          <div class="guide-note">Break all four shield nodes to expose the moving core. The core overloads twice before its final form.</div>
+          <div class="guide-note">Defeat Neon God to finish the ranked run. Endless Mode continues from level 11 as Practice.</div>
         </div>
       </div>
 
@@ -732,6 +1001,14 @@
           <div class="setting-row">
             <span class="setting-label">SFX</span>
             <button id="sfx-btn" class="setting-toggle on">ON</button>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">VISUAL FX</span>
+            <button id="fx-btn" class="setting-toggle on">HIGH</button>
+          </div>
+          <div class="setting-row">
+            <span class="setting-label">SHAKE</span>
+            <button id="shake-btn" class="setting-toggle on">ON</button>
           </div>
         </div>
       </div>
