@@ -941,12 +941,7 @@ export class Game {
                             this._levelSelectInit = true;
                             this.frame = 0;
                         } else if (i === 1) {
-                            this.state = 'scores';
-                            this.scoresScrollY = 0;
-                            this._scoresLoaded = false;
-                            this._scoresData = null;
-                            this._loadScores();
-                            this.frame = 0;
+                            this.openScoresOverlay();
                         } else if (i === 2) {
                             this.openTrophiesOverlay();
                         } else if (i === 3) {
@@ -1370,11 +1365,13 @@ export class Game {
 
         if (this.state === 'menu') {
             this.flashAlpha = 0; // clear any lingering flash
-            // While the HTML achievements overlay is open, freeze the menu behind
-            // it. It scrolls natively; close on confirm / Escape (the ✕ also closes).
-            if (this._trophiesOverlayOpen) {
+            // While an HTML overlay (achievements or scores) is open, freeze the
+            // menu behind it. It scrolls natively; close on confirm / Escape (the
+            // ✕ also closes).
+            if (this._trophiesOverlayOpen || this._scoresOverlayOpen) {
                 if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
-                    this.closeTrophiesOverlay();
+                    if (this._trophiesOverlayOpen) this.closeTrophiesOverlay();
+                    if (this._scoresOverlayOpen) this.closeScoresOverlay();
                 }
                 this._escPrev = this.input.keys['Escape'];
                 this._kConfirmPrev = this.input.keys['Enter'] || this.input.keys['Space'];
@@ -1400,13 +1397,8 @@ export class Game {
                     this._levelSelectInit = true;
                     this.frame = 0;
                 } else if (this.menuCursor === 1) {
-                    // SCORES
-                    this.state = 'scores';
-                    this.scoresScrollY = 0;
-                    this._scoresLoaded = false;
-                    this._scoresData = null;
-                    this._loadScores();
-                    this.frame = 0;
+                    // SCORES → HTML overlay
+                    this.openScoresOverlay();
                 } else if (this.menuCursor === 2) {
                     // TROPHIES → HTML overlay
                     this.openTrophiesOverlay();
@@ -5763,6 +5755,84 @@ export class Game {
         const ov = document.getElementById('ax-trophies');
         if (ov) ov.classList.add('hidden');
         this._trophiesOverlayOpen = false;
+        if (this.audio) this.audio.menuClick();
+        this._escPrev = true; this._kConfirmPrev = true; this._gpTapPrev = true;
+        this._touchConfirm = false;
+    }
+
+    // ─── HTML scores overlay (same pattern as achievements) ───
+    _scoresGlobalHtml() {
+        const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+        if (!window.GameVolt) return '<div class="ax-sc-empty">Log in on GameVolt.io<br>to see the global leaderboard.</div>';
+        if (this._scLoading) return '<div class="ax-sc-empty">Loading…</div>';
+        const rows = this._scGlobal;
+        if (!rows || !rows.length) return '<div class="ax-sc-empty">No entries yet.<br>Log in to compete!</div>';
+        return '<div class="ax-sc-list">' + rows.map((e, i) =>
+            '<div class="ax-sc-row' + (i < 3 ? ' top' : '') + '">' +
+            '<span class="ax-sc-rank">#' + (e.rank || i + 1) + '</span>' +
+            '<span class="ax-sc-name">' + esc(e.username || 'Player') + '</span>' +
+            '<span class="ax-sc-score">' + Number(e.score).toLocaleString() + '</span>' +
+            '</div>'
+        ).join('') + '</div>';
+    }
+
+    buildScoresOverlay() {
+        const body = document.getElementById('ax-sc-body');
+        if (!body) return;
+        const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+        let local = [];
+        try { local = JSON.parse(localStorage.getItem('axeluga_scores') || '[]'); } catch (e) {}
+        let html = '<div class="ax-sc-sec">YOUR BEST</div>';
+        if (!local.length) {
+            html += '<div class="ax-sc-empty">No runs yet — play a game!</div>';
+        } else {
+            html += '<div class="ax-sc-list">' + local.slice(0, 20).map((s, i) => {
+                const world = s.world ? (WORLDS[s.world - 1] ? WORLDS[s.world - 1].name : 'W' + s.world) : '';
+                const date = s.date ? new Date(s.date).toLocaleDateString() : '';
+                return '<div class="ax-sc-row">' +
+                    '<span class="ax-sc-rank">#' + (i + 1) + '</span>' +
+                    '<span class="ax-sc-score">' + Number(s.score).toLocaleString() + '</span>' +
+                    '<span class="ax-sc-meta">' + esc(world) + (date ? ' · ' + date : '') + '</span></div>';
+            }).join('') + '</div>';
+        }
+        html += '<div class="ax-sc-sec">GLOBAL LEADERBOARD</div>';
+        html += '<div id="ax-sc-global">' + this._scoresGlobalHtml() + '</div>';
+        body.innerHTML = html;
+    }
+
+    openScoresOverlay() {
+        this._scLoading = !!window.GameVolt;
+        this._scGlobal = null;
+        this.buildScoresOverlay();
+        const ov = document.getElementById('ax-scores');
+        if (ov) {
+            ov.classList.remove('hidden');
+            ov.scrollTop = 0;
+            const btn = ov.querySelector('.ax-sc-close');
+            if (btn) btn.onclick = () => this.closeScoresOverlay();
+        }
+        this._scoresOverlayOpen = true;
+        if (this.audio) this.audio.menuClick();
+        this._escPrev = true; this._kConfirmPrev = true; this._gpTapPrev = true;
+        this._touchConfirm = false;
+        // Fetch the global leaderboard, then refresh just that section.
+        if (window.GameVolt && GameVolt.leaderboard && GameVolt.leaderboard.get) {
+            const done = (rows) => {
+                this._scGlobal = rows || [];
+                this._scLoading = false;
+                if (this._scoresOverlayOpen) {
+                    const g = document.getElementById('ax-sc-global');
+                    if (g) g.innerHTML = this._scoresGlobalHtml();
+                }
+            };
+            GameVolt.leaderboard.get({ mode: 'default', limit: 20 }).then(done).catch(() => done([]));
+        }
+    }
+
+    closeScoresOverlay() {
+        const ov = document.getElementById('ax-scores');
+        if (ov) ov.classList.add('hidden');
+        this._scoresOverlayOpen = false;
         if (this.audio) this.audio.menuClick();
         this._escPrev = true; this._kConfirmPrev = true; this._gpTapPrev = true;
         this._touchConfirm = false;
