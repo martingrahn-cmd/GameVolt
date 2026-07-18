@@ -495,6 +495,30 @@ Every game should have SEO content (description, breadcrumbs, related games) tha
   }
   ```
 
+### 5b. Describe the aesthetic in words (AI / mood discovery)
+
+People increasingly search AI assistants (ChatGPT, Perplexity, Bing) by **vibe**,
+not just genre — "mystical otherworldly puzzle game", "neon synthwave shooter",
+"cozy pixel-art game". A screenshot is invisible to a text model; words aren't. So
+every game's aesthetic must be **machine-readable**, not just implied by the art —
+this is what turns "I built a nice-looking game" into "the game shows up when
+someone describes its mood."
+
+When you ship (or update) a game, write one line describing **what it feels like** —
+2–4 mood cues: genre lineage + visual feel + colour/mood — and put it in:
+- [ ] the `<meta name="description">` (front-load the mood words; Google truncates
+  the SERP snippet at ~155 chars, but AI crawlers read the whole thing)
+- [ ] `og:description` + `twitter:description`
+- [ ] the on-page `#seo-content` intro paragraph
+- [ ] the game's line in `/llms.txt`
+
+Describe the **feeling**, not just the mechanics — and keep it **true to the actual
+look**; don't invent a vibe the game doesn't have.
+
+> Example (Axeluga): *"a classic shoot-em-up with a neon retro-arcade feel —
+> synthwave glow, CRT scanlines and star-drenched space, in the lineage of Galaga
+> and Space Invaders."*
+
 ### 6. postMessage Integration
 
 Games communicate with the player page via `postMessage`. This enables session tracking, high scores, and achievements in the portal.
