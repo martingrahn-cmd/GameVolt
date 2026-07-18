@@ -327,7 +327,43 @@
         .difficulty-grid.hidden {
             display: none;
         }
-        
+
+        /* Online (room-code) lobby */
+        .online-panel { margin-top: 8px; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+        .online-panel.hidden { display: none; }
+        /* The 2P start button carried a `hidden` class with no matching rule, so
+           it showed in every mode. Hide it properly (fixes 1P + online too). */
+        #start-2p-btn.hidden { display: none; }
+        .online-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+        .online-btn {
+            padding: 12px 22px; border-radius: 12px; border: none; cursor: pointer;
+            background: linear-gradient(135deg, #ffd23f, #ff8c42); color: #1a1a2e;
+            font-weight: 800; font-size: 0.95rem; font-family: inherit; letter-spacing: 0.3px;
+        }
+        .online-btn:hover { filter: brightness(1.08); }
+        .online-btn.secondary { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+        .online-btn.tiny { padding: 7px 14px; font-size: 0.8rem; }
+        .online-btn:disabled { opacity: 0.5; cursor: default; filter: none; }
+        .online-or { color: #8890b5; font-size: 0.85rem; }
+        .online-code-input {
+            width: 108px; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3); color: #fff; font-family: inherit; font-size: 1.1rem;
+            font-weight: 800; letter-spacing: 4px; text-align: center; text-transform: uppercase; outline: none;
+        }
+        .online-code-input:focus { border-color: #ffd23f; }
+        .online-code-box {
+            display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 22px;
+            border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,210,63,0.3);
+        }
+        .online-code-box.hidden { display: none; }
+        .online-code-label { color: #a0a4c0; font-size: 0.8rem; }
+        .online-code {
+            font-size: 2.4rem; font-weight: 800; letter-spacing: 10px; color: #ffd23f;
+            font-family: 'Courier New', monospace; padding-left: 10px;
+        }
+        .online-status { color: #a0a4c0; font-size: 0.9rem; min-height: 20px; text-align: center; }
+        .online-status.error { color: #ff6b6b; }
+
         /* 2 Player Turn Indicator */
         .turn-indicator-2p {
             display: none;
@@ -2217,6 +2253,27 @@
                     <div class="mode-btn-text">2 Players</div>
                     <div class="mode-btn-desc">Local</div>
                 </button>
+                <button class="mode-btn" id="mode-online" data-mode="online">
+                    <div class="mode-btn-icon">🌐</div>
+                    <div class="mode-btn-text">Online</div>
+                    <div class="mode-btn-desc">With a friend</div>
+                </button>
+            </div>
+
+            <!-- Online (room-code) lobby -->
+            <div class="online-panel hidden" id="online-panel">
+                <div class="online-row">
+                    <button class="online-btn" id="online-create-btn">Create room</button>
+                    <span class="online-or">or</span>
+                    <input class="online-code-input" id="online-join-input" type="text" inputmode="text" autocomplete="off" maxlength="4" placeholder="CODE">
+                    <button class="online-btn secondary" id="online-join-btn">Join</button>
+                </div>
+                <div class="online-code-box hidden" id="online-code-box">
+                    <div class="online-code-label">Share this code with a friend</div>
+                    <div class="online-code" id="online-code-value">----</div>
+                    <button class="online-btn tiny" id="online-copy-btn">Copy code</button>
+                </div>
+                <div class="online-status" id="online-status"></div>
             </div>
             
             <div class="section-header" id="difficulty-header">Select Difficulty</div>
@@ -2386,6 +2443,7 @@
 
     <script src="/sdk/gamevolt.js" data-game="connect4"></script>
     <script src="c4-core.js"></script>
+    <script src="c4-net.js"></script>
     <script>
         // ===== GAME STATE =====
         const ROWS = 6;
@@ -2401,7 +2459,8 @@
         let isThinking = false;
         let moveCount = 0;
         let moves = []; // committed move log (columns, in play order) — replay/undo/multiplayer substrate
-        let gameMode = '1p'; // '1p' or '2p'
+        let gameMode = '1p'; // '1p', '2p' or 'online'
+        let myOnlinePlayer = null; // 1 (host/yellow) or 2 (guest/red) in online mode
         let soundEnabled = true;
 
         // ===== THEME =====
@@ -3547,7 +3606,17 @@
         async function handleCellClick(col) {
             if (gameOver || isThinking) return;
             if (window.GameVolt && GameVolt.ui.isPaused()) return;
-            
+
+            // Online: only on my turn, when connected.
+            if (gameMode === 'online') {
+                if (!window.C4Net || !C4Net.connected) return;
+                if (currentPlayer !== myOnlinePlayer) return;
+                if (board[0][col] !== EMPTY) return;
+                initAudio();
+                applyOnlineMove(col, false);
+                return;
+            }
+
             // In 1P mode, only allow clicks when it's player's turn
             if (gameMode === '1p' && currentPlayer !== PLAYER) return;
             
@@ -3743,6 +3812,8 @@
         }
 
         function showMenu() {
+            // Leave any online room so the channel is cleaned up.
+            if (gameMode === 'online' && window.C4Net) { try { C4Net.leave(); } catch (e) {} }
             document.getElementById('game-screen').classList.remove('active');
             document.getElementById('menu-screen').classList.add('active');
             hideModal();
@@ -3780,17 +3851,15 @@
             const difficultyGrid = document.getElementById('difficulty-grid');
             const start2pBtn = document.getElementById('start-2p-btn');
             
-            if (mode === '1p') {
-                difficultyHeader.textContent = 'Select Difficulty';
-                difficultyHeader.classList.remove('hidden');
-                difficultyGrid.classList.remove('hidden');
-                start2pBtn.classList.add('hidden');
-            } else {
-                difficultyHeader.textContent = '';
-                difficultyHeader.classList.add('hidden');
-                difficultyGrid.classList.add('hidden');
-                start2pBtn.classList.remove('hidden');
-            }
+            const onlinePanel = document.getElementById('online-panel');
+            const is1p = mode === '1p';
+            const isOnline = mode === 'online';
+            difficultyHeader.textContent = is1p ? 'Select Difficulty' : '';
+            difficultyHeader.classList.toggle('hidden', !is1p);
+            difficultyGrid.classList.toggle('hidden', !is1p);
+            start2pBtn.classList.toggle('hidden', mode !== '2p');
+            if (onlinePanel) onlinePanel.classList.toggle('hidden', !isOnline);
+            if (!isOnline) resetOnlineLobby();
         }
         
         function update2PTurnIndicator(showBanner = false) {
@@ -3861,6 +3930,172 @@
             }, 300);
         }
 
+        // ===== ONLINE MULTIPLAYER (room-code, via c4-net.js) =====
+        function setOnlineStatus(msg, isError) {
+            const el = document.getElementById('online-status');
+            if (!el) return;
+            el.textContent = msg || '';
+            el.classList.toggle('error', !!isError);
+        }
+
+        function resetOnlineLobby() {
+            try { if (window.C4Net) C4Net.leave(); } catch (e) {}
+            const box = document.getElementById('online-code-box');
+            if (box) box.classList.add('hidden');
+            setOnlineStatus('');
+            const cb = document.getElementById('online-create-btn');
+            const jb = document.getElementById('online-join-btn');
+            if (cb) cb.disabled = false;
+            if (jb) jb.disabled = false;
+        }
+
+        function updateOnlineTurnUI(showBanner) {
+            update2PTurnIndicator(showBanner);
+            const myTurn = currentPlayer === myOnlinePlayer;
+            const nameEl = document.getElementById('turn-player-name');
+            if (nameEl) nameEl.textContent = myTurn ? 'YOUR TURN' : "OPPONENT'S TURN";
+            if (showBanner) {
+                const banner = document.getElementById('turn-banner');
+                if (banner) banner.textContent = myTurn ? 'YOUR TURN' : 'OPPONENT';
+            }
+        }
+
+        function applyOnlineMove(col, isRemote) {
+            if (gameOver) return;
+            if (board[0][col] !== EMPTY) return;
+            const mover = currentPlayer;
+            const result = makeMove(col, mover);
+            if (!result) return;
+
+            moveCount++;
+            document.getElementById('move-counter').textContent = `Moves: ${moveCount}`;
+            dropDisc(result.row, result.col, mover);
+
+            if (!isRemote && window.C4Net) C4Net.move(col);
+
+            const winningCells = checkWin(mover);
+            if (winningCells) {
+                gameOver = true;
+                hidePreview();
+                setTimeout(() => { highlightWinningCells(winningCells); showConfetti(); }, 400);
+                setTimeout(() => showOnlineEndModal(mover === myOnlinePlayer ? 'win' : 'lose', moveCount), 2500);
+                return;
+            }
+            if (isBoardFull()) {
+                gameOver = true;
+                setTimeout(() => showOnlineEndModal('draw', moveCount), 800);
+                return;
+            }
+            currentPlayer = mover === PLAYER ? AI : PLAYER;
+            updateOnlineTurnUI(true);
+        }
+
+        function showOnlineEndModal(result, moves) {
+            const modal = document.getElementById('modal');
+            const icon = document.getElementById('modal-icon');
+            const title = document.getElementById('modal-title');
+            const subtitle = document.getElementById('modal-subtitle');
+            document.getElementById('turn-overlay').classList.remove('active');
+            document.getElementById('turn-banner').classList.remove('show');
+            if (result === 'win') {
+                icon.textContent = '🎉'; title.textContent = 'You Win!'; title.className = 'modal-title win';
+                subtitle.textContent = `Victory in ${moves} moves!`;
+                playSound('win'); hapticFeedback('win');
+            } else if (result === 'lose') {
+                icon.textContent = '😔'; title.textContent = 'Opponent Wins'; title.className = 'modal-title lose';
+                subtitle.textContent = 'Better luck next time!';
+            } else {
+                icon.textContent = '🤝'; title.textContent = "It's a Draw!"; title.className = 'modal-title';
+                subtitle.textContent = 'The board is full.';
+            }
+            modal.classList.add('active');
+        }
+
+        function startOnlineGame() {
+            gameMode = 'online';
+            currentLevel = 0;
+            createBoard();
+            gameOver = false;
+            isThinking = false;
+            moveCount = 0;
+            currentPlayer = PLAYER; // host (player 1 / yellow) always starts
+            myOnlinePlayer = window.C4Net ? C4Net.myPlayer : 1;
+
+            document.getElementById('move-counter').textContent = 'Moves: 0';
+            document.getElementById('menu-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+
+            const gameArea = document.getElementById('game-area');
+            gameArea.classList.add('two-player');
+            document.getElementById('turn-indicator-2p').classList.add('active');
+
+            renderBoard();
+            setTimeout(() => updateOnlineTurnUI(true), 300);
+        }
+
+        if (window.C4Net) {
+            C4Net.on('opponentJoined', () => {
+                setOnlineStatus('Opponent connected! Starting…');
+                setTimeout(startOnlineGame, 500);
+            });
+            C4Net.on('move', (d) => {
+                if (gameMode === 'online' && d && typeof d.col === 'number') applyOnlineMove(d.col, true);
+            });
+            C4Net.on('left', () => {
+                if (gameMode === 'online' && !gameOver) {
+                    gameOver = true;
+                    document.getElementById('modal-icon').textContent = '🔌';
+                    document.getElementById('modal-title').textContent = 'Opponent left';
+                    document.getElementById('modal-title').className = 'modal-title';
+                    document.getElementById('modal-subtitle').textContent = 'They disconnected from the game.';
+                    setTimeout(() => document.getElementById('modal').classList.add('active'), 300);
+                }
+            });
+        }
+
+        document.getElementById('online-create-btn').addEventListener('click', function () {
+            initAudio();
+            if (!window.C4Net) { setOnlineStatus('Online play is unavailable.', true); return; }
+            this.disabled = true;
+            document.getElementById('online-join-btn').disabled = true;
+            setOnlineStatus('Creating room…');
+            C4Net.host().then((code) => {
+                document.getElementById('online-code-value').textContent = code;
+                document.getElementById('online-code-box').classList.remove('hidden');
+                setOnlineStatus('Waiting for a friend to join…');
+            }).catch(() => {
+                setOnlineStatus('Could not create a room. Try again.', true);
+                resetOnlineLobby();
+            });
+        });
+
+        function onlineJoin() {
+            initAudio();
+            if (!window.C4Net) { setOnlineStatus('Online play is unavailable.', true); return; }
+            const code = (document.getElementById('online-join-input').value || '').trim().toUpperCase();
+            if (code.length < 4) { setOnlineStatus('Enter the 4-character room code.', true); return; }
+            document.getElementById('online-create-btn').disabled = true;
+            document.getElementById('online-join-btn').disabled = true;
+            setOnlineStatus('Connecting…');
+            C4Net.join(code).then(() => {
+                setOnlineStatus('Joined — waiting for the host…');
+            }).catch(() => {
+                setOnlineStatus('Could not join. Check the code and try again.', true);
+                resetOnlineLobby();
+            });
+        }
+        document.getElementById('online-join-btn').addEventListener('click', onlineJoin);
+        document.getElementById('online-join-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') onlineJoin();
+        });
+        document.getElementById('online-copy-btn').addEventListener('click', () => {
+            const code = document.getElementById('online-code-value').textContent;
+            try {
+                navigator.clipboard.writeText(code);
+                setOnlineStatus('Code copied! Send it to your friend.');
+            } catch (e) {}
+        });
+
         // ===== EVENT LISTENERS =====
         document.querySelectorAll('.difficulty-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -3893,7 +4128,11 @@
         document.getElementById('play-again-btn').addEventListener('click', (e) => {
             hapticFeedback('medium', e.target);
             hideModal();
-            if (gameMode === '2p') {
+            if (gameMode === 'online') {
+                // Rematch needs both players; for now, back to the menu.
+                if (window.C4Net) C4Net.leave();
+                showMenu();
+            } else if (gameMode === '2p') {
                 start2PGame();
             } else {
                 startGame(currentLevel);
@@ -4068,7 +4307,8 @@
       <p>
         Play the classic Connect 4 strategy game free in your browser. Drop your discs,
         line up four in a row horizontally, vertically or diagonally, and outsmart your
-        opponent. Challenge a friend on the same device or test your skills against the AI.
+        opponent. Play online with a friend using a room code, pass-and-play on the same
+        device, or test your skills against the AI.
       </p>
 
       <h2 style="color:#e0e0e0;font-size:1.15rem;margin-top:1.5rem;margin-bottom:0.5rem;font-family:'Outfit',sans-serif;">Two Ways to Play</h2>
