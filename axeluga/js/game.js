@@ -1369,6 +1369,15 @@ export class Game {
             // menu behind it. It scrolls natively; close on confirm / Escape (the
             // ✕ also closes).
             if (this._trophiesOverlayOpen || this._scoresOverlayOpen) {
+                // Scores: Left/Right switches the LOCAL / GLOBAL tab (keyboard + gamepad).
+                if (this._scoresOverlayOpen) {
+                    const navLeft = this.input.keys['ArrowLeft'] || this.input.keys['KeyA'] || this.input.gpAxes.x < -0.5;
+                    const navRight = this.input.keys['ArrowRight'] || this.input.keys['KeyD'] || this.input.gpAxes.x > 0.5;
+                    if ((navLeft || navRight) && !this._scNavPrev) {
+                        this.setScoresTab(navLeft ? 'local' : 'global');
+                    }
+                    this._scNavPrev = navLeft || navRight;
+                }
                 if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
                     if (this._trophiesOverlayOpen) this.closeTrophiesOverlay();
                     if (this._scoresOverlayOpen) this.closeScoresOverlay();
@@ -5776,33 +5785,55 @@ export class Game {
         ).join('') + '</div>';
     }
 
-    buildScoresOverlay() {
-        const body = document.getElementById('ax-sc-body');
-        if (!body) return;
+    _scoresLocalHtml() {
         const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
         let local = [];
         try { local = JSON.parse(localStorage.getItem('axeluga_scores') || '[]'); } catch (e) {}
-        let html = '<div class="ax-sc-sec">YOUR BEST</div>';
-        if (!local.length) {
-            html += '<div class="ax-sc-empty">No runs yet — play a game!</div>';
-        } else {
-            html += '<div class="ax-sc-list">' + local.slice(0, 20).map((s, i) => {
-                const world = s.world ? (WORLDS[s.world - 1] ? WORLDS[s.world - 1].name : 'W' + s.world) : '';
-                const date = s.date ? new Date(s.date).toLocaleDateString() : '';
-                return '<div class="ax-sc-row">' +
-                    '<span class="ax-sc-rank">#' + (i + 1) + '</span>' +
-                    '<span class="ax-sc-score">' + Number(s.score).toLocaleString() + '</span>' +
-                    '<span class="ax-sc-meta">' + esc(world) + (date ? ' · ' + date : '') + '</span></div>';
-            }).join('') + '</div>';
-        }
-        html += '<div class="ax-sc-sec">GLOBAL LEADERBOARD</div>';
-        html += '<div id="ax-sc-global">' + this._scoresGlobalHtml() + '</div>';
-        body.innerHTML = html;
+        if (!local.length) return '<div class="ax-sc-empty">No runs yet — play a game!</div>';
+        return '<div class="ax-sc-list">' + local.slice(0, 20).map((s, i) => {
+            const world = s.world ? (WORLDS[s.world - 1] ? WORLDS[s.world - 1].name : 'W' + s.world) : '';
+            const date = s.date ? new Date(s.date).toLocaleDateString() : '';
+            return '<div class="ax-sc-row">' +
+                '<span class="ax-sc-rank">#' + (i + 1) + '</span>' +
+                '<span class="ax-sc-score">' + Number(s.score).toLocaleString() + '</span>' +
+                '<span class="ax-sc-meta">' + esc(world) + (date ? ' · ' + date : '') + '</span></div>';
+        }).join('') + '</div>';
+    }
+
+    // LOCAL / GLOBAL tabbed board, like Vector Hexagon.
+    buildScoresOverlay() {
+        const body = document.getElementById('ax-sc-body');
+        if (!body) return;
+        const g = this._scTab === 'global';
+        body.innerHTML =
+            '<div class="ax-sc-tabs">' +
+              '<button class="ax-sc-tab' + (g ? '' : ' sel') + '" data-tab="local" tabindex="-1">LOCAL</button>' +
+              '<button class="ax-sc-tab' + (g ? ' sel' : '') + '" data-tab="global" tabindex="-1">GLOBAL</button>' +
+            '</div>' +
+            '<div id="ax-sc-local"' + (g ? ' class="ax-sc-hidden"' : '') + '>' + this._scoresLocalHtml() + '</div>' +
+            '<div id="ax-sc-global"' + (g ? '' : ' class="ax-sc-hidden"') + '>' + this._scoresGlobalHtml() + '</div>';
+        body.querySelectorAll('.ax-sc-tab').forEach((btn) => {
+            btn.onclick = () => this.setScoresTab(btn.dataset.tab);
+        });
+    }
+
+    setScoresTab(tab) {
+        if (tab !== 'local' && tab !== 'global') return;
+        if (this._scTab === tab) return;
+        this._scTab = tab;
+        const loc = document.getElementById('ax-sc-local');
+        const glob = document.getElementById('ax-sc-global');
+        if (loc) loc.classList.toggle('ax-sc-hidden', tab !== 'local');
+        if (glob) glob.classList.toggle('ax-sc-hidden', tab !== 'global');
+        const tabs = document.querySelectorAll('#ax-sc-body .ax-sc-tab');
+        tabs.forEach((b) => b.classList.toggle('sel', b.dataset.tab === tab));
+        if (this.audio) this.audio.menuClick();
     }
 
     openScoresOverlay() {
         this._scLoading = !!window.GameVolt;
         this._scGlobal = null;
+        this._scTab = 'local';
         this.buildScoresOverlay();
         const ov = document.getElementById('ax-scores');
         if (ov) {
