@@ -1278,6 +1278,16 @@
             margin-right: auto;
         }
 
+        /* Modern tier-grouped achievements grid (Vector Hexagon style) */
+        .ach-count { text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 6px; }
+        .ach-tier-head { font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; margin: 16px 0 8px; padding-bottom: 5px; border-bottom: 1px solid; }
+        .ach-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .ach-card2 { background: var(--bg-primary); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px; opacity: 0.5; }
+        .ach-card2.on { opacity: 1; }
+        .ach-ico2 { font-size: 1.6rem; line-height: 1; }
+        .ach-name2 { font-weight: 700; font-size: 0.8rem; color: var(--text-primary); margin: 5px 0 2px; }
+        .ach-desc2 { font-size: 0.72rem; color: var(--text-secondary); line-height: 1.3; }
+
         .achievement-card {
             background: var(--bg-primary);
             border-radius: 12px;
@@ -2900,28 +2910,30 @@
             const list = document.getElementById('achievements-list');
             const unlocked = getUnlockedAchievements();
             const stats = getAchievementStats();
+            const tierOrder = ['bronze', 'silver', 'gold', 'platinum'];
 
-            list.innerHTML = ACHIEVEMENTS.map(achievement => {
-                const isUnlocked = unlocked.includes(achievement.id);
-                const progress = getAchievementProgress(achievement, stats);
-                const tierColor = TIER_COLORS[achievement.tier] || '#888';
+            let html = '<div class="ach-count">' + unlocked.length + ' / ' + ACHIEVEMENTS.length + ' unlocked</div>';
 
-                return `
-                    <div class="achievement-card ${isUnlocked ? 'unlocked' : ''}">
-                        <div class="achievement-icon">${isUnlocked ? achievement.icon : '🔒'}</div>
-                        <div class="achievement-info">
-                            <div class="achievement-name">${achievement.name}</div>
-                            <div class="achievement-desc">${achievement.desc}</div>
-                            ${!isUnlocked && progress !== null ? `
-                                <div class="achievement-progress">
-                                    <div class="achievement-progress-bar" style="width: ${progress}%"></div>
-                                </div>
-                            ` : ''}
-                        </div>
-                        <span class="achievement-tier" style="background:${tierColor}">${achievement.tier}</span>
-                    </div>
-                `;
-            }).join('');
+            tierOrder.forEach(tier => {
+                const items = ACHIEVEMENTS.filter(a => a.tier === tier);
+                if (!items.length) return;
+                const color = TIER_COLORS[tier] || '#888';
+                const on = items.filter(a => unlocked.includes(a.id)).length;
+                html += '<div class="ach-tier-head" style="color:' + color + ';border-color:' + color + '55">' + tier.toUpperCase() + ' · ' + on + '/' + items.length + '</div>';
+                html += '<div class="ach-grid">' + items.map(a => {
+                    const isUnlocked = unlocked.includes(a.id);
+                    const progress = getAchievementProgress(a, stats);
+                    const cardStyle = isUnlocked ? ' style="border-color:' + color + '88;background:' + color + '14"' : '';
+                    return '<div class="ach-card2' + (isUnlocked ? ' on' : '') + '"' + cardStyle + '>' +
+                        '<div class="ach-ico2">' + (isUnlocked ? a.icon : '🔒') + '</div>' +
+                        '<div class="ach-name2">' + a.name + '</div>' +
+                        '<div class="ach-desc2">' + a.desc + '</div>' +
+                        (!isUnlocked && progress !== null ? '<div class="achievement-progress"><div class="achievement-progress-bar" style="width:' + progress + '%"></div></div>' : '') +
+                        '</div>';
+                }).join('') + '</div>';
+            });
+
+            list.innerHTML = html;
 
             // Remove new indicator when viewing
             document.getElementById('achievements-btn').classList.remove('has-new');
