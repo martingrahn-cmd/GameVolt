@@ -1205,6 +1205,7 @@ export class Game {
         this._titleMusicPlaying = false;
         this.state = 'playing';
         this.frame = 0;
+        this._runFrames = 0; // active gameplay frames — used for the victory speed bonus
         this._gpTapPrev = true;
         this.score = 0;
         this.wave = 0;
@@ -1721,6 +1722,7 @@ export class Game {
     updatePlaying() {
         const p = this.player;
         if (p.dead) return;
+        this._runFrames = (this._runFrames || 0) + 1; // count active play time for the speed bonus
 
         // ── Player movement ──
         const touchMove = this.input.getTouchMove();
@@ -2739,8 +2741,21 @@ export class Game {
                 // Bonus for final world
                 const bonus = (this.world + 1) * 10000;
                 this.score += bonus;
+
+                // Skill bonuses so two clean clears don't tie at the same score.
+                // A full clear with max combo is otherwise deterministic, which is
+                // why the leaderboard clustered at one value. Time varies every run
+                // (the real tiebreaker); HP left + damage taken reward a cleaner
+                // run. Magnitudes are tunable.
+                const secs = (this._runFrames || 0) / 60;
+                const speedBonus = Math.max(0, Math.round(500000 - secs * 500));
+                const hpBonus = Math.round((this.player.hp / (this.player.maxHp || 1)) * 80000);
+                const cleanBonus = Math.max(0, 80000 - Math.round((this._runStats.damageTaken || 0) * 400));
+                const skillBonus = speedBonus + hpBonus + cleanBonus;
+                this.score += skillBonus;
+
                 this._saveScoreHistory(this.score, this.world, this.wave);
-                this.spawnFloatingText(GAME_W / 2, GAME_H / 2, `+${bonus}`);
+                this.spawnFloatingText(GAME_W / 2, GAME_H / 2, `+${bonus + skillBonus}`);
                 if (window.GameVolt) {
                     GameVolt.leaderboard.submit(this.score, { mode: 'default' });
                 }
