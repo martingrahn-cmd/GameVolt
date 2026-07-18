@@ -2748,7 +2748,7 @@
             { id: 'beat_lv1',      tier: 'bronze',   icon: '🟢', name: 'Beginner Beaten',    desc: 'Beat level 1',                   condition: (s) => s.levelWins[1] >= 1 },
             { id: 'beat_lv2',      tier: 'bronze',   icon: '🔵', name: 'Casual Crushed',     desc: 'Beat level 2',                   condition: (s) => s.levelWins[2] >= 1 },
             { id: 'beat_lv3',      tier: 'bronze',   icon: '🟡', name: 'Challenger',         desc: 'Beat level 3',                   condition: (s) => s.levelWins[3] >= 1 },
-            { id: 'quick_win',     tier: 'bronze',   icon: '⚡', name: 'Speed Demon',        desc: 'Win in 7 moves or less',         condition: (s) => s.quickestWin > 0 && s.quickestWin <= 7 },
+            { id: 'quick_win',     tier: 'bronze',   icon: '⚡', name: 'Speed Demon',        desc: 'Win in 9 moves or less',         condition: (s) => s.quickestWin > 0 && s.quickestWin <= 9 },
             { id: 'streak_3',      tier: 'bronze',   icon: '📈', name: 'Hot Streak',         desc: 'Win 3 games in a row',           condition: (s) => s.bestStreak >= 3 },
             { id: 'lv1_wins_5',    tier: 'bronze',   icon: '💚', name: 'Beginner Pro',       desc: 'Win 5 games on level 1',         condition: (s) => s.levelWins[1] >= 5 },
             { id: 'lv2_wins_5',    tier: 'bronze',   icon: '💙', name: 'Casual Pro',         desc: 'Win 5 games on level 2',         condition: (s) => s.levelWins[2] >= 5 },
@@ -2767,7 +2767,7 @@
             { id: 'play_100',      tier: 'silver',   icon: '💯', name: 'Centurion',          desc: 'Play 100 games',                 condition: (s) => s.totalGames >= 100 },
             { id: 'all_levels',    tier: 'silver',   icon: '🌈', name: 'Completionist',      desc: 'Beat all 5 levels',              condition: (s) => [1,2,3,4,5].every(l => s.levelWins[l] >= 1) },
             { id: 'lv2_wins_10',   tier: 'silver',   icon: '🔵', name: 'Casual Master',      desc: 'Win 10 games on level 2',        condition: (s) => s.levelWins[2] >= 10 },
-            { id: 'quick_win_6',   tier: 'silver',   icon: '⏱️', name: 'Lightning Fast',     desc: 'Win in 6 moves or less',         condition: (s) => s.quickestWin > 0 && s.quickestWin <= 6 },
+            { id: 'quick_win_6',   tier: 'silver',   icon: '⏱️', name: 'Lightning Fast',     desc: 'Win in 7 moves or less',         condition: (s) => s.quickestWin > 0 && s.quickestWin <= 7 },
 
             // GOLD (5)
             { id: 'beat_lv5',      tier: 'gold',     icon: '🔴', name: 'AI Slayer',          desc: 'Beat level 5 — Expert',          condition: (s) => s.levelWins[5] >= 1 },
