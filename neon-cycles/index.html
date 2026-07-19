@@ -131,6 +131,12 @@
     #touch .z.l { left: 0; } #touch .z.r { right: 0; }
 
     #nc-version { position: fixed; bottom: 6px; right: 8px; z-index: 6; color: #38406a; font-size: 0.6rem; letter-spacing: 1px; pointer-events: none; }
+    #snd-btn {
+      position: fixed; bottom: 8px; left: 10px; z-index: 7; cursor: pointer;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px; padding: 5px 9px; font-size: 0.95rem; line-height: 1;
+    }
+    #snd-btn:hover { background: rgba(255,255,255,0.10); }
 
     #seo-content { position: fixed; left: -9999px; }
   </style>
@@ -197,7 +203,8 @@
     <button class="btn ghost" id="menu-btn">MENU</button>
   </div>
 
-  <div id="nc-version">v0.3.0-p0</div>
+  <div id="nc-version">v0.4.0-p0</div>
+  <button id="snd-btn" aria-label="Toggle sound (M)">🔊</button>
 
   <div id="seo-content">
     <h1>Neon Cycles — Light-Cycle Arcade Game</h1>
@@ -210,7 +217,7 @@
   <script>
   (function () {
     'use strict';
-    var VERSION = '0.3.0-p0';
+    var VERSION = '0.4.0-p0';
     var COLS = 64, ROWS = 40, TICK_MS = 70;
     var ROUNDS_TO_WIN = 3;
     var MAX_PARTICLES = 400;
@@ -262,6 +269,125 @@
       var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
       return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
     }
+
+    // ---------- sound (Web Audio, fully synthesized — no files) ----------
+    var Sound = (function () {
+      var ctx = null, master = null;
+      var engines = {}; // id -> { o, g, p }
+      var enabled = localStorage.getItem('ncSound') !== '0';
+
+      function ensure() {
+        if (!enabled) return false;
+        if (!ctx) {
+          var AC = window.AudioContext || window.webkitAudioContext;
+          if (!AC) { enabled = false; return false; }
+          ctx = new AC();
+          master = ctx.createGain();
+          master.gain.value = 0.4;
+          master.connect(ctx.destination);
+        }
+        if (ctx.state === 'suspended') ctx.resume();
+        return true;
+      }
+
+      function panned(pan) {
+        if (pan === undefined || !ctx.createStereoPanner) return master;
+        var p = ctx.createStereoPanner();
+        p.pan.value = Math.max(-1, Math.min(1, pan));
+        p.connect(master);
+        return p;
+      }
+
+      function beep(freq, dur, type, vol, delay, pan) {
+        if (!ensure()) return;
+        var t = ctx.currentTime + (delay || 0);
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = type || 'sine';
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(vol || 0.12, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        o.connect(g); g.connect(panned(pan));
+        o.start(t); o.stop(t + dur + 0.02);
+      }
+
+      function noiseBuf(dur) {
+        var n = Math.floor(ctx.sampleRate * dur);
+        var buf = ctx.createBuffer(1, n, ctx.sampleRate);
+        var d = buf.getChannelData(0), last = 0;
+        for (var i = 0; i < n; i++) { var w = Math.random() * 2 - 1; last = (last + 0.04 * w) / 1.04; d[i] = last * 4; }
+        return buf;
+      }
+
+      return {
+        get enabled() { return enabled; },
+        unlock: ensure,
+        suspend: function () { if (ctx) ctx.suspend(); },
+        toggle: function () {
+          enabled = !enabled;
+          localStorage.setItem('ncSound', enabled ? '1' : '0');
+          if (ctx) { if (enabled) ctx.resume(); else ctx.suspend(); }
+          return enabled;
+        },
+        tick: function (go) { beep(go ? 880 : 440, go ? 0.22 : 0.09, 'square', go ? 0.15 : 0.09); },
+        turn: function (pan) { beep(520, 0.05, 'square', 0.06, 0, pan); },
+        crash: function (pan) {
+          if (!ensure()) return;
+          var t = ctx.currentTime;
+          var src = ctx.createBufferSource();
+          src.buffer = noiseBuf(0.45);
+          var f = ctx.createBiquadFilter();
+          f.type = 'lowpass';
+          f.frequency.setValueAtTime(3200, t);
+          f.frequency.exponentialRampToValueAtTime(120, t + 0.4);
+          var g = ctx.createGain();
+          g.gain.setValueAtTime(0.5, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+          src.connect(f); f.connect(g); g.connect(panned(pan));
+          src.start(t);
+          var o = ctx.createOscillator(), g2 = ctx.createGain();
+          o.type = 'triangle';
+          o.frequency.setValueAtTime(220, t);
+          o.frequency.exponentialRampToValueAtTime(40, t + 0.35);
+          g2.gain.setValueAtTime(0.25, t);
+          g2.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          o.connect(g2); g2.connect(panned(pan));
+          o.start(t); o.stop(t + 0.42);
+        },
+        engineStart: function (ids) {
+          if (!ensure()) return;
+          this.engineStop();
+          ids.forEach(function (id) {
+            var o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter(), pn = null;
+            o.type = 'sawtooth';
+            o.frequency.value = id === 1 ? 55 : 62; // slightly different pitch per cycle
+            f.type = 'lowpass'; f.frequency.value = 240; f.Q.value = 4;
+            g.gain.value = 0.0001;
+            var dest = master;
+            if (ctx.createStereoPanner) { pn = ctx.createStereoPanner(); pn.connect(master); dest = pn; }
+            o.connect(f); f.connect(g); g.connect(dest);
+            o.start();
+            g.gain.setTargetAtTime(0.05, ctx.currentTime, 0.15);
+            engines[id] = { o: o, g: g, p: pn };
+          });
+        },
+        enginePan: function (id, pan) { var e = engines[id]; if (e && e.p) e.p.pan.value = Math.max(-1, Math.min(1, pan)); },
+        engineRev: function (id, mult) { var e = engines[id]; if (e) e.o.frequency.value = (id === 1 ? 55 : 62) * mult; },
+        engineStop: function () {
+          for (var id in engines) {
+            var e = engines[id];
+            try { e.g.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.06); e.o.stop(ctx.currentTime + 0.35); } catch (err) {}
+          }
+          engines = {};
+        },
+        stinger: function (kind) {
+          if (kind === 'win') { beep(523, 0.12, 'square', 0.11); beep(784, 0.18, 'square', 0.11, 0.10); }
+          else if (kind === 'lose') { beep(392, 0.12, 'square', 0.09); beep(262, 0.2, 'square', 0.09, 0.10); }
+          else if (kind === 'draw') { beep(196, 0.25, 'triangle', 0.11); }
+          else if (kind === 'matchwin') { [523, 659, 784, 1047].forEach(function (fr, i) { beep(fr, 0.16, 'square', 0.12, i * 0.11); }); }
+          else if (kind === 'matchlose') { [440, 349, 262].forEach(function (fr, i) { beep(fr, 0.2, 'square', 0.10, i * 0.13); }); }
+        }
+      };
+    })();
 
     // ---------- layout ----------
     function resize() {
@@ -514,6 +640,7 @@
     }
 
     function startMatch(m) {
+      Sound.unlock(); // called from a click/keypress, so audio can start
       mode = m;
       clearTimers();
       wins = { 1: 0, 2: 0 };
@@ -541,6 +668,7 @@
       var i = 0;
       el.countdown.classList.remove('hidden');
       el.cdNum.textContent = seq[0];
+      Sound.tick(seq[0] === 'GO');
       var iv = setInterval(function () {
         i++;
         if (i >= seq.length) {
@@ -548,10 +676,12 @@
           el.countdown.classList.add('hidden');
           state = 'playing';
           last = 0; acc = 0;
+          Sound.engineStart(mode === 'solo' ? [1] : [1, 2]);
           requestAnimationFrame(loop);
           return;
         }
         el.cdNum.textContent = seq[i];
+        Sound.tick(seq[i] === 'GO');
         el.cdNum.style.animation = 'none'; void el.cdNum.offsetWidth; el.cdNum.style.animation = '';
       }, stepMs);
       timers.push(iv); // timeout & interval ids share one pool, so clearTimers() clears this too
@@ -589,11 +719,27 @@
             var aid = NCAi.decide(game, 2, aiLevel);
             if (aid !== null) NCCore.setDir(game, 2, aid);
           }
+          var preDirs = game.players.map(function (pl) { return pl.dir; });
           var res = NCCore.step(game);
-          if (res.deaths.length) res.deaths.forEach(spawnCrash);
+          for (var pi = 0; pi < game.players.length; pi++) {
+            var spl = game.players[pi];
+            if (!spl.alive) continue;
+            var span = (spl.x / COLS) * 2 - 1;
+            if (spl.dir !== preDirs[pi]) Sound.turn(span);
+            Sound.enginePan(spl.id, span);
+            Sound.engineRev(spl.id, Math.min(1.8, 1 + game.tick * 0.002));
+          }
+          if (res.deaths.length) {
+            res.deaths.forEach(spawnCrash);
+            res.deaths.forEach(function (did) {
+              for (var dk = 0; dk < game.players.length; dk++) {
+                if (game.players[dk].id === did) Sound.crash((game.players[dk].x / COLS) * 2 - 1);
+              }
+            });
+          }
           if (mode === 'solo' && !game.over) soloTicks++;
           spawnExhaust();
-          if (game.over) { state = 'roundend'; onRoundOver(); break; }
+          if (game.over) { state = 'roundend'; Sound.engineStop(); onRoundOver(); break; }
         }
       }
 
@@ -625,6 +771,9 @@
         }
         el.rbScore.innerHTML = '<span class="s1">' + wins[1] + '</span> — <span class="s2">' + wins[2] + '</span>';
         el.banner.classList.remove('hidden');
+        if (w === 0) Sound.stinger('draw');
+        else if (mode === 'ai') Sound.stinger(w === 1 ? 'win' : 'lose');
+        else Sound.stinger('win');
         later(function () {
           el.banner.classList.add('hidden');
           roundNum++; // draws count as a played round too
@@ -656,12 +805,14 @@
         }
         el.endTitle.className = 'modal-title ' + (w === 1 ? 'win1' : 'win2');
         el.endSub.textContent = 'Final score ' + wins[1] + ' — ' + wins[2] + ' · first to ' + ROUNDS_TO_WIN;
+        Sound.stinger(mode === 'ai' && w === 2 ? 'matchlose' : 'matchwin');
       }
       el.end.classList.remove('hidden');
     }
 
     function toMenu() {
       state = 'menu';
+      Sound.engineStop();
       clearTimers();
       game = null;
       particles = [];
@@ -679,11 +830,13 @@
     function togglePause() {
       if (state === 'playing') {
         state = 'paused';
+        Sound.suspend();
         el.pause.classList.remove('hidden');
       } else if (state === 'paused') {
         el.pause.classList.add('hidden');
         state = 'playing';
         last = 0;
+        Sound.unlock();
         requestAnimationFrame(loop);
       }
     }
@@ -695,6 +848,7 @@
       'ArrowUp': [2, 0], 'ArrowRight': [2, 1], 'ArrowDown': [2, 2], 'ArrowLeft': [2, 3]
     };
     window.addEventListener('keydown', function (e) {
+      if (e.code === 'KeyM') { updateSndBtn(Sound.toggle()); return; }
       if (e.code === 'Escape' && (state === 'playing' || state === 'paused')) { togglePause(); return; }
       if (state === 'over' && (e.code === 'Enter' || e.code === 'Space')) {
         e.preventDefault();
@@ -742,6 +896,11 @@
     if (window.GameVolt) {
       try { GameVolt.init('neon-cycles'); } catch (e) {}
     }
+    var sndBtn = document.getElementById('snd-btn');
+    function updateSndBtn(on) { sndBtn.textContent = on ? '\ud83d\udd0a' : '\ud83d\udd07'; }
+    updateSndBtn(Sound.enabled);
+    sndBtn.addEventListener('click', function () { Sound.unlock(); updateSndBtn(Sound.toggle()); });
+
     document.getElementById('nc-version').textContent = 'v' + VERSION;
     console.log('%cNeon Cycles ' + VERSION + ' (Phase 0)', 'color:#00eaff');
 
