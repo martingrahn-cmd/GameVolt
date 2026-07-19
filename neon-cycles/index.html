@@ -73,6 +73,13 @@
     .btn.p2 { border-color: rgba(255,122,24,0.5); background: rgba(255,122,24,0.06); color: var(--p2-soft); }
     .btn.p2:hover { background: rgba(255,122,24,0.14); box-shadow: 0 0 22px rgba(255,122,24,0.35); }
     .btn.ghost { border-color: rgba(255,255,255,0.18); background: transparent; color: #90a0c0; min-width: 0; padding: 12px 22px; }
+    .ai-row { display: flex; flex-direction: column; align-items: center; margin: 2px 0; }
+    .ai-label { color: #7f8bb0; font-size: 0.68rem; letter-spacing: 2px; margin-bottom: 2px; }
+    .btn.ai { min-width: 0; padding: 12px 20px; margin: 4px; font-size: clamp(0.7rem, 2.6vw, 0.85rem); }
+    .btn.ai[data-ai="medium"] { border-color: rgba(255,214,60,0.5); color: #ffe58a; background: rgba(255,214,60,0.06); }
+    .btn.ai[data-ai="medium"]:hover { background: rgba(255,214,60,0.14); box-shadow: 0 0 22px rgba(255,214,60,0.35); }
+    .btn.ai[data-ai="hard"] { border-color: rgba(255,80,120,0.5); color: #ff9ab5; background: rgba(255,80,120,0.06); }
+    .btn.ai[data-ai="hard"]:hover { background: rgba(255,80,120,0.14); box-shadow: 0 0 22px rgba(255,80,120,0.35); }
 
     .controls-hint {
       margin-top: 26px; color: #6c78a0; font-size: 0.72rem; letter-spacing: 1px; line-height: 1.9; max-width: 460px;
@@ -148,11 +155,19 @@
     <h1 class="title">NEON CYCLES</h1>
     <div class="subtitle">LEAVE A TRAIL · BOX THEM IN · BE THE LAST RIDING</div>
     <button class="btn" data-mode="2p">2-PLAYER LOCAL · BEST OF 5</button>
+    <div class="ai-row">
+      <span class="ai-label">VS AI · BEST OF 5</span>
+      <div>
+        <button class="btn ai" data-ai="easy">EASY</button>
+        <button class="btn ai" data-ai="medium">MEDIUM</button>
+        <button class="btn ai" data-ai="hard">HARD</button>
+      </div>
+    </div>
     <button class="btn p2" data-mode="solo">SOLO PRACTICE</button>
     <div class="controls-hint">
       <b class="k">Player 1</b> — W A S D &nbsp;·&nbsp; <b class="k2">Player 2</b> — Arrow keys<br>
-      First to 3 rounds takes the match &nbsp;·&nbsp; Esc to pause<br>
-      Solo on touch: tap <b>left</b>/<b>right</b> to steer
+      Vs AI &amp; solo: WASD, arrows or touch — you ride <b class="k">cyan</b><br>
+      First to 3 rounds takes the match &nbsp;·&nbsp; Esc to pause
     </div>
     <div class="tag-working">WORKING TITLE · PHASE 0 PROTOTYPE</div>
   </div>
@@ -182,7 +197,7 @@
     <button class="btn ghost" id="menu-btn">MENU</button>
   </div>
 
-  <div id="nc-version">v0.2.0-p0</div>
+  <div id="nc-version">v0.3.0-p0</div>
 
   <div id="seo-content">
     <h1>Neon Cycles — Light-Cycle Arcade Game</h1>
@@ -191,10 +206,11 @@
 
   <script src="/sdk/gamevolt.js" data-game="neon-cycles"></script>
   <script src="nc-core.js"></script>
+  <script src="nc-ai.js"></script>
   <script>
   (function () {
     'use strict';
-    var VERSION = '0.2.0-p0';
+    var VERSION = '0.3.0-p0';
     var COLS = 64, ROWS = 40, TICK_MS = 70;
     var ROUNDS_TO_WIN = 3;
     var MAX_PARTICLES = 400;
@@ -226,7 +242,8 @@
     };
 
     var state = 'menu';   // menu | countdown | playing | roundend | paused | over
-    var mode = '2p';      // 2p | solo
+    var mode = '2p';      // 2p | ai | solo
+    var aiLevel = 'medium';
     var game = null;
     var acc = 0, last = 0, cell = 16;
     var soloTicks = 0;
@@ -511,7 +528,7 @@
       newGame();
       el.banner.classList.add('hidden');
       el.hud.classList.remove('hidden');
-      el.touch.classList.toggle('on', mode === 'solo');
+      el.touch.classList.toggle('on', mode === 'solo' || mode === 'ai');
       updateHud();
       draw(1);
       runCountdown(quick);
@@ -550,6 +567,9 @@
       if (mode === 'solo') {
         el.hud1.textContent = 'TIME ' + (soloTicks * TICK_MS / 1000).toFixed(1) + 's';
         el.hud2.textContent = 'BEST ' + (soloBest * TICK_MS / 1000).toFixed(1) + 's';
+      } else if (mode === 'ai') {
+        el.hud1.textContent = 'YOU ' + pips(wins[1]);
+        el.hud2.textContent = pips(wins[2]) + ' AI·' + aiLevel.toUpperCase();
       } else {
         el.hud1.textContent = 'P1 ' + pips(wins[1]);
         el.hud2.textContent = pips(wins[2]) + ' P2';
@@ -565,6 +585,10 @@
         acc += dt;
         while (acc >= TICK_MS) {
           acc -= TICK_MS;
+          if (mode === 'ai' && window.NCAi) {
+            var aid = NCAi.decide(game, 2, aiLevel);
+            if (aid !== null) NCCore.setDir(game, 2, aid);
+          }
           var res = NCCore.step(game);
           if (res.deaths.length) res.deaths.forEach(spawnCrash);
           if (mode === 'solo' && !game.over) soloTicks++;
@@ -592,7 +616,11 @@
           el.rbTitle.textContent = 'DOUBLE CRASH';
           el.rbTitle.className = 'rb-title';
         } else {
-          el.rbTitle.textContent = 'PLAYER ' + w + ' TAKES ROUND ' + roundNum;
+          if (mode === 'ai') {
+            el.rbTitle.textContent = (w === 1 ? 'YOU TAKE' : 'AI TAKES') + ' ROUND ' + roundNum;
+          } else {
+            el.rbTitle.textContent = 'PLAYER ' + w + ' TAKES ROUND ' + roundNum;
+          }
           el.rbTitle.className = 'rb-title ' + (w === 1 ? 'p1c' : 'p2c');
         }
         el.rbScore.innerHTML = '<span class="s1">' + wins[1] + '</span> — <span class="s2">' + wins[2] + '</span>';
@@ -619,8 +647,13 @@
         if (window.GameVolt) GameVolt.leaderboard.submit(soloTicks, { mode: 'solo' });
       } else {
         var w = wins[1] >= ROUNDS_TO_WIN ? 1 : 2;
-        el.endIcon.textContent = '🏆';
-        el.endTitle.textContent = 'PLAYER ' + w + ' WINS THE MATCH';
+        if (mode === 'ai') {
+          el.endIcon.textContent = w === 1 ? '🏆' : '🤖';
+          el.endTitle.textContent = w === 1 ? 'YOU WIN THE MATCH' : 'AI WINS THE MATCH';
+        } else {
+          el.endIcon.textContent = '🏆';
+          el.endTitle.textContent = 'PLAYER ' + w + ' WINS THE MATCH';
+        }
         el.endTitle.className = 'modal-title ' + (w === 1 ? 'win1' : 'win2');
         el.endSub.textContent = 'Final score ' + wins[1] + ' — ' + wins[2] + ' · first to ' + ROUNDS_TO_WIN;
       }
@@ -673,7 +706,7 @@
       if (!m) return;
       e.preventDefault();
       var pid = m[0];
-      if (mode === 'solo') pid = 1; // arrows also drive the solo cycle
+      if (mode === 'solo' || mode === 'ai') pid = 1; // arrows drive your cycle vs AI / solo
       NCCore.setDir(game, pid, m[1]);
     }, { passive: false });
 
@@ -689,13 +722,16 @@
     Array.prototype.forEach.call(el.touch.querySelectorAll('.z'), function (z) {
       z.addEventListener('touchstart', function (e) {
         e.preventDefault();
-        if (state === 'playing' && mode === 'solo') turnRelative(1, z.dataset.turn);
+        if (state === 'playing' && (mode === 'solo' || mode === 'ai')) turnRelative(1, z.dataset.turn);
       }, { passive: false });
     });
 
     // ---------- buttons ----------
     Array.prototype.forEach.call(document.querySelectorAll('[data-mode]'), function (b) {
       b.addEventListener('click', function () { startMatch(b.dataset.mode); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ai]'), function (b) {
+      b.addEventListener('click', function () { aiLevel = b.dataset.ai; startMatch('ai'); });
     });
     document.getElementById('again-btn').addEventListener('click', function () { startMatch(mode); });
     document.getElementById('menu-btn').addEventListener('click', toMenu);
