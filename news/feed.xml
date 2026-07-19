@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Sat, 18 Jul 2026 15:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 19 Jul 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>Connect 4 goes online — play a friend with a room code</title>
+      <link>https://gamevolt.io/news/connect4-online-multiplayer/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/connect4-online-multiplayer/</guid>
+      <pubDate>Sun, 19 Jul 2026 12:00:00 GMT</pubDate>
+      <description>Connect 4 now has online multiplayer. Create a room, share the 4-character code, and play a friend on any device — no signup, no app — plus rematches in the same room.</description>
+    </item>
 
     <item>
       <title>Breakout: Neon Drift — the brick breaker with a twist</title>
