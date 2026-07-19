@@ -197,8 +197,8 @@
     };
 
     var COLORS = {
-      1: { trail: 'rgba(0,234,255,0.85)', head: '#eaffff', glow: '#00eaff' },
-      2: { trail: 'rgba(255,122,24,0.85)', head: '#fff2e6', glow: '#ff7a18' }
+      1: { core: '#dffdff', ribbon: 'rgba(0,234,255,0.9)', glow: '#00eaff', body: '#04121a' },
+      2: { core: '#fff1e0', ribbon: 'rgba(255,122,24,0.92)', glow: '#ff7a18', body: '#1a0d04' }
     };
 
     var state = 'menu';   // menu | countdown | playing | paused | over
@@ -223,43 +223,112 @@
     window.addEventListener('resize', resize);
 
     // ---------- rendering ----------
-    function draw() {
-      var gw = cell * COLS, gh = cell * ROWS;
-      ctx.fillStyle = '#05060f';
-      ctx.fillRect(0, 0, gw, gh);
+    // Cell centre in pixels (cells are square, so this works for x and y).
+    function cc2px(v) { return (v + 0.5) * cell; }
 
-      // grid
-      ctx.strokeStyle = 'rgba(0,234,255,0.05)';
-      ctx.lineWidth = 1;
+    function roundRect(x, y, w, h, r) {
       ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function drawFloor() {
+      var gw = cell * COLS, gh = cell * ROWS;
+      var bg = ctx.createLinearGradient(0, 0, 0, gh);
+      bg.addColorStop(0, '#05070f'); bg.addColorStop(1, '#010207');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, gw, gh);
+
+      // faint Tron floor grid
+      ctx.strokeStyle = 'rgba(70,130,170,0.055)';
+      ctx.lineWidth = 1; ctx.beginPath();
       for (var x = 0; x <= COLS; x++) { ctx.moveTo(x * cell + 0.5, 0); ctx.lineTo(x * cell + 0.5, gh); }
       for (var y = 0; y <= ROWS; y++) { ctx.moveTo(0, y * cell + 0.5); ctx.lineTo(gw, y * cell + 0.5); }
       ctx.stroke();
 
-      // border glow
-      ctx.strokeStyle = 'rgba(0,234,255,0.25)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(1, 1, gw - 2, gh - 2);
+      // vignette
+      var vg = ctx.createRadialGradient(gw / 2, gh / 2, Math.min(gw, gh) * 0.28, gw / 2, gh / 2, Math.max(gw, gh) * 0.72);
+      vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.6)');
+      ctx.fillStyle = vg; ctx.fillRect(0, 0, gw, gh);
 
-      if (!game) return;
-
-      // trails (flat) then heads (glow)
+      // neon arena border
+      ctx.shadowBlur = 14; ctx.shadowColor = '#00eaff';
+      ctx.strokeStyle = 'rgba(0,234,255,0.45)'; ctx.lineWidth = 2;
+      ctx.strokeRect(1.5, 1.5, gw - 3, gh - 3);
       ctx.shadowBlur = 0;
+    }
+
+    function trailPath(p, hx, hy) {
+      var tr = p.trail, n = tr.length;
+      ctx.beginPath();
+      ctx.moveTo(cc2px(tr[0][0]), cc2px(tr[0][1]));
+      for (var i = 1; i <= n - 2; i++) ctx.lineTo(cc2px(tr[i][0]), cc2px(tr[i][1]));
+      ctx.lineTo(hx, hy); // extend to the interpolated head
+    }
+
+    function drawTrail(p, hx, hy, c) {
+      if (p.trail.length < 2) return;
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      // soft outer light-wall glow
+      ctx.shadowBlur = Math.max(8, cell * 1.1); ctx.shadowColor = c.glow;
+      ctx.strokeStyle = c.ribbon; ctx.lineWidth = Math.max(3, cell * 0.5);
+      trailPath(p, hx, hy); ctx.stroke();
+      // bright inner core
+      ctx.shadowBlur = Math.max(4, cell * 0.5);
+      ctx.strokeStyle = c.core; ctx.lineWidth = Math.max(1.5, cell * 0.16);
+      trailPath(p, hx, hy); ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    var ANG = { 0: -Math.PI / 2, 1: 0, 2: Math.PI / 2, 3: Math.PI };
+    function drawCycle(hx, hy, dir, c) {
+      var L = cell * 2.1, W = cell * 1.0, wr = cell * 0.42;
+      ctx.save();
+      ctx.translate(hx, hy); ctx.rotate(ANG[dir]);
+      // glowing wheels
+      ctx.shadowBlur = cell * 1.4; ctx.shadowColor = c.glow;
+      ctx.fillStyle = c.glow;
+      ctx.beginPath(); ctx.arc(-L * 0.32, 0, wr, 0, 6.29); ctx.fill();
+      ctx.beginPath(); ctx.arc(L * 0.32, 0, wr, 0, 6.29); ctx.fill();
+      // dark aerodynamic body with neon edge
+      ctx.shadowBlur = cell * 0.55;
+      ctx.fillStyle = c.body;
+      roundRect(-L * 0.42, -W * 0.32, L * 0.84, W * 0.64, cell * 0.3); ctx.fill();
+      ctx.lineWidth = Math.max(1, cell * 0.09); ctx.strokeStyle = c.glow; ctx.stroke();
+      // wheel hubs + headlight
+      ctx.shadowBlur = cell * 0.4; ctx.fillStyle = c.core;
+      ctx.beginPath(); ctx.arc(-L * 0.32, 0, wr * 0.46, 0, 6.29); ctx.fill();
+      ctx.beginPath(); ctx.arc(L * 0.32, 0, wr * 0.46, 0, 6.29); ctx.fill();
+      ctx.beginPath(); ctx.arc(L * 0.52, 0, cell * 0.16, 0, 6.29); ctx.fill();
+      ctx.restore();
+      ctx.shadowBlur = 0;
+    }
+
+    function draw(alpha) {
+      if (alpha == null) alpha = 1;
+      drawFloor();
+      if (!game) return;
       for (var i = 0; i < game.players.length; i++) {
         var p = game.players[i], c = COLORS[p.id];
-        ctx.fillStyle = c.trail;
-        for (var t = 0; t < p.trail.length; t++) {
-          ctx.fillRect(p.trail[t][0] * cell + 1, p.trail[t][1] * cell + 1, cell - 2, cell - 2);
+        var n = p.trail.length;
+        var cur = p.trail[n - 1];
+        var prev = n >= 2 ? p.trail[n - 2] : cur;
+        var a = p.alive ? alpha : 1;
+        var hx = cc2px(prev[0]) + (cc2px(cur[0]) - cc2px(prev[0])) * a;
+        var hy = cc2px(prev[1]) + (cc2px(cur[1]) - cc2px(prev[1])) * a;
+        drawTrail(p, hx, hy, c);
+        if (p.alive) {
+          drawCycle(hx, hy, p.dir, c);
+        } else {
+          // crash burst
+          ctx.shadowBlur = cell * 1.6; ctx.shadowColor = c.glow; ctx.fillStyle = c.core;
+          ctx.beginPath(); ctx.arc(cc2px(cur[0]), cc2px(cur[1]), cell * 0.55, 0, 6.29); ctx.fill();
+          ctx.shadowBlur = 0;
         }
       }
-      for (var j = 0; j < game.players.length; j++) {
-        var pl = game.players[j], cc = COLORS[pl.id];
-        if (!pl.alive) continue;
-        ctx.shadowBlur = 16; ctx.shadowColor = cc.glow;
-        ctx.fillStyle = cc.head;
-        ctx.fillRect(pl.x * cell, pl.y * cell, cell, cell);
-      }
-      ctx.shadowBlur = 0;
     }
 
     // ---------- match flow ----------
@@ -325,10 +394,10 @@
         acc -= TICK_MS;
         NCCore.step(game);
         if (mode === 'solo' && !game.over) soloTicks++;
-        if (game.over) { endMatch(); draw(); return; }
+        if (game.over) { draw(1); endMatch(); return; }
       }
       if (mode === 'solo') updateHud();
-      draw();
+      draw(acc / TICK_MS);
       requestAnimationFrame(loop);
     }
 
