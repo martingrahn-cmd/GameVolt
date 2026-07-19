@@ -84,10 +84,22 @@
       pointer-events: none; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none;
     }
     #countdown .cd {
-      font-weight: 900; font-size: clamp(4rem, 22vw, 12rem);
-      color: #fff; text-shadow: 0 0 40px var(--p1), 0 0 80px var(--p1); animation: pop .7s ease-out;
+      font-weight: 900; font-size: clamp(3rem, 16vw, 9rem);
+      color: #fff; text-shadow: 0 0 40px var(--p1), 0 0 80px var(--p1); animation: pop .55s ease-out;
     }
     @keyframes pop { 0% { transform: scale(0.4); opacity: 0; } 40% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+
+    /* Round banner (between rounds) */
+    #round-banner { pointer-events: none; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+    .rb-title {
+      font-weight: 900; font-size: clamp(1.4rem, 6vw, 2.8rem); letter-spacing: 3px;
+      color: #fff; text-shadow: 0 0 30px rgba(255,255,255,0.4); animation: pop .5s ease-out;
+    }
+    .rb-title.p1c { color: var(--p1-soft); text-shadow: 0 0 34px var(--p1); }
+    .rb-title.p2c { color: var(--p2-soft); text-shadow: 0 0 34px var(--p2); }
+    .rb-score { margin-top: 12px; font-weight: 700; font-size: clamp(1.1rem, 5vw, 2rem); letter-spacing: 8px; color: #cfe6ff; }
+    .rb-score .s1 { color: var(--p1-soft); text-shadow: 0 0 16px var(--p1); }
+    .rb-score .s2 { color: var(--p2-soft); text-shadow: 0 0 16px var(--p2); }
 
     .modal-icon { font-size: 3rem; margin-bottom: 8px; }
     .modal-title { font-weight: 900; font-size: clamp(1.6rem, 6vw, 2.6rem); letter-spacing: 2px; margin-bottom: 8px; }
@@ -98,7 +110,7 @@
     /* ---- HUD ---- */
     #hud {
       position: fixed; top: 0; left: 0; right: 0; z-index: 3; display: flex; justify-content: space-between;
-      padding: 10px 16px; font-weight: 700; letter-spacing: 2px; font-size: clamp(0.7rem, 3vw, 1rem);
+      padding: 10px 16px; font-weight: 700; letter-spacing: 3px; font-size: clamp(0.7rem, 3vw, 1rem);
       pointer-events: none;
     }
     #hud.hidden { display: none; }
@@ -135,17 +147,24 @@
   <div id="menu" class="overlay">
     <h1 class="title">NEON CYCLES</h1>
     <div class="subtitle">LEAVE A TRAIL · BOX THEM IN · BE THE LAST RIDING</div>
-    <button class="btn" data-mode="2p">2-PLAYER LOCAL</button>
+    <button class="btn" data-mode="2p">2-PLAYER LOCAL · BEST OF 5</button>
     <button class="btn p2" data-mode="solo">SOLO PRACTICE</button>
     <div class="controls-hint">
       <b class="k">Player 1</b> — W A S D &nbsp;·&nbsp; <b class="k2">Player 2</b> — Arrow keys<br>
-      Solo on touch: tap <b>left</b>/<b>right</b> to steer &nbsp;·&nbsp; Esc to pause
+      First to 3 rounds takes the match &nbsp;·&nbsp; Esc to pause<br>
+      Solo on touch: tap <b>left</b>/<b>right</b> to steer
     </div>
     <div class="tag-working">WORKING TITLE · PHASE 0 PROTOTYPE</div>
   </div>
 
   <!-- Countdown -->
   <div id="countdown" class="overlay hidden"><div class="cd" id="cd-num">3</div></div>
+
+  <!-- Round banner -->
+  <div id="round-banner" class="overlay hidden">
+    <div class="rb-title" id="rb-title"></div>
+    <div class="rb-score" id="rb-score"></div>
+  </div>
 
   <!-- Pause -->
   <div id="pause" class="overlay hidden">
@@ -163,11 +182,11 @@
     <button class="btn ghost" id="menu-btn">MENU</button>
   </div>
 
-  <div id="nc-version">v0.1.0-p0</div>
+  <div id="nc-version">v0.2.0-p0</div>
 
   <div id="seo-content">
     <h1>Neon Cycles — Light-Cycle Arcade Game</h1>
-    <p>A Tron-inspired light-cycle game: ride a glowing cycle that leaves a solid trail, force your opponent to crash, and be the last one riding. Local 2-player and solo practice. (Online multiplayer coming soon.)</p>
+    <p>A Tron-inspired light-cycle game: ride a glowing cycle that leaves a solid trail, force your opponent to crash, and be the last one riding. Local 2-player (best of 5) and solo practice. (Online multiplayer coming soon.)</p>
   </div>
 
   <script src="/sdk/gamevolt.js" data-game="neon-cycles"></script>
@@ -175,8 +194,10 @@
   <script>
   (function () {
     'use strict';
-    var VERSION = '0.1.0-p0';
-    var COLS = 48, ROWS = 32, TICK_MS = 70;
+    var VERSION = '0.2.0-p0';
+    var COLS = 64, ROWS = 40, TICK_MS = 70;
+    var ROUNDS_TO_WIN = 3;
+    var MAX_PARTICLES = 400;
 
     var canvas = document.getElementById('game');
     var ctx = canvas.getContext('2d');
@@ -185,6 +206,9 @@
       menu: document.getElementById('menu'),
       countdown: document.getElementById('countdown'),
       cdNum: document.getElementById('cd-num'),
+      banner: document.getElementById('round-banner'),
+      rbTitle: document.getElementById('rb-title'),
+      rbScore: document.getElementById('rb-score'),
       pause: document.getElementById('pause'),
       end: document.getElementById('end'),
       endIcon: document.getElementById('end-icon'),
@@ -201,12 +225,26 @@
       2: { core: '#fff1e0', ribbon: 'rgba(255,122,24,0.92)', glow: '#ff7a18', body: '#1a0d04' }
     };
 
-    var state = 'menu';   // menu | countdown | playing | paused | over
+    var state = 'menu';   // menu | countdown | playing | roundend | paused | over
     var mode = '2p';      // 2p | solo
     var game = null;
-    var acc = 0, last = 0, cell = 16, offX = 0, offY = 0;
+    var acc = 0, last = 0, cell = 16;
     var soloTicks = 0;
     var soloBest = parseInt(localStorage.getItem('ncSoloBest') || '0', 10);
+    var wins = { 1: 0, 2: 0 };
+    var roundNum = 1;
+    var particles = [];
+    var shakeT = 0;
+    var scanPat = null;
+    var timers = [];
+
+    function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+    function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+    function hexA(hex, a) {
+      var r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+      return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    }
 
     // ---------- layout ----------
     function resize() {
@@ -217,13 +255,18 @@
       canvas.width = gw * dpr; canvas.height = gh * dpr;
       canvas.style.width = gw + 'px'; canvas.style.height = gh + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      offX = 0; offY = 0;
-      draw();
+      // CRT scanline pattern (1 dark line every 3 css px)
+      var sc = document.createElement('canvas');
+      sc.width = 1; sc.height = 3;
+      var sg = sc.getContext('2d');
+      sg.fillStyle = 'rgba(0,0,0,0.16)';
+      sg.fillRect(0, 0, 1, 1);
+      scanPat = ctx.createPattern(sc, 'repeat');
+      draw(1);
     }
     window.addEventListener('resize', resize);
 
     // ---------- rendering ----------
-    // Cell centre in pixels (cells are square, so this works for x and y).
     function cc2px(v) { return (v + 0.5) * cell; }
 
     function roundRect(x, y, w, h, r) {
@@ -247,6 +290,12 @@
       ctx.lineWidth = 1; ctx.beginPath();
       for (var x = 0; x <= COLS; x++) { ctx.moveTo(x * cell + 0.5, 0); ctx.lineTo(x * cell + 0.5, gh); }
       for (var y = 0; y <= ROWS; y++) { ctx.moveTo(0, y * cell + 0.5); ctx.lineTo(gw, y * cell + 0.5); }
+      ctx.stroke();
+      // brighter major lines every 8 cells
+      ctx.strokeStyle = 'rgba(70,140,190,0.10)';
+      ctx.beginPath();
+      for (var mx = 0; mx <= COLS; mx += 8) { ctx.moveTo(mx * cell + 0.5, 0); ctx.lineTo(mx * cell + 0.5, gh); }
+      for (var my = 0; my <= ROWS; my += 8) { ctx.moveTo(0, my * cell + 0.5); ctx.lineTo(gw, my * cell + 0.5); }
       ctx.stroke();
 
       // vignette
@@ -285,54 +334,158 @@
 
     var ANG = { 0: -Math.PI / 2, 1: 0, 2: Math.PI / 2, 3: Math.PI };
     function drawCycle(hx, hy, dir, c) {
-      var L = cell * 2.1, W = cell * 1.0, wr = cell * 0.42;
+      var L = cell * 2.4, W = cell * 1.1, wr = cell * 0.46;
       ctx.save();
       ctx.translate(hx, hy); ctx.rotate(ANG[dir]);
-      // glowing wheels
-      ctx.shadowBlur = cell * 1.4; ctx.shadowColor = c.glow;
-      ctx.fillStyle = c.glow;
-      ctx.beginPath(); ctx.arc(-L * 0.32, 0, wr, 0, 6.29); ctx.fill();
-      ctx.beginPath(); ctx.arc(L * 0.32, 0, wr, 0, 6.29); ctx.fill();
-      // dark aerodynamic body with neon edge
-      ctx.shadowBlur = cell * 0.55;
+
+      // speed streak trailing off behind the bike (additive)
+      ctx.globalCompositeOperation = 'lighter';
+      var g = ctx.createLinearGradient(-L * 1.9, 0, L * 0.1, 0);
+      g.addColorStop(0, 'rgba(0,0,0,0)');
+      g.addColorStop(1, hexA(c.glow, 0.4));
+      ctx.fillStyle = g;
+      roundRect(-L * 1.9, -W * 0.24, L * 2.0, W * 0.48, W * 0.24); ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+
+      // low-slung dark body spanning the wheels, neon-edged
+      ctx.shadowBlur = cell * 0.6; ctx.shadowColor = c.glow;
       ctx.fillStyle = c.body;
-      roundRect(-L * 0.42, -W * 0.32, L * 0.84, W * 0.64, cell * 0.3); ctx.fill();
-      ctx.lineWidth = Math.max(1, cell * 0.09); ctx.strokeStyle = c.glow; ctx.stroke();
-      // wheel hubs + headlight
-      ctx.shadowBlur = cell * 0.4; ctx.fillStyle = c.core;
-      ctx.beginPath(); ctx.arc(-L * 0.32, 0, wr * 0.46, 0, 6.29); ctx.fill();
-      ctx.beginPath(); ctx.arc(L * 0.32, 0, wr * 0.46, 0, 6.29); ctx.fill();
-      ctx.beginPath(); ctx.arc(L * 0.52, 0, cell * 0.16, 0, 6.29); ctx.fill();
+      roundRect(-L * 0.46, -W * 0.30, L * 0.92, W * 0.60, W * 0.30); ctx.fill();
+      ctx.lineWidth = Math.max(1, cell * 0.08); ctx.strokeStyle = c.glow; ctx.stroke();
+
+      // wheels: dark tire + glowing rim ring + bright hub
+      var wx = [-L * 0.33, L * 0.33];
+      for (var i = 0; i < 2; i++) {
+        ctx.shadowBlur = cell * 1.3; ctx.shadowColor = c.glow;
+        ctx.fillStyle = '#04080e';
+        ctx.beginPath(); ctx.arc(wx[i], 0, wr, 0, 6.29); ctx.fill();
+        ctx.lineWidth = Math.max(1.5, cell * 0.15); ctx.strokeStyle = c.glow;
+        ctx.beginPath(); ctx.arc(wx[i], 0, wr * 0.8, 0, 6.29); ctx.stroke();
+        ctx.shadowBlur = cell * 0.4;
+        ctx.fillStyle = c.core;
+        ctx.beginPath(); ctx.arc(wx[i], 0, wr * 0.22, 0, 6.29); ctx.fill();
+      }
+
+      // canopy highlight
+      ctx.shadowBlur = cell * 0.5; ctx.shadowColor = c.glow;
+      ctx.fillStyle = hexA(c.glow, 0.85);
+      roundRect(-L * 0.06, -W * 0.15, L * 0.30, W * 0.30, W * 0.15); ctx.fill();
+
+      // headlight
+      ctx.shadowBlur = cell * 0.9; ctx.fillStyle = c.core;
+      ctx.beginPath(); ctx.arc(L * 0.5, 0, cell * 0.14, 0, 6.29); ctx.fill();
+
       ctx.restore();
       ctx.shadowBlur = 0;
     }
 
-    function draw(alpha) {
-      if (alpha == null) alpha = 1;
-      drawFloor();
+    // ---------- particles & shake ----------
+    function spawnExhaust() {
       if (!game) return;
       for (var i = 0; i < game.players.length; i++) {
-        var p = game.players[i], c = COLORS[p.id];
-        var n = p.trail.length;
-        var cur = p.trail[n - 1];
-        var prev = n >= 2 ? p.trail[n - 2] : cur;
-        var a = p.alive ? alpha : 1;
-        var hx = cc2px(prev[0]) + (cc2px(cur[0]) - cc2px(prev[0])) * a;
-        var hy = cc2px(prev[1]) + (cc2px(cur[1]) - cc2px(prev[1])) * a;
-        drawTrail(p, hx, hy, c);
-        if (p.alive) {
-          drawCycle(hx, hy, p.dir, c);
-        } else {
-          // crash burst
-          ctx.shadowBlur = cell * 1.6; ctx.shadowColor = c.glow; ctx.fillStyle = c.core;
-          ctx.beginPath(); ctx.arc(cc2px(cur[0]), cc2px(cur[1]), cell * 0.55, 0, 6.29); ctx.fill();
-          ctx.shadowBlur = 0;
+        var p = game.players[i];
+        if (!p.alive) continue;
+        var c = COLORS[p.id];
+        var bx = cc2px(p.x) - NCCore.DX[p.dir] * cell * 1.3;
+        var by = cc2px(p.y) - NCCore.DY[p.dir] * cell * 1.3;
+        for (var k = 0; k < 2; k++) {
+          if (particles.length >= MAX_PARTICLES) return;
+          particles.push({
+            x: bx + (Math.random() - 0.5) * cell * 0.5,
+            y: by + (Math.random() - 0.5) * cell * 0.5,
+            vx: -NCCore.DX[p.dir] * (0.02 + Math.random() * 0.03) + (Math.random() - 0.5) * 0.02,
+            vy: -NCCore.DY[p.dir] * (0.02 + Math.random() * 0.03) + (Math.random() - 0.5) * 0.02,
+            life: 260 + Math.random() * 140, max: 400,
+            col: c.glow, r: 0.8 + Math.random() * 1.6
+          });
         }
       }
     }
 
-    // ---------- match flow ----------
+    function spawnCrash(id) {
+      var p = null;
+      for (var i = 0; i < game.players.length; i++) if (game.players[i].id === id) p = game.players[i];
+      if (!p) return;
+      var c = COLORS[id];
+      var cx = cc2px(p.x), cy = cc2px(p.y);
+      for (var k = 0; k < 30; k++) {
+        if (particles.length >= MAX_PARTICLES) break;
+        var ang = Math.random() * Math.PI * 2;
+        var sp = 0.05 + Math.random() * 0.28;
+        particles.push({
+          x: cx, y: cy,
+          vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
+          life: 420 + Math.random() * 460, max: 880,
+          col: Math.random() > 0.35 ? c.glow : '#ffffff',
+          r: 1 + Math.random() * 2.6
+        });
+      }
+      shakeT = 300;
+    }
+
+    function updateParticles(dt) {
+      for (var i = particles.length - 1; i >= 0; i--) {
+        var p = particles[i];
+        p.life -= dt;
+        if (p.life <= 0) { particles.splice(i, 1); continue; }
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        p.vx *= 0.985; p.vy *= 0.985;
+      }
+    }
+
+    function drawParticles() {
+      if (!particles.length) return;
+      ctx.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < particles.length; i++) {
+        var p = particles[i];
+        var a = Math.max(0, Math.min(1, p.life / p.max));
+        ctx.fillStyle = hexA(p.col, a * 0.9);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r * (0.5 + a * 0.7), 0, 6.29);
+        ctx.fill();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    function draw(alpha) {
+      if (alpha == null) alpha = 1;
+      var gw = cell * COLS, gh = cell * ROWS;
+      ctx.save();
+      if (shakeT > 0) {
+        var m = 6 * (shakeT / 300);
+        ctx.translate((Math.random() - 0.5) * m, (Math.random() - 0.5) * m);
+      }
+      drawFloor();
+      if (game) {
+        for (var i = 0; i < game.players.length; i++) {
+          var p = game.players[i], c = COLORS[p.id];
+          var n = p.trail.length;
+          var cur = p.trail[n - 1];
+          var prev = n >= 2 ? p.trail[n - 2] : cur;
+          var a = p.alive ? alpha : 1;
+          var hx = cc2px(prev[0]) + (cc2px(cur[0]) - cc2px(prev[0])) * a;
+          var hy = cc2px(prev[1]) + (cc2px(cur[1]) - cc2px(prev[1])) * a;
+          drawTrail(p, hx, hy, c);
+          if (p.alive) {
+            drawCycle(hx, hy, p.dir, c);
+          } else {
+            // fading ember at the crash site
+            ctx.shadowBlur = cell * 1.4; ctx.shadowColor = c.glow; ctx.fillStyle = c.core;
+            ctx.beginPath(); ctx.arc(cc2px(cur[0]), cc2px(cur[1]), cell * 0.4, 0, 6.29); ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+        }
+        drawParticles();
+      }
+      ctx.restore();
+      // CRT scanlines on top of everything
+      if (scanPat) { ctx.fillStyle = scanPat; ctx.fillRect(0, 0, gw, gh); }
+    }
+
+    // ---------- match / round flow ----------
     function newGame() {
+      particles = [];
+      shakeT = 0;
       if (mode === 'solo') {
         game = NCCore.createGame({ cols: COLS, rows: ROWS, players: [
           { id: 1, x: Math.floor(COLS * 0.5), y: Math.floor(ROWS * 0.5), dir: 1 }
@@ -345,20 +498,30 @@
 
     function startMatch(m) {
       mode = m;
-      newGame();
+      clearTimers();
+      wins = { 1: 0, 2: 0 };
+      roundNum = 1;
       el.menu.classList.add('hidden');
       el.end.classList.add('hidden');
       el.pause.classList.add('hidden');
+      startRound(false);
+    }
+
+    function startRound(quick) {
+      newGame();
+      el.banner.classList.add('hidden');
       el.hud.classList.remove('hidden');
       el.touch.classList.toggle('on', mode === 'solo');
       updateHud();
-      draw();
-      runCountdown();
+      draw(1);
+      runCountdown(quick);
     }
 
-    function runCountdown() {
+    function runCountdown(quick) {
       state = 'countdown';
-      var seq = ['3', '2', '1', 'GO'], i = 0;
+      var seq = quick ? ['READY', 'GO'] : ['3', '2', '1', 'GO'];
+      var stepMs = quick ? 550 : 700;
+      var i = 0;
       el.countdown.classList.remove('hidden');
       el.cdNum.textContent = seq[0];
       var iv = setInterval(function () {
@@ -373,7 +536,14 @@
         }
         el.cdNum.textContent = seq[i];
         el.cdNum.style.animation = 'none'; void el.cdNum.offsetWidth; el.cdNum.style.animation = '';
-      }, 700);
+      }, stepMs);
+      timers.push(iv); // timeout & interval ids share one pool, so clearTimers() clears this too
+    }
+
+    function pips(w) {
+      var s = '';
+      for (var i = 0; i < ROUNDS_TO_WIN; i++) s += i < w ? '●' : '○';
+      return s;
     }
 
     function updateHud() {
@@ -381,30 +551,65 @@
         el.hud1.textContent = 'TIME ' + (soloTicks * TICK_MS / 1000).toFixed(1) + 's';
         el.hud2.textContent = 'BEST ' + (soloBest * TICK_MS / 1000).toFixed(1) + 's';
       } else {
-        el.hud1.textContent = 'P1';
-        el.hud2.textContent = 'P2';
+        el.hud1.textContent = 'P1 ' + pips(wins[1]);
+        el.hud2.textContent = pips(wins[2]) + ' P2';
       }
     }
 
     function loop(ts) {
-      if (state !== 'playing') return;
+      if (state !== 'playing' && state !== 'roundend') return;
       if (!last) last = ts;
-      acc += ts - last; last = ts;
-      while (acc >= TICK_MS) {
-        acc -= TICK_MS;
-        NCCore.step(game);
-        if (mode === 'solo' && !game.over) soloTicks++;
-        if (game.over) { draw(1); endMatch(); return; }
+      var dt = ts - last; last = ts;
+
+      if (state === 'playing') {
+        acc += dt;
+        while (acc >= TICK_MS) {
+          acc -= TICK_MS;
+          var res = NCCore.step(game);
+          if (res.deaths.length) res.deaths.forEach(spawnCrash);
+          if (mode === 'solo' && !game.over) soloTicks++;
+          spawnExhaust();
+          if (game.over) { state = 'roundend'; onRoundOver(); break; }
+        }
       }
-      if (mode === 'solo') updateHud();
-      draw(acc / TICK_MS);
+
+      updateParticles(dt);
+      if (shakeT > 0) shakeT = Math.max(0, shakeT - dt);
+      if (mode === 'solo' && state === 'playing') updateHud();
+      draw(state === 'playing' ? acc / TICK_MS : 1);
       requestAnimationFrame(loop);
+    }
+
+    function onRoundOver() {
+      // Let the crash burst play out before resolving the round.
+      later(function () {
+        if (mode === 'solo') { endMatch(); return; }
+        var w = game.winner;
+        if (w !== 0) { wins[w]++; updateHud(); }
+        if (w !== 0 && wins[w] >= ROUNDS_TO_WIN) { endMatch(); return; }
+        // Round banner, then a snappy READY/GO into the next round.
+        if (w === 0) {
+          el.rbTitle.textContent = 'DOUBLE CRASH';
+          el.rbTitle.className = 'rb-title';
+        } else {
+          el.rbTitle.textContent = 'PLAYER ' + w + ' TAKES ROUND ' + roundNum;
+          el.rbTitle.className = 'rb-title ' + (w === 1 ? 'p1c' : 'p2c');
+        }
+        el.rbScore.innerHTML = '<span class="s1">' + wins[1] + '</span> — <span class="s2">' + wins[2] + '</span>';
+        el.banner.classList.remove('hidden');
+        later(function () {
+          el.banner.classList.add('hidden');
+          roundNum++; // draws count as a played round too
+          startRound(true);
+        }, 1400);
+      }, 900);
     }
 
     function endMatch() {
       state = 'over';
       el.hud.classList.add('hidden');
       el.touch.classList.remove('on');
+      el.banner.classList.add('hidden');
       if (mode === 'solo') {
         if (soloTicks > soloBest) { soloBest = soloTicks; localStorage.setItem('ncSoloBest', String(soloBest)); }
         el.endIcon.textContent = '💥';
@@ -412,29 +617,30 @@
         el.endTitle.className = 'modal-title';
         el.endSub.textContent = 'You survived ' + (soloTicks * TICK_MS / 1000).toFixed(1) + 's · best ' + (soloBest * TICK_MS / 1000).toFixed(1) + 's';
         if (window.GameVolt) GameVolt.leaderboard.submit(soloTicks, { mode: 'solo' });
-      } else if (game.winner === 0) {
-        el.endIcon.textContent = '🏁';
-        el.endTitle.textContent = 'DRAW';
-        el.endTitle.className = 'modal-title';
-        el.endSub.textContent = 'Both cycles crashed at once.';
       } else {
+        var w = wins[1] >= ROUNDS_TO_WIN ? 1 : 2;
         el.endIcon.textContent = '🏆';
-        el.endTitle.textContent = 'PLAYER ' + game.winner + ' WINS';
-        el.endTitle.className = 'modal-title ' + (game.winner === 1 ? 'win1' : 'win2');
-        el.endSub.textContent = 'Last cycle riding.';
+        el.endTitle.textContent = 'PLAYER ' + w + ' WINS THE MATCH';
+        el.endTitle.className = 'modal-title ' + (w === 1 ? 'win1' : 'win2');
+        el.endSub.textContent = 'Final score ' + wins[1] + ' — ' + wins[2] + ' · first to ' + ROUNDS_TO_WIN;
       }
       el.end.classList.remove('hidden');
     }
 
     function toMenu() {
       state = 'menu';
+      clearTimers();
       game = null;
+      particles = [];
+      shakeT = 0;
       el.end.classList.add('hidden');
       el.pause.classList.add('hidden');
+      el.banner.classList.add('hidden');
+      el.countdown.classList.add('hidden');
       el.hud.classList.add('hidden');
       el.touch.classList.remove('on');
       el.menu.classList.remove('hidden');
-      draw();
+      draw(1);
     }
 
     function togglePause() {
@@ -457,6 +663,11 @@
     };
     window.addEventListener('keydown', function (e) {
       if (e.code === 'Escape' && (state === 'playing' || state === 'paused')) { togglePause(); return; }
+      if (state === 'over' && (e.code === 'Enter' || e.code === 'Space')) {
+        e.preventDefault();
+        startMatch(mode);
+        return;
+      }
       if (state !== 'playing') return;
       var m = KEYMAP[e.code];
       if (!m) return;
@@ -497,6 +708,13 @@
     }
     document.getElementById('nc-version').textContent = 'v' + VERSION;
     console.log('%cNeon Cycles ' + VERSION + ' (Phase 0)', 'color:#00eaff');
+
+    // Dev/debug handle (read-only peek; also useful when wiring netcode later)
+    window.__NC_DEBUG = {
+      get state() { return state; },
+      get game() { return game; },
+      get wins() { return { 1: wins[1], 2: wins[2] }; }
+    };
 
     resize();
   })();
