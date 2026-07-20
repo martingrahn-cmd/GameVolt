@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Sun, 19 Jul 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 20 Jul 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>New game: Gridburn — Tron-style light-cycle duels, online</title>
+      <link>https://gamevolt.io/news/gridburn-launch/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/gridburn-launch/</guid>
+      <pubDate>Mon, 20 Jul 2026 12:00:00 GMT</pubDate>
+      <description>Gridburn is live: Tron-style light-cycle duels in a neon synthwave arena. Real-time online multiplayer with room codes and one-tap invite links, three AI difficulties, best-of-5 rounds and 31 trophies. Free in your browser.</description>
+    </item>
 
     <item>
       <title>Connect 4 goes online — play a friend with a room code</title>

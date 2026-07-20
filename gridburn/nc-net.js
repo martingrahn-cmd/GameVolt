@@ -1,5 +1,5 @@
 // ============================================================
-// nc-net.js — room-code online multiplayer transport for Neon Cycles.
+// nc-net.js — room-code online multiplayer transport for Gridburn.
 //
 // Same pattern as Connect 4's c4-net.js: a thin wrapper over Supabase
 // Realtime *broadcast* channels (ephemeral pub/sub — no tables, no RLS,
@@ -62,7 +62,7 @@
   function emit(event, data) { if (handlers[event]) { try { handlers[event](data); } catch (e) {} } }
 
   function subscribe(code) {
-    var ch = getClient().channel('nc-' + code, { config: { broadcast: { self: false } } });
+    var ch = getClient().channel('gb-' + code, { config: { broadcast: { self: false } } });
     ch.on('broadcast', { event: 'msg' }, function (m) { onMsg(m && m.payload); });
     return new Promise(function (resolve, reject) {
       var settled = false;

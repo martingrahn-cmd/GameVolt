@@ -131,7 +131,7 @@
 
   // ---- browser layer (storage, SDK, toast) ----
 
-  var LS_STATS = 'ncStats', LS_UNLOCKED = 'ncTrophies';
+  var LS_STATS = 'gbStats', LS_UNLOCKED = 'gbTrophies';
   var hasDom = typeof document !== 'undefined' && typeof localStorage !== 'undefined';
 
   function loadStats() {
@@ -223,7 +223,7 @@
         getScores: function (local) {
           try {
             var st = JSON.parse(local[LS_STATS] || '{}');
-            if (st.solo_best > 0) return [{ score: st.solo_best, mode: 'solo' }];
+            if (st.solo_best > 0) return [{ score: st.solo_best * 7, mode: 'solo' }]; // centiseconds
           } catch (e) {}
           return [];
         },

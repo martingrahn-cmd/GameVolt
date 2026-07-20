@@ -1036,7 +1036,7 @@
                 padding: 24px 16px;
             }
 
-            /* Two compact cards per row on phones (19 games — one-at-a-time
+            /* Two compact cards per row on phones (20 games — one-at-a-time
                felt too sparse). Thumbnail + title + Play; the description and
                tags are kept in the DOM for SEO/desktop but hidden here. */
             .games-grid {
@@ -1909,6 +1909,26 @@
 
         <div class="games-grid">
             <!-- Vector Hexagon -->
+            <!-- Gridburn -->
+            <a href="/play/?game=gridburn" class="game-card" data-category="coffee-break arcade action multiplayer">
+                <div class="game-thumbnail">
+                    <img src="/gridburn/og-image.png" alt="Play Gridburn online free" fetchpriority="high">
+                    <video class="preview-video" muted loop playsinline preload="none"></video>
+                    <span class="game-badge new">NEW</span>
+                    <span class="game-bolt">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Gridburn</h3>
+                    <p class="game-description">Tron-style light-cycle duels in a neon synthwave arena. Burn a glowing trail into the grid, box in your rival, and be the last one riding. Play a friend online with a room code or invite link, battle three AI difficulties, best of 5 rounds. Free in your browser — no download.</p>
+                    <div class="game-tags">
+                        <span class="tag">Arcade</span>
+                        <span class="tag">Multiplayer</span>
+                        <span class="tag">Neon</span>
+                    </div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
+
             <a href="/play/?game=vector-hexagon" class="game-card" data-category="coffee-break arcade action" data-preview="/vector-hexagon/preview.mp4">
                 <div class="game-thumbnail">
                     <img src="/vector-hexagon/og-image.png" alt="Play Vector Hexagon online free" fetchpriority="high">
@@ -2272,18 +2292,18 @@
                 <a href="/news/" class="section-link" style="font-size:0.85rem;color:var(--text-muted);text-decoration:none;">View all &rarr;</a>
             </div>
             <div class="news-strip-grid">
+                <a href="/news/gridburn-launch/" class="news-strip-card">
+                    <img src="/gridburn/og-image.png" alt="New game: Gridburn" loading="lazy">
+                    <div>
+                        <div class="news-strip-date">Jul 20, 2026 · New Game</div>
+                        <div class="news-strip-title">New game: Gridburn — Tron-style light-cycle duels, online</div>
+                    </div>
+                </a>
                 <a href="/news/connect4-online-multiplayer/" class="news-strip-card">
                     <img src="/assets/thumbnails/connect4-thumbnail.webp" alt="Connect 4 online multiplayer" loading="lazy">
                     <div>
                         <div class="news-strip-date">Jul 19, 2026 · Update</div>
                         <div class="news-strip-title">Connect 4 goes online — play a friend with a room code</div>
-                    </div>
-                </a>
-                <a href="/news/breakout-neon-drift-update/" class="news-strip-card">
-                    <img src="/assets/thumbnails/breakout.webp" alt="Breakout: Neon Drift update" loading="lazy">
-                    <div>
-                        <div class="news-strip-date">Jul 18, 2026 · Update</div>
-                        <div class="news-strip-title">Breakout: Neon Drift — the brick breaker with a twist</div>
                     </div>
                 </a>
             </div>
@@ -2329,6 +2349,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/gridburn/">Gridburn</a>
                         <a href="/hoverdash/">HoverDash</a>
                         <a href="/vector-hexagon/">Vector Hexagon</a>
                         <a href="/snake/">Snake Neo</a>
@@ -2571,6 +2592,7 @@
             solitaire: { name: "Solitaire",  thumb: "/assets/thumbnails/solitaire.webp" },
             connect4:  { name: "Connect 4",  thumb: "/assets/thumbnails/connect4-thumbnail.webp" },
             blockstorm:{ name: "BlockStorm", thumb: "/assets/thumbnails/blockstorm.webp", preview: "/blockstorm/preview.mp4" },
+            gridburn:  { name: "Gridburn",   thumb: "/gridburn/og-image.png" },
             hoverdash: { name: "HoverDash",  thumb: "/hoverdash/og-image.png", preview: "/hoverdash/preview.mp4" },
             "vector-hexagon": { name: "Vector Hexagon", thumb: "/vector-hexagon/og-image.png", preview: "/vector-hexagon/preview.mp4" },
             axeluga:   { name: "Axeluga",    thumb: "/assets/thumbnails/axeluga.webp", preview: "/axeluga/preview.mp4" },
@@ -2640,6 +2662,7 @@
             solitaire:       { name: "Solitaire",     thumb: "/assets/thumbnails/solitaire.webp" },
             connect4:        { name: "Connect 4",     thumb: "/assets/thumbnails/connect4-thumbnail.webp" },
             blockstorm:      { name: "BlockStorm",    thumb: "/assets/thumbnails/blockstorm.webp", preview: "/blockstorm/preview.mp4" },
+            gridburn:        { name: "Gridburn",      thumb: "/gridburn/og-image.png" },
             hoverdash:       { name: "HoverDash",     thumb: "/hoverdash/og-image.png", preview: "/hoverdash/preview.mp4" },
             "vector-hexagon": { name: "Vector Hexagon", thumb: "/vector-hexagon/og-image.png", preview: "/vector-hexagon/preview.mp4" },
             axeluga:         { name: "Axeluga",       thumb: "/assets/thumbnails/axeluga.webp", preview: "/axeluga/preview.mp4" },
