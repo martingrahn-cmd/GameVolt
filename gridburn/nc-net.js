@@ -26,6 +26,11 @@
   var channel = null;
   var handlers = {};
   var state = { role: null, code: null, connected: false, myPlayer: null };
+  var joinTimer = null;
+
+  function stopJoinRetry() {
+    if (joinTimer) { clearInterval(joinTimer); joinTimer = null; }
+  }
 
   function ensureLib() {
     return new Promise(function (resolve, reject) {
@@ -82,16 +87,23 @@
   function onMsg(p) {
     if (!p || !p.t) return;
     if (p.t === 'join') {
-      // Guest announced itself. Accept the first one; ignore extras (1v1 only).
-      if (state.role === 'host' && !state.connected) {
-        state.connected = true;
+      // Guest announced itself (possibly a retry). ALWAYS re-ack — the
+      // previous 'accept' may have been lost while a phone tab was suspended —
+      // but only emit opponentJoined the first time (1v1 only).
+      if (state.role === 'host') {
         send('accept', {});
-        emit('opponentJoined', {});
+        if (!state.connected) {
+          state.connected = true;
+          emit('opponentJoined', {});
+        }
       }
     } else if (p.t === 'accept') {
-      if (state.role === 'guest' && !state.connected) {
-        state.connected = true;
-        emit('opponentJoined', {});
+      if (state.role === 'guest') {
+        stopJoinRetry();
+        if (!state.connected) {
+          state.connected = true;
+          emit('opponentJoined', {});
+        }
       }
     } else if (p.t === 'input') {
       emit('input', p.d || {});
@@ -128,14 +140,26 @@
       return ensureLib().then(function () { return subscribe(state.code); }).then(function (ch) {
         channel = ch;
         send('join', {});
+        // Retry the knock until accepted: the host's tab may be suspended
+        // (sharing the code in another app) and broadcast has no persistence.
+        stopJoinRetry();
+        joinTimer = setInterval(function () {
+          if (state.connected || !channel) { stopJoinRetry(); return; }
+          send('join', {});
+        }, 1500);
         return state.code;
       });
     },
+
+    // Warm up the supabase-js CDN load while the lobby is open, so CREATE/JOIN
+    // don't pay the download on click.
+    preload: function () { return ensureLib().catch(function () {}); },
 
     input: function (d) { send('input', d); },
     rematch: function () { send('rematch', {}); },
 
     leave: function () {
+      stopJoinRetry();
       try {
         if (channel) { send('bye', {}); getClient().removeChannel(channel); }
       } catch (e) {}
