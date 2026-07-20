@@ -442,7 +442,7 @@
   </div>
 
   <div id="net-ind">⏳ SYNCING…</div>
-  <div id="nc-version">v1.1.0</div>
+  <div id="nc-version">v1.2.0</div>
   <button id="snd-btn" aria-label="Toggle sound (M)">🔊</button>
   <button id="fs-btn" aria-label="Fullscreen (F)">⛶</button>
 
@@ -553,7 +553,7 @@
   <script>
   (function () {
     'use strict';
-    var VERSION = '1.1.0';
+    var VERSION = '1.2.0';
     var COLS = 64, ROWS = 40, TICK_MS = 70;
     var ROUNDS_TO_WIN = 3;
     var MAX_PARTICLES = 400;
@@ -595,7 +595,7 @@
     var roundNum = 1;
     var matchWasDown02 = false;
     // --- online lockstep state ---
-    var NET_DELAY = 4;               // ticks between pressing a turn and it applying (~280 ms)
+    var NET_DELAY = 6;               // ticks between pressing a turn and it applying (~420 ms) — sized for real phone networks via the relay
     var myPid = 1, oppPid = 2;       // online roles: host = 1 (cyan), guest = 2 (orange)
     var roundSeq = -1;               // increments every online round; tags net messages
     var inputBuf = { 1: {}, 2: {} }; // tick -> scheduled dir
@@ -1188,7 +1188,7 @@
     setInterval(function () {
       if (mode !== 'online' || state !== 'playing') return;
       var now = performance.now();
-      if (now - lastFrameTs > 150) simAdvance(now);
+      if (now - lastFrameTs > 100) simAdvance(now);
     }, TICK_MS);
 
     function onRoundOver() {
@@ -1308,11 +1308,26 @@
       }
     }
 
+    function myPlayer() {
+      if (!game) return null;
+      for (var i = 0; i < game.players.length; i++) if (game.players[i].id === myPid) return game.players[i];
+      return null;
+    }
+
     // Route a local absolute turn: direct in local modes, scheduled + sent in online.
     function localSteer(pid, dirAbs) {
       if (mode === 'online') {
         if (!game || game.over || state !== 'playing') return;
+        // Chain off the latest queued direction; drop no-ops and reverses so
+        // they don't waste queue slots (the core would ignore reverses anyway).
+        var me = myPlayer();
+        var base = myPlannedDir !== null ? myPlannedDir : (me ? me.dir : null);
+        if (base !== null && (dirAbs === base || ((base + 2) % 4) === dirAbs)) return;
+        // Queue at the first free tick. Never overwrite: during network
+        // micro-stalls the tick counter freezes, and overwriting silently ate
+        // every input but the last one — the "swipes don't register" bug.
         var t = game.tick + NET_DELAY;
+        while (inputBuf[myPid][t] !== undefined) t++;
         inputBuf[myPid][t] = dirAbs;
         myPlannedDir = dirAbs;
         if (window.NCNet) NCNet.input({ r: roundSeq, t: t, dir: dirAbs, through: game.tick + NET_DELAY - 1 });
@@ -2015,7 +2030,7 @@
       get state() { return state; },
       get game() { return game; },
       get wins() { return { 1: wins[1], 2: wins[2] }; },
-      get net() { return { roundSeq: roundSeq, peerThrough: peerThrough, myPid: myPid, stalled: !!stallStart }; }
+      get net() { return { roundSeq: roundSeq, peerThrough: peerThrough, myPid: myPid, stalled: !!stallStart, delay: NET_DELAY, queued: JSON.parse(JSON.stringify(inputBuf)) }; }
     };
 
     resize();
