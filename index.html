@@ -236,6 +236,15 @@
                 "url": "https://gamevolt.io/vector-hexagon/",
                 "genre": ["Arcade", "Action"],
                 "gamePlatform": "Web Browser"
+            },
+            {
+                "@type": "VideoGame",
+                "position": 18,
+                "name": "Gridburn",
+                "description": "Tron-style light-cycle duels in a neon synthwave arena — online multiplayer with room codes and invite links, three AI difficulties",
+                "url": "https://gamevolt.io/gridburn/",
+                "genre": ["Arcade", "Action", "Multiplayer"],
+                "gamePlatform": "Web Browser"
             }
         ]
     }
@@ -1888,6 +1897,11 @@
                 <span>Word</span>
                 <span class="pill-count">1</span>
             </button>
+            <button class="category-pill" data-filter="multiplayer">
+                <span class="pill-icon">🌐</span>
+                <span>Multiplayer</span>
+                <span class="pill-count">2</span>
+            </button>
             <span class="category-pill-sep" aria-hidden="true"></span>
             <button class="category-pill" data-filter="trending">
                 <span class="pill-icon">🔥</span>
@@ -2060,7 +2074,7 @@
             </a>
             
             <!-- Connect 4 -->
-            <a href="/play/?game=connect4" class="game-card" data-category="brain-challenge">
+            <a href="/play/?game=connect4" class="game-card" data-category="brain-challenge multiplayer">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/connect4-thumbnail.webp" alt="Play Connect 4 online free" loading="lazy">
                     <span class="game-bolt">⚡</span>
@@ -2377,6 +2391,7 @@
                         <a href="/puzzle-games/">Puzzle</a>
                         <a href="/board-games/">Board Games</a>
                         <a href="/word-games/">Word</a>
+                        <a href="/multiplayer-games/">Multiplayer</a>
                     </div>
                     <div class="footer-column">
                         <h4>Info</h4>
@@ -2459,12 +2474,13 @@
             'brain-challenge': 'Brain Challenge',
             'action': 'Action',
             'word': 'Word',
+            'multiplayer': 'Multiplayer',
             'trending': '🔥 Trending',
             'top-rated': '⭐ Top Rated',
             'new': '🆕 New'
         };
 
-        var CATEGORY_FILTERS = { 'coffee-break':1, 'brain-challenge':1, 'action':1, 'word':1 };
+        var CATEGORY_FILTERS = { 'coffee-break':1, 'brain-challenge':1, 'action':1, 'word':1, 'multiplayer':1 };
         var SORT_TABS = { 'trending':1, 'top-rated':1, 'new':1 };
 
         // Snapshot the original DOM order so we can restore "All Games".

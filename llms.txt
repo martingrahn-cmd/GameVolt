@@ -34,6 +34,7 @@ Every game runs instantly in any modern browser, works on phone, tablet and desk
 - [Action games](https://gamevolt.io/action-games/)
 - [Puzzle games](https://gamevolt.io/puzzle-games/)
 - [Board games](https://gamevolt.io/board-games/)
+- [Multiplayer games](https://gamevolt.io/multiplayer-games/) — online with room codes/invite links (Gridburn, Connect 4) and same-screen co-op
 - [Word games](https://gamevolt.io/word-games/)
 
 ## About
