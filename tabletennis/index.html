@@ -125,11 +125,14 @@
     <button class="btn ghost" id="menu-btn">MENU</button>
   </div>
 
-  <script src="tt-core.js"></script>
-  <script src="tt-ai.js"></script>
+  <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
+       files separately from index.html, and a stale physics file with a
+       fresh shell is exactly the bug you can't reproduce locally -->
+  <script src="tt-core.js?v=0.4.0"></script>
+  <script src="tt-ai.js?v=0.4.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.3.0';
+    var VERSION = '0.4.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -388,11 +391,16 @@
     cv.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
 
     function humanAim() {
-      var speed = Math.min(1, (Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6) / 3.4);
+      // Power requires a deliberate swipe THROUGH the ball. Motion below the
+      // threshold (repositioning to reach it, or a dead-bat block) returns a
+      // soft, short ball the opponent can attack — standing in the way is a
+      // block, not a smash.
+      var raw = Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6;
+      var speed = Math.min(1, Math.max(0, raw - 1.2) / 2.4);
       return {
         tx: Math.max(-0.68, Math.min(0.68, game.paddles[1].x * 0.25 + pointerVX * 0.42)),
-        ty: K.NET_Y + 0.34 + 0.95 * speed,
-        t: 0.60 - 0.22 * speed   // flat, driven arcs — no balloon ball
+        ty: K.NET_Y + 0.30 + 1.0 * speed,
+        t: 0.72 - 0.32 * speed
       };
     }
     function humanServe() {
