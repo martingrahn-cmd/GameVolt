@@ -378,7 +378,7 @@
       <button class="btn" id="ol-create">CREATE ROOM</button>
       <div id="ol-code-box" class="hidden">
         <div id="ol-code">----</div>
-        <div class="ol-hint">SHARE THE CODE — OR JUST SEND THE LINK</div>
+        <div class="ol-hint">SHARE THE CODE — OR JUST SEND THE LINK<br>KEEP THIS PAGE OPEN — THE ROOM LIVES IN THIS TAB</div>
         <div class="ol-link-row">
           <button class="btn ghost" id="ol-copy-link">🔗 COPY INVITE LINK</button>
           <button class="btn ghost" id="ol-share" style="display:none">📤 SHARE</button>
@@ -442,7 +442,7 @@
   </div>
 
   <div id="net-ind">⏳ SYNCING…</div>
-  <div id="nc-version">v1.2.0</div>
+  <div id="nc-version">v1.2.1</div>
   <button id="snd-btn" aria-label="Toggle sound (M)">🔊</button>
   <button id="fs-btn" aria-label="Fullscreen (F)">⛶</button>
 
@@ -553,7 +553,7 @@
   <script>
   (function () {
     'use strict';
-    var VERSION = '1.2.0';
+    var VERSION = '1.2.1';
     var COLS = 64, ROWS = 40, TICK_MS = 70;
     var ROUNDS_TO_WIN = 3;
     var MAX_PARTICLES = 400;
@@ -1741,6 +1741,7 @@
     function openOnline() {
       el.menu.classList.add('hidden');
       resetOnlineLobby();
+      if (window.NCNet && NCNet.preload) NCNet.preload();
       onlineEl.classList.remove('hidden');
       navReset('online');
     }
