@@ -209,6 +209,8 @@
     #ol-code { font-weight: 900; font-size: 2.4rem; letter-spacing: 12px; color: #6ff9ff; text-shadow: 0 0 22px var(--p1); text-align: center; }
     .ol-hint { color: #7f8bb0; font-size: 0.62rem; letter-spacing: 2px; text-align: center; margin-top: 4px; }
     #ol-code-box { padding: 8px 0; }
+    .ol-link-row { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+    .ol-link-row .btn { font-size: 0.62rem; padding: 9px 14px; }
     #ol-code-box.hidden { display: none; }
     .ol-join-row { display: flex; gap: 10px; align-items: center; justify-content: center; }
     #ol-join-input {
@@ -291,7 +293,11 @@
       <button class="btn" id="ol-create">CREATE ROOM</button>
       <div id="ol-code-box" class="hidden">
         <div id="ol-code">----</div>
-        <div class="ol-hint">SHARE THIS CODE WITH A FRIEND</div>
+        <div class="ol-hint">SHARE THE CODE — OR JUST SEND THE LINK</div>
+        <div class="ol-link-row">
+          <button class="btn ghost" id="ol-copy-link">🔗 COPY INVITE LINK</button>
+          <button class="btn ghost" id="ol-share" style="display:none">📤 SHARE</button>
+        </div>
       </div>
       <div class="ol-join-row">
         <input id="ol-join-input" type="text" maxlength="4" autocomplete="off" spellcheck="false" placeholder="CODE">
@@ -351,7 +357,7 @@
   </div>
 
   <div id="net-ind">⏳ SYNCING…</div>
-  <div id="nc-version">v0.8.0-p0</div>
+  <div id="nc-version">v0.8.1-p0</div>
   <button id="snd-btn" aria-label="Toggle sound (M)">🔊</button>
   <button id="fs-btn" aria-label="Fullscreen (F)">⛶</button>
 
@@ -368,7 +374,7 @@
   <script>
   (function () {
     'use strict';
-    var VERSION = '0.8.0-p0';
+    var VERSION = '0.8.1-p0';
     var COLS = 64, ROWS = 40, TICK_MS = 70;
     var ROUNDS_TO_WIN = 3;
     var MAX_PARTICLES = 400;
@@ -1420,7 +1426,7 @@
     var NAV_DEFS = {
       menu: [['[data-ai="easy"]', '[data-ai="medium"]', '[data-ai="hard"]'], ['#online-btn'], ['[data-mode="2p"]'], ['[data-mode="solo"]'], ['#trophies-btn'], ['#options-btn']],
       trophies: [['#tr-back']],
-      online: [['#ol-create'], ['#ol-join-input'], ['#ol-join'], ['#ol-back']],
+      online: [['#ol-create'], ['#ol-copy-link', '#ol-share'], ['#ol-join-input'], ['#ol-join'], ['#ol-back']],
       options: [['#vol-master'], ['#vol-engine'], ['#vol-sfx'], ['#opt-mute'], ['#opt-fs'], ['#opt-back']],
       pause: [['#resume-btn'], ['#pause-options-btn'], ['#pause-menu-btn']],
       end: [['#again-btn'], ['#menu-btn']]
@@ -1458,18 +1464,31 @@
       return document.querySelector(rows[r][c]);
     }
 
-    function navFocus(ctxName, r, c) {
+    function navTargetUsable(t) {
+      return t && !t.disabled && t.offsetParent !== null;
+    }
+
+    function navFocus(ctxName, r, c, dr) {
       var rows = NAV_DEFS[ctxName];
-      r = (r + rows.length) % rows.length;
-      c = Math.max(0, Math.min(rows[r].length - 1, c));
-      var target = document.querySelector(rows[r][c]);
-      if (target) target.focus();
-      navR = r; navC = c;
+      // Skip rows whose target is hidden or disabled (e.g. the COPY LINK row
+      // before a room exists, or CREATE ROOM after it's been used).
+      for (var tries = 0; tries < rows.length; tries++) {
+        r = (r + rows.length) % rows.length;
+        var cc = Math.max(0, Math.min(rows[r].length - 1, c));
+        var target = document.querySelector(rows[r][cc]);
+        if (navTargetUsable(target)) {
+          target.focus();
+          navR = r; navC = cc;
+          return;
+        }
+        r += (dr || 1);
+      }
     }
 
     function navMove(ctxName, dr, dc) {
       var pos = navFindPos(ctxName);
-      navFocus(ctxName, pos.r + dr, dr !== 0 ? pos.c : pos.c + dc);
+      if (dr !== 0) navFocus(ctxName, pos.r + dr, pos.c, dr);
+      else navFocus(ctxName, pos.r, pos.c + dc, 0);
     }
 
     function navReset(ctxName) { navFocus(ctxName, 0, 0); }
@@ -1511,7 +1530,9 @@
       setOnlineStatus('CREATING ROOM…');
       NCNet.host().then(function (code) {
         document.getElementById('ol-code').textContent = code;
+        inviteLink = location.origin + location.pathname + '?join=' + code;
         document.getElementById('ol-code-box').classList.remove('hidden');
+        if (navigator.share) document.getElementById('ol-share').style.display = '';
         setOnlineStatus('WAITING FOR A FRIEND TO JOIN…');
       }).catch(function () {
         setOnlineStatus('COULD NOT CREATE A ROOM — TRY AGAIN', true);
@@ -1533,6 +1554,19 @@
       });
     }
     document.getElementById('ol-join').addEventListener('click', olJoin);
+    var inviteLink = '';
+    document.getElementById('ol-copy-link').addEventListener('click', function () {
+      if (!inviteLink) return;
+      var done = function () { setOnlineStatus('LINK COPIED — SEND IT TO A FRIEND!'); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(inviteLink).then(done).catch(function () { window.prompt('Copy this link:', inviteLink); });
+      } else {
+        window.prompt('Copy this link:', inviteLink);
+      }
+    });
+    document.getElementById('ol-share').addEventListener('click', function () {
+      if (inviteLink && navigator.share) navigator.share({ title: 'Neon Cycles', text: 'Race me — join my room!', url: inviteLink }).catch(function () {});
+    });
     document.getElementById('ol-join-input').addEventListener('input', function () {
       this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     });
@@ -1772,6 +1806,17 @@
     resize();
     bgStart();
     navReset('menu');
+
+    // Invite links: /neon-cycles/?join=CODE drops you straight into the room.
+    try {
+      var joinCode = (new URLSearchParams(location.search).get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (joinCode.length === 4) {
+        history.replaceState(null, '', location.pathname); // don't rejoin a dead room on refresh
+        openOnline();
+        document.getElementById('ol-join-input').value = joinCode;
+        olJoin();
+      }
+    } catch (e) {}
   })();
   </script>
 </body>
