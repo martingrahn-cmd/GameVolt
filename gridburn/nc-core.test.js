@@ -85,5 +85,5 @@ function ok(cond, msg) { if (!cond) { failures++; console.log('  ❌ ' + msg); }
   ok(g.tick === 20, 'solo: survives across the grid, then crashes on the far wall (tick 20)');
 })();
 
-if (failures === 0) console.log('✅ Neon Cycles core rules and determinism pass');
-else { console.log('❌ ' + failures + ' Neon Cycles core test(s) failed'); process.exit(1); }
+if (failures === 0) console.log('✅ Gridburn core rules and determinism pass');
+else { console.log('❌ ' + failures + ' Gridburn core test(s) failed'); process.exit(1); }

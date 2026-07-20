@@ -71,5 +71,5 @@ function ok(cond, msg) { if (!cond) { failures++; console.log('  ❌ ' + msg); }
   ok(got.length === 31, 'all 31 reachable with maxed stats (got ' + got.length + ')');
 })();
 
-if (failures === 0) console.log('✅ Neon Cycles trophies (31, 15/10/5/1) pass');
+if (failures === 0) console.log('✅ Gridburn trophies (31, 15/10/5/1) pass');
 else { console.log('❌ ' + failures + ' trophy test(s) failed'); process.exit(1); }

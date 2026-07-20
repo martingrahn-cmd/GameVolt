@@ -457,6 +457,7 @@
         <div class="filter-row" id="score-filters" style="display:none">
             <button class="filter-pill active" data-game="hoverdash">HoverDash</button>
             <button class="filter-pill" data-game="vector-hexagon">Vector Hexagon</button>
+            <button class="filter-pill" data-game="gridburn">Gridburn</button>
             <button class="filter-pill" data-game="asteroid-storm">Asteroid Storm</button>
             <button class="filter-pill" data-game="snake">Snake Neo</button>
             <button class="filter-pill" data-game="breakout">Breakout</button>
@@ -707,7 +708,7 @@
             'livewire': 'Livewire', 'manga-match3': 'Manga Match', 'minesweeper': 'Minesweeper',
             'one-stroke': 'One Stroke', 'snake': 'Snake Neo', 'solitaire': 'Solitaire',
             'sudoku': 'Sudoku', 'taprush': 'Tap Rush', 'type-or-die': 'Type or Die',
-            'vector-hexagon': 'Vector Hexagon'
+            'vector-hexagon': 'Vector Hexagon', 'gridburn': 'Gridburn'
         };
 
         // Every game with a GameVolt (Supabase) leaderboard, in a sensible
@@ -717,7 +718,7 @@
         // Type or Die (own board) are deliberately excluded — they have no rows
         // in the Supabase scores table.
         var LEADERBOARD_GAMES = [
-            'hoverdash', 'vector-hexagon', 'asteroid-storm', 'snake', 'breakout',
+            'hoverdash', 'vector-hexagon', 'gridburn', 'asteroid-storm', 'snake', 'breakout',
             'blockstorm', 'gravitywell', 'connect4', 'sudoku', 'minesweeper',
             'chain-reaction', 'manga-match3', 'golden-glyphs', 'axeluga',
             'livewire', 'one-stroke', 'taprush'

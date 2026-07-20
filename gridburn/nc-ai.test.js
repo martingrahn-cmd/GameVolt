@@ -95,5 +95,5 @@ function series(lvlA, lvlB, n) {
   ok(run(42) === run(42), 'seeded AI duels are fully reproducible');
 })();
 
-if (failures === 0) console.log('✅ Neon Cycles AI (easy/medium/hard) passes');
+if (failures === 0) console.log('✅ Gridburn AI (easy/medium/hard) passes');
 else { console.log('❌ ' + failures + ' AI test(s) failed'); process.exit(1); }
