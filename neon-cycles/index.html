@@ -138,6 +138,39 @@
     }
     #snd-btn:hover { background: rgba(255,255,255,0.10); }
 
+    /* Menu screen: light overlay so the animated background shows through */
+    .overlay.menu-clear { background: rgba(3,4,10,0.28); backdrop-filter: none; -webkit-backdrop-filter: none; }
+    .menu-card {
+      background: rgba(4,7,18,0.62); border: 1px solid rgba(0,234,255,0.22);
+      border-radius: 16px; padding: 18px 26px; display: flex; flex-direction: column; align-items: center;
+      box-shadow: 0 0 40px rgba(0,234,255,0.10), inset 0 0 30px rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
+    #menu-bg { position: fixed; inset: 0; z-index: 4; display: none; }
+    #menu-bg.on { display: block; }
+
+    #fs-btn {
+      position: fixed; bottom: 8px; left: 52px; z-index: 7; cursor: pointer; color: #9ab;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px; padding: 5px 9px; font-size: 0.95rem; line-height: 1;
+    }
+    #fs-btn:hover { background: rgba(255,255,255,0.10); }
+
+    /* Options panel */
+    .opt-panel {
+      background: rgba(4,7,18,0.85); border: 1px solid rgba(0,234,255,0.25); border-radius: 16px;
+      padding: 26px 30px; width: min(86vw, 400px);
+      display: flex; flex-direction: column; gap: 14px; align-items: stretch;
+      box-shadow: 0 0 40px rgba(0,234,255,0.12);
+    }
+    .opt-title { font-weight: 900; font-size: 1.3rem; letter-spacing: 4px; color: #fff; text-align: center; margin-bottom: 6px; text-shadow: 0 0 18px rgba(0,234,255,0.5); }
+    .opt-row { display: flex; align-items: center; gap: 12px; font-size: 0.68rem; letter-spacing: 2px; color: #9fb0d8; }
+    .opt-row > span { width: 92px; text-align: left; flex-shrink: 0; }
+    .opt-row b { width: 34px; text-align: right; color: #6ff9ff; font-size: 0.75rem; flex-shrink: 0; }
+    .opt-row input[type=range] { flex: 1; accent-color: #00eaff; height: 4px; cursor: pointer; min-width: 0; }
+    .opt-row .btn { margin: 0; min-width: 0; padding: 8px 16px; font-size: 0.68rem; }
+    #opt-back { margin-top: 8px; }
+
     #seo-content { position: fixed; left: -9999px; }
   </style>
 </head>
@@ -145,6 +178,8 @@
   <div id="app">
     <canvas id="game"></canvas>
   </div>
+
+  <canvas id="menu-bg"></canvas>
 
   <div id="hud" class="hidden">
     <div class="s1" id="hud1"></div>
@@ -157,25 +192,40 @@
   </div>
 
   <!-- Menu -->
-  <div id="menu" class="overlay">
+  <div id="menu" class="overlay menu-clear">
     <h1 class="title">NEON CYCLES</h1>
     <div class="subtitle">LEAVE A TRAIL · BOX THEM IN · BE THE LAST RIDING</div>
-    <button class="btn" data-mode="2p">2-PLAYER LOCAL · BEST OF 5</button>
-    <div class="ai-row">
-      <span class="ai-label">VS AI · BEST OF 5</span>
-      <div>
-        <button class="btn ai" data-ai="easy">EASY</button>
-        <button class="btn ai" data-ai="medium">MEDIUM</button>
-        <button class="btn ai" data-ai="hard">HARD</button>
+    <div class="menu-card">
+      <div class="ai-row">
+        <span class="ai-label">VS AI · BEST OF 5</span>
+        <div>
+          <button class="btn ai" data-ai="easy">EASY</button>
+          <button class="btn ai" data-ai="medium">MEDIUM</button>
+          <button class="btn ai" data-ai="hard">HARD</button>
+        </div>
       </div>
+      <button class="btn" data-mode="2p">2-PLAYER LOCAL</button>
+      <button class="btn p2" data-mode="solo">SOLO PRACTICE</button>
+      <button class="btn ghost" id="options-btn">OPTIONS</button>
     </div>
-    <button class="btn p2" data-mode="solo">SOLO PRACTICE</button>
     <div class="controls-hint">
-      <b class="k">Player 1</b> — W A S D &nbsp;·&nbsp; <b class="k2">Player 2</b> — Arrow keys<br>
-      Vs AI &amp; solo: WASD, arrows or touch — you ride <b class="k">cyan</b><br>
-      First to 3 rounds takes the match &nbsp;·&nbsp; Esc to pause
+      <b class="k">Player 1</b> — W A S D &nbsp;·&nbsp; <b class="k2">Player 2</b> — Arrows &nbsp;·&nbsp; you ride <b class="k">cyan</b> vs AI<br>
+      First to 3 rounds wins &nbsp;·&nbsp; Esc pause &nbsp;·&nbsp; M mute &nbsp;·&nbsp; F fullscreen
     </div>
     <div class="tag-working">WORKING TITLE · PHASE 0 PROTOTYPE</div>
+  </div>
+
+  <!-- Options -->
+  <div id="options" class="overlay hidden">
+    <div class="opt-panel">
+      <div class="opt-title">OPTIONS</div>
+      <div class="opt-row"><span>MASTER</span><input type="range" id="vol-master" min="0" max="100" value="50"><b id="vol-master-v">50</b></div>
+      <div class="opt-row"><span>ENGINE</span><input type="range" id="vol-engine" min="0" max="100" value="60"><b id="vol-engine-v">60</b></div>
+      <div class="opt-row"><span>SFX</span><input type="range" id="vol-sfx" min="0" max="100" value="80"><b id="vol-sfx-v">80</b></div>
+      <div class="opt-row"><span>SOUND</span><button class="btn ghost" id="opt-mute">ON</button></div>
+      <div class="opt-row"><span>FULLSCREEN</span><button class="btn ghost" id="opt-fs">⛶ TOGGLE</button></div>
+      <button class="btn" id="opt-back">◂ BACK</button>
+    </div>
   </div>
 
   <!-- Countdown -->
@@ -191,6 +241,7 @@
   <div id="pause" class="overlay hidden">
     <div class="modal-title">PAUSED</div>
     <button class="btn" id="resume-btn">RESUME</button>
+    <button class="btn ghost" id="pause-options-btn">OPTIONS</button>
     <button class="btn ghost" id="pause-menu-btn">QUIT TO MENU</button>
   </div>
 
@@ -203,8 +254,9 @@
     <button class="btn ghost" id="menu-btn">MENU</button>
   </div>
 
-  <div id="nc-version">v0.4.0-p0</div>
+  <div id="nc-version">v0.5.0-p0</div>
   <button id="snd-btn" aria-label="Toggle sound (M)">🔊</button>
+  <button id="fs-btn" aria-label="Fullscreen (F)">⛶</button>
 
   <div id="seo-content">
     <h1>Neon Cycles — Light-Cycle Arcade Game</h1>
@@ -217,7 +269,7 @@
   <script>
   (function () {
     'use strict';
-    var VERSION = '0.4.0-p0';
+    var VERSION = '0.5.0-p0';
     var COLS = 64, ROWS = 40, TICK_MS = 70;
     var ROUNDS_TO_WIN = 3;
     var MAX_PARTICLES = 400;
@@ -272,9 +324,18 @@
 
     // ---------- sound (Web Audio, fully synthesized — no files) ----------
     var Sound = (function () {
-      var ctx = null, master = null;
+      var ctx = null, master = null, sfxBus = null, engineBus = null;
       var engines = {}; // id -> { o, g, p }
       var enabled = localStorage.getItem('ncSound') !== '0';
+      function loadVol(key, def) {
+        var v = parseFloat(localStorage.getItem(key));
+        return isNaN(v) ? def : Math.max(0, Math.min(1, v));
+      }
+      var vols = {
+        master: loadVol('ncVolMaster', 0.5),
+        engine: loadVol('ncVolEngine', 0.6),
+        sfx: loadVol('ncVolSfx', 0.8)
+      };
 
       function ensure() {
         if (!enabled) return false;
@@ -282,19 +343,27 @@
           var AC = window.AudioContext || window.webkitAudioContext;
           if (!AC) { enabled = false; return false; }
           ctx = new AC();
+          var comp = ctx.createDynamicsCompressor();
+          comp.connect(ctx.destination);
           master = ctx.createGain();
-          master.gain.value = 0.4;
-          master.connect(ctx.destination);
+          master.gain.value = vols.master;
+          master.connect(comp);
+          sfxBus = ctx.createGain();
+          sfxBus.gain.value = vols.sfx;
+          sfxBus.connect(master);
+          engineBus = ctx.createGain();
+          engineBus.gain.value = vols.engine;
+          engineBus.connect(master);
         }
         if (ctx.state === 'suspended') ctx.resume();
         return true;
       }
 
       function panned(pan) {
-        if (pan === undefined || !ctx.createStereoPanner) return master;
+        if (pan === undefined || !ctx.createStereoPanner) return sfxBus;
         var p = ctx.createStereoPanner();
         p.pan.value = Math.max(-1, Math.min(1, pan));
-        p.connect(master);
+        p.connect(sfxBus);
         return p;
       }
 
@@ -329,30 +398,49 @@
           return enabled;
         },
         tick: function (go) { beep(go ? 880 : 440, go ? 0.22 : 0.09, 'square', go ? 0.15 : 0.09); },
-        turn: function (pan) { beep(520, 0.05, 'square', 0.06, 0, pan); },
+        uiBlip: function () { beep(660, 0.07, 'square', 0.14); },
         crash: function (pan) {
           if (!ensure()) return;
           var t = ctx.currentTime;
+          // big noise blast through a sweeping lowpass
           var src = ctx.createBufferSource();
-          src.buffer = noiseBuf(0.45);
+          src.buffer = noiseBuf(0.7);
           var f = ctx.createBiquadFilter();
           f.type = 'lowpass';
-          f.frequency.setValueAtTime(3200, t);
-          f.frequency.exponentialRampToValueAtTime(120, t + 0.4);
+          f.frequency.setValueAtTime(4500, t);
+          f.frequency.exponentialRampToValueAtTime(90, t + 0.6);
           var g = ctx.createGain();
-          g.gain.setValueAtTime(0.5, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+          g.gain.setValueAtTime(0.9, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
           src.connect(f); f.connect(g); g.connect(panned(pan));
           src.start(t);
+          // sub-bass boom (kept centered so it hits regardless of pan)
           var o = ctx.createOscillator(), g2 = ctx.createGain();
-          o.type = 'triangle';
-          o.frequency.setValueAtTime(220, t);
-          o.frequency.exponentialRampToValueAtTime(40, t + 0.35);
-          g2.gain.setValueAtTime(0.25, t);
-          g2.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-          o.connect(g2); g2.connect(panned(pan));
-          o.start(t); o.stop(t + 0.42);
+          o.type = 'sine';
+          o.frequency.setValueAtTime(90, t);
+          o.frequency.exponentialRampToValueAtTime(28, t + 0.5);
+          g2.gain.setValueAtTime(0.55, t);
+          g2.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+          o.connect(g2); g2.connect(panned());
+          o.start(t); o.stop(t + 0.6);
+          // metallic impact crack
+          var o2 = ctx.createOscillator(), g3 = ctx.createGain();
+          o2.type = 'square';
+          o2.frequency.setValueAtTime(300, t);
+          o2.frequency.exponentialRampToValueAtTime(70, t + 0.12);
+          g3.gain.setValueAtTime(0.35, t);
+          g3.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+          o2.connect(g3); g3.connect(panned(pan));
+          o2.start(t); o2.stop(t + 0.16);
         },
+        setVol: function (k, v) {
+          vols[k] = Math.max(0, Math.min(1, v));
+          localStorage.setItem('ncVol' + k.charAt(0).toUpperCase() + k.slice(1), String(vols[k]));
+          if (k === 'master' && master) master.gain.value = vols.master;
+          if (k === 'engine' && engineBus) engineBus.gain.value = vols.engine;
+          if (k === 'sfx' && sfxBus) sfxBus.gain.value = vols.sfx;
+        },
+        getVol: function (k) { return vols[k]; },
         engineStart: function (ids) {
           if (!ensure()) return;
           this.engineStop();
@@ -362,11 +450,11 @@
             o.frequency.value = id === 1 ? 55 : 62; // slightly different pitch per cycle
             f.type = 'lowpass'; f.frequency.value = 240; f.Q.value = 4;
             g.gain.value = 0.0001;
-            var dest = master;
-            if (ctx.createStereoPanner) { pn = ctx.createStereoPanner(); pn.connect(master); dest = pn; }
+            var dest = engineBus;
+            if (ctx.createStereoPanner) { pn = ctx.createStereoPanner(); pn.connect(engineBus); dest = pn; }
             o.connect(f); f.connect(g); g.connect(dest);
             o.start();
-            g.gain.setTargetAtTime(0.05, ctx.currentTime, 0.15);
+            g.gain.setTargetAtTime(0.08, ctx.currentTime, 0.15);
             engines[id] = { o: o, g: g, p: pn };
           });
         },
@@ -641,6 +729,7 @@
 
     function startMatch(m) {
       Sound.unlock(); // called from a click/keypress, so audio can start
+      bgStop();
       mode = m;
       clearTimers();
       wins = { 1: 0, 2: 0 };
@@ -719,14 +808,11 @@
             var aid = NCAi.decide(game, 2, aiLevel);
             if (aid !== null) NCCore.setDir(game, 2, aid);
           }
-          var preDirs = game.players.map(function (pl) { return pl.dir; });
           var res = NCCore.step(game);
           for (var pi = 0; pi < game.players.length; pi++) {
             var spl = game.players[pi];
             if (!spl.alive) continue;
-            var span = (spl.x / COLS) * 2 - 1;
-            if (spl.dir !== preDirs[pi]) Sound.turn(span);
-            Sound.enginePan(spl.id, span);
+            Sound.enginePan(spl.id, (spl.x / COLS) * 2 - 1);
             Sound.engineRev(spl.id, Math.min(1.8, 1 + game.tick * 0.002));
           }
           if (res.deaths.length) {
@@ -824,6 +910,7 @@
       el.hud.classList.add('hidden');
       el.touch.classList.remove('on');
       el.menu.classList.remove('hidden');
+      bgStart();
       draw(1);
     }
 
@@ -849,6 +936,8 @@
     };
     window.addEventListener('keydown', function (e) {
       if (e.code === 'KeyM') { updateSndBtn(Sound.toggle()); return; }
+      if (e.code === 'KeyF') { toggleFullscreen(); return; }
+      if (e.code === 'Escape' && optionsEl && !optionsEl.classList.contains('hidden')) { closeOptions(); return; }
       if (e.code === 'Escape' && (state === 'playing' || state === 'paused')) { togglePause(); return; }
       if (state === 'over' && (e.code === 'Enter' || e.code === 'Space')) {
         e.preventDefault();
@@ -892,6 +981,139 @@
     document.getElementById('resume-btn').addEventListener('click', togglePause);
     document.getElementById('pause-menu-btn').addEventListener('click', toMenu);
 
+    // ---------- menu background (procedural synthwave scene, no image files) ----------
+    var bgCanvas = document.getElementById('menu-bg');
+    var bgCtx = bgCanvas.getContext('2d');
+    var bgOn = false;
+    var bgStars = [];
+    function bgResize() { bgCanvas.width = window.innerWidth; bgCanvas.height = window.innerHeight; }
+    function bgStart() {
+      if (bgOn) return;
+      bgOn = true;
+      bgResize();
+      if (!bgStars.length) {
+        for (var i = 0; i < 110; i++) bgStars.push({ x: Math.random(), y: Math.random(), r: 0.5 + Math.random() * 1.4, ph: Math.random() * 6.28 });
+      }
+      bgCanvas.classList.add('on');
+      requestAnimationFrame(bgFrame);
+    }
+    function bgStop() { bgOn = false; bgCanvas.classList.remove('on'); }
+    function bgFrame(ts) {
+      if (!bgOn) return;
+      var w = bgCanvas.width, h = bgCanvas.height, c = bgCtx;
+      var hor = h * 0.58, sx = w / 2;
+      // night sky
+      var sky = c.createLinearGradient(0, 0, 0, hor);
+      sky.addColorStop(0, '#02030a'); sky.addColorStop(1, '#170b2b');
+      c.fillStyle = sky; c.fillRect(0, 0, w, hor);
+      // twinkling stars
+      for (var i = 0; i < bgStars.length; i++) {
+        var st = bgStars[i];
+        c.globalAlpha = 0.2 + 0.4 * (0.5 + 0.5 * Math.sin(ts / 650 + st.ph));
+        c.fillStyle = '#cfe8ff';
+        c.fillRect(st.x * w, st.y * hor * 0.92, st.r, st.r);
+      }
+      c.globalAlpha = 1;
+      // synthwave sun: glow, gradient disc, drifting dark stripes
+      var sr = Math.min(w, h) * 0.27;
+      var glow = c.createRadialGradient(sx, hor, sr * 0.2, sx, hor, sr * 2.1);
+      glow.addColorStop(0, 'rgba(255,45,120,0.30)'); glow.addColorStop(1, 'rgba(255,45,120,0)');
+      c.fillStyle = glow; c.fillRect(sx - sr * 2.1, hor - sr * 2.1, sr * 4.2, sr * 2.1);
+      c.save();
+      c.beginPath(); c.arc(sx, hor, sr, Math.PI, 0); c.closePath(); c.clip();
+      var sg = c.createLinearGradient(0, hor - sr, 0, hor);
+      sg.addColorStop(0, '#ff2d78'); sg.addColorStop(1, '#ffb13c');
+      c.fillStyle = sg; c.fillRect(sx - sr, hor - sr, sr * 2, sr);
+      c.fillStyle = '#120722';
+      for (var s2 = 0; s2 < 6; s2++) {
+        var sy = hor - sr * 0.52 + s2 * sr * 0.10 + ((ts / 130) % (sr * 0.10));
+        c.fillRect(sx - sr, sy, sr * 2, 1.5 + s2 * 1.5);
+      }
+      c.restore();
+      // glowing horizon
+      c.shadowBlur = 12; c.shadowColor = '#00eaff';
+      c.strokeStyle = 'rgba(0,234,255,0.7)'; c.lineWidth = 1.6;
+      c.beginPath(); c.moveTo(0, hor); c.lineTo(w, hor); c.stroke();
+      c.shadowBlur = 0;
+      // perspective floor grid, horizontals rolling toward the viewer
+      var fg = c.createLinearGradient(0, hor, 0, h);
+      fg.addColorStop(0, '#190e30'); fg.addColorStop(1, '#04050e');
+      c.fillStyle = fg; c.fillRect(0, hor, w, h - hor);
+      c.strokeStyle = 'rgba(0,234,255,0.22)'; c.lineWidth = 1;
+      c.beginPath();
+      for (var v = -14; v <= 14; v++) { c.moveTo(sx + v * w * 0.013, hor); c.lineTo(sx + v * w * 0.17, h); }
+      c.stroke();
+      for (var k = 0; k < 13; k++) {
+        var t = ((ts * 0.00011) + k / 13) % 1;
+        var y = hor + (h - hor) * Math.pow(t, 2.4);
+        c.globalAlpha = 0.10 + 0.45 * t;
+        c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke();
+      }
+      c.globalAlpha = 1;
+      // two light cycles racing across the grid
+      bgStreak(c, ((ts * 0.00022) % 1.3 - 0.15) * w, hor + (h - hor) * 0.34, '#00eaff', 1);
+      bgStreak(c, (1.15 - (ts * 0.00019) % 1.3) * w, hor + (h - hor) * 0.52, '#ff7a18', -1);
+      requestAnimationFrame(bgFrame);
+    }
+    function bgStreak(c, x, y, col, dirn) {
+      var len = 150;
+      var g = c.createLinearGradient(x - dirn * len, y, x, y);
+      g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, col);
+      c.fillStyle = g;
+      c.fillRect(dirn === 1 ? x - len : x, y - 1.6, len, 3.2);
+      c.shadowBlur = 16; c.shadowColor = col;
+      c.fillStyle = '#ffffff';
+      c.fillRect(x - 3, y - 3, 6, 6);
+      c.shadowBlur = 0;
+    }
+    window.addEventListener('resize', function () { if (bgOn) bgResize(); });
+
+    // ---------- fullscreen ----------
+    function toggleFullscreen() {
+      try {
+        if (document.fullscreenElement) document.exitFullscreen().catch(function () {});
+        else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(function () {});
+      } catch (e) {}
+    }
+    document.getElementById('fs-btn').addEventListener('click', toggleFullscreen);
+
+    // ---------- options ----------
+    var optionsEl = document.getElementById('options');
+    var optionsFrom = 'menu';
+    function openOptions(from) {
+      optionsFrom = from;
+      if (from === 'menu') el.menu.classList.add('hidden');
+      else el.pause.classList.add('hidden');
+      ['master', 'engine', 'sfx'].forEach(function (k) {
+        var v = Math.round(Sound.getVol(k) * 100);
+        document.getElementById('vol-' + k).value = v;
+        document.getElementById('vol-' + k + '-v').textContent = v;
+      });
+      updateOptMute();
+      optionsEl.classList.remove('hidden');
+    }
+    function closeOptions() {
+      optionsEl.classList.add('hidden');
+      if (optionsFrom === 'menu') el.menu.classList.remove('hidden');
+      else el.pause.classList.remove('hidden');
+    }
+    function updateOptMute() {
+      document.getElementById('opt-mute').textContent = Sound.enabled ? 'ON' : 'OFF';
+    }
+    document.getElementById('options-btn').addEventListener('click', function () { Sound.unlock(); openOptions('menu'); });
+    document.getElementById('pause-options-btn').addEventListener('click', function () { openOptions('pause'); });
+    document.getElementById('opt-back').addEventListener('click', closeOptions);
+    ['master', 'engine', 'sfx'].forEach(function (k) {
+      var inp = document.getElementById('vol-' + k);
+      inp.addEventListener('input', function () {
+        Sound.setVol(k, inp.value / 100);
+        document.getElementById('vol-' + k + '-v').textContent = inp.value;
+      });
+      inp.addEventListener('change', function () { Sound.uiBlip(); });
+    });
+    document.getElementById('opt-fs').addEventListener('click', toggleFullscreen);
+    document.getElementById('opt-mute').addEventListener('click', function () { Sound.unlock(); updateSndBtn(Sound.toggle()); updateOptMute(); });
+
     // ---------- SDK (optional) ----------
     if (window.GameVolt) {
       try { GameVolt.init('neon-cycles'); } catch (e) {}
@@ -912,6 +1134,7 @@
     };
 
     resize();
+    bgStart();
   })();
   </script>
 </body>
