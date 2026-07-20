@@ -129,7 +129,7 @@
   <script src="tt-ai.js"></script>
   <script>
     'use strict';
-    var VERSION = '0.1.0';
+    var VERSION = '0.2.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -154,9 +154,9 @@
       W = window.innerWidth; H = window.innerHeight;
       cv.width = W * DPR; cv.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      CAM.hor = H * 0.235;
-      CAM.A = H * 0.50;
-      CAM.S = Math.min(W * 0.62, H * 0.86);
+      CAM.hor = H * 0.20;
+      CAM.A = H * 0.60;
+      CAM.S = Math.min(W * 0.55, H * 0.72);
     }
     window.addEventListener('resize', resize);
 
@@ -165,7 +165,7 @@
     function proj(x, y, z) {
       var d = dist(y);
       var s = CAM.S / d;
-      return { x: W / 2 + x * s, y: CAM.hor + CAM.A / d - z * s * 0.95, s: s };
+      return { x: W / 2 + x * s, y: CAM.hor + CAM.A / d - z * s * 0.85, s: s };
     }
 
     // ---------- rendering ----------
@@ -292,6 +292,16 @@
 
     function drawBall() {
       var b = game.ball;
+      var tz = game.phase === 'serve' ? tossHeight() : 0;
+      if (tz) {
+        var tp2 = proj(b.x, b.y, b.z + tz);
+        var tr2 = Math.max(3, 0.045 * tp2.s);
+        var tg = ctx.createRadialGradient(tp2.x - tr2 * 0.35, tp2.y - tr2 * 0.4, tr2 * 0.15, tp2.x, tp2.y, tr2);
+        tg.addColorStop(0, '#fff6e0'); tg.addColorStop(0.45, '#ffb020'); tg.addColorStop(1, '#b35c00');
+        ctx.fillStyle = tg;
+        ctx.beginPath(); ctx.arc(tp2.x, tp2.y, tr2, 0, Math.PI * 2); ctx.fill();
+        return;
+      }
       // motion trail
       for (var i = 0; i < trail.length; i++) {
         var t = trail[i];
@@ -328,16 +338,19 @@
       ctx.stroke();
       ctx.restore();
     }
-    var padTilt = 0;
+    var padTilt = 0, padKick = 0;
     function drawNearPaddle() {
       var pad = game.paddles[1];
-      padTilt += ((pointerVX * -0.06) - padTilt) * 0.2;
-      padTilt = Math.max(-0.5, Math.min(0.5, padTilt));
-      paddleShape(pad.x, K.PADDLE_Y[1], pad.z, 0.18, '#ff4d4d', '#a3122a', padTilt);
+      // lean into the reach (forehand/backhand angle) + a nudge from motion
+      var target = Math.max(-1.0, Math.min(1.0, pad.x * 0.45 + pointerVX * 0.09));
+      padTilt += (target - padTilt) * 0.18;
+      padKick *= 0.85;
+      paddleShape(pad.x, K.PADDLE_Y[1], pad.z, 0.18, '#ff4d4d', '#a3122a', padTilt + padKick);
     }
     function drawFarPaddle() {
       var pad = game.paddles[2];
-      paddleShape(pad.x, K.PADDLE_Y[2], pad.z, 0.17, '#3aa0ff', '#134a91', 0);
+      paddleShape(pad.x, K.PADDLE_Y[2], pad.z, 0.17, '#3aa0ff', '#134a91',
+        Math.max(-0.8, Math.min(0.8, -pad.x * 0.4)));
     }
 
     // ---------- input ----------
@@ -346,8 +359,10 @@
     var lastPX = null, lastPT = 0;
 
     function toWorld(clientX, clientY) {
+      // 1.25x lateral gain: side balls are reachable without dragging the
+      // finger across the whole screen
       return {
-        x: (clientX - W / 2) / ppm(0),
+        x: (clientX - W / 2) / ppm(0) * 1.25,
         z: Math.max(0.02, Math.min(0.8, (H * 0.9 - clientY) / (H * 0.5) * 0.8))
       };
     }
@@ -360,7 +375,8 @@
           pointerVZ = pointerVZ * 0.65 + ((w.z - pointer.z) / dt) * 0.35;
         }
       }
-      pointer.x = Math.max(-1.5, Math.min(1.5, w.x));
+      var xMax = Math.min(1.5, (W / 2 - 52) / ppm(0)); // keep the paddle on screen
+      pointer.x = Math.max(-xMax, Math.min(xMax, w.x));
       pointer.z = w.z;
       lastPX = clientX; lastPT = ts;
     }
@@ -375,17 +391,30 @@
       var speed = Math.min(1, (Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6) / 3.4);
       return {
         tx: Math.max(-0.68, Math.min(0.68, game.paddles[1].x * 0.25 + pointerVX * 0.42)),
-        ty: K.NET_Y + 0.38 + 0.95 * speed,
-        t: 0.75 - 0.27 * speed
+        ty: K.NET_Y + 0.34 + 0.95 * speed,
+        t: 0.60 - 0.22 * speed   // flat, driven arcs — no balloon ball
       };
     }
     function humanServe() {
-      TTCore.serve(game, {
+      beginToss({
         tx: Math.max(-0.6, Math.min(0.6, game.paddles[1].x * -0.4 + pointerVX * 0.3 + (rng() - 0.5) * 0.2)),
-        ty: K.NET_Y + 0.55 + rng() * 0.7,
-        t: 0.62 + rng() * 0.12
+        ty: K.NET_Y + 0.5 + rng() * 0.6,
+        t: 0.48 + rng() * 0.1
       });
+    }
+
+    // Serve toss: the ball is thrown up from the paddle and struck on the
+    // way down (cosmetic — the core fires the actual serve at the strike).
+    var toss = null; // { t, dur, aim }
+    function beginToss(aim) {
+      if (toss) return;
+      toss = { t: 0, dur: 38, aim: aim };
       setHint('');
+    }
+    function tossHeight() {
+      if (!toss) return 0;
+      var f = toss.t / toss.dur;
+      return 4 * 0.55 * f * (1 - f); // parabola: up 0.55m and back down
     }
 
     // ---------- ui helpers ----------
@@ -423,6 +452,7 @@
       game = TTCore.createGame(1);
       aiMem = {};
       trail = [];
+      toss = null;
       pointTimer = 0;
       ui = 'playing';
       el.menu.classList.add('hidden');
@@ -455,16 +485,23 @@
     }
 
     function tickGame() {
+      if (toss) {
+        toss.t++;
+        if (toss.t >= toss.dur) {
+          var wasHuman = game.server === 1;
+          TTCore.serve(game, toss.aim);
+          toss = null;
+          if (wasHuman) padKick = 0.55; // strike swing
+        }
+      }
       var inputs = { 1: { x: pointer.x, z: pointer.z, aim: humanAim() } };
       var ai = TTAi.decide(game, 2, level, rng, aiMem);
-      if (game.phase === 'serve' && game.server === 2 && ai.serve) {
-        TTCore.serve(game, ai.serve);
-        setHint('');
-      }
+      if (game.phase === 'serve' && game.server === 2 && ai.serve) beginToss(ai.serve);
       inputs[2] = ai;
       var res = TTCore.step(game, inputs);
       for (var i = 0; i < res.events.length; i++) {
         var e = res.events[i];
+        if (e.type === 'hit' && e.by === 1) padKick = Math.max(-0.6, Math.min(0.6, pointerVX * 0.14));
         if (e.type === 'net') showBanner('NET!');
         else if (e.type === 'point') {
           updateHud();

@@ -48,7 +48,7 @@
   // with flat targets naturally risk clipping the net — that's the skill.
   function launchAt(s, pid, tx, ty, T) {
     var b = s.ball;
-    T = Math.max(0.40, Math.min(0.95, T));
+    T = Math.max(0.34, Math.min(0.95, T));
     tx = Math.max(-TABLE_W / 2 - 0.55, Math.min(TABLE_W / 2 + 0.55, tx));
     // never let a shot target the hitter's own half (out past the far end is
     // allowed — that's how unforced errors happen)
