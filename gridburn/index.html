@@ -310,6 +310,11 @@
       text-shadow: 0 0 12px rgba(255,209,102,0.6);
     }
     #net-ind.on { display: block; }
+    #ping-ind {
+      position: fixed; bottom: 8px; right: 12px; z-index: 6; pointer-events: none;
+      color: rgba(0,234,255,0.55); font-size: 0.6rem; letter-spacing: 2px; display: none;
+    }
+    #ping-ind.on { display: block; }
     #again-btn.rematch-wait:not(:disabled) { animation: rematchPulse 1.1s ease-in-out infinite; }
     @keyframes rematchPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); box-shadow: 0 0 24px rgba(0,234,255,0.5); } }
 
@@ -442,6 +447,7 @@
   </div>
 
   <div id="net-ind">⏳ SYNCING…</div>
+  <div id="ping-ind"></div>
   <div id="nc-version">v1.2.1</div>
   <button id="snd-btn" aria-label="Toggle sound (M)">🔊</button>
   <button id="fs-btn" aria-label="Fullscreen (F)">⛶</button>
@@ -553,7 +559,7 @@
   <script>
   (function () {
     'use strict';
-    var VERSION = '1.3.0';
+    var VERSION = '1.4.0';
     var COLS = 64, ROWS = 40, TICK_MS = 70;
     var ROUNDS_TO_WIN = 3;
     var MAX_PARTICLES = 400;
@@ -613,6 +619,14 @@
     var oppCsMap = {};               // opponent checksums that arrived before my sim got there
     var stallStart = 0;
     var myPlannedDir = null;         // latest locally scheduled dir (base for relative turns)
+    // Timesync (GGPO-style): both players measure how far their view runs
+    // ahead of the other's finalized frontier; whoever is further ahead skips
+    // the odd view tick, so neither player eats the whole network delay.
+    var advEma = null;               // smoothed (viewTick - oppThrough), my frame advantage
+    var oppAdvEma = null;            // the opponent's smoothed advantage (from their heartbeats)
+    var syncCooldown = 0;            // ticks until the next timesync skip is allowed
+    var rttMs = 0;                   // smoothed round-trip time from ping/pong piggybacks
+    var lastPingTick = 0;
     var iWantRematch = false, oppWantsRematch = false;
     var particles = [];
     var shakeT = 0;
@@ -1059,6 +1073,10 @@
         oppCsMap = {};
         myPlannedDir = null;
         stallStart = 0;
+        advEma = null;
+        oppAdvEma = null;
+        syncCooldown = 0;
+        lastPingTick = 0; // rttMs deliberately survives rounds — latency doesn't reset
         delete netRounds[roundSeq - 3];
       }
       el.banner.classList.add('hidden');
@@ -1215,6 +1233,18 @@
         }
         stallStart = 0;
         acc -= TICK_MS;
+        if (oppThrough >= 0) {
+          var adv = viewTick - oppThrough;
+          advEma = advEma === null ? adv : advEma * 0.9 + adv * 0.1;
+        }
+        if (syncCooldown > 0) {
+          syncCooldown--;
+        } else if (advEma !== null && oppAdvEma !== null && advEma - oppAdvEma > 1.5) {
+          // Timesync: I'm the one running ahead — give a tick back (~12%
+          // brake) so the delay splits evenly instead of one player eating it.
+          syncCooldown = 7;
+          continue;
+        }
         viewTick++;
         sendNetTick(); // heartbeat: my inputs are final through the new viewTick
         spawnExhaust();
@@ -1254,7 +1284,15 @@
 
       updateParticles(dt);
       if (shakeT > 0) shakeT = Math.max(0, shakeT - dt);
-      if (mode === 'online') document.getElementById('net-ind').classList.toggle('on', !!(stallStart && ts - stallStart > 400) && state === 'playing');
+      if (mode === 'online') {
+        document.getElementById('net-ind').classList.toggle('on', !!(stallStart && ts - stallStart > 400) && state === 'playing');
+        var pel = document.getElementById('ping-ind');
+        pel.classList.toggle('on', state === 'playing' && rttMs > 0);
+        if (rttMs > 0) {
+          var ptxt = 'PING ' + Math.round(rttMs) + ' ms';
+          if (pel.textContent !== ptxt) pel.textContent = ptxt;
+        }
+      }
       if (mode === 'solo' && state === 'playing') updateHud();
       draw(state === 'playing' ? acc / TICK_MS : 1);
       requestAnimationFrame(loop);
@@ -1345,6 +1383,7 @@
         Sound.stinger(((mode === 'ai' && w === 2) || (mode === 'online' && w !== myPid)) ? 'matchlose' : 'matchwin');
       }
       document.getElementById('net-ind').classList.remove('on');
+      document.getElementById('ping-ind').classList.remove('on');
       resetRematchUI();
       el.end.classList.remove('hidden');
       navReset('end');
@@ -1354,6 +1393,7 @@
       state = 'menu';
       if (mode === 'online') { try { if (window.NCNet) NCNet.leave(); } catch (e) {} }
       document.getElementById('net-ind').classList.remove('on');
+      document.getElementById('ping-ind').classList.remove('on');
       Sound.engineStop();
       clearTimers();
       game = null;
@@ -1903,7 +1943,10 @@
     function sendNetTick() {
       // New local inputs always land at viewTick+1 or later, so everything
       // through viewTick is final — this is what unblocks the peer's confGame.
-      if (window.NCNet) NCNet.input({ r: roundSeq, through: viewTick });
+      var msg = { r: roundSeq, through: viewTick };
+      if (advEma !== null) msg.adv = Math.round(advEma * 10) / 10;
+      if (viewTick - lastPingTick >= 25) { lastPingTick = viewTick; msg.ping = performance.now(); }
+      if (window.NCNet) NCNet.input(msg);
     }
 
     function sendChecksum() {
@@ -1932,6 +1975,7 @@
       el.hud.classList.add('hidden');
       el.banner.classList.add('hidden');
       document.getElementById('net-ind').classList.remove('on');
+      document.getElementById('ping-ind').classList.remove('on');
       el.endIcon.textContent = '⚠️';
       el.endTitle.textContent = 'DESYNCED';
       el.endTitle.className = 'modal-title';
@@ -1991,6 +2035,7 @@
       el.banner.classList.add('hidden');
       el.countdown.classList.add('hidden');
       document.getElementById('net-ind').classList.remove('on');
+      document.getElementById('ping-ind').classList.remove('on');
       el.endIcon.textContent = '🔌';
       el.endTitle.textContent = 'OPPONENT LEFT';
       el.endTitle.className = 'modal-title';
@@ -2004,6 +2049,14 @@
     if (window.NCNet) {
       NCNet.on('input', function (d) {
         if (!d || typeof d.r !== 'number') return;
+        // Ping/pong and timesync data ride the same channel but are handled
+        // immediately — they're clock measurements, not round-ordered inputs.
+        if (d.ping !== undefined && window.NCNet) NCNet.input({ r: d.r, pong: d.ping });
+        if (d.pong !== undefined) {
+          var sample = performance.now() - d.pong;
+          if (sample >= 0 && sample < 10000) rttMs = rttMs ? rttMs * 0.7 + sample * 0.3 : sample;
+        }
+        if (typeof d.adv === 'number') oppAdvEma = d.adv;
         var b = netBucket(d.r);
         if (typeof d.t === 'number' && typeof d.dir === 'number') b.turns.push({ t: d.t, dir: d.dir });
         if (typeof d.through === 'number' && d.through > b.through) b.through = d.through;
@@ -2116,7 +2169,7 @@
       get game() { return game; },
       get wins() { return { 1: wins[1], 2: wins[2] }; },
       get conf() { return confGame; },
-      get net() { return { roundSeq: roundSeq, viewTick: viewTick, confTick: confGame ? confGame.tick : -1, oppThrough: oppThrough, myPid: myPid, stalled: !!stallStart, maxPredict: MAX_PREDICT, myInputs: JSON.parse(JSON.stringify(myInputs)) }; }
+      get net() { return { roundSeq: roundSeq, viewTick: viewTick, confTick: confGame ? confGame.tick : -1, oppThrough: oppThrough, myPid: myPid, stalled: !!stallStart, maxPredict: MAX_PREDICT, rtt: Math.round(rttMs), adv: advEma, oppAdv: oppAdvEma, myInputs: JSON.parse(JSON.stringify(myInputs)) }; }
     };
 
     resize();
