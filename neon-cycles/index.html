@@ -171,6 +171,40 @@
     .opt-row .btn { margin: 0; min-width: 0; padding: 8px 16px; font-size: 0.68rem; }
     #opt-back { margin-top: 8px; }
 
+    /* Trophies */
+    .tr-panel {
+      background: rgba(4,7,18,0.88); border: 1px solid rgba(0,234,255,0.25); border-radius: 16px;
+      padding: 22px 24px; width: min(92vw, 560px);
+      display: flex; flex-direction: column; gap: 12px;
+      box-shadow: 0 0 40px rgba(0,234,255,0.12);
+    }
+    #tr-count { color: #6ff9ff; font-size: 0.8rem; margin-left: 10px; }
+    #tr-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      max-height: 58vh; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px;
+      text-align: left;
+    }
+    .tr-tier {
+      grid-column: 1 / -1; font-size: 0.62rem; letter-spacing: 3px; font-weight: 700;
+      padding: 8px 0 3px; border-bottom: 1px solid rgba(0,234,255,0.15);
+    }
+    .tr-tier.bronze { color: #cd7f32; }
+    .tr-tier.silver { color: #c0c0c0; }
+    .tr-tier.gold { color: #ffd700; }
+    .tr-tier.platinum { color: #b4ffff; }
+    .tr-card {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px; padding: 10px 9px; text-align: center;
+    }
+    .tr-card.locked { opacity: 0.38; filter: grayscale(0.7); }
+    .tr-card.unlocked.bronze { border-color: rgba(205,127,50,0.45); background: rgba(205,127,50,0.06); }
+    .tr-card.unlocked.silver { border-color: rgba(192,192,192,0.45); background: rgba(192,192,192,0.06); }
+    .tr-card.unlocked.gold { border-color: rgba(255,215,0,0.45); background: rgba(255,215,0,0.06); }
+    .tr-card.unlocked.platinum { border-color: rgba(180,255,255,0.45); background: rgba(180,255,255,0.06); }
+    .tr-ico { font-size: 22px; }
+    .tr-name { font-size: 0.6rem; letter-spacing: 1px; color: #ddd; margin: 4px 0 2px; }
+    .tr-desc { font-size: 0.55rem; color: #8892b8; line-height: 1.35; letter-spacing: 0.5px; }
+
     /* Keyboard focus ring */
     .btn:focus { outline: none; }
     .overlay .btn:focus {
@@ -216,13 +250,24 @@
       </div>
       <button class="btn" data-mode="2p">2-PLAYER LOCAL</button>
       <button class="btn p2" data-mode="solo">SOLO PRACTICE</button>
+      <button class="btn ghost" id="trophies-btn">TROPHIES</button>
       <button class="btn ghost" id="options-btn">OPTIONS</button>
     </div>
     <div class="controls-hint">
       <b class="k">Player 1</b> — W A S D &nbsp;·&nbsp; <b class="k2">Player 2</b> — Arrows &nbsp;·&nbsp; you ride <b class="k">cyan</b> vs AI<br>
-      First to 3 rounds wins &nbsp;·&nbsp; Esc pause &nbsp;·&nbsp; M mute &nbsp;·&nbsp; F fullscreen
+      First to 3 rounds wins &nbsp;·&nbsp; Esc pause &nbsp;·&nbsp; M mute &nbsp;·&nbsp; F fullscreen<br>
+      🎮 Gamepad: D-pad/stick steers &amp; navigates &nbsp;·&nbsp; A select &nbsp;·&nbsp; B back &nbsp;·&nbsp; Start pause
     </div>
     <div class="tag-working">WORKING TITLE · PHASE 0 PROTOTYPE</div>
+  </div>
+
+  <!-- Trophies -->
+  <div id="trophies" class="overlay hidden">
+    <div class="tr-panel">
+      <div class="opt-title">TROPHIES<span id="tr-count">0 / 31</span></div>
+      <div id="tr-grid"></div>
+      <button class="btn" id="tr-back">◂ BACK</button>
+    </div>
   </div>
 
   <!-- Options -->
@@ -264,7 +309,7 @@
     <button class="btn ghost" id="menu-btn">MENU</button>
   </div>
 
-  <div id="nc-version">v0.6.0-p0</div>
+  <div id="nc-version">v0.7.0-p0</div>
   <button id="snd-btn" aria-label="Toggle sound (M)">🔊</button>
   <button id="fs-btn" aria-label="Fullscreen (F)">⛶</button>
 
@@ -276,10 +321,11 @@
   <script src="/sdk/gamevolt.js" data-game="neon-cycles"></script>
   <script src="nc-core.js"></script>
   <script src="nc-ai.js"></script>
+  <script src="nc-achievements.js"></script>
   <script>
   (function () {
     'use strict';
-    var VERSION = '0.6.0-p0';
+    var VERSION = '0.7.0-p0';
     var COLS = 64, ROWS = 40, TICK_MS = 70;
     var ROUNDS_TO_WIN = 3;
     var MAX_PARTICLES = 400;
@@ -319,6 +365,7 @@
     var soloBest = parseInt(localStorage.getItem('ncSoloBest') || '0', 10);
     var wins = { 1: 0, 2: 0 };
     var roundNum = 1;
+    var matchWasDown02 = false;
     var particles = [];
     var shakeT = 0;
     var scanPat = null;
@@ -744,6 +791,7 @@
       clearTimers();
       wins = { 1: 0, 2: 0 };
       roundNum = 1;
+      matchWasDown02 = false;
       el.menu.classList.add('hidden');
       el.end.classList.add('hidden');
       el.pause.classList.add('hidden');
@@ -851,7 +899,13 @@
       later(function () {
         if (mode === 'solo') { endMatch(); return; }
         var w = game.winner;
+        var p1 = game.players[0];
+        if (window.NCTrophies) NCTrophies.event('round', {
+          mode: mode, winner: w, ticks: game.tick, double: w === 0,
+          myDistance: p1.trail.length - 1, iCrashed: !p1.alive
+        });
         if (w !== 0) { wins[w]++; updateHud(); }
+        if (mode === 'ai' && wins[2] === 2 && wins[1] === 0) matchWasDown02 = true;
         if (w !== 0 && wins[w] >= ROUNDS_TO_WIN) { endMatch(); return; }
         // Round banner, then a snappy READY/GO into the next round.
         if (w === 0) {
@@ -890,8 +944,14 @@
         el.endTitle.className = 'modal-title';
         el.endSub.textContent = 'You survived ' + (soloTicks * TICK_MS / 1000).toFixed(1) + 's · best ' + (soloBest * TICK_MS / 1000).toFixed(1) + 's';
         if (window.GameVolt) GameVolt.leaderboard.submit(soloTicks, { mode: 'solo' });
+        if (window.NCTrophies) NCTrophies.event('solo', { ticks: soloTicks });
       } else {
         var w = wins[1] >= ROUNDS_TO_WIN ? 1 : 2;
+        if (window.NCTrophies) NCTrophies.event('match', {
+          mode: mode, myWin: mode === 'ai' && w === 1, aiLevel: aiLevel,
+          flawless: w === 1 && wins[2] === 0,
+          comeback: w === 1 && matchWasDown02
+        });
         if (mode === 'ai') {
           el.endIcon.textContent = w === 1 ? '🏆' : '🤖';
           el.endTitle.textContent = w === 1 ? 'YOU WIN THE MATCH' : 'AI WINS THE MATCH';
@@ -950,12 +1010,18 @@
     window.addEventListener('keydown', function (e) {
       if (e.code === 'KeyM') { updateSndBtn(Sound.toggle()); return; }
       if (e.code === 'KeyF') { toggleFullscreen(); return; }
+      if (e.code === 'Escape' && trophiesEl && !trophiesEl.classList.contains('hidden')) { closeTrophies(); return; }
       if (e.code === 'Escape' && optionsEl && !optionsEl.classList.contains('hidden')) { closeOptions(); return; }
       if (e.code === 'Escape' && (state === 'playing' || state === 'paused')) { togglePause(); return; }
 
       // Full keyboard navigation whenever a menu screen is up.
       var nav = navContext();
       if (nav) {
+        if (nav === 'trophies') {
+          if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); trScroll(-70); return; }
+          if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); trScroll(70); return; }
+          return; // Enter/Space on the focused BACK button activates natively
+        }
         var ae = document.activeElement;
         var onSlider = ae && ae.type === 'range';
         if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); navMove(nav, -1, 0); return; }
@@ -1149,13 +1215,57 @@
     document.getElementById('opt-fs').addEventListener('click', toggleFullscreen);
     document.getElementById('opt-mute').addEventListener('click', function () { Sound.unlock(); updateSndBtn(Sound.toggle()); updateOptMute(); });
 
+    // ---------- trophies screen ----------
+    var trophiesEl = document.getElementById('trophies');
+    var TIER_NAMES = { bronze: 'BRONZE', silver: 'SILVER', gold: 'GOLD', platinum: 'PLATINUM' };
+    function renderTrophies() {
+      if (!window.NCTrophies) return;
+      var unlocked = {};
+      NCTrophies.getUnlocked().forEach(function (id) { unlocked[id] = true; });
+      var html = '', total = 0;
+      ['bronze', 'silver', 'gold', 'platinum'].forEach(function (tier) {
+        var items = NCTrophies.LIST.filter(function (a) { return a.tier === tier; });
+        var got = items.filter(function (a) { return unlocked[a.id]; }).length;
+        html += '<div class="tr-tier ' + tier + '">' + TIER_NAMES[tier] + ' · ' + got + '/' + items.length + '</div>';
+        items.forEach(function (a) {
+          var un = !!unlocked[a.id];
+          if (un) total++;
+          html += '<div class="tr-card ' + (un ? 'unlocked ' + tier : 'locked') + '">' +
+            '<div class="tr-ico">' + (un ? a.icon : '🔒') + '</div>' +
+            '<div class="tr-name">' + a.name + '</div>' +
+            '<div class="tr-desc">' + a.desc + '</div>' +
+            '</div>';
+        });
+      });
+      document.getElementById('tr-grid').innerHTML = html;
+      document.getElementById('tr-count').textContent = total + ' / ' + NCTrophies.LIST.length;
+    }
+    function openTrophies() {
+      renderTrophies();
+      el.menu.classList.add('hidden');
+      trophiesEl.classList.remove('hidden');
+      navReset('trophies');
+    }
+    function closeTrophies() {
+      trophiesEl.classList.add('hidden');
+      el.menu.classList.remove('hidden');
+      navReset('menu');
+    }
+    function trScroll(dy) {
+      var g = document.getElementById('tr-grid');
+      if (g) g.scrollTop += dy;
+    }
+    document.getElementById('trophies-btn').addEventListener('click', function () { Sound.unlock(); openTrophies(); });
+    document.getElementById('tr-back').addEventListener('click', closeTrophies);
+
     // ---------- keyboard menu navigation ----------
     // Each screen is a list of rows; a row can hold several items (the AI
     // difficulty trio). Up/down moves rows, left/right moves within a row.
     // Real DOM focus is used, so Enter/Space activation comes from the
     // browser for free and sliders keep their native left/right handling.
     var NAV_DEFS = {
-      menu: [['[data-ai="easy"]', '[data-ai="medium"]', '[data-ai="hard"]'], ['[data-mode="2p"]'], ['[data-mode="solo"]'], ['#options-btn']],
+      menu: [['[data-ai="easy"]', '[data-ai="medium"]', '[data-ai="hard"]'], ['[data-mode="2p"]'], ['[data-mode="solo"]'], ['#trophies-btn'], ['#options-btn']],
+      trophies: [['#tr-back']],
       options: [['#vol-master'], ['#vol-engine'], ['#vol-sfx'], ['#opt-mute'], ['#opt-fs'], ['#opt-back']],
       pause: [['#resume-btn'], ['#pause-options-btn'], ['#pause-menu-btn']],
       end: [['#again-btn'], ['#menu-btn']]
@@ -1163,6 +1273,7 @@
     var navR = 0, navC = 0;
 
     function navContext() {
+      if (trophiesEl && !trophiesEl.classList.contains('hidden')) return 'trophies';
       if (optionsEl && !optionsEl.classList.contains('hidden')) return 'options';
       if (state === 'menu') return 'menu';
       if (state === 'paused') return 'pause';
@@ -1207,9 +1318,79 @@
 
     function navReset(ctxName) { navFocus(ctxName, 0, 0); }
 
+    // ---------- gamepad (D-pad/stick steer & navigate, A select, B back, Start pause) ----------
+    var gpPrev = {};
+    function gpNudgeSlider(ae, delta) {
+      ae.value = +ae.value + delta;
+      ae.dispatchEvent(new Event('input'));
+    }
+    function handlePad(padIndex, up, down, left, right, A, B, START) {
+      var nav = navContext();
+      if (nav) {
+        if (nav === 'trophies') {
+          if (up) trScroll(-70);
+          if (down) trScroll(70);
+          if (A || B) closeTrophies();
+          return;
+        }
+        if (up) navMove(nav, -1, 0);
+        if (down) navMove(nav, 1, 0);
+        var ae = document.activeElement;
+        var onSlider = ae && ae.type === 'range';
+        if (left) { if (onSlider) gpNudgeSlider(ae, -5); else navMove(nav, 0, -1); }
+        if (right) { if (onSlider) gpNudgeSlider(ae, 5); else navMove(nav, 0, 1); }
+        if (A) {
+          var cur = (ae && ae !== document.body) ? ae : navCurrent(nav);
+          if (cur && cur.click) cur.click();
+        }
+        if (B) {
+          if (nav === 'options') closeOptions();
+          else if (nav === 'pause') togglePause();
+          else if (nav === 'end') toMenu();
+        }
+        if (START && nav === 'pause') togglePause();
+        return;
+      }
+      if (state === 'playing') {
+        if (START) { togglePause(); return; }
+        // pad 0 steers P1; a second pad steers P2 in local 2P
+        var pid = (mode === '2p' && padIndex > 0) ? 2 : 1;
+        if (up) NCCore.setDir(game, pid, 0);
+        if (right) NCCore.setDir(game, pid, 1);
+        if (down) NCCore.setDir(game, pid, 2);
+        if (left) NCCore.setDir(game, pid, 3);
+      }
+    }
+    function gpFrame() {
+      var pads = (navigator.getGamepads && navigator.getGamepads()) || [];
+      for (var i = 0; i < pads.length; i++) {
+        var gp = pads[i];
+        if (!gp) continue;
+        var prev = gpPrev[gp.index] || { b: [], ax: 0, ay: 0 };
+        var b = [];
+        for (var k = 0; k < gp.buttons.length; k++) b[k] = !!(gp.buttons[k] && gp.buttons[k].pressed);
+        var ax = Math.abs(gp.axes[0] || 0) > 0.5 ? (gp.axes[0] > 0 ? 1 : -1) : 0;
+        var ay = Math.abs(gp.axes[1] || 0) > 0.5 ? (gp.axes[1] > 0 ? 1 : -1) : 0;
+        function press(idx) { return b[idx] && !prev.b[idx]; }
+        handlePad(gp.index,
+          press(12) || (ay === -1 && prev.ay !== -1),
+          press(13) || (ay === 1 && prev.ay !== 1),
+          press(14) || (ax === -1 && prev.ax !== -1),
+          press(15) || (ax === 1 && prev.ax !== 1),
+          press(0), press(1), press(9));
+        gpPrev[gp.index] = { b: b, ax: ax, ay: ay };
+      }
+      requestAnimationFrame(gpFrame);
+    }
+    requestAnimationFrame(gpFrame);
+
     // ---------- SDK (optional) ----------
     if (window.GameVolt) {
       try { GameVolt.init('neon-cycles'); } catch (e) {}
+      if (window.NCTrophies) {
+        NCTrophies.initSDK();
+        NCTrophies.backfill();
+      }
     }
     var sndBtn = document.getElementById('snd-btn');
     function updateSndBtn(on) { sndBtn.textContent = on ? '\ud83d\udd0a' : '\ud83d\udd07'; }
