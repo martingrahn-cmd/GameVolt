@@ -171,6 +171,16 @@
     .opt-row .btn { margin: 0; min-width: 0; padding: 8px 16px; font-size: 0.68rem; }
     #opt-back { margin-top: 8px; }
 
+    /* Keyboard focus ring */
+    .btn:focus { outline: none; }
+    .overlay .btn:focus {
+      outline: 2px solid rgba(255,255,255,0.9); outline-offset: 3px;
+      box-shadow: 0 0 26px rgba(0,234,255,0.45);
+    }
+    .opt-row input[type=range]:focus {
+      outline: 2px solid rgba(255,255,255,0.9); outline-offset: 5px; border-radius: 4px;
+    }
+
     #seo-content { position: fixed; left: -9999px; }
   </style>
 </head>
@@ -219,9 +229,9 @@
   <div id="options" class="overlay hidden">
     <div class="opt-panel">
       <div class="opt-title">OPTIONS</div>
-      <div class="opt-row"><span>MASTER</span><input type="range" id="vol-master" min="0" max="100" value="50"><b id="vol-master-v">50</b></div>
-      <div class="opt-row"><span>ENGINE</span><input type="range" id="vol-engine" min="0" max="100" value="60"><b id="vol-engine-v">60</b></div>
-      <div class="opt-row"><span>SFX</span><input type="range" id="vol-sfx" min="0" max="100" value="80"><b id="vol-sfx-v">80</b></div>
+      <div class="opt-row"><span>MASTER</span><input type="range" id="vol-master" min="0" max="100" step="5" value="50"><b id="vol-master-v">50</b></div>
+      <div class="opt-row"><span>ENGINE</span><input type="range" id="vol-engine" min="0" max="100" step="5" value="60"><b id="vol-engine-v">60</b></div>
+      <div class="opt-row"><span>SFX</span><input type="range" id="vol-sfx" min="0" max="100" step="5" value="80"><b id="vol-sfx-v">80</b></div>
       <div class="opt-row"><span>SOUND</span><button class="btn ghost" id="opt-mute">ON</button></div>
       <div class="opt-row"><span>FULLSCREEN</span><button class="btn ghost" id="opt-fs">⛶ TOGGLE</button></div>
       <button class="btn" id="opt-back">◂ BACK</button>
@@ -254,7 +264,7 @@
     <button class="btn ghost" id="menu-btn">MENU</button>
   </div>
 
-  <div id="nc-version">v0.5.0-p0</div>
+  <div id="nc-version">v0.6.0-p0</div>
   <button id="snd-btn" aria-label="Toggle sound (M)">🔊</button>
   <button id="fs-btn" aria-label="Fullscreen (F)">⛶</button>
 
@@ -269,7 +279,7 @@
   <script>
   (function () {
     'use strict';
-    var VERSION = '0.5.0-p0';
+    var VERSION = '0.6.0-p0';
     var COLS = 64, ROWS = 40, TICK_MS = 70;
     var ROUNDS_TO_WIN = 3;
     var MAX_PARTICLES = 400;
@@ -894,6 +904,7 @@
         Sound.stinger(mode === 'ai' && w === 2 ? 'matchlose' : 'matchwin');
       }
       el.end.classList.remove('hidden');
+      navReset('end');
     }
 
     function toMenu() {
@@ -911,6 +922,7 @@
       el.touch.classList.remove('on');
       el.menu.classList.remove('hidden');
       bgStart();
+      navReset('menu');
       draw(1);
     }
 
@@ -919,6 +931,7 @@
         state = 'paused';
         Sound.suspend();
         el.pause.classList.remove('hidden');
+        navReset('pause');
       } else if (state === 'paused') {
         el.pause.classList.add('hidden');
         state = 'playing';
@@ -939,10 +952,31 @@
       if (e.code === 'KeyF') { toggleFullscreen(); return; }
       if (e.code === 'Escape' && optionsEl && !optionsEl.classList.contains('hidden')) { closeOptions(); return; }
       if (e.code === 'Escape' && (state === 'playing' || state === 'paused')) { togglePause(); return; }
-      if (state === 'over' && (e.code === 'Enter' || e.code === 'Space')) {
-        e.preventDefault();
-        startMatch(mode);
-        return;
+
+      // Full keyboard navigation whenever a menu screen is up.
+      var nav = navContext();
+      if (nav) {
+        var ae = document.activeElement;
+        var onSlider = ae && ae.type === 'range';
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); navMove(nav, -1, 0); return; }
+        if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); navMove(nav, 1, 0); return; }
+        if (onSlider && (e.code === 'KeyA' || e.code === 'KeyD')) {
+          // WASD volume nudge; arrow left/right is handled natively by the slider
+          e.preventDefault();
+          ae.value = +ae.value + (e.code === 'KeyD' ? 5 : -5);
+          ae.dispatchEvent(new Event('input'));
+          return;
+        }
+        if (!onSlider && (e.code === 'ArrowLeft' || e.code === 'KeyA')) { e.preventDefault(); navMove(nav, 0, -1); return; }
+        if (!onSlider && (e.code === 'ArrowRight' || e.code === 'KeyD')) { e.preventDefault(); navMove(nav, 0, 1); return; }
+        if ((e.code === 'Enter' || e.code === 'Space') && (!ae || ae === document.body)) {
+          // Focus was lost (e.g. a background click) — activate the remembered item.
+          e.preventDefault();
+          var cur = navCurrent(nav);
+          if (cur) cur.click();
+          return;
+        }
+        return; // Enter/Space on a focused button activates natively
       }
       if (state !== 'playing') return;
       var m = KEYMAP[e.code];
@@ -1091,11 +1125,12 @@
       });
       updateOptMute();
       optionsEl.classList.remove('hidden');
+      navReset('options');
     }
     function closeOptions() {
       optionsEl.classList.add('hidden');
-      if (optionsFrom === 'menu') el.menu.classList.remove('hidden');
-      else el.pause.classList.remove('hidden');
+      if (optionsFrom === 'menu') { el.menu.classList.remove('hidden'); navReset('menu'); }
+      else { el.pause.classList.remove('hidden'); navReset('pause'); }
     }
     function updateOptMute() {
       document.getElementById('opt-mute').textContent = Sound.enabled ? 'ON' : 'OFF';
@@ -1113,6 +1148,64 @@
     });
     document.getElementById('opt-fs').addEventListener('click', toggleFullscreen);
     document.getElementById('opt-mute').addEventListener('click', function () { Sound.unlock(); updateSndBtn(Sound.toggle()); updateOptMute(); });
+
+    // ---------- keyboard menu navigation ----------
+    // Each screen is a list of rows; a row can hold several items (the AI
+    // difficulty trio). Up/down moves rows, left/right moves within a row.
+    // Real DOM focus is used, so Enter/Space activation comes from the
+    // browser for free and sliders keep their native left/right handling.
+    var NAV_DEFS = {
+      menu: [['[data-ai="easy"]', '[data-ai="medium"]', '[data-ai="hard"]'], ['[data-mode="2p"]'], ['[data-mode="solo"]'], ['#options-btn']],
+      options: [['#vol-master'], ['#vol-engine'], ['#vol-sfx'], ['#opt-mute'], ['#opt-fs'], ['#opt-back']],
+      pause: [['#resume-btn'], ['#pause-options-btn'], ['#pause-menu-btn']],
+      end: [['#again-btn'], ['#menu-btn']]
+    };
+    var navR = 0, navC = 0;
+
+    function navContext() {
+      if (optionsEl && !optionsEl.classList.contains('hidden')) return 'options';
+      if (state === 'menu') return 'menu';
+      if (state === 'paused') return 'pause';
+      if (state === 'over') return 'end';
+      return null;
+    }
+
+    function navFindPos(ctxName) {
+      // Re-anchor on the actually-focused element so mouse and keyboard mix well.
+      var rows = NAV_DEFS[ctxName];
+      var ae = document.activeElement;
+      if (ae) {
+        for (var r = 0; r < rows.length; r++) {
+          for (var c = 0; c < rows[r].length; c++) {
+            if (document.querySelector(rows[r][c]) === ae) return { r: r, c: c };
+          }
+        }
+      }
+      return { r: navR, c: navC };
+    }
+
+    function navCurrent(ctxName) {
+      var rows = NAV_DEFS[ctxName];
+      var r = Math.min(navR, rows.length - 1);
+      var c = Math.min(navC, rows[r].length - 1);
+      return document.querySelector(rows[r][c]);
+    }
+
+    function navFocus(ctxName, r, c) {
+      var rows = NAV_DEFS[ctxName];
+      r = (r + rows.length) % rows.length;
+      c = Math.max(0, Math.min(rows[r].length - 1, c));
+      var target = document.querySelector(rows[r][c]);
+      if (target) target.focus();
+      navR = r; navC = c;
+    }
+
+    function navMove(ctxName, dr, dc) {
+      var pos = navFindPos(ctxName);
+      navFocus(ctxName, pos.r + dr, dr !== 0 ? pos.c : pos.c + dc);
+    }
+
+    function navReset(ctxName) { navFocus(ctxName, 0, 0); }
 
     // ---------- SDK (optional) ----------
     if (window.GameVolt) {
@@ -1135,6 +1228,7 @@
 
     resize();
     bgStart();
+    navReset('menu');
   })();
   </script>
 </body>
