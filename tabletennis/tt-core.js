@@ -22,7 +22,7 @@
   var BOUNCE = 0.93;         // table restitution (vertical)
   var DT = 1 / 60;
   var PADDLE_Y = { 1: -0.22, 2: 2.96 };
-  var REACH = 0.36;          // paddle hitbox half-extent (arcade-generous)
+  var REACH = 0.44;          // paddle hitbox half-extent (arcade-generous)
   var WIN_SCORE = 11;
 
   function other(p) { return p === 1 ? 2 : 1; }
@@ -38,6 +38,7 @@
       winner: 0,
       lastHitBy: 0,
       bounced: false,              // ball has bounced on the receiver's side since last hit
+      serveBounce: false,          // one legal own-side bounce (the serve)
       ball: { x: 0, y: PADDLE_Y[firstServer || 1], z: 0.27, vx: 0, vy: 0, vz: 0 },
       paddles: { 1: { x: 0, z: 0.25 }, 2: { x: 0, z: 0.25 } }
     };
@@ -59,6 +60,7 @@
     b.vz = (0.5 * G * T * T - b.z) / T;
     s.lastHitBy = pid;
     s.bounced = false;
+    s.serveBounce = false;
   }
 
   function award(s, to, ev) {
@@ -76,19 +78,43 @@
     }
   }
 
-  // Serve the ball (only valid in 'serve' phase). aim: {tx, ty, t}
+  // Serve (only valid in 'serve' phase). aim: {tx, ty} — the final landing
+  // point on the opponent's side. Like real table tennis, the ball first
+  // bounces on the server's OWN half, then carries over the net: we pick an
+  // own-side bounce point ~42% of the way and solve the first flight time so
+  // the post-bounce flight lands exactly at (tx, ty).
   function serve(s, aim) {
     if (s.phase !== 'serve') return false;
     var sp = s.paddles[s.server];
-    s.ball.x = sp.x;
-    s.ball.y = PADDLE_Y[s.server];
-    s.ball.z = Math.max(0.12, sp.z) + 0.02;
+    var b = s.ball;
+    b.x = sp.x;
+    b.y = PADDLE_Y[s.server];
+    b.z = Math.max(0.12, sp.z) + 0.02;
     aim = aim || {};
     var fwd = s.server === 1 ? 1 : -1;
-    launchAt(s, s.server,
-      typeof aim.tx === 'number' ? aim.tx : 0,
-      typeof aim.ty === 'number' ? aim.ty : NET_Y + fwd * 0.85,
-      typeof aim.t === 'number' ? aim.t : 0.68);
+    var tx = typeof aim.tx === 'number' ? aim.tx : 0;
+    var ty = typeof aim.ty === 'number' ? aim.ty : NET_Y + fwd * 0.85;
+    tx = Math.max(-TABLE_W / 2 - 0.4, Math.min(TABLE_W / 2 + 0.4, tx));
+    if (s.server === 1) ty = Math.max(NET_Y + 0.05, Math.min(TABLE_L + 0.6, ty));
+    else ty = Math.min(NET_Y - 0.05, Math.max(-0.6, ty));
+    var y0 = b.y, z0 = b.z;
+    var y1 = y0 + (ty - y0) * 0.42;
+    if (s.server === 1) y1 = Math.max(0.28, Math.min(NET_Y - 0.18, y1));
+    else y1 = Math.min(TABLE_L - 0.28, Math.max(NET_Y + 0.18, y1));
+    var D = y1 - y0;
+    // post-bounce flight covers (ty - y1); solve the first flight time T1:
+    // ty - y1 = D * 2*BOUNCE * (z0/(G*T1^2) + 0.5)
+    var k = (ty - y1) / (2 * BOUNCE * D) - 0.5;
+    var T1 = k > 0.02 ? Math.sqrt(z0 / (G * k)) : 0.30;
+    T1 = Math.max(0.16, Math.min(0.6, T1));
+    var vzp = BOUNCE * (z0 / T1 + 0.5 * G * T1); // vertical speed after the bounce
+    var t2 = 2 * vzp / G;                        // post-bounce flight time
+    b.vx = (tx - b.x) / (T1 + t2);
+    b.vy = D / T1;
+    b.vz = (0.5 * G * T1 * T1 - z0) / T1;
+    s.lastHitBy = s.server;
+    s.bounced = false;
+    s.serveBounce = true;
     s.phase = 'rally';
     return true;
   }
@@ -190,7 +216,8 @@
           if (s.bounced) award(s, s.lastHitBy, ev); // double bounce: receiver never got there
           else s.bounced = true;
         } else if (s.lastHitBy) {
-          award(s, other(s.lastHitBy), ev);         // bounced the hitter's own side: fault
+          if (s.serveBounce) s.serveBounce = false; // the serve's own-side bounce is legal
+          else award(s, other(s.lastHitBy), ev);    // otherwise own-side bounce = fault
         }
       } else {
         b.vz = -b.vz * 0.55; b.vx *= 0.85; b.vy *= 0.85; // cosmetic settle

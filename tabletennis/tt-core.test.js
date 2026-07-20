@@ -18,13 +18,15 @@ function run(s, n, inputs) {
   return evs;
 }
 
-// 2. serve crosses the net and bounces the opponent's side
+// 2. serve bounces the server's OWN side first, then the opponent's — no fault
 g = TT.createGame(1);
-TT.serve(g, { tx: 0.2, ty: K.NET_Y + 0.9, t: 0.68 });
+TT.serve(g, { tx: 0.2, ty: K.NET_Y + 0.9 });
 check('serve enters rally', g.phase === 'rally' && g.lastHitBy === 1);
-var evs = run(g, 70, {});
-var bounce = evs.filter(function (e) { return e.type === 'bounce'; })[0];
-check('serve bounces on side 2', !!bounce && bounce.side === 2);
+var evs = run(g, 80, {});
+var bounces = evs.filter(function (e) { return e.type === 'bounce'; });
+check('serve bounces own side first', bounces.length >= 1 && bounces[0].side === 1);
+check('then bounces the opponent side', bounces.length >= 2 && bounces[1].side === 2);
+check('own-side serve bounce is not a fault', g.scores[2] === 0);
 check('no net event on a clean serve', !evs.some(function (e) { return e.type === 'net'; }));
 
 // 3. receiver absent -> double bounce or floor -> point to server
