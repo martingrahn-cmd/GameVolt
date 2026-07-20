@@ -120,6 +120,21 @@
     return { deaths: deaths };
   }
 
+  // Cheap deep copy for rollback prediction: grid is a typed-array slice and
+  // trail cells are shared (the sim only ever appends new [x,y] pairs, never
+  // mutates existing ones), so cloning is O(cells) with tiny constants.
+  function cloneGame(s) {
+    return {
+      cols: s.cols, rows: s.rows,
+      grid: s.grid.slice(),
+      tick: s.tick, over: s.over, winner: s.winner,
+      players: s.players.map(function (p) {
+        return { id: p.id, x: p.x, y: p.y, dir: p.dir, pendingDir: p.pendingDir,
+                 alive: p.alive, deadTick: p.deadTick, trail: p.trail.slice() };
+      })
+    };
+  }
+
   // Standard 1v1 opening: both cycles mid-height, facing each other.
   function classicDuel(cols, rows) {
     cols = cols || 60; rows = rows || 40;
@@ -137,6 +152,7 @@
     createGame: createGame,
     setDir: setDir,
     step: step,
+    cloneGame: cloneGame,
     classicDuel: classicDuel,
     isReverse: isReverse,
     DX: DX, DY: DY
