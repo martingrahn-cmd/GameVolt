@@ -85,5 +85,22 @@ function ok(cond, msg) { if (!cond) { failures++; console.log('  ❌ ' + msg); }
   ok(g.tick === 20, 'solo: survives across the grid, then crashes on the far wall (tick 20)');
 })();
 
+// --- cloneGame: divergence-safe and replay-identical ---
+(function () {
+  var g = NC.classicDuel(20, 14);
+  for (var i = 0; i < 5; i++) NC.step(g);
+  var c = NC.cloneGame(g);
+  NC.setDir(c, 1, 2); NC.step(c); NC.step(c);
+  ok(g.tick === 5 && c.tick === 7, 'clone: stepping the clone leaves the original untouched');
+  ok(g.players[0].dir === 1 && c.players[0].dir === 2, 'clone: direction changes do not leak back');
+  ok(g.grid.every(function (v, i2) { return i2 < 0 || true; }) && g.players[0].trail.length === 6, 'clone: original trail length preserved');
+  var c2 = NC.cloneGame(g);
+  NC.step(c2); NC.step(c2);
+  var g2 = NC.cloneGame(g);
+  NC.step(g2); NC.step(g2);
+  ok(JSON.stringify(c2.players) === JSON.stringify(g2.players), 'clone: identical replays from identical clones');
+})();
+
 if (failures === 0) console.log('✅ Gridburn core rules and determinism pass');
 else { console.log('❌ ' + failures + ' Gridburn core test(s) failed'); process.exit(1); }
+

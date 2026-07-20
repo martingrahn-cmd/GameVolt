@@ -553,7 +553,7 @@
   <script>
   (function () {
     'use strict';
-    var VERSION = '1.2.1';
+    var VERSION = '1.3.0';
     var COLS = 64, ROWS = 40, TICK_MS = 70;
     var ROUNDS_TO_WIN = 3;
     var MAX_PARTICLES = 400;
@@ -594,14 +594,23 @@
     var wins = { 1: 0, 2: 0 };
     var roundNum = 1;
     var matchWasDown02 = false;
-    // --- online lockstep state ---
-    var NET_DELAY = 6;               // ticks between pressing a turn and it applying (~420 ms) — sized for real phone networks via the relay
+    // --- online rollback state (GGPO-style) ---
+    // Your turns apply at viewTick+1 — instantly on your screen. The opponent
+    // is predicted straight ahead, and confGame (the authoritative confirmed
+    // sim) advances only through ticks both input streams are final for; the
+    // rendered view is rebuilt from it every frame, so mispredictions
+    // self-correct. Input lag ≈ one tick regardless of network latency.
+    var MAX_PREDICT = 12;            // max ticks the view may run ahead of the confirmed sim
     var myPid = 1, oppPid = 2;       // online roles: host = 1 (cyan), guest = 2 (orange)
     var roundSeq = -1;               // increments every online round; tags net messages
-    var inputBuf = { 1: {}, 2: {} }; // tick -> scheduled dir
-    var peerThrough = -1;            // highest tick the opponent's inputs are final for
+    var confGame = null;             // authoritative confirmed simulation
+    var viewTick = 0;                // wall-clock-driven tick the view renders at
+    var myInputs = {};               // tick -> my dir (applied in both view and confirmed sim)
+    var oppInputs = {};              // tick -> opponent dir (from the wire)
+    var oppThrough = -1;             // highest tick the opponent's inputs are final for
     var netRounds = {};              // per-roundSeq inbox buckets
-    var myCsMap = {};                // tick -> my checksum (for desync detection)
+    var myCsMap = {};                // confirmed tick -> my checksum (for desync detection)
+    var oppCsMap = {};               // opponent checksums that arrived before my sim got there
     var stallStart = 0;
     var myPlannedDir = null;         // latest locally scheduled dir (base for relative turns)
     var iWantRematch = false, oppWantsRematch = false;
@@ -1041,9 +1050,13 @@
       newGame();
       if (mode === 'online') {
         roundSeq++;
-        inputBuf = { 1: {}, 2: {} };
-        peerThrough = -1;
+        confGame = NCCore.cloneGame(game);
+        viewTick = 0;
+        myInputs = {};
+        oppInputs = {};
+        oppThrough = -1;
         myCsMap = {};
+        oppCsMap = {};
         myPlannedDir = null;
         stallStart = 0;
         delete netRounds[roundSeq - 3];
@@ -1072,7 +1085,7 @@
           state = 'playing';
           last = 0; acc = 0;
           Sound.engineStart(mode === 'solo' ? [1] : [1, 2]);
-          if (mode === 'online') netAfterStep(); // initial frontier heartbeat at tick 0
+          if (mode === 'online') sendNetTick(); // initial frontier heartbeat at tick 0
           requestAnimationFrame(loop);
           return;
         }
@@ -1105,42 +1118,25 @@
       }
     }
 
-    // Advance the simulation as far as wall-clock (and, online, the lockstep
-    // gate) allows. Called from the rAF loop, and from a low-level interval so
-    // an online match keeps ticking even when rAF is throttled (hidden tab /
-    // locked phone) — otherwise the opponent would stall forever.
+    // Advance the simulation as far as wall-clock allows. Called from the rAF
+    // loop, and from a low-level interval so an online match keeps ticking
+    // even when rAF is throttled (hidden tab / locked phone) — otherwise the
+    // opponent would stall forever.
     function simAdvance(ts) {
       if (state !== 'playing') return 0;
       if (!last) last = ts;
       var dt = ts - last; last = ts;
       acc += dt;
-      if (mode === 'online') processNet();
+      if (mode === 'online') return onlineAdvance(dt, ts);
       var stepsThisFrame = 0;
       while (acc >= TICK_MS) {
         if (++stepsThisFrame > 20) { acc = 0; break; }
-        if (mode === 'online') {
-          if (game.tick > peerThrough) {
-            // Lockstep gate: the opponent's inputs for this tick aren't in yet.
-            if (!stallStart) stallStart = ts;
-            else if (ts - stallStart > 10000) {
-              // Peer went silent (killed tab, dead network) without a bye.
-              onOppLeft();
-              return 0;
-            }
-            acc = Math.min(acc, TICK_MS * 2);
-            break;
-          }
-          stallStart = 0;
-          var od1 = inputBuf[1][game.tick]; if (od1 !== undefined) NCCore.setDir(game, 1, od1);
-          var od2 = inputBuf[2][game.tick]; if (od2 !== undefined) NCCore.setDir(game, 2, od2);
-        }
         acc -= TICK_MS;
         if (mode === 'ai' && window.NCAi) {
           var aid = NCAi.decide(game, 2, aiLevel);
           if (aid !== null) NCCore.setDir(game, 2, aid);
         }
         var res = NCCore.step(game);
-        if (mode === 'online') netAfterStep();
         for (var pi = 0; pi < game.players.length; pi++) {
           var spl = game.players[pi];
           if (!spl.alive) continue;
@@ -1158,6 +1154,88 @@
         if (mode === 'solo' && !game.over) soloTicks++;
         spawnExhaust();
         if (game.over) { state = 'roundend'; Sound.engineStop(); onRoundOver(); break; }
+      }
+      return dt;
+    }
+
+    // Online frame (rollback): confirm what we can, advance the view on wall
+    // clock, then rebuild the rendered state on top of the confirmed sim.
+    function onlineAdvance(dt, ts) {
+      processNet();
+      if (state !== 'playing') return dt; // processNet may have hit a desync
+
+      // 1) Advance the confirmed sim through every tick both players' inputs
+      //    are final for. This is the authoritative game — crashes, round
+      //    results and checksums only ever come from here.
+      var confSteps = 0;
+      while (!confGame.over && confGame.tick < viewTick && confGame.tick <= oppThrough) {
+        if (++confSteps > 200) break;
+        var ct = confGame.tick;
+        if (myInputs[ct] !== undefined) NCCore.setDir(confGame, myPid, myInputs[ct]);
+        if (oppInputs[ct] !== undefined) NCCore.setDir(confGame, oppPid, oppInputs[ct]);
+        var cres = NCCore.step(confGame);
+        if (confGame.tick % 25 === 0) {
+          sendChecksum();
+          if (state !== 'playing') return dt; // desync
+        }
+        if (cres.deaths.length) {
+          // Crashes are only real once confirmed — effects and sounds fire
+          // here, never on predicted deaths (those can roll back).
+          game = confGame; // spawnCrash reads positions from `game`
+          cres.deaths.forEach(spawnCrash);
+          cres.deaths.forEach(function (did) {
+            for (var dk = 0; dk < confGame.players.length; dk++) {
+              if (confGame.players[dk].id === did) Sound.crash((confGame.players[dk].x / COLS) * 2 - 1);
+            }
+          });
+        }
+        if (confGame.over) {
+          game = confGame;
+          state = 'roundend';
+          Sound.engineStop();
+          onRoundOver();
+          return dt;
+        }
+      }
+
+      // 2) Advance the view on wall clock — never gated on the network …
+      var viewSteps = 0;
+      while (acc >= TICK_MS) {
+        if (++viewSteps > 20) { acc = 0; break; }
+        if (viewTick - confGame.tick >= MAX_PREDICT) {
+          // … except this far past confirmed we'd be guessing wildly — hold.
+          if (!stallStart) stallStart = ts;
+          else if (ts - stallStart > 10000) {
+            // Peer went silent (killed tab, dead network) without a bye.
+            onOppLeft();
+            return 0;
+          }
+          acc = Math.min(acc, TICK_MS * 2);
+          break;
+        }
+        stallStart = 0;
+        acc -= TICK_MS;
+        viewTick++;
+        sendNetTick(); // heartbeat: my inputs are final through the new viewTick
+        spawnExhaust();
+      }
+
+      // 3) Rebuild the view: replay every known input (mine land instantly,
+      //    the opponent's as far as they've arrived — straight-line beyond).
+      var v = NCCore.cloneGame(confGame);
+      while (!v.over && v.tick < viewTick) {
+        var vt = v.tick;
+        if (myInputs[vt] !== undefined) NCCore.setDir(v, myPid, myInputs[vt]);
+        if (oppInputs[vt] !== undefined) NCCore.setDir(v, oppPid, oppInputs[vt]);
+        NCCore.step(v);
+      }
+      game = v;
+
+      for (var vp = 0; vp < game.players.length; vp++) {
+        var spl2 = game.players[vp];
+        if (!spl2.alive) continue;
+        Sound.enginePan(spl2.id, (spl2.x / COLS) * 2 - 1);
+        Sound.engineRev(spl2.id, Math.min(1.8, 1 + game.tick * 0.002));
       }
       return dt;
     }
@@ -1317,20 +1395,19 @@
     // Route a local absolute turn: direct in local modes, scheduled + sent in online.
     function localSteer(pid, dirAbs) {
       if (mode === 'online') {
-        if (!game || game.over || state !== 'playing') return;
+        if (!game || state !== 'playing' || (confGame && confGame.over)) return;
         // Chain off the latest queued direction; drop no-ops and reverses so
         // they don't waste queue slots (the core would ignore reverses anyway).
         var me = myPlayer();
         var base = myPlannedDir !== null ? myPlannedDir : (me ? me.dir : null);
         if (base !== null && (dirAbs === base || ((base + 2) % 4) === dirAbs)) return;
-        // Queue at the first free tick. Never overwrite: during network
-        // micro-stalls the tick counter freezes, and overwriting silently ate
-        // every input but the last one — the "swipes don't register" bug.
-        var t = game.tick + NET_DELAY;
-        while (inputBuf[myPid][t] !== undefined) t++;
-        inputBuf[myPid][t] = dirAbs;
+        // Land on the very next view tick — this is what makes controls feel
+        // instant. Queue forward (never overwrite) if that slot is taken.
+        var t = viewTick + 1;
+        while (myInputs[t] !== undefined) t++;
+        myInputs[t] = dirAbs;
         myPlannedDir = dirAbs;
-        if (window.NCNet) NCNet.input({ r: roundSeq, t: t, dir: dirAbs, through: game.tick + NET_DELAY - 1 });
+        if (window.NCNet) NCNet.input({ r: roundSeq, t: t, dir: dirAbs, through: viewTick });
       } else {
         NCCore.setDir(game, pid, dirAbs);
       }
@@ -1405,8 +1482,8 @@
       var p = null;
       for (var i = 0; i < game.players.length; i++) if (game.players[i].id === pid) p = game.players[i];
       if (!p || !p.alive) return;
-      // Online turns apply NET_DELAY ticks later, so chain relative turns off
-      // the latest scheduled direction, not the currently rendered one.
+      // Online turns are queued (viewTick+1 onward), so chain relative turns
+      // off the latest scheduled direction, not the currently rendered one.
       var base = (mode === 'online' && myPlannedDir !== null) ? myPlannedDir : p.dir;
       var nd = way === 'cw' ? (base + 1) % 4 : (base + 3) % 4;
       localSteer(pid, nd);
@@ -1802,38 +1879,45 @@
       this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     });
 
-    // --- lockstep plumbing ---
+    // --- rollback net plumbing ---
     function netBucket(r) { return netRounds[r] || (netRounds[r] = { through: -1, turns: [], cs: [] }); }
 
     function processNet() {
       var b = netRounds[roundSeq];
       if (!b) return;
-      if (b.through > peerThrough) peerThrough = b.through;
+      if (b.through > oppThrough) oppThrough = b.through;
       while (b.turns.length) {
         var tn = b.turns.shift();
-        inputBuf[oppPid][tn.t] = tn.dir;
+        oppInputs[tn.t] = tn.dir;
       }
       while (b.cs.length) {
         var cs = b.cs.shift();
-        if (myCsMap[cs.t] !== undefined && myCsMap[cs.t] !== cs.v) { netDesync(); return; }
+        if (myCsMap[cs.t] !== undefined) {
+          if (myCsMap[cs.t] !== cs.v) { netDesync(); return; }
+        } else {
+          oppCsMap[cs.t] = cs.v; // compare once my confirmed sim reaches t
+        }
       }
     }
 
-    function netAfterStep() {
-      var t = game.tick; // tick just completed (0 for the pre-step heartbeat)
-      var msg = { r: roundSeq, through: t + NET_DELAY - 1 };
-      if (t % 25 === 0) {
-        var v = netChecksum();
-        myCsMap[t] = v;
-        msg.cs = { t: t, v: v };
-      }
-      if (window.NCNet) NCNet.input(msg);
+    function sendNetTick() {
+      // New local inputs always land at viewTick+1 or later, so everything
+      // through viewTick is final — this is what unblocks the peer's confGame.
+      if (window.NCNet) NCNet.input({ r: roundSeq, through: viewTick });
     }
 
-    function netChecksum() {
-      var h = (game.tick * 2654435761) >>> 0;
-      for (var i = 0; i < game.players.length; i++) {
-        var pp = game.players[i];
+    function sendChecksum() {
+      var t = confGame.tick;
+      var v = netChecksum(confGame);
+      myCsMap[t] = v;
+      if (oppCsMap[t] !== undefined && oppCsMap[t] !== v) { netDesync(); return; }
+      if (window.NCNet) NCNet.input({ r: roundSeq, cs: { t: t, v: v } });
+    }
+
+    function netChecksum(g) {
+      var h = (g.tick * 2654435761) >>> 0;
+      for (var i = 0; i < g.players.length; i++) {
+        var pp = g.players[i];
         h = (h ^ (pp.x * 73856093) ^ (pp.y * 19349663) ^ (pp.dir * 83492791) ^ (pp.alive ? 1 : 0) ^ (pp.trail.length * 7)) >>> 0;
       }
       return h;
@@ -2031,14 +2115,15 @@
       get state() { return state; },
       get game() { return game; },
       get wins() { return { 1: wins[1], 2: wins[2] }; },
-      get net() { return { roundSeq: roundSeq, peerThrough: peerThrough, myPid: myPid, stalled: !!stallStart, delay: NET_DELAY, queued: JSON.parse(JSON.stringify(inputBuf)) }; }
+      get conf() { return confGame; },
+      get net() { return { roundSeq: roundSeq, viewTick: viewTick, confTick: confGame ? confGame.tick : -1, oppThrough: oppThrough, myPid: myPid, stalled: !!stallStart, maxPredict: MAX_PREDICT, myInputs: JSON.parse(JSON.stringify(myInputs)) }; }
     };
 
     resize();
     bgStart();
     navReset('menu');
 
-    // Invite links: /neon-cycles/?join=CODE drops you straight into the room.
+    // Invite links: /gridburn/?join=CODE drops you straight into the room.
     try {
       var joinCode = (new URLSearchParams(location.search).get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (joinCode.length === 4) {
