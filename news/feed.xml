@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Mon, 20 Jul 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 20 Jul 2026 16:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>HoverDash reborn: the VX-9 Phantom update</title>
+      <link>https://gamevolt.io/news/hoverdash-vx9-update/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/hoverdash-vx9-update/</guid>
+      <pubDate>Mon, 20 Jul 2026 16:00:00 GMT</pubDate>
+      <description>HoverDash got its biggest overhaul since launch: the new VX-9 Phantom ship with a Garage tab, transparent distance/coin/style scoring, honest collisions, full keyboard and gamepad navigation, mobile performance modes — and a fresh leaderboard where everyone starts from zero.</description>
+    </item>
 
     <item>
       <title>New game: Gridburn — Tron-style light-cycle duels, online</title>
