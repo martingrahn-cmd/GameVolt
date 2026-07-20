@@ -250,6 +250,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://gamevolt.io/multiplayer-games/</loc>
+    <lastmod>2026-07-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://gamevolt.io/word-games/</loc>
     <lastmod>2026-05-24</lastmod>
     <changefreq>weekly</changefreq>
