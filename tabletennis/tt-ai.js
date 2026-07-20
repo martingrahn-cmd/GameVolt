@@ -18,9 +18,9 @@
   var K = TTCore.constants;
 
   var LEVELS = {
-    easy:   { speed: 1.7, react: 20, err: 0.30, outP: 0.10, tMin: 0.64, depth: 0.55, serveWait: 70, leaveP: 0.5 },
-    medium: { speed: 2.7, react: 9,  err: 0.17, outP: 0.045, tMin: 0.55, depth: 0.75, serveWait: 55, leaveP: 0.85 },
-    hard:   { speed: 4.3, react: 3,  err: 0.07, outP: 0.012, tMin: 0.46, depth: 0.92, serveWait: 40, leaveP: 0.98 }
+    easy:   { speed: 1.7, react: 20, err: 0.30, outP: 0.10, tMin: 0.58, depth: 0.55, serveWait: 70, leaveP: 0.5 },
+    medium: { speed: 2.7, react: 9,  err: 0.17, outP: 0.045, tMin: 0.50, depth: 0.75, serveWait: 55, leaveP: 0.85 },
+    hard:   { speed: 4.3, react: 3,  err: 0.07, outP: 0.012, tMin: 0.42, depth: 0.92, serveWait: 40, leaveP: 0.98 }
   };
 
   // Integrate a copy of the ball to the AI's paddle plane (with table
@@ -65,7 +65,7 @@
         out.serve = {
           tx: (rng() - 0.5) * K.TABLE_W * 0.7,
           ty: K.NET_Y + fwd * (0.45 + rng() * 0.85),
-          t: 0.6 + rng() * 0.18
+          t: 0.5 + rng() * 0.14
         };
       }
     } else if (s.phase !== 'serve') {
