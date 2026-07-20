@@ -702,7 +702,7 @@ function renderGlobalScores(){
   empty.style.display='none';
   if(_lbCache!==null){renderGlobalRows(_lbCache);return;}
   list.innerHTML='<div class="lb-loading">LOADING...</div>';
-  GameVolt.leaderboard.get({mode:'default',limit:50}).then(function(rows){
+  GameVolt.leaderboard.get({mode:'vx9',limit:50}).then(function(rows){
     _lbCache=rows;
     renderGlobalRows(rows);
   }).catch(function(){
@@ -3612,10 +3612,10 @@ function die(){
   saveScore(finalScore,m);
   bestScore=hdData.bestScore;
   const isNewBest=finalScore>=bestScore;
-  gvPost('game_over',{score:finalScore,mode:'default',stats:{meters:m,coins:coinsCollected,coin_points:coinPoints,style_points:getStylePoints()}});
+  gvPost('game_over',{score:finalScore,mode:'vx9',stats:{meters:m,coins:coinsCollected,coin_points:coinPoints,style_points:getStylePoints()}});
   GameVoltTracker.end({score:finalScore,outcome:'lose'});
-  if(isNewBest) gvPost('high_score',{score:finalScore,mode:'default'});
-  if(window.GameVolt){GameVolt.leaderboard.submit(finalScore,{mode:'default'});_lbCache=null;}
+  if(isNewBest) gvPost('high_score',{score:finalScore,mode:'vx9'});
+  if(window.GameVolt){GameVolt.leaderboard.submit(finalScore,{mode:'vx9'});_lbCache=null;}
   setTimeout(()=>{playGameOverSFX();if(isNewBest)setTimeout(playHighScoreSFX,500);},400);
   document.getElementById('overlay').classList.remove('hidden');
   switchTab('play');
@@ -3665,7 +3665,7 @@ function start(){
   document.body.classList.add('game-active');
   // Wave 0 practice only on first play; restart skips straight to 3-2-1
   if(firstPlay){countdownN=4;firstPlay=false;} else {countdownN=3;}
-  gvPost('game_start',{mode:'default'});
+  gvPost('game_start',{mode:'vx9'});
   GameVoltTracker.start('HoverDash');
   // Auto-start embedded music on first play (triggered by user gesture = START click)
   if(musicEnabled&&!musicPlaying){musicPlaying=true;startEmbeddedMusic();}

@@ -602,6 +602,8 @@
             } else {
                 var scoreMode = _activeGame === 'breakout'
                     ? 'neon-drift-v2'
+                    : _activeGame === 'hoverdash'
+                    ? 'vx9'
                     : (_gameModes[_activeGame] || (_activeGame === 'blockstorm' ? 'marathon' : 'default'));
                 promise = rpc('get_leaderboard', { p_game_id: _activeGame, p_mode: scoreMode, p_limit: 50 });
             }
@@ -762,6 +764,7 @@
                 // Breakout scoring v2 removed the active-ball multiplier, so
                 // old "default" scores are intentionally kept on a legacy board.
                 _gameModes.breakout = 'neon-drift-v2';
+                _gameModes.hoverdash = 'vx9'; // post-overhaul fair scoring — old multiplier-era scores stay archived under 'default'
                 _activeGame = ordered.indexOf(_activeGame) !== -1 ? _activeGame : ordered[0];
                 renderGamePills(ordered);
                 if (_activeTab === 'scores') loadData();
