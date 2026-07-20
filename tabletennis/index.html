@@ -129,7 +129,7 @@
   <script src="tt-ai.js"></script>
   <script>
     'use strict';
-    var VERSION = '0.2.0';
+    var VERSION = '0.3.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -154,8 +154,8 @@
       W = window.innerWidth; H = window.innerHeight;
       cv.width = W * DPR; cv.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      CAM.hor = H * 0.20;
-      CAM.A = H * 0.60;
+      CAM.hor = H * 0.16;
+      CAM.A = H * 0.68;
       CAM.S = Math.min(W * 0.55, H * 0.72);
     }
     window.addEventListener('resize', resize);
@@ -165,7 +165,7 @@
     function proj(x, y, z) {
       var d = dist(y);
       var s = CAM.S / d;
-      return { x: W / 2 + x * s, y: CAM.hor + CAM.A / d - z * s * 0.85, s: s };
+      return { x: W / 2 + x * s, y: CAM.hor + CAM.A / d - z * s * 0.75, s: s };
     }
 
     // ---------- rendering ----------
@@ -359,10 +359,10 @@
     var lastPX = null, lastPT = 0;
 
     function toWorld(clientX, clientY) {
-      // 1.25x lateral gain: side balls are reachable without dragging the
+      // 1.4x lateral gain: side balls are reachable without dragging the
       // finger across the whole screen
       return {
-        x: (clientX - W / 2) / ppm(0) * 1.25,
+        x: (clientX - W / 2) / ppm(0) * 1.4,
         z: Math.max(0.02, Math.min(0.8, (H * 0.9 - clientY) / (H * 0.5) * 0.8))
       };
     }
@@ -408,13 +408,13 @@
     var toss = null; // { t, dur, aim }
     function beginToss(aim) {
       if (toss) return;
-      toss = { t: 0, dur: 38, aim: aim };
+      toss = { t: 0, dur: 46, aim: aim };
       setHint('');
     }
     function tossHeight() {
       if (!toss) return 0;
       var f = toss.t / toss.dur;
-      return 4 * 0.55 * f * (1 - f); // parabola: up 0.55m and back down
+      return 4 * 0.85 * f * (1 - f); // parabola: up 0.85m and back down
     }
 
     // ---------- ui helpers ----------
