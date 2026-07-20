@@ -1,0 +1,109 @@
+// Node test suite for the table tennis core: rules + determinism.
+var TT = require('./tt-core.js');
+var K = TT.constants;
+var fails = 0;
+function check(name, cond) {
+  if (!cond) { console.error('❌ ' + name); fails++; }
+}
+
+// 1. shape
+var g = TT.createGame(1);
+check('initial phase is serve', g.phase === 'serve' && g.server === 1);
+check('scores start 0-0', g.scores[1] === 0 && g.scores[2] === 0);
+
+// helper: run n ticks with given inputs
+function run(s, n, inputs) {
+  var evs = [];
+  for (var i = 0; i < n; i++) evs = evs.concat(TT.step(s, inputs).events);
+  return evs;
+}
+
+// 2. serve crosses the net and bounces the opponent's side
+g = TT.createGame(1);
+TT.serve(g, { tx: 0.2, ty: K.NET_Y + 0.9, t: 0.68 });
+check('serve enters rally', g.phase === 'rally' && g.lastHitBy === 1);
+var evs = run(g, 70, {});
+var bounce = evs.filter(function (e) { return e.type === 'bounce'; })[0];
+check('serve bounces on side 2', !!bounce && bounce.side === 2);
+check('no net event on a clean serve', !evs.some(function (e) { return e.type === 'net'; }));
+
+// 3. receiver absent -> double bounce or floor -> point to server
+g = TT.createGame(1);
+TT.serve(g, { tx: 0, ty: K.NET_Y + 0.9, t: 0.68 });
+run(g, 400, { 2: { x: 1.5, z: 0.9 } }); // receiver parked far away
+check('unreturned serve scores for server', g.scores[1] === 1 && g.phase === 'point');
+
+// 4. net fault -> point to receiver
+g = TT.createGame(1);
+TT.serve(g, { tx: 0, ty: K.NET_Y + 0.01, t: 0.42 }); // flat, right at the net
+evs = run(g, 200, {});
+check('net fault detected', evs.some(function (e) { return e.type === 'net'; }));
+check('net fault scores for receiver', g.scores[2] === 1);
+
+// 5. long shot (out, no bounce) -> point to receiver
+g = TT.createGame(1);
+TT.serve(g, { tx: 0, ty: K.TABLE_L + 0.6, t: 0.55 }); // sails long
+run(g, 400, { 2: { x: 1.5, z: 0.9 } });
+check('long ball scores for receiver', g.scores[2] === 1);
+
+// 6. return contact: receiver in the path sends it back
+g = TT.createGame(1);
+TT.serve(g, { tx: 0, ty: K.NET_Y + 0.9, t: 0.68 });
+evs = run(g, 300, { 2: { x: 0, z: 0.25, aim: { tx: 0.3, ty: K.NET_Y - 0.9, t: 0.7 } } });
+var hit = evs.filter(function (e) { return e.type === 'hit' && e.by === 2; })[0];
+check('receiver returns the ball', !!hit);
+check('after return, lastHitBy flips', g.lastHitBy === 2 || g.phase !== 'rally');
+
+// 7. serve rotation: every 2 points, deuce every point
+g = TT.createGame(1);
+var servers = [];
+function playPoint(s) {
+  // server fires an unreturnable serve into an empty court
+  TT.serve(s, { tx: 0, ty: s.server === 1 ? K.NET_Y + 0.9 : K.NET_Y - 0.9, t: 0.68 });
+  var guard = 0;
+  while (s.phase === 'rally' && guard++ < 600) TT.step(s, { 1: { x: 1.5 }, 2: { x: 1.5 } });
+  if (s.phase === 'point') TT.nextRally(s);
+}
+for (var i = 0; i < 6; i++) { servers.push(g.server); playPoint(g); }
+check('serve alternates in pairs', servers.join('') === '112211');
+
+// 8. win by 2 at 11+ — every point goes to player 1 (P2's serves sail long)
+function playPointFor1(s) {
+  if (s.server === 1) TT.serve(s, { tx: 0, ty: K.NET_Y + 0.9, t: 0.68 });
+  else TT.serve(s, { tx: 0, ty: -0.6, t: 0.55 }); // P2 serves out
+  var guard = 0;
+  while (s.phase === 'rally' && guard++ < 600) TT.step(s, { 1: { x: 1.5 }, 2: { x: 1.5 } });
+  if (s.phase === 'point') TT.nextRally(s);
+}
+g = TT.createGame(1);
+var guard2 = 0;
+while (g.phase !== 'over' && guard2++ < 60) playPointFor1(g);
+check('game ends', g.phase === 'over');
+check('winner has 11+ and leads by 2+', g.scores[g.winner] >= 11 &&
+  g.scores[g.winner] - g.scores[TT.other(g.winner)] >= 2);
+
+// 9. determinism: identical input scripts -> identical states
+function scripted() {
+  var s = TT.createGame(1);
+  TT.serve(s, { tx: 0.11, ty: K.NET_Y + 0.8, t: 0.66 });
+  var inputs = {
+    1: { x: 0, z: 0.25, aim: { tx: -0.2, ty: K.NET_Y + 1.0, t: 0.66 } },
+    2: { x: 0, z: 0.25, aim: { tx: 0.2, ty: K.NET_Y - 1.0, t: 0.66 } }
+  };
+  for (var i = 0; i < 900; i++) {
+    TT.step(s, inputs);
+    if (s.phase === 'point') TT.nextRally(s), TT.serve(s, { tx: 0, ty: s.server === 1 ? K.NET_Y + 0.8 : K.NET_Y - 0.8, t: 0.66 });
+  }
+  return JSON.stringify(s);
+}
+check('900-tick replay is bit-identical', scripted() === scripted());
+
+// 10. ball never NaNs or escapes
+g = TT.createGame(2);
+TT.serve(g, { tx: -0.4, ty: 0.3, t: 0.5 });
+run(g, 2000, {});
+check('ball stays finite', isFinite(g.ball.x) && isFinite(g.ball.y) && isFinite(g.ball.z));
+check('ball settles above floor', g.ball.z >= K.FLOOR_Z - 0.01);
+
+if (fails) { console.error(fails + ' failures'); process.exit(1); }
+console.log('✅ Table tennis core rules and determinism pass');
