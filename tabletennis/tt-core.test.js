@@ -35,12 +35,14 @@ TT.serve(g, { tx: 0, ty: K.NET_Y + 0.9, t: 0.68 });
 run(g, 400, { 2: { x: 1.5, z: 0.9 } }); // receiver parked far away
 check('unreturned serve scores for server', g.scores[1] === 1 && g.phase === 'point');
 
-// 4. net fault -> point to receiver
+// 4. net fault on a low flat RETURN -> point to the other player
+// (serves can no longer be aimed into the net: the depth floor + clearance
+// solver guarantee they clear — verified by the sweep in 8b)
 g = TT.createGame(1);
-TT.serve(g, { tx: 0, ty: K.NET_Y + 0.01, t: 0.42 }); // flat, right at the net
-evs = run(g, 200, {});
-check('net fault detected', evs.some(function (e) { return e.type === 'net'; }));
-check('net fault scores for receiver', g.scores[2] === 1);
+TT.serve(g, { tx: 0, ty: K.NET_Y + 0.9 });
+evs = run(g, 300, { 2: { x: 0, z: -0.05, aim: { tx: 0, ty: K.NET_Y - 0.19, t: 0.34 } } });
+check('low flat return nets', evs.some(function (e) { return e.type === 'net'; }));
+check('net fault scores for the other player', g.scores[1] === 1);
 
 // 5. long shot (out, no bounce) -> point to receiver
 g = TT.createGame(1);
@@ -105,6 +107,22 @@ var sweepNets = 0, sweepOk = 0;
 });
 check('serve sweep: no net faults (' + sweepNets + ')', sweepNets === 0);
 check('serve sweep: all clean two-bounce (' + sweepOk + '/18)', sweepOk === 18);
+
+// 8c. the still-paddle soft serve must be RETURNABLE — a short serve used to
+// double-bounce before the receiver's fixed paddle plane (free point)
+var AI2 = require('./tt-ai.js');
+function lcgR(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+var returned = 0;
+for (var sd = 1; sd <= 6; sd++) {
+  var rg = TT.createGame(1);
+  var rrng = lcgR(sd), rmem = {};
+  TT.serve(rg, { tx: 0, ty: K.NET_Y + 0.35, pace: 0 }); // shorter than the floor — core clamps it
+  for (var rt = 0; rt < 400 && rg.phase === 'rally'; rt++) {
+    var ra = AI2.decide(rg, 2, 'medium', rrng, rmem);
+    if (TT.step(rg, { 2: ra }).events.some(function (e) { return e.type === 'hit'; })) { returned++; break; }
+  }
+}
+check('soft serve is returnable by medium AI (' + returned + '/6)', returned >= 5);
 
 // 9. determinism: identical input scripts -> identical states
 function scripted() {
