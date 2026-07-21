@@ -84,6 +84,28 @@ check('game ends', g.phase === 'over');
 check('winner has 11+ and leads by 2+', g.scores[g.winner] >= 11 &&
   g.scores[g.winner] - g.scores[TT.other(g.winner)] >= 2);
 
+// 8b. serve net-clearance sweep: every paddle height x pace x depth combo
+// must produce a clean two-bounce serve (low paddle + hard pace used to net)
+var sweepNets = 0, sweepOk = 0;
+[0.05, 0.25, 0.7].forEach(function (padZ) {
+  [0, 0.6, 1.0].forEach(function (pace) {
+    [1.75, 2.5].forEach(function (ty) {
+      var sg = TT.createGame(1);
+      sg.paddles[1].z = padZ;
+      TT.serve(sg, { tx: 0.2, ty: ty, pace: pace });
+      var sevs = [];
+      for (var st = 0; st < 120 && sg.phase === 'rally'; st++) {
+        sevs = sevs.concat(TT.step(sg, { 2: { x: 1.5, z: 0.9 } }).events);
+      }
+      if (sevs.some(function (e) { return e.type === 'net'; })) sweepNets++;
+      var sb = sevs.filter(function (e) { return e.type === 'bounce'; });
+      if (sb.length >= 2 && sb[0].side === 1 && sb[1].side === 2) sweepOk++;
+    });
+  });
+});
+check('serve sweep: no net faults (' + sweepNets + ')', sweepNets === 0);
+check('serve sweep: all clean two-bounce (' + sweepOk + '/18)', sweepOk === 18);
+
 // 9. determinism: identical input scripts -> identical states
 function scripted() {
   var s = TT.createGame(1);

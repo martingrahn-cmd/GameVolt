@@ -104,6 +104,10 @@
     // lift: striking the toss mid-air (above paddle height) — capped so
     // early strikes don't turn into balloon serves
     if (typeof aim.lift === 'number') b.z += Math.max(0, Math.min(0.4, aim.lift));
+    // Strike height floor/cap: a paddle resting low produces an arc too flat
+    // to clear the net (the "every serve nets" bug) — the toss strike always
+    // happens at a sane height regardless of where the finger rests.
+    b.z = Math.max(0.30, Math.min(0.55, b.z));
     var y0 = b.y, z0 = b.z;
     var y1 = y0 + (ty - y0) * frac;
     if (s.server === 1) y1 = Math.max(0.28, Math.min(NET_Y - 0.18, y1));
@@ -112,10 +116,21 @@
     // post-bounce flight covers (ty - y1); solve the first flight time T1:
     // ty - y1 = D * 2*BOUNCE * (z0/(G*T1^2) + 0.5)
     var k = (ty - y1) / (2 * BOUNCE * D) - 0.5;
-    var T1 = k > 0.02 ? Math.sqrt(z0 / (G * k)) : 0.30;
-    T1 = Math.max(0.16, Math.min(0.6, T1));
-    var vzp = BOUNCE * (z0 / T1 + 0.5 * G * T1); // vertical speed after the bounce
-    var t2 = 2 * vzp / G;                        // post-bounce flight time
+    // Solve, then VERIFY net clearance: if the post-bounce arc would clip
+    // the tape, strike a little higher and re-solve. Deliberately short
+    // serves (ty hugging the net) can still fault — that's the risk shot.
+    var T1, vzp;
+    for (var tries = 0; tries < 4; tries++) {
+      T1 = k > 0.02 ? Math.sqrt(z0 / (G * k)) : 0.30;
+      T1 = Math.max(0.16, Math.min(0.6, T1));
+      vzp = BOUNCE * (z0 / T1 + 0.5 * G * T1); // vertical speed after the bounce
+      var tn = (NET_Y - y1) / (D / T1);        // time from own-side bounce to the net plane
+      var clearance = vzp * tn - 0.5 * G * tn * tn;
+      if (clearance >= NET_H + 0.05 || z0 >= 0.58) break;
+      z0 += 0.08;
+    }
+    b.z = z0;
+    var t2 = 2 * vzp / G;                      // post-bounce flight time
     b.vx = (tx - b.x) / (T1 + t2);
     b.vy = D / T1;
     b.vz = (0.5 * G * T1 * T1 - z0) / T1;
