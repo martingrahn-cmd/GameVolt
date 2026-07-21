@@ -158,11 +158,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.13.0"></script>
-  <script src="tt-ai.js?v=0.13.0"></script>
+  <script src="tt-core.js?v=0.14.0"></script>
+  <script src="tt-ai.js?v=0.14.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.13.0';
+    var VERSION = '0.14.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -210,7 +210,7 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.13.0', bounce: 'assets/bounce.mp3?v=0.13.0', cheer: 'assets/cheer.mp3?v=0.13.0' };
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.14.0', bounce: 'assets/bounce.mp3?v=0.14.0', cheer: 'assets/cheer.mp3?v=0.14.0', net: 'assets/net.mp3?v=0.14.0' };
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
@@ -274,7 +274,10 @@
           thwack(0.012, 0.2, 900, pan);
           blip(95, 0.035, 0.18, 'sine', pan, -30);
         },
-        net: function () { thwack(0.07, 0.35, 300, 0); blip(65, 0.08, 0.22, 'sine', 0, -20); },
+        net: function () {
+          if (playSample('net', 0.75, 0.97 + Math.random() * 0.06, 0)) return;
+          thwack(0.07, 0.35, 300, 0); blip(65, 0.08, 0.22, 'sine', 0, -20);
+        },
         toss: function () { blip(500, 0.035, 0.07, 'sine', 0, 120); },
         point: function (mine) {
           if (mine && playSample('cheer', 0.55, 1 + (Math.random() - 0.5) * 0.06, 0)) return;
