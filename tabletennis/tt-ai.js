@@ -19,7 +19,7 @@
 
   var LEVELS = {
     easy:   { speed: 1.7, react: 20, err: 0.30, outP: 0.10, tMin: 0.58, depth: 0.55, serveWait: 70, leaveP: 0.5 },
-    medium: { speed: 2.3, react: 13, err: 0.22, outP: 0.065, tMin: 0.54, depth: 0.68, serveWait: 55, leaveP: 0.8 },
+    medium: { speed: 2.0, react: 16, err: 0.26, outP: 0.085, tMin: 0.58, depth: 0.62, serveWait: 55, leaveP: 0.8 },
     hard:   { speed: 4.3, react: 3,  err: 0.07, outP: 0.012, tMin: 0.42, depth: 0.92, serveWait: 40, leaveP: 0.98 }
   };
 
@@ -79,6 +79,7 @@
         mem.plan = null;
         mem.intercept = null;
         mem.leaveRoll = rng();               // judgement: will I spot a long ball this time?
+        mem.trackErr = (rng() - 0.5) * 2 * L.err * 0.8; // imperfect footwork, rolled per ball
       }
       var reacted = s.tick - mem.sawHitTick >= L.react;
       if (reacted) {
@@ -90,7 +91,7 @@
           targetZ = 0.25;
           mem.plan = null;
         } else if (mem.intercept) {
-          targetX = mem.intercept.x;
+          targetX = mem.intercept.x + (mem.trackErr || 0);
           targetZ = mem.intercept.z;
         }
         if (!mem.plan && (inPlay || mem.leaveRoll >= L.leaveP)) {

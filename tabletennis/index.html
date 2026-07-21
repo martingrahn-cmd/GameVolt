@@ -151,11 +151,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.8.0"></script>
-  <script src="tt-ai.js?v=0.8.0"></script>
+  <script src="tt-core.js?v=0.9.0"></script>
+  <script src="tt-ai.js?v=0.9.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.8.0';
+    var VERSION = '0.9.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -180,9 +180,12 @@
       W = window.innerWidth; H = window.innerHeight;
       cv.width = W * DPR; cv.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      CAM.hor = H * 0.16;
-      CAM.A = H * 0.68;
-      CAM.S = Math.min(W * 0.55, H * 0.72);
+      // Portrait squeezes the table long and thin — widen it and compress
+      // the depth there; landscape keeps the deeper view.
+      var portrait = H > W * 1.15;
+      CAM.hor = H * (portrait ? 0.22 : 0.16);
+      CAM.A = H * (portrait ? 0.52 : 0.68);
+      CAM.S = portrait ? Math.min(W * 0.68, H * 0.5) : Math.min(W * 0.55, H * 0.72);
     }
     window.addEventListener('resize', resize);
 
