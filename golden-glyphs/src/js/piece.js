@@ -37,6 +37,8 @@ export class Piece {
         this.pulseScale = 1.0;
         this.pulseTarget = 1.0;
         this.flashIntensity = 0; // Separat flash som tonar ut
+        this.invalidIntensity = 0;
+        this.invalidWobble = 0;
         
         // Viktigt för game.js logik
         this.width = 0; 
@@ -128,6 +130,12 @@ export class Piece {
         this.isPlaced = false;
     }
 
+    showInvalid() {
+        this.invalidIntensity = 1;
+        this.invalidWobble = 1;
+        this.flashIntensity = 0;
+    }
+
     returnToTray(tx, ty) {
         this.inTray = true;
         this.isPlaced = false;
@@ -167,6 +175,12 @@ export class Piece {
         if (this.flashIntensity > 0) {
             this.flashIntensity -= clampedDt * 4;
             if (this.flashIntensity < 0) this.flashIntensity = 0;
+        }
+        if (this.invalidIntensity > 0) {
+            this.invalidIntensity = Math.max(0, this.invalidIntensity - clampedDt * 5);
+        }
+        if (this.invalidWobble > 0) {
+            this.invalidWobble = Math.max(0, this.invalidWobble - clampedDt * 6);
         }
 
         // Uppdatera pixelstorlek
@@ -240,6 +254,9 @@ export class Piece {
         
         // Translatera till visuell position
         ctx.translate(this.visualX, this.visualY);
+        if (this.invalidWobble > 0) {
+            ctx.translate(Math.sin((1 - this.invalidWobble) * Math.PI * 8) * 7 * this.invalidWobble, 0);
+        }
         
         // Beräkna centrum av pjäsen för rotation/flip
         const centerX = (this.minC + this.widthCells / 2) * pitch;
@@ -261,8 +278,8 @@ export class Piece {
         
         // Skugga under hela pjäsen när man drar
         if (this.dragging) {
-            ctx.shadowColor = "rgba(0,0,0,0.6)";
-            ctx.shadowBlur = 15;
+            ctx.shadowColor = "rgba(255,218,112,.55)";
+            ctx.shadowBlur = 22;
             ctx.shadowOffsetX = 5;
             ctx.shadowOffsetY = 8;
         }
@@ -289,12 +306,13 @@ export class Piece {
             
             // 2. Huvudfärg med gradient
             const baseColor = this.color;
-            const lightColor = this.lightenColor(baseColor, 20);
-            const darkColor = this.darkenColor(baseColor, 25);
+            const lightColor = this.lightenColor(baseColor, 28);
+            const darkColor = this.darkenColor(baseColor, 34);
             
             const grad = ctx.createLinearGradient(x, y, x, y + size);
             grad.addColorStop(0, lightColor);
-            grad.addColorStop(0.4, baseColor);
+            grad.addColorStop(0.28, baseColor);
+            grad.addColorStop(0.72, this.darkenColor(baseColor, 12));
             grad.addColorStop(1, darkColor);
             
             ctx.fillStyle = grad;
@@ -302,7 +320,7 @@ export class Piece {
             ctx.fill();
             
             // 3. Övre kant (highlight)
-            ctx.strokeStyle = "rgba(255,255,255,0.4)";
+            ctx.strokeStyle = "rgba(255,240,184,0.62)";
             ctx.lineWidth = 2 * baseScale;
             ctx.beginPath();
             ctx.moveTo(x + radius, y + 1);
@@ -347,6 +365,20 @@ export class Piece {
             ctx.beginPath();
             ctx.arc(x + size * 0.25, y + size * 0.25, shineSize, 0, Math.PI * 2);
             ctx.fill();
+
+            // A subtle etched mark makes each colored cell feel like an artifact.
+            const rune = (Number(this.shapeKey) + cellIndex) % 3;
+            ctx.save();
+            ctx.strokeStyle = "rgba(255,245,205,.22)";
+            ctx.lineWidth = Math.max(1, baseScale);
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            const mx = x + size / 2, my = y + size / 2, rr = size * .17;
+            if (rune === 0) { ctx.moveTo(mx, my - rr); ctx.lineTo(mx + rr, my); ctx.lineTo(mx, my + rr); ctx.lineTo(mx - rr, my); ctx.closePath(); }
+            else if (rune === 1) { ctx.arc(mx, my, rr, 0, Math.PI * 1.65); }
+            else { ctx.moveTo(mx - rr, my + rr); ctx.lineTo(mx, my - rr); ctx.lineTo(mx + rr, my + rr); }
+            ctx.stroke();
+            ctx.restore();
             
             // 8. Tunn yttre kant
             ctx.strokeStyle = "rgba(0,0,0,0.4)";
@@ -359,6 +391,14 @@ export class Piece {
                 ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
                 this.drawRoundedRect(ctx, x, y, size, size, radius);
                 ctx.fill();
+            }
+            if (this.invalidIntensity > 0) {
+                ctx.fillStyle = `rgba(255,45,45,${this.invalidIntensity * .38})`;
+                this.drawRoundedRect(ctx, x, y, size, size, radius);
+                ctx.fill();
+                ctx.strokeStyle = `rgba(255,130,110,${this.invalidIntensity * .9})`;
+                ctx.lineWidth = Math.max(1.5, 2 * baseScale);
+                ctx.stroke();
             }
             if (cellIndex === 0 && window.GoldenGlyphsAccessibility && window.GoldenGlyphsAccessibility.colorblind) {
                 ctx.fillStyle = "rgba(0,0,0,.72)";

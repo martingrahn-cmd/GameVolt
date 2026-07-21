@@ -1,14 +1,14 @@
 // src/js/game.js
 import { Layout } from "./layout.js";
-import { Grid } from "./grid.js";
-import { Piece } from "./piece.js?v=6";
-import { HUD } from "./hud.js?v=6";
-import { Input } from "./input.js?v=6";
-import { BitField } from "./bitfield.js";
-import { Tray } from "./tray.js";
+import { Grid } from "./grid.js?v=7";
+import { Piece } from "./piece.js?v=7";
+import { HUD } from "./hud.js?v=8";
+import { Input } from "./input.js?v=7";
+import { BitField } from "./bitfield.js?v=7";
+import { Tray } from "./tray.js?v=8";
 import { AudioManager } from "./audio.js";
 import { UI } from "./ui.js?v=5";
-import { Effects } from "./effects.js?v=5";
+import { Effects } from "./effects.js?v=7";
 import { CONFIG, SHAPES, WORLDS, SYSTEM_IMAGES, SKINS, TRAILS, ACHIEVEMENTS } from "./config.js";
 import { AchievementSystem } from "./achievements.js?v=3";
 import { WorldMap } from "./worldmap.js?v=4";
@@ -1177,11 +1177,13 @@ function loadLevel(index) {
     let worldDefaultBg = SYSTEM_IMAGES['bg_temple'].src;
     let targetAudio = 'ambience_jungle';
     let targetParticles = 'spores'; // DEFAULT partikeleffekt
+    let boardTheme = 'jungle';
     
     // TIME ATTACK: Fast bakgrund oavsett vilken värld nivån kommer från
     if (gameState === "TIME_ATTACK") {
         worldDefaultBg = SYSTEM_IMAGES['bg_time'].src;
         targetParticles = 'volcano';
+        boardTheme = 'inferno';
     }
     // ZEN MODE: Fast lugn zen-bakgrund och zen-musik
     else if (zenMode) {
@@ -1190,6 +1192,7 @@ function loadLevel(index) {
         worldDefaultBg = SYSTEM_IMAGES[zenBgKey].src;
         targetAudio = 'ambience_zen';
         targetParticles = zenSettings.theme === 'ice' ? 'snow' : zenSettings.theme === 'lava' ? 'volcano' : zenSettings.theme === 'neon' ? 'rain' : 'spores';
+        boardTheme = ({ ice:'frozen', lava:'inferno', neon:'neon', temple:'jungle', zen:'zen' })[zenSettings.theme] || 'zen';
     } else if (currentLevelSetName === 'LEVELS_EASY') { 
         worldDefaultBg = SYSTEM_IMAGES['bg_temple'].src; 
         targetAudio = 'ambience_jungle'; 
@@ -1198,18 +1201,22 @@ function loadLevel(index) {
         worldDefaultBg = SYSTEM_IMAGES['bg_ice'].src; 
         targetAudio = 'ambience_ice'; 
         targetParticles = 'snow';
+        boardTheme = 'frozen';
     } else if (currentLevelSetName === 'LEVELS_HARD') { 
         worldDefaultBg = SYSTEM_IMAGES['bg_lava'].src; 
         targetAudio = 'ambience_lava'; 
         targetParticles = 'volcano';
+        boardTheme = 'inferno';
     } else if (currentLevelSetName === 'LEVELS_ARCANE') { 
         worldDefaultBg = SYSTEM_IMAGES['bg_cyber'].src; 
         targetAudio = 'ambience_cyber'; 
         targetParticles = 'rain';
+        boardTheme = 'neon';
     } else if (currentLevelSetName === 'LEVELS_DAILY') { 
         worldDefaultBg = SYSTEM_IMAGES['bg_cyber'].src; 
         targetAudio = 'ambience_cyber'; 
         targetParticles = 'rain';
+        boardTheme = 'neon';
     }
     
     // Steg 2: Kolla om spelaren har en KÖPT bakgrund equipped
@@ -1226,6 +1233,9 @@ function loadLevel(index) {
     if (dynamicBg) {
         dynamicBg.setEffect(targetParticles);
     }
+    if (grid && typeof grid.setTheme === 'function') grid.setTheme(boardTheme);
+    if (tray && typeof tray.setTheme === 'function') tray.setTheme(boardTheme);
+    if (hud && typeof hud.setTheme === 'function') hud.setTheme(boardTheme);
     
     setBgImage(targetBgSrc); 
     // Byt INTE musik om vi är i Time Attack - behåll music_time_attack
@@ -1351,7 +1361,7 @@ function loop(timestamp) {
         
         // Tutorial System - aktiveras på Level 1 (LEVELS_EASY index 0)
         const levelData = currentLevelSet[currentLevelIndex];
-        const isTutorialLevel = currentLevelSetName === 'LEVELS_EASY' && currentLevelIndex === 0 && !hasSeenTutorial;
+        const isTutorialLevel = !zenMode && gameState !== 'TIME_ATTACK' && currentLevelSetName === 'LEVELS_EASY' && currentLevelIndex === 0 && !hasSeenTutorial;
         let tutorialHint = null;
         
         if (isTutorialLevel && levelData?.solution) { 

@@ -124,6 +124,7 @@ export class BitField {
     const p = this.grid.pitch;
     const ox = this.grid.originX;
     const oy = this.grid.originY;
+    const theme = typeof this.grid.getThemeStyle === 'function' ? this.grid.getThemeStyle() : null;
 
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
@@ -132,14 +133,20 @@ export class BitField {
         const y = oy + r * p;
 
         if (val === 1) { // MÅL
-          ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
-          ctx.fillRect(x, y, p, p);
-          ctx.strokeStyle = "rgba(255, 215, 0, 0.3)";
+          const inset = Math.max(2, p * .08);
+          const tile = ctx.createLinearGradient(x, y, x + p, y + p);
+          tile.addColorStop(0, theme?.targetTop || "rgba(124,145,103,.2)");
+          tile.addColorStop(.55, "rgba(38,48,41,.13)");
+          tile.addColorStop(1, theme?.targetBottom || "rgba(5,10,8,.34)");
+          ctx.fillStyle = tile;
+          ctx.fillRect(x + inset, y + inset, p - inset * 2, p - inset * 2);
+          ctx.strokeStyle = theme?.targetEdge || "rgba(218,187,104,.22)";
           ctx.lineWidth = 1;
-          ctx.strokeRect(x, y, p, p);
-          // Liten prick i mitten
-          ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
-          ctx.fillRect(x + p/2 - 1, y + p/2 - 1, 2, 2);
+          ctx.strokeRect(x + inset, y + inset, p - inset * 2, p - inset * 2);
+          ctx.fillStyle = theme?.targetDot || "rgba(235,216,157,.18)";
+          ctx.beginPath();
+          ctx.arc(x + p / 2, y + p / 2, Math.max(1.2, p * .045), 0, Math.PI * 2);
+          ctx.fill();
         } 
         else if (val === 2) { // VÄGG
           ctx.fillStyle = "#1a1a1a"; ctx.fillRect(x, y, p, p);
