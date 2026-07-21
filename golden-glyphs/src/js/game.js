@@ -1,14 +1,14 @@
 // src/js/game.js
 import { Layout } from "./layout.js";
 import { Grid } from "./grid.js";
-import { Piece } from "./piece.js";
-import { HUD } from "./hud.js?v=4";
-import { Input } from "./input.js";
+import { Piece } from "./piece.js?v=6";
+import { HUD } from "./hud.js?v=6";
+import { Input } from "./input.js?v=6";
 import { BitField } from "./bitfield.js";
 import { Tray } from "./tray.js";
 import { AudioManager } from "./audio.js";
-import { UI } from "./ui.js?v=3";
-import { Effects } from "./effects.js";
+import { UI } from "./ui.js?v=5";
+import { Effects } from "./effects.js?v=5";
 import { CONFIG, SHAPES, WORLDS, SYSTEM_IMAGES, SKINS, TRAILS, ACHIEVEMENTS } from "./config.js";
 import { AchievementSystem } from "./achievements.js?v=3";
 import { WorldMap } from "./worldmap.js?v=4";
@@ -43,6 +43,59 @@ let transitionAlpha = 0; // 0 = genomskinlig, 1 = svart
 let transitionDir = 0;   // 0 = ingen, 1 = fading out, -1 = fading in
 let transitionCallback = null;
 let dailyHintsUsed = 0;
+let dailyCloudChallenge = null;
+let accessibilitySettings = { textScale: 1, colorblind: false, reducedMotion: false };
+
+function applyAccessibilitySettings() {
+    window.GoldenGlyphsAccessibility = accessibilitySettings;
+    document.documentElement.style.setProperty('--gg-text-scale', accessibilitySettings.textScale);
+    const shell = document.getElementById('game-shell');
+    if (shell) { shell.style.fontSize = `${16 * accessibilitySettings.textScale}px`; shell.dataset.reducedMotion = accessibilitySettings.reducedMotion ? 'true' : 'false'; }
+    if (hud) hud.textScale = accessibilitySettings.textScale;
+    if (effects && typeof effects.setReducedMotion === 'function') effects.setReducedMotion(accessibilitySettings.reducedMotion || (zenMode && zenSettings.reducedMotion));
+}
+
+function configureAccessibility() {
+    try { accessibilitySettings = Object.assign(accessibilitySettings, JSON.parse(localStorage.getItem('goldenGlyphsAccessibility') || '{}')); } catch (e) {}
+    const open = document.getElementById('accessibility-open');
+    const overlay = document.getElementById('accessibility-settings');
+    const save = document.getElementById('access-save');
+    const cancel = document.getElementById('access-cancel');
+    if (!open || !overlay || open.dataset.bound) { applyAccessibilitySettings(); return; }
+    open.dataset.bound = 'true';
+    const populate = () => { document.getElementById('access-text-scale').value = String(accessibilitySettings.textScale); document.getElementById('access-colorblind').checked = !!accessibilitySettings.colorblind; document.getElementById('access-reduced-motion').checked = !!accessibilitySettings.reducedMotion; };
+    open.addEventListener('click', () => { populate(); overlay.classList.remove('hidden'); });
+    cancel.addEventListener('click', () => overlay.classList.add('hidden'));
+    save.addEventListener('click', () => {
+        accessibilitySettings = { textScale: Number(document.getElementById('access-text-scale').value) || 1, colorblind: document.getElementById('access-colorblind').checked, reducedMotion: document.getElementById('access-reduced-motion').checked };
+        localStorage.setItem('goldenGlyphsAccessibility', JSON.stringify(accessibilitySettings));
+        applyAccessibilitySettings(); overlay.classList.add('hidden');
+    });
+    applyAccessibilitySettings();
+}
+
+function getDailySeed() { return dailySystem ? `daily-${dailySystem.getDateKey()}` : null; }
+
+function prepareDailyLeaderboard() {
+    dailyCloudChallenge = null;
+    if (!window.GameVolt || !GameVolt.challenge || !GameVolt.auth || !GameVolt.auth.getUser || !GameVolt.auth.getUser()) return;
+    const seed = getDailySeed();
+    dailyCloudChallenge = GameVolt.challenge.create({ seed: seed, levelCount: 1, config: { mode: 'daily', levelIndex: dailySystem.getTodayIndex() } })
+        .catch(() => null);
+}
+
+async function submitAndFetchDailyLeaderboard(summary) {
+    if (!window.GameVolt || !GameVolt.challenge) return [];
+    const seed = getDailySeed();
+    try {
+        const challenge = dailyCloudChallenge ? await dailyCloudChallenge : null;
+        if (challenge && GameVolt.auth && GameVolt.auth.getUser && GameVolt.auth.getUser()) {
+            const score = Math.max(1, 1000000 - Math.round(summary.time * 1000) - summary.hints * 10000);
+            await GameVolt.challenge.submit(challenge.id, { score: score, timeMs: Math.round(summary.time * 1000), completedCount: 1, totalCount: 1, stats: { hints: summary.hints, stars: summary.stars, dailyId: seed } });
+        }
+        return await GameVolt.challenge.getDailyLeaderboard(seed, { limit: 10 });
+    } catch (e) { return []; }
+}
 
 function clearActiveHint() {
     activeHint = null;
@@ -134,7 +187,7 @@ function getBestTimeForGlobalIndex(globalIndex) { let setName = CAMPAIGN_SET_NAM
 export function getStarsForGlobalIndex(globalIndex) { let setName = 'LEVELS_EASY'; let localIndex = 0; if (globalIndex < 25) { setName = 'LEVELS_EASY'; localIndex = globalIndex; } else if (globalIndex < 50) { setName = 'LEVELS_MEDIUM'; localIndex = globalIndex - 25; } else if (globalIndex < 75) { setName = 'LEVELS_HARD'; localIndex = globalIndex - 50; } else { setName = 'LEVELS_ARCANE'; localIndex = globalIndex - 75; } if (ALL_LEVEL_SETS[setName] && ALL_LEVEL_SETS[setName][localIndex]) { return getStarsForLevel(setName, localIndex); } return 0; }
 function calculateTotalStars() { let total = 0; for (const setName in ALL_LEVEL_SETS) { if (ALL_LEVEL_SETS[setName] && Array.isArray(ALL_LEVEL_SETS[setName])) { const setLength = ALL_LEVEL_SETS[setName].length; for (let i = 0; i < setLength; i++) { total += getStarsForLevel(setName, i); } } } return total; }
 
-const CLOUD_SAVE_VERSION = 4;
+const CLOUD_SAVE_VERSION = 5;
 const CAMPAIGN_SET_NAMES = ['LEVELS_EASY', 'LEVELS_MEDIUM', 'LEVELS_HARD', 'LEVELS_ARCANE'];
 let cloudSaveTimer = null;
 let cloudSyncInProgress = false;
@@ -198,6 +251,7 @@ function buildGoldenGlyphsSave() {
         inventory: safeArray(ownedItems),
         activeItems: safeObject(activeItems),
         tutorialSeen: !!hasSeenTutorial,
+        preferences: { accessibility: safeObject(accessibilitySettings), zen: safeObject(zenSettings) },
         achievements: safeObject(achievementsData),
         stats: {
             goldEarned: Math.max(0, finiteNumber(localStorage.getItem('goldenGlyphsGoldEarned'))),
@@ -297,6 +351,10 @@ function mergeGoldenGlyphsSaves(localSave, cloudSave) {
         inventory: Array.from(new Set(safeArray(cloud.inventory).concat(safeArray(local.inventory)))),
         activeItems: Object.assign({}, safeObject(cloud.activeItems), safeObject(local.activeItems)),
         tutorialSeen: !!(local.tutorialSeen || cloud.tutorialSeen),
+        preferences: {
+            accessibility: Object.assign({}, safeObject(safeObject(cloud.preferences).accessibility), safeObject(safeObject(local.preferences).accessibility)),
+            zen: Object.assign({}, safeObject(safeObject(cloud.preferences).zen), safeObject(safeObject(local.preferences).zen))
+        },
         achievements: Object.assign({}, safeObject(cloud.achievements), safeObject(local.achievements)),
         stats: {
             goldEarned: Math.max(finiteNumber(safeObject(local.stats).goldEarned), finiteNumber(safeObject(cloud.stats).goldEarned)),
@@ -332,6 +390,7 @@ function legacyDataToGoldenGlyphsSave(local) {
         inventory: safeArray(data.goldenGlyphsInventory),
         activeItems: safeObject(data.goldenGlyphsActive),
         tutorialSeen: data.goldenGlyphsTutorial === true,
+        preferences: { accessibility: safeObject(data.goldenGlyphsAccessibility), zen: safeObject(data.goldenGlyphsZenSettings) },
         achievements: safeObject(data.goldenGlyphsAchievements),
         stats: {
             goldEarned: finiteNumber(data.goldenGlyphsGoldEarned), goldSpent: finiteNumber(data.goldenGlyphsGoldSpent),
@@ -368,11 +427,17 @@ function applyGoldenGlyphsSave(save) {
     ownedItems = safeArray(data.inventory);
     activeItems = Object.assign({}, activeItems, safeObject(data.activeItems));
     hasSeenTutorial = !!data.tutorialSeen;
+    const preferences = safeObject(data.preferences);
+    accessibilitySettings = Object.assign(accessibilitySettings, safeObject(preferences.accessibility));
+    zenSettings = Object.assign(zenSettings, safeObject(preferences.zen));
     localStorage.setItem('goldenGlyphsGold', totalGold.toString());
     localStorage.setItem('goldenGlyphsHints', ownedHints.toString());
     localStorage.setItem('goldenGlyphsInventory', JSON.stringify(ownedItems));
     localStorage.setItem('goldenGlyphsActive', JSON.stringify(activeItems));
     localStorage.setItem('goldenGlyphsTutorial', hasSeenTutorial ? 'true' : 'false');
+    localStorage.setItem('goldenGlyphsAccessibility', JSON.stringify(accessibilitySettings));
+    localStorage.setItem('goldenGlyphsZenSettings', JSON.stringify(zenSettings));
+    applyAccessibilitySettings();
 
     const stars = safeObject(data.stars);
     CAMPAIGN_SET_NAMES.forEach((setName) => {
@@ -548,7 +613,10 @@ function initSystems() {
   layout.onResize = () => { if (grid) grid.resize(); if (tray) tray.resize(); if (hud) hud.resize(); if (worldMap) worldMap.resize(); if (dynamicBg) dynamicBg.resize(); resetPiecesPosition(); }; 
   bitfield = new BitField(grid); tray = new Tray(ctx, layout); effects = new Effects(grid); tutorial = new Tutorial(canvas, grid); dailySystem = new DailySystem(); timeAttack = new TimeAttack(); 
   ui = new UI(() => { if (currentLevelSetName === 'LEVELS_DAILY') { gameState = "MENU"; saveProgress(); } else { if (currentLevelSetName === 'LEVELS_EASY' && currentLevelIndex === 0) { hasSeenTutorial = true; saveProgress(); } currentLevelIndex++; if (currentLevelIndex >= currentLevelSet.length) { gameState = "MAP"; } else { saveProgress(); timeElapsed = 0; loadLevel(currentLevelIndex); } } }, ads);
+  configureZenSettings();
+  configureAccessibility();
   input = new Input(canvas, grid, pieces, bitfield, tray, effects);
+  input.keyboardEnabledFn = () => gameState === "PLAYING" || gameState === "TIME_ATTACK";
   input.hudCheckFn = (x, y) => hud && hud.checkHit(x, y);
   worldMap = new WorldMap(canvas, (globalLevelIndex) => startLevelFromMap(globalLevelIndex), () => goToMenu(), (index) => getStarsForGlobalIndex(index), () => { shopReturnState = "MAP"; gameState = "SHOP"; shop.updateInventory(ownedItems, activeItems, ownedHints); checkAchievements({ visitedShop: true }); }, () => totalGold, (index) => getBestTimeForGlobalIndex(index));
   shop = new Shop( canvas, () => { gameState = shopReturnState; }, (item, action) => handleShopPurchase(item, action), ads );
@@ -557,7 +625,7 @@ function initSystems() {
 
   // --- GameVolt SDK ---
   if (window.GameVolt) {
-    const migrationKeys = ['goldenGlyphsProgress', 'goldenGlyphsGold', 'goldenGlyphsHints', 'goldenGlyphsInventory', 'goldenGlyphsActive', 'goldenGlyphsTutorial', 'goldenGlyphsAchievements', 'goldenGlyphsGoldEarned', 'goldenGlyphsGoldSpent', 'goldenGlyphsDailyCount', 'goldenGlyphsDailyResults', 'goldenGlyphsLevelsWon', 'goldenGlyphsHighScore', 'goldenGlyphsLeaderboard', 'goldenGlyphsTA_PB'];
+    const migrationKeys = ['goldenGlyphsProgress', 'goldenGlyphsGold', 'goldenGlyphsHints', 'goldenGlyphsInventory', 'goldenGlyphsActive', 'goldenGlyphsTutorial', 'goldenGlyphsAccessibility', 'goldenGlyphsZenSettings', 'goldenGlyphsAchievements', 'goldenGlyphsGoldEarned', 'goldenGlyphsGoldSpent', 'goldenGlyphsDailyCount', 'goldenGlyphsDailyResults', 'goldenGlyphsLevelsWon', 'goldenGlyphsHighScore', 'goldenGlyphsLeaderboard', 'goldenGlyphsTA_PB'];
     CAMPAIGN_SET_NAMES.forEach((setName) => {
       (ALL_LEVEL_SETS[setName] || []).forEach((_, index) => { migrationKeys.push(`${setName}_${index}`); migrationKeys.push(`${setName}_${index}_bestTime`); });
     });
@@ -637,10 +705,11 @@ function initSystems() {
     }
     
     const isFirstTutorialCompletion = currentLevelSetName === 'LEVELS_EASY' && currentLevelIndex === 0 && !hasSeenTutorial;
-    let streakBonus = 0; const isDaily = currentLevelSetName === 'LEVELS_DAILY'; let dailySummary = null; if (isDaily) { const firstCompletion = dailySystem && !dailySystem.isCompleted(); if (dailySystem) { const streak = dailySystem.markCompleted({ time: completionTime, stars: awardedStars, hints: dailyHintsUsed }); streakBonus = firstCompletion ? (streak >= 7 ? 100 : streak >= 3 ? 50 : streak >= 2 ? 20 : 0) : 0; dailySummary = { number: dailySystem.getDayNumber(), time: completionTime, hints: dailyHintsUsed, streak: streak, replay: !firstCompletion }; } reward = firstCompletion ? 500 + streakBonus : 0; } else { const levelKey = `${currentLevelSetName}_${currentLevelIndex}`; const oldStars = parseInt(localStorage.getItem(levelKey) || 0); const bestTimeKey = `${levelKey}_bestTime`; const oldBestTime = finiteNumber(localStorage.getItem(bestTimeKey)); if (!oldBestTime || completionTime < oldBestTime) localStorage.setItem(bestTimeKey, completionTime.toString()); if (awardedStars > oldStars) reward = 100 + (awardedStars * 20); else reward = 50; if (isFirstTutorialCompletion) reward += 250; if (awardedStars > oldStars) localStorage.setItem(levelKey, awardedStars.toString()); } if (isFirstTutorialCompletion) hasSeenTutorial = true; totalGold += reward; saveProgress(awardedStars); checkAchievements({ completedLevel: true, completedDaily: isDaily && reward > 0, awardedStars: awardedStars, goldEarned: reward }); if (typeof gvPost === 'function') gvPost('level_complete', { level: currentLevelIndex + 1, stars: awardedStars, set: currentLevelSetName }); if (typeof GameVoltTracker !== 'undefined') { GameVoltTracker.track('level_complete', { level: currentLevelIndex + 1, set: currentLevelSetName, stars: awardedStars, time_seconds: completionTime }); if (isFirstTutorialCompletion) GameVoltTracker.track('tutorial_complete', { time_seconds: completionTime }); } playSound('win'); try { if (effects) effects.triggerVictory(pieces); } catch(e) {} setTimeout(() => { if (ui && typeof ui.showWinScreen === 'function') {
+    const starsBeforeCompletion = calculateTotalStars();
+    let streakBonus = 0; const isDaily = currentLevelSetName === 'LEVELS_DAILY'; let dailySummary = null; if (isDaily) { const firstCompletion = dailySystem && !dailySystem.isCompleted(); if (dailySystem) { const streak = dailySystem.markCompleted({ time: completionTime, stars: awardedStars, hints: dailyHintsUsed }); streakBonus = firstCompletion ? (streak >= 7 ? 100 : streak >= 3 ? 50 : streak >= 2 ? 20 : 0) : 0; dailySummary = { number: dailySystem.getDayNumber(), dateKey: dailySystem.getDateKey(), time: completionTime, hints: dailyHintsUsed, stars: awardedStars, streak: streak, replay: !firstCompletion }; dailySummary.leaderboard = submitAndFetchDailyLeaderboard(dailySummary); } reward = firstCompletion ? 500 + streakBonus : 0; } else { const levelKey = `${currentLevelSetName}_${currentLevelIndex}`; const oldStars = parseInt(localStorage.getItem(levelKey) || 0); const bestTimeKey = `${levelKey}_bestTime`; const oldBestTime = finiteNumber(localStorage.getItem(bestTimeKey)); if (!oldBestTime || completionTime < oldBestTime) localStorage.setItem(bestTimeKey, completionTime.toString()); if (awardedStars > oldStars) reward = 100 + (awardedStars * 20); else reward = 50; if (isFirstTutorialCompletion) reward += 250; if (awardedStars > oldStars) localStorage.setItem(levelKey, awardedStars.toString()); } const starsAfterCompletion = calculateTotalStars(); const worldUnlock = [{ name: 'FROZEN PEAKS', required: 25 }, { name: 'INFERNO CORE', required: 50 }, { name: 'NEON NEXUS', required: 100 }].find((world) => starsBeforeCompletion < world.required && starsAfterCompletion >= world.required) || null; if (isFirstTutorialCompletion) hasSeenTutorial = true; totalGold += reward; saveProgress(awardedStars); checkAchievements({ completedLevel: true, completedDaily: isDaily && reward > 0, awardedStars: awardedStars, goldEarned: reward }); if (typeof gvPost === 'function') gvPost('level_complete', { level: currentLevelIndex + 1, stars: awardedStars, set: currentLevelSetName }); if (typeof GameVoltTracker !== 'undefined') { GameVoltTracker.track('level_complete', { level: currentLevelIndex + 1, set: currentLevelSetName, stars: awardedStars, time_seconds: completionTime }); if (isFirstTutorialCompletion) GameVoltTracker.track('tutorial_complete', { time_seconds: completionTime }); } playSound('win'); try { if (effects) effects.triggerVictory(pieces); } catch(e) {} setTimeout(() => { if (ui && typeof ui.showWinScreen === 'function') {
         const titleText = isDaily ? "DAILY COMPLETE" : "LEVEL COMPLETE";
         const btnText = isDaily ? "BACK TO MENU" : "NEXT LEVEL";
-        ui.showWinScreen(awardedStars, reward, () => { totalGold += reward; saveProgress(); playSound('purchase'); }, titleText, btnText, null, (name) => playSound(name), streakBonus, dailySummary); } else { gameState = "MAP"; } }, 1500); });
+        ui.showWinScreen(awardedStars, reward, () => { totalGold += reward; saveProgress(); playSound('purchase'); }, titleText, btnText, null, (name) => playSound(name), streakBonus, dailySummary, worldUnlock); } else { gameState = "MAP"; } }, 1500); });
   canvas.addEventListener('pointerdown', (e) => { const pos = getEventPos(e); if (gameState === "CREDITS") { const btn = window._creditsBackBtn; if (btn && pos.x >= btn.x && pos.x <= btn.x + btn.w && pos.y >= btn.y && pos.y <= btn.y + btn.h) { playSound('menu_back'); hideCredits(); } return; } if (gameState === "MENU") { playSound('click'); handleMenuClick(pos.x, pos.y); } else if (gameState === "MAP") { worldMap.handleInput('down', pos.x, pos.y); } else if (gameState === "SHOP") { shop.handleInput('down', pos.x, pos.y); } else if (gameState === "ACHIEVEMENTS") { if (achievements.checkBackButton(pos.x, pos.y)) { playSound('menu_back'); gameState = "MENU"; return; } achievements.handleInput('down', pos.x, pos.y); } else if (gameState === "PLAYING" || gameState === "TIME_ATTACK") { const hudAction = hud.checkHit(pos.x, pos.y); if (hudAction === 'menu') { playSound('click'); togglePause(); return; } if (hudAction === 'hint') { tryUseHint(); return; } } });
   canvas.addEventListener('pointermove', (e) => { const pos = getEventPos(e); if (gameState === "MAP") worldMap.handleInput('move', pos.x, pos.y); if (gameState === "SHOP") shop.handleInput('move', pos.x, pos.y); if (gameState === "ACHIEVEMENTS") achievements.handleInput('move', pos.x, pos.y); });
   canvas.addEventListener('pointerup', (e) => { const pos = getEventPos(e); if (gameState === "MAP") worldMap.handleInput('up', pos.x, pos.y); if (gameState === "SHOP") shop.handleInput('up', pos.x, pos.y); if (gameState === "ACHIEVEMENTS") achievements.handleInput('up', pos.x, pos.y); });
@@ -901,15 +970,50 @@ function handleShopPurchase(item, action) {
         return { success: false };
     }
 }
-function handleMenuClick(clickX, clickY) { const { x, startY, w: btnW, h: btnH, gap } = menuBtnLayout; MENU_BUTTONS.forEach((btn, index) => { const y = startY + index * (btnH + gap); if (clickX >= x && clickX <= x + btnW && clickY >= y && clickY <= y + btnH) { if (btn.text === "CAMPAIGN") { if (!hasSeenTutorial) { startGame('LEVELS_EASY', 0); } else { gameState = "MAP"; } } else if (btn.name === 'DAILY') { dailyHintsUsed = 0; const dailyIndex = dailySystem.getTodayIndex(); startGame('LEVELS_DAILY', dailyIndex); } else if (btn.name === 'MODE_TIME') { timeAttack.start(); const next = timeAttack.getNextLevel(); gameState = "TIME_ATTACK"; startGame(next.set, next.index); timeAttack.markLevelStart(); if (audio) audio.playMusic('music_time_attack'); checkAchievements({ playedTimeAttack: true }); } else if (btn.name === 'MODE_ZEN') { startZenMode(); } else if (btn.name === 'SHOP') { shopReturnState = "MENU"; gameState = "SHOP"; shop.updateInventory(ownedItems, activeItems, ownedHints); checkAchievements({ visitedShop: true }); } else if (btn.name === 'ACHIEVEMENTS') { gameState = "ACHIEVEMENTS"; achievements.resetScroll(); } } }); }
+function handleMenuClick(clickX, clickY) { const { x, startY, w: btnW, h: btnH, gap } = menuBtnLayout; MENU_BUTTONS.forEach((btn, index) => { const y = startY + index * (btnH + gap); if (clickX >= x && clickX <= x + btnW && clickY >= y && clickY <= y + btnH) { if (btn.text === "CAMPAIGN") { if (!hasSeenTutorial) { startGame('LEVELS_EASY', 0); } else { gameState = "MAP"; } } else if (btn.name === 'DAILY') { dailyHintsUsed = 0; const dailyIndex = dailySystem.getTodayIndex(); startGame('LEVELS_DAILY', dailyIndex); } else if (btn.name === 'MODE_TIME') { timeAttack.start(); const next = timeAttack.getNextLevel(); gameState = "TIME_ATTACK"; startGame(next.set, next.index); timeAttack.markLevelStart(); if (audio) audio.playMusic('music_time_attack'); checkAchievements({ playedTimeAttack: true }); } else if (btn.name === 'MODE_ZEN') { showZenSettings(); } else if (btn.name === 'SHOP') { shopReturnState = "MENU"; gameState = "SHOP"; shop.updateInventory(ownedItems, activeItems, ownedHints); checkAchievements({ visitedShop: true }); } else if (btn.name === 'ACHIEVEMENTS') { gameState = "ACHIEVEMENTS"; achievements.resetScroll(); } } }); }
 
 // --- ZEN MODE ---
 let zenMode = false;
 let zenLevelPool = []; // Pool av alla banor att slumpa från
+let zenCursor = 0;
+let zenSolved = 0;
+let zenSettings = { difficulty: 'mixed', length: 10, theme: 'zen', reducedMotion: false };
+
+function showZenSettings() {
+    const overlay = document.getElementById('zen-settings');
+    if (!overlay) { startZenMode(); return; }
+    try { zenSettings = Object.assign(zenSettings, JSON.parse(localStorage.getItem('goldenGlyphsZenSettings') || '{}')); } catch (e) {}
+    document.getElementById('zen-difficulty').value = zenSettings.difficulty;
+    document.getElementById('zen-length').value = String(zenSettings.length);
+    document.getElementById('zen-theme').value = zenSettings.theme;
+    document.getElementById('zen-reduced-motion').checked = !!zenSettings.reducedMotion;
+    overlay.classList.remove('hidden');
+}
+
+function configureZenSettings() {
+    const overlay = document.getElementById('zen-settings');
+    const startBtn = document.getElementById('zen-start');
+    const cancelBtn = document.getElementById('zen-cancel');
+    if (!overlay || !startBtn || startBtn.dataset.bound) return;
+    startBtn.dataset.bound = 'true';
+    startBtn.addEventListener('click', () => {
+        zenSettings = {
+            difficulty: document.getElementById('zen-difficulty').value,
+            length: Math.max(0, Number(document.getElementById('zen-length').value) || 0),
+            theme: document.getElementById('zen-theme').value,
+            reducedMotion: document.getElementById('zen-reduced-motion').checked
+        };
+        localStorage.setItem('goldenGlyphsZenSettings', JSON.stringify(zenSettings));
+        overlay.classList.add('hidden');
+        startZenMode();
+    });
+    cancelBtn.addEventListener('click', () => overlay.classList.add('hidden'));
+}
 
 function buildZenLevelPool() {
     zenLevelPool = [];
-    const levelSets = ['LEVELS_EASY', 'LEVELS_MEDIUM', 'LEVELS_HARD', 'LEVELS_ARCANE'];
+    const setsByDifficulty = { gentle: ['LEVELS_EASY'], mixed: ['LEVELS_EASY', 'LEVELS_MEDIUM'], master: ['LEVELS_HARD', 'LEVELS_ARCANE'] };
+    const levelSets = setsByDifficulty[zenSettings.difficulty] || setsByDifficulty.mixed;
     levelSets.forEach(setName => {
         const levels = ALL_LEVEL_SETS[setName];
         if (levels) {
@@ -920,16 +1024,23 @@ function buildZenLevelPool() {
             });
         }
     });
+    for (let i = zenLevelPool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [zenLevelPool[i], zenLevelPool[j]] = [zenLevelPool[j], zenLevelPool[i]];
+    }
+    zenCursor = 0;
 }
 
 function getRandomZenLevel() {
     if (zenLevelPool.length === 0) buildZenLevelPool();
-    const randomIdx = Math.floor(Math.random() * zenLevelPool.length);
-    return zenLevelPool[randomIdx];
+    if (zenCursor >= zenLevelPool.length) buildZenLevelPool();
+    return zenLevelPool[zenCursor++];
 }
 
 function startZenMode() {
     zenMode = true;
+    zenSolved = 0;
+    buildZenLevelPool();
     
     // Kolla om tutorial behövs (om inte sett i campaign heller)
     if (!hasSeenTutorial) {
@@ -953,6 +1064,12 @@ function startZenMode() {
 }
 
 function nextZenLevel() {
+    zenSolved++;
+    if (zenSettings.length > 0 && zenSolved >= zenSettings.length) {
+        zenMode = false;
+        if (ui) ui.showWinScreen(0, 0, null, "ZEN SESSION COMPLETE", "BACK TO MENU", () => { gameState = "MENU"; pieces.length = 0; }, null, 0, null);
+        return;
+    }
     // Slumpa nästa bana
     const randomLevel = getRandomZenLevel();
     currentLevelSetName = randomLevel.setName;
@@ -1047,7 +1164,7 @@ function drawCredits() {
     window._creditsBackBtn = { x: btnX, y: btnY, w: btnW, h: btnH };
 }
 function startLevelFromMap(globalIndex) { let setName = 'LEVELS_EASY'; let localIndex = 0; if (globalIndex < 25) { setName = 'LEVELS_EASY'; localIndex = globalIndex; } else if (globalIndex < 50) { setName = 'LEVELS_MEDIUM'; localIndex = globalIndex - 25; } else if (globalIndex < 75) { setName = 'LEVELS_HARD'; localIndex = globalIndex - 50; } else { setName = 'LEVELS_ARCANE'; localIndex = globalIndex - 75; } if (ALL_LEVEL_SETS[setName] && ALL_LEVEL_SETS[setName][localIndex]) { startGame(setName, localIndex); } }
-function startGame(levelSetName, levelIndex) { currentLevelSetName = levelSetName; currentLevelSet = ALL_LEVEL_SETS[levelSetName]; currentLevelIndex = levelIndex; if (gameState !== "TIME_ATTACK") gameState = "PLAYING"; timeElapsed = 0; clearActiveHint(); saveProgress(); loadLevel(currentLevelIndex); if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.track('level_start', { level: currentLevelIndex + 1, set: currentLevelSetName, mode: zenMode ? 'zen' : (gameState === 'TIME_ATTACK' ? 'time_attack' : currentLevelSetName === 'LEVELS_DAILY' ? 'daily' : 'campaign') }); }
+function startGame(levelSetName, levelIndex) { currentLevelSetName = levelSetName; currentLevelSet = ALL_LEVEL_SETS[levelSetName]; currentLevelIndex = levelIndex; if (gameState !== "TIME_ATTACK") gameState = "PLAYING"; timeElapsed = 0; clearActiveHint(); if (levelSetName === 'LEVELS_DAILY') prepareDailyLeaderboard(); saveProgress(); loadLevel(currentLevelIndex); if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.track('level_start', { level: currentLevelIndex + 1, set: currentLevelSetName, mode: zenMode ? 'zen' : (gameState === 'TIME_ATTACK' ? 'time_attack' : currentLevelSetName === 'LEVELS_DAILY' ? 'daily' : 'campaign') }); }
 function goToMenu() { zenMode = false; gameState = "MENU"; pieces.length = 0; if (hud) { hud.levelStars = 0; hud.currency = totalGold; hud.ownedHints = ownedHints; } playSound('click'); }
 
 function loadLevel(index) { 
@@ -1068,9 +1185,11 @@ function loadLevel(index) {
     }
     // ZEN MODE: Fast lugn zen-bakgrund och zen-musik
     else if (zenMode) {
-        worldDefaultBg = SYSTEM_IMAGES['bg_zen'].src;
+        const zenThemes = { zen: 'bg_zen', temple: 'bg_temple', ice: 'bg_ice', lava: 'bg_lava', neon: 'bg_cyber' };
+        const zenBgKey = zenThemes[zenSettings.theme] || 'bg_zen';
+        worldDefaultBg = SYSTEM_IMAGES[zenBgKey].src;
         targetAudio = 'ambience_zen';
-        targetParticles = 'spores';
+        targetParticles = zenSettings.theme === 'ice' ? 'snow' : zenSettings.theme === 'lava' ? 'volcano' : zenSettings.theme === 'neon' ? 'rain' : 'spores';
     } else if (currentLevelSetName === 'LEVELS_EASY') { 
         worldDefaultBg = SYSTEM_IMAGES['bg_temple'].src; 
         targetAudio = 'ambience_jungle'; 
@@ -1096,7 +1215,7 @@ function loadLevel(index) {
     // Steg 2: Kolla om spelaren har en KÖPT bakgrund equipped
     let targetBgSrc = worldDefaultBg; // Default = följ världen
     
-    if (activeItems.world && activeItems.world !== 'default') {
+    if (!zenMode && activeItems.world && activeItems.world !== 'default') {
         // Spelaren har köpt och equipped en bakgrund - använd den överallt
         if (WORLDS[activeItems.world] && WORLDS[activeItems.world].src) {
             targetBgSrc = WORLDS[activeItems.world].src;
@@ -1209,7 +1328,7 @@ function loop(timestamp) {
         }
     }
     
-    if (gameState === "PLAYING") { if (!gamePaused) timeElapsed += dt; if (hud) { hud.isTimeAttack = false; hud.time = zenMode ? null : timeElapsed; hud.currentLevelName = zenMode ? "ZEN" : (currentLevelSetName === 'LEVELS_DAILY') ? "DAILY CHALLENGE" : `LEVEL ${currentLevelIndex + 1}`; hud.currency = totalGold; hud.ownedHints = ownedHints; hud.currentScore = 0; const levelKey = `${currentLevelSetName}_${currentLevelIndex}`; hud.earnedStars = parseInt(localStorage.getItem(levelKey) || 0); } }
+    if (gameState === "PLAYING") { if (!gamePaused) timeElapsed += dt; if (hud) { hud.isTimeAttack = false; hud.time = zenMode ? null : timeElapsed; hud.currentLevelName = zenMode ? `ZEN ${zenSettings.length > 0 ? `${Math.min(zenSolved + 1, zenSettings.length)}/${zenSettings.length}` : '∞'}` : (currentLevelSetName === 'LEVELS_DAILY') ? "DAILY CHALLENGE" : `LEVEL ${currentLevelIndex + 1}`; hud.currency = totalGold; hud.ownedHints = ownedHints; hud.currentScore = 0; const levelKey = `${currentLevelSetName}_${currentLevelIndex}`; hud.earnedStars = parseInt(localStorage.getItem(levelKey) || 0); } }
     else if (gameState === "TIME_ATTACK") { const status = gamePaused ? null : timeAttack.update(dt); if (status === "GAME_OVER") { handleTimeAttackGameOver(); loopRunning = false; return; } if (hud) { hud.isTimeAttack = true; hud.time = timeAttack.timeLeft; hud.currentScore = timeAttack.score; hud.currency = totalGold; const currentHigh = parseInt(localStorage.getItem('goldenGlyphsHighScore') || 0); if (timeAttack.score > currentHigh) { hud.highScore = timeAttack.score; localStorage.setItem('goldenGlyphsHighScore', timeAttack.score); } else { hud.highScore = currentHigh; } } }
     ctx.save(); 
     let shakeX = 0; let shakeY = 0; if (effects) { const shake = effects.getShakeOffset(); shakeX = shake.x; shakeY = shake.y; } ctx.translate(shakeX, shakeY);
@@ -1217,12 +1336,15 @@ function loop(timestamp) {
     
     // Rita bakgrundspartiklar ENDAST om spelaren har DEFAULT bakgrund
     // (Sporer/snö/aska/regn passar inte på köpta bakgrunder som BLUEPRINT etc.)
-    const showBgParticles = (activeItems.world === 'default') && (gameState === "PLAYING" || gameState === "TIME_ATTACK");
+    const reducedMotion = accessibilitySettings.reducedMotion || (zenMode && zenSettings.reducedMotion);
+    if (effects && typeof effects.setReducedMotion === 'function') effects.setReducedMotion(reducedMotion);
+    const showBgParticles = !reducedMotion && (activeItems.world === 'default') && (gameState === "PLAYING" || gameState === "TIME_ATTACK");
     if (dynamicBg && showBgParticles) {
         dynamicBg.update(dt);
         dynamicBg.draw();
     }
     
+    const accessibilityOpen = document.getElementById('accessibility-open'); if (accessibilityOpen) accessibilityOpen.classList.toggle('hidden', gameState !== "MENU");
     if (gameState === "MENU") { drawMenu(); } else if (gameState === "CREDITS") { drawCredits(); } else if (gameState === "MAP") { worldMap.update(dt); worldMap.draw(); } else if (gameState === "SHOP") { worldMap.draw(); shop.draw(ctx, totalGold); } else if (gameState === "ACHIEVEMENTS") { achievements.draw(ctx); } 
     else { 
         pieces.forEach(p => p.update(dt)); if (effects) effects.update(dt); grid.draw(ctx); 
@@ -1346,7 +1468,7 @@ function drawMenu() {
     ctx.fillRect(0, 0, w, h);
 
     // Titel
-    let titleSize = Math.min(w * 0.12, isMobile ? 35 : 80);
+    let titleSize = Math.min(w * 0.12, isMobile ? 35 : 80) * accessibilitySettings.textScale;
     ctx.save();
     const floatY = Math.sin(time * 0.8) * 4;
     ctx.shadowColor = "#FFD700";
@@ -1447,7 +1569,7 @@ function drawMenu() {
         ctx.fillStyle = "#FFF";
         ctx.shadowColor = "rgba(0,0,0,0.4)";
         ctx.shadowBlur = 4;
-        ctx.font = `700 ${secondaryText ? btnH * 0.27 : btnH * 0.32}px 'Cinzel', serif`;
+        ctx.font = `700 ${(secondaryText ? btnH * 0.27 : btnH * 0.32) * accessibilitySettings.textScale}px 'Cinzel', serif`;
         ctx.textAlign = "left";
         ctx.fillText(buttonText, x + 60, y + (secondaryText ? btnH * 0.40 : btnH/2 + 2));
         ctx.shadowBlur = 0;

@@ -31,11 +31,14 @@ export class UI {
                 transition: transform 0.2s;
             }
             .btn-shine:active { transform: scale(0.95); }
+            #game-shell[data-reduced-motion="true"] *,
+            #game-shell[data-reduced-motion="true"] *::before,
+            #game-shell[data-reduced-motion="true"] *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
         `;
         document.head.appendChild(style);
     }
 
-    showWinScreen(stars, reward, onAdReward, titleText="LEVEL COMPLETE", btnText="NEXT LEVEL", onMainButton=null, playSound=null, streakBonus=0, dailySummary=null) {
+    showWinScreen(stars, reward, onAdReward, titleText="LEVEL COMPLETE", btnText="NEXT LEVEL", onMainButton=null, playSound=null, streakBonus=0, dailySummary=null, worldUnlock=null) {
         const overlay = document.getElementById('win-screen');
         if (!overlay) {
             console.error("UI Error: #win-screen missing in HTML");
@@ -58,9 +61,12 @@ export class UI {
             boxShadow: '0 0 30px rgba(255, 215, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
             textAlign: 'center',
             color: '#fff',
-            minWidth: '300px',
+            minWidth: 'min(300px, 82vw)',
+            maxWidth: 'min(420px, 86vw)',
+            maxHeight: '88vh',
+            overflowY: 'auto',
             position: 'relative',
-            overflow: 'hidden'
+            overflowX: 'hidden'
         });
         
         // Glas-shine effekt överst
@@ -139,6 +145,56 @@ export class UI {
             box.appendChild(title);
             box.appendChild(starContainer);
             box.appendChild(dailyStats);
+
+            const shareText = `Golden Glyphs Daily #${dailySummary.number}\nSolved ${minutes}:${seconds} · ${dailySummary.hints} hint${dailySummary.hints === 1 ? '' : 's'} · ${stars}★\nStreak ${dailySummary.streak}\nhttps://gamevolt.io/golden-glyphs/`;
+            const shareBtn = document.createElement('button');
+            shareBtn.type = 'button';
+            shareBtn.innerText = 'SHARE RESULT';
+            shareBtn.className = 'btn-shine';
+            Object.assign(shareBtn.style, {
+                background: 'rgba(255,255,255,.08)', color: '#FFD700', border: '1px solid rgba(255,215,0,.45)',
+                padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', width: '100%',
+                fontFamily: "'Cinzel', serif", fontWeight: '700', marginBottom: '16px', position: 'relative'
+            });
+            shareBtn.onclick = async () => {
+                try {
+                    if (navigator.share) await navigator.share({ title: `Golden Glyphs Daily #${dailySummary.number}`, text: shareText });
+                    else if (navigator.clipboard) { await navigator.clipboard.writeText(shareText); shareBtn.innerText = 'COPIED'; }
+                } catch (e) {}
+            };
+            box.appendChild(shareBtn);
+
+            const leaderboardBox = document.createElement('div');
+            Object.assign(leaderboardBox.style, {
+                background: 'rgba(0,0,0,.28)', borderRadius: '9px', padding: '10px 14px',
+                marginBottom: '14px', fontFamily: "'Cinzel', serif", fontSize: '.8em', position: 'relative'
+            });
+            leaderboardBox.textContent = 'DAILY TOP 10 · LOADING…';
+            box.appendChild(leaderboardBox);
+            Promise.resolve(dailySummary.leaderboard || []).then((rows) => {
+                leaderboardBox.innerHTML = '';
+                const heading = document.createElement('div');
+                heading.textContent = 'DAILY TOP 10';
+                heading.style.color = '#FFD700';
+                heading.style.marginBottom = '7px';
+                leaderboardBox.appendChild(heading);
+                if (!rows || rows.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.textContent = 'No ranked results yet — be first.';
+                    empty.style.color = '#aaa';
+                    leaderboardBox.appendChild(empty);
+                    return;
+                }
+                rows.slice(0, 10).forEach((row, index) => {
+                    const line = document.createElement('div');
+                    const timeMs = Number(row.time_ms) || 0;
+                    const rowMinutes = Math.floor(timeMs / 60000);
+                    const rowSeconds = Math.floor((timeMs % 60000) / 1000).toString().padStart(2, '0');
+                    line.textContent = `#${row.rank || index + 1}  ${row.username || 'Player'}  ${rowMinutes}:${rowSeconds}`;
+                    line.style.cssText = 'display:flex;justify-content:space-between;color:#ddd;padding:3px 0;border-top:1px solid rgba(255,255,255,.06)';
+                    leaderboardBox.appendChild(line);
+                });
+            }).catch(() => { leaderboardBox.textContent = 'DAILY TOP 10 · UNAVAILABLE'; });
         } else {
             box.appendChild(title);
             box.appendChild(starContainer);
@@ -174,6 +230,12 @@ export class UI {
 
         // 7. Montera allt i boxen
         box.appendChild(rewardText);
+        if (worldUnlock) {
+            const unlock = document.createElement('div');
+            unlock.textContent = `WORLD UNLOCKED · ${worldUnlock.name}`;
+            Object.assign(unlock.style, { color:'#65e6f3', border:'1px solid rgba(101,230,243,.5)', background:'rgba(0,188,212,.12)', padding:'12px', borderRadius:'9px', margin:'0 0 16px', fontWeight:'900', fontFamily:"'Cinzel',serif", boxShadow:'0 0 18px rgba(0,188,212,.18)' });
+            box.appendChild(unlock);
+        }
         
         // Annons-knapp (visas BARA om ad-SDK finns)
         if (reward > 0 && onAdReward && this.ads && this.ads.isAvailable()) {

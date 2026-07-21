@@ -154,6 +154,40 @@
         <p style="font-size:.78rem; color:#777; margin-top:24px;">A GameVolt Original</p>
       </div>
     </div>
+
+    <div id="zen-settings" class="overlay hidden">
+      <div class="overlay-box" style="max-width:420px;width:min(86vw,420px);text-align:left;">
+        <div style="font:900 2rem 'Cinzel',serif;color:#65e6f3;text-align:center;margin-bottom:8px;">ZEN SESSION</div>
+        <p style="color:#aaa;text-align:center;margin:0 0 20px;">Choose your pace. No repeats within a session.</p>
+        <label style="display:block;color:#FFD700;font:700 .8rem 'Cinzel',serif;margin:12px 0 6px;">DIFFICULTY</label>
+        <select id="zen-difficulty" style="width:100%;padding:12px;border-radius:8px;background:#111827;color:#fff;border:1px solid #456;">
+          <option value="gentle">Gentle · 3 pieces</option><option value="mixed" selected>Mixed · 3–4 pieces</option><option value="master">Master · 5 pieces</option>
+        </select>
+        <label style="display:block;color:#FFD700;font:700 .8rem 'Cinzel',serif;margin:12px 0 6px;">SESSION</label>
+        <select id="zen-length" style="width:100%;padding:12px;border-radius:8px;background:#111827;color:#fff;border:1px solid #456;">
+          <option value="5">5 puzzles</option><option value="10" selected>10 puzzles</option><option value="0">Endless</option>
+        </select>
+        <label style="display:block;color:#FFD700;font:700 .8rem 'Cinzel',serif;margin:12px 0 6px;">ATMOSPHERE</label>
+        <select id="zen-theme" style="width:100%;padding:12px;border-radius:8px;background:#111827;color:#fff;border:1px solid #456;">
+          <option value="zen" selected>Zen Garden</option><option value="temple">Temple</option><option value="ice">Frozen</option><option value="lava">Ember</option><option value="neon">Neon</option>
+        </select>
+        <label style="display:flex;align-items:center;gap:10px;color:#ddd;margin:16px 0;"><input id="zen-reduced-motion" type="checkbox"> Reduced motion</label>
+        <button id="zen-start" type="button" style="width:100%;background:linear-gradient(180deg,#65e6f3,#1596a6);">START ZEN</button>
+        <button id="zen-cancel" type="button" style="width:100%;margin-top:10px;background:rgba(255,255,255,.07);border:1px solid #456;box-shadow:none;">BACK</button>
+      </div>
+    </div>
+    <button id="accessibility-open" type="button" aria-label="Accessibility settings" class="hidden" style="position:absolute;left:14px;bottom:14px;z-index:25;width:auto;padding:8px 12px;font-size:12px;background:rgba(5,8,18,.8);border:1px solid #667;box-shadow:none;">ACCESSIBILITY</button>
+    <div id="accessibility-settings" class="overlay hidden">
+      <div class="overlay-box" style="max-width:400px;width:min(86vw,400px);text-align:left;">
+        <div style="font:900 1.7rem 'Cinzel',serif;color:#FFD700;text-align:center;margin-bottom:18px;">ACCESSIBILITY</div>
+        <label style="display:block;color:#FFD700;font:700 .8rem 'Cinzel',serif;margin:12px 0 6px;">TEXT SIZE</label>
+        <select id="access-text-scale" style="width:100%;padding:12px;border-radius:8px;background:#111827;color:#fff;border:1px solid #667;"><option value="1">Normal</option><option value="1.15">Large</option><option value="1.3">Extra large</option></select>
+        <label style="display:flex;align-items:center;gap:10px;color:#ddd;margin:18px 0;"><input id="access-colorblind" type="checkbox"> High-contrast colorblind palette + symbols</label>
+        <label style="display:flex;align-items:center;gap:10px;color:#ddd;margin:18px 0;"><input id="access-reduced-motion" type="checkbox"> Reduced motion everywhere</label>
+        <button id="access-save" type="button" style="width:100%;background:linear-gradient(180deg,#FFE066,#D4A700);color:#17120a;">SAVE</button>
+        <button id="access-cancel" type="button" style="width:100%;margin-top:10px;background:rgba(255,255,255,.07);border:1px solid #667;box-shadow:none;">BACK</button>
+      </div>
+    </div>
     </main>
 
     <!-- postMessage bridge + GA4 tracker -->
@@ -176,7 +210,7 @@
     <!-- GameVolt SDK -->
     <script src="/sdk/gamevolt.js"></script>
 
-    <script type="module" src="./src/js/game.js?v=4"></script>
+    <script type="module" src="./src/js/game.js?v=6"></script>
 
 <script>
         const audioDiv = document.getElementById('audioOverlay');
