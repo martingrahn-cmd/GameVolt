@@ -134,7 +134,7 @@
     <button class="btn easy" data-level="easy">EASY</button>
     <button class="btn medium" data-level="medium">MEDIUM</button>
     <button class="btn hard" data-level="hard">HARD</button>
-    <div class="menu-note">Drag to move your paddle — swipe through the ball to aim.<br>First to 11, win by 2. Tap to serve.</div>
+    <div class="menu-note">Drag to move your paddle — swipe through the ball to aim.<br>First to 11, win by 2. Tap to toss, then swipe through the ball to strike the serve.</div>
     <button id="update-chip" class="hidden">◆ NEW VERSION — TAP TO UPDATE</button>
     <button id="install-btn" class="hidden">⬇ INSTALL APP</button>
     <div id="ios-hint" class="hidden">On iPhone: Share <span style="font-size:0.8rem">⎋</span> → “Add to Home Screen”</div>
@@ -151,11 +151,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.5.0"></script>
-  <script src="tt-ai.js?v=0.5.0"></script>
+  <script src="tt-core.js?v=0.6.0"></script>
+  <script src="tt-ai.js?v=0.6.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.5.0';
+    var VERSION = '0.6.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -427,11 +427,7 @@
       };
     }
     function humanServe() {
-      beginToss({
-        tx: Math.max(-0.6, Math.min(0.6, game.paddles[1].x * -0.4 + pointerVX * 0.3 + (rng() - 0.5) * 0.2)),
-        ty: K.NET_Y + 0.5 + rng() * 0.6,
-        t: 0.48 + rng() * 0.1
-      });
+      beginToss(null); // aim is read from the swipe at the STRIKE, not the tap
     }
 
     // Serve toss: the ball is thrown up from the paddle and struck on the
@@ -490,7 +486,7 @@
       el.end.classList.add('hidden');
       el.hud.classList.remove('hidden');
       updateHud();
-      setHint('TAP TO SERVE');
+      setHint('TAP TO TOSS · SWIPE TO STRIKE');
       last = 0; acc = 0;
       requestAnimationFrame(loop);
     }
@@ -520,7 +516,19 @@
         toss.t++;
         if (toss.t >= toss.dur) {
           var wasHuman = game.server === 1;
-          TTCore.serve(game, toss.aim);
+          var aim = toss.aim; // the AI decides its serve upfront…
+          if (!aim) {
+            // …the human's serve is whatever the hand is doing at the strike:
+            // swipe through the falling ball = direction + pace of the serve
+            var raw = Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6;
+            var power = Math.min(1, Math.max(0, raw - 0.9) / 2.6);
+            aim = {
+              tx: Math.max(-0.65, Math.min(0.65, game.paddles[1].x * 0.3 + pointerVX * 0.5)),
+              ty: K.NET_Y + 0.35 + 1.05 * power,
+              pace: power
+            };
+          }
+          TTCore.serve(game, aim);
           toss = null;
           if (wasHuman) padKick = 0.55; // strike swing
         }
@@ -549,7 +557,7 @@
         TTCore.nextRally(game);
         aiMem = {};
         updateHud();
-        if (game.server === 1) setHint('TAP TO SERVE');
+        if (game.server === 1) setHint('TAP TO TOSS · SWIPE TO STRIKE');
       }
       // ball trail bookkeeping
       if (game.phase === 'rally') {
