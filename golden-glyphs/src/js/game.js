@@ -2,7 +2,7 @@
 import { Layout } from "./layout.js";
 import { Grid } from "./grid.js";
 import { Piece } from "./piece.js";
-import { HUD } from "./hud.js";
+import { HUD } from "./hud.js?v=4";
 import { Input } from "./input.js";
 import { BitField } from "./bitfield.js";
 import { Tray } from "./tray.js";
@@ -11,10 +11,10 @@ import { UI } from "./ui.js?v=3";
 import { Effects } from "./effects.js";
 import { CONFIG, SHAPES, WORLDS, SYSTEM_IMAGES, SKINS, TRAILS, ACHIEVEMENTS } from "./config.js";
 import { AchievementSystem } from "./achievements.js?v=3";
-import { WorldMap } from "./worldmap.js";
+import { WorldMap } from "./worldmap.js?v=4";
 import { Shop } from "./shop.js";
 import { Tutorial } from "./tutorial.js?v=3";
-import { DailySystem } from "./daily.js?v=3";
+import { DailySystem } from "./daily.js?v=4";
 import { DynamicBackground } from "./dynamic_background.js";
 
 import { LEVELS_EASY } from "./levels_easy.js";
@@ -94,12 +94,12 @@ const ALL_LEVEL_SETS = { 'LEVELS_EASY': LEVELS_EASY, 'LEVELS_MEDIUM': LEVELS_MED
 const STAR_TIMES = { 3: 20, 2: 40 };
 
 const MENU_BUTTONS = [
-    { text: "CAMPAIGN", name: 'LEVELS_EASY', color: "#4CAF50", icon: "🏛️" },
-    { text: "DAILY CHALLENGE", name: 'DAILY', color: "#E91E63", icon: "📅" },
-    { text: "TIME ATTACK", name: 'MODE_TIME', color: "#FF5722", icon: "⏱️" },
-    { text: "ZEN MODE", name: 'MODE_ZEN', color: "#00BCD4", icon: "🧘" },
-    { text: "SHOP", name: 'SHOP', color: "#9C27B0", icon: "🛒" },
-    { text: "ACHIEVEMENTS", name: 'ACHIEVEMENTS', color: "#FFD700", icon: "🏆" }
+    { text: "CAMPAIGN", name: 'LEVELS_EASY', color: "#4CAF50", glyph: "C" },
+    { text: "DAILY CHALLENGE", name: 'DAILY', color: "#E91E63", glyph: "D" },
+    { text: "TIME ATTACK", name: 'MODE_TIME', color: "#FF5722", glyph: "T" },
+    { text: "ZEN MODE", name: 'MODE_ZEN', color: "#00BCD4", glyph: "Z" },
+    { text: "SHOP", name: 'SHOP', color: "#9C27B0", glyph: "S" },
+    { text: "ACHIEVEMENTS", name: 'ACHIEVEMENTS', color: "#FFD700", glyph: "A" }
 ];
 
 function getEventPos(e) { const rect = canvas.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1; const scaleX = (canvas.width / dpr) / rect.width; const scaleY = (canvas.height / dpr) / rect.height; let clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX; let clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY; return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY }; }
@@ -112,12 +112,29 @@ function adjustBrightness(hex, percent) {
     const b = Math.min(255, Math.max(0, (num & 0x0000FF) + percent));
     return `rgb(${r},${g},${b})`;
 }
+function drawMenuGlyph(x, y, radius, glyph, completed = false) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(5,8,18,0.42)";
+    ctx.fill();
+    ctx.strokeStyle = completed ? "#FFD700" : "rgba(255,255,255,0.82)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = completed ? "#FFD700" : "#FFF";
+    ctx.font = `900 ${radius * 1.05}px 'Cinzel', serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(completed ? "✓" : glyph, x, y + 1);
+    ctx.restore();
+}
 function getStars(time) { if (time < STAR_TIMES[3]) return 3; if (time < STAR_TIMES[2]) return 2; return 1; }
 function getStarsForLevel(levelSetName, levelIndex) { const key = `${levelSetName}_${levelIndex}`; return parseInt(localStorage.getItem(key) || 0); }
+function getBestTimeForGlobalIndex(globalIndex) { let setName = CAMPAIGN_SET_NAMES[Math.floor(globalIndex / 25)] || 'LEVELS_EASY'; let localIndex = globalIndex % 25; return finiteNumber(localStorage.getItem(`${setName}_${localIndex}_bestTime`)); }
 export function getStarsForGlobalIndex(globalIndex) { let setName = 'LEVELS_EASY'; let localIndex = 0; if (globalIndex < 25) { setName = 'LEVELS_EASY'; localIndex = globalIndex; } else if (globalIndex < 50) { setName = 'LEVELS_MEDIUM'; localIndex = globalIndex - 25; } else if (globalIndex < 75) { setName = 'LEVELS_HARD'; localIndex = globalIndex - 50; } else { setName = 'LEVELS_ARCANE'; localIndex = globalIndex - 75; } if (ALL_LEVEL_SETS[setName] && ALL_LEVEL_SETS[setName][localIndex]) { return getStarsForLevel(setName, localIndex); } return 0; }
 function calculateTotalStars() { let total = 0; for (const setName in ALL_LEVEL_SETS) { if (ALL_LEVEL_SETS[setName] && Array.isArray(ALL_LEVEL_SETS[setName])) { const setLength = ALL_LEVEL_SETS[setName].length; for (let i = 0; i < setLength; i++) { total += getStarsForLevel(setName, i); } } } return total; }
 
-const CLOUD_SAVE_VERSION = 3;
+const CLOUD_SAVE_VERSION = 4;
 const CAMPAIGN_SET_NAMES = ['LEVELS_EASY', 'LEVELS_MEDIUM', 'LEVELS_HARD', 'LEVELS_ARCANE'];
 let cloudSaveTimer = null;
 let cloudSyncInProgress = false;
@@ -137,6 +154,18 @@ function collectCampaignStars() {
         });
     });
     return stars;
+}
+
+function collectCampaignBestTimes() {
+    const bestTimes = {};
+    CAMPAIGN_SET_NAMES.forEach((setName) => {
+        bestTimes[setName] = {};
+        (ALL_LEVEL_SETS[setName] || []).forEach((_, index) => {
+            const value = finiteNumber(localStorage.getItem(`${setName}_${index}_bestTime`));
+            if (value > 0) bestTimes[setName][index] = value;
+        });
+    });
+    return bestTimes;
 }
 
 function collectDailyCompletions() {
@@ -164,6 +193,7 @@ function buildGoldenGlyphsSave() {
         updatedAt: new Date().toISOString(),
         progress: { set: progress.set, index: Math.max(0, finiteNumber(progress.index, 0)) },
         stars: collectCampaignStars(),
+        bestTimes: collectCampaignBestTimes(),
         wallet: { gold: Math.max(0, finiteNumber(totalGold)), hints: Math.max(0, finiteNumber(ownedHints)) },
         inventory: safeArray(ownedItems),
         activeItems: safeObject(activeItems),
@@ -222,14 +252,20 @@ function mergeGoldenGlyphsSaves(localSave, cloudSave) {
         ? { version: 1, progress: { set: rawCloud.set, index: rawCloud.index } }
         : rawCloud;
     const mergedStars = {};
+    const mergedBestTimes = {};
     CAMPAIGN_SET_NAMES.forEach((setName) => {
         mergedStars[setName] = {};
+        mergedBestTimes[setName] = {};
         const localStars = safeObject(safeObject(local.stars)[setName]);
         const cloudStars = safeObject(safeObject(cloud.stars)[setName]);
         const levels = ALL_LEVEL_SETS[setName] || [];
         levels.forEach((_, index) => {
             const best = Math.max(finiteNumber(localStars[index]), finiteNumber(cloudStars[index]));
             if (best > 0) mergedStars[setName][index] = Math.min(3, best);
+            const localTime = finiteNumber(safeObject(safeObject(local.bestTimes)[setName])[index]);
+            const cloudTime = finiteNumber(safeObject(safeObject(cloud.bestTimes)[setName])[index]);
+            const times = [localTime, cloudTime].filter((value) => value > 0);
+            if (times.length) mergedBestTimes[setName][index] = Math.min(...times);
         });
     });
 
@@ -253,6 +289,7 @@ function mergeGoldenGlyphsSaves(localSave, cloudSave) {
             ? { set: progress.set, index: Math.max(0, finiteNumber(progress.index)) }
             : { set: 'LEVELS_EASY', index: 0 },
         stars: mergedStars,
+        bestTimes: mergedBestTimes,
         wallet: {
             gold: Math.max(finiteNumber(safeObject(local.wallet).gold), finiteNumber(safeObject(cloud.wallet).gold)),
             hints: Math.max(finiteNumber(safeObject(local.wallet).hints), finiteNumber(safeObject(cloud.wallet).hints))
@@ -290,6 +327,7 @@ function legacyDataToGoldenGlyphsSave(local) {
         version: CLOUD_SAVE_VERSION,
         progress: parseStoredObject('goldenGlyphsProgress', { set: 'LEVELS_EASY', index: 0 }),
         stars: {},
+        bestTimes: {},
         wallet: { gold: finiteNumber(data.goldenGlyphsGold), hints: finiteNumber(data.goldenGlyphsHints) },
         inventory: safeArray(data.goldenGlyphsInventory),
         activeItems: safeObject(data.goldenGlyphsActive),
@@ -305,9 +343,12 @@ function legacyDataToGoldenGlyphsSave(local) {
     };
     CAMPAIGN_SET_NAMES.forEach((setName) => {
         legacy.stars[setName] = {};
+        legacy.bestTimes[setName] = {};
         (ALL_LEVEL_SETS[setName] || []).forEach((_, index) => {
             const value = finiteNumber(data[`${setName}_${index}`]);
             if (value > 0) legacy.stars[setName][index] = Math.min(3, value);
+            const bestTime = finiteNumber(data[`${setName}_${index}_bestTime`]);
+            if (bestTime > 0) legacy.bestTimes[setName][index] = bestTime;
         });
     });
     return legacy;
@@ -336,6 +377,12 @@ function applyGoldenGlyphsSave(save) {
     const stars = safeObject(data.stars);
     CAMPAIGN_SET_NAMES.forEach((setName) => {
         Object.entries(safeObject(stars[setName])).forEach(([index, value]) => localStorage.setItem(`${setName}_${index}`, Math.min(3, finiteNumber(value)).toString()));
+    });
+    const bestTimes = safeObject(data.bestTimes);
+    CAMPAIGN_SET_NAMES.forEach((setName) => {
+        Object.entries(safeObject(bestTimes[setName])).forEach(([index, value]) => {
+            if (finiteNumber(value) > 0) localStorage.setItem(`${setName}_${index}_bestTime`, finiteNumber(value).toString());
+        });
     });
     localStorage.setItem('goldenGlyphsAchievements', JSON.stringify(safeObject(data.achievements)));
     const stats = safeObject(data.stats);
@@ -479,7 +526,7 @@ function togglePause() {
 
 function quitToMenu() {
     saveProgress();
-    if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.end({ outcome: 'quit' });
+    if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.track('level_quit', { level: currentLevelIndex + 1, set: currentLevelSetName });
     if (gameState === "TIME_ATTACK") {
         if (audio) audio.stopMusic();
         gameState = "MENU";
@@ -503,7 +550,7 @@ function initSystems() {
   ui = new UI(() => { if (currentLevelSetName === 'LEVELS_DAILY') { gameState = "MENU"; saveProgress(); } else { if (currentLevelSetName === 'LEVELS_EASY' && currentLevelIndex === 0) { hasSeenTutorial = true; saveProgress(); } currentLevelIndex++; if (currentLevelIndex >= currentLevelSet.length) { gameState = "MAP"; } else { saveProgress(); timeElapsed = 0; loadLevel(currentLevelIndex); } } }, ads);
   input = new Input(canvas, grid, pieces, bitfield, tray, effects);
   input.hudCheckFn = (x, y) => hud && hud.checkHit(x, y);
-  worldMap = new WorldMap(canvas, (globalLevelIndex) => startLevelFromMap(globalLevelIndex), () => goToMenu(), (index) => getStarsForGlobalIndex(index), () => { shopReturnState = "MAP"; gameState = "SHOP"; shop.updateInventory(ownedItems, activeItems, ownedHints); checkAchievements({ visitedShop: true }); }, () => totalGold);
+  worldMap = new WorldMap(canvas, (globalLevelIndex) => startLevelFromMap(globalLevelIndex), () => goToMenu(), (index) => getStarsForGlobalIndex(index), () => { shopReturnState = "MAP"; gameState = "SHOP"; shop.updateInventory(ownedItems, activeItems, ownedHints); checkAchievements({ visitedShop: true }); }, () => totalGold, (index) => getBestTimeForGlobalIndex(index));
   shop = new Shop( canvas, () => { gameState = shopReturnState; }, (item, action) => handleShopPurchase(item, action), ads );
   achievements = new AchievementSystem(canvas);
   const savedHigh = localStorage.getItem('goldenGlyphsHighScore'); if (savedHigh && hud) { hud.highScore = parseInt(savedHigh); }
@@ -512,7 +559,7 @@ function initSystems() {
   if (window.GameVolt) {
     const migrationKeys = ['goldenGlyphsProgress', 'goldenGlyphsGold', 'goldenGlyphsHints', 'goldenGlyphsInventory', 'goldenGlyphsActive', 'goldenGlyphsTutorial', 'goldenGlyphsAchievements', 'goldenGlyphsGoldEarned', 'goldenGlyphsGoldSpent', 'goldenGlyphsDailyCount', 'goldenGlyphsDailyResults', 'goldenGlyphsLevelsWon', 'goldenGlyphsHighScore', 'goldenGlyphsLeaderboard', 'goldenGlyphsTA_PB'];
     CAMPAIGN_SET_NAMES.forEach((setName) => {
-      (ALL_LEVEL_SETS[setName] || []).forEach((_, index) => migrationKeys.push(`${setName}_${index}`));
+      (ALL_LEVEL_SETS[setName] || []).forEach((_, index) => { migrationKeys.push(`${setName}_${index}`); migrationKeys.push(`${setName}_${index}_bestTime`); });
     });
     GameVolt.save.registerMigration({
       keys: migrationKeys,
@@ -589,7 +636,8 @@ function initSystems() {
         return; // Skippa resten av win-logiken
     }
     
-    let streakBonus = 0; const isDaily = currentLevelSetName === 'LEVELS_DAILY'; let dailySummary = null; if (isDaily) { const firstCompletion = dailySystem && !dailySystem.isCompleted(); if (dailySystem) { const streak = dailySystem.markCompleted({ time: completionTime, stars: awardedStars, hints: dailyHintsUsed }); streakBonus = firstCompletion ? (streak >= 7 ? 100 : streak >= 3 ? 50 : streak >= 2 ? 20 : 0) : 0; dailySummary = { number: dailySystem.getDayNumber(), time: completionTime, hints: dailyHintsUsed, streak: streak, replay: !firstCompletion }; } reward = firstCompletion ? 500 + streakBonus : 0; } else { const levelKey = `${currentLevelSetName}_${currentLevelIndex}`; const oldStars = parseInt(localStorage.getItem(levelKey) || 0); if (awardedStars > oldStars) reward = 100 + (awardedStars * 20); else reward = 50; if (awardedStars > oldStars) localStorage.setItem(levelKey, awardedStars.toString()); } totalGold += reward; saveProgress(awardedStars); checkAchievements({ completedLevel: true, completedDaily: isDaily && reward > 0, awardedStars: awardedStars, goldEarned: reward }); if (typeof gvPost === 'function') gvPost('level_complete', { level: currentLevelIndex + 1, stars: awardedStars, set: currentLevelSetName }); if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.end({ level: currentLevelIndex + 1, outcome: 'level_complete' }); playSound('win'); try { if (effects) effects.triggerVictory(pieces); } catch(e) {} setTimeout(() => { if (ui && typeof ui.showWinScreen === 'function') {
+    const isFirstTutorialCompletion = currentLevelSetName === 'LEVELS_EASY' && currentLevelIndex === 0 && !hasSeenTutorial;
+    let streakBonus = 0; const isDaily = currentLevelSetName === 'LEVELS_DAILY'; let dailySummary = null; if (isDaily) { const firstCompletion = dailySystem && !dailySystem.isCompleted(); if (dailySystem) { const streak = dailySystem.markCompleted({ time: completionTime, stars: awardedStars, hints: dailyHintsUsed }); streakBonus = firstCompletion ? (streak >= 7 ? 100 : streak >= 3 ? 50 : streak >= 2 ? 20 : 0) : 0; dailySummary = { number: dailySystem.getDayNumber(), time: completionTime, hints: dailyHintsUsed, streak: streak, replay: !firstCompletion }; } reward = firstCompletion ? 500 + streakBonus : 0; } else { const levelKey = `${currentLevelSetName}_${currentLevelIndex}`; const oldStars = parseInt(localStorage.getItem(levelKey) || 0); const bestTimeKey = `${levelKey}_bestTime`; const oldBestTime = finiteNumber(localStorage.getItem(bestTimeKey)); if (!oldBestTime || completionTime < oldBestTime) localStorage.setItem(bestTimeKey, completionTime.toString()); if (awardedStars > oldStars) reward = 100 + (awardedStars * 20); else reward = 50; if (isFirstTutorialCompletion) reward += 250; if (awardedStars > oldStars) localStorage.setItem(levelKey, awardedStars.toString()); } if (isFirstTutorialCompletion) hasSeenTutorial = true; totalGold += reward; saveProgress(awardedStars); checkAchievements({ completedLevel: true, completedDaily: isDaily && reward > 0, awardedStars: awardedStars, goldEarned: reward }); if (typeof gvPost === 'function') gvPost('level_complete', { level: currentLevelIndex + 1, stars: awardedStars, set: currentLevelSetName }); if (typeof GameVoltTracker !== 'undefined') { GameVoltTracker.track('level_complete', { level: currentLevelIndex + 1, set: currentLevelSetName, stars: awardedStars, time_seconds: completionTime }); if (isFirstTutorialCompletion) GameVoltTracker.track('tutorial_complete', { time_seconds: completionTime }); } playSound('win'); try { if (effects) effects.triggerVictory(pieces); } catch(e) {} setTimeout(() => { if (ui && typeof ui.showWinScreen === 'function') {
         const titleText = isDaily ? "DAILY COMPLETE" : "LEVEL COMPLETE";
         const btnText = isDaily ? "BACK TO MENU" : "NEXT LEVEL";
         ui.showWinScreen(awardedStars, reward, () => { totalGold += reward; saveProgress(); playSound('purchase'); }, titleText, btnText, null, (name) => playSound(name), streakBonus, dailySummary); } else { gameState = "MAP"; } }, 1500); });
@@ -948,15 +996,12 @@ function drawCredits() {
 
     // Credits text
     const credits = [
-        { label: "DEVELOPED BY", value: "SmarProc Games" },
-        { label: "GAME DESIGN", value: "SmarProc Games" },
-        { label: "PROGRAMMING", value: "SmarProc Games" },
-        { label: "ART & GRAPHICS", value: "SmarProc Games" },
-        { label: "SOUND DESIGN", value: "SmarProc Games" },
+        { label: "A GAMEVOLT ORIGINAL", value: "Golden Glyphs" },
+        { label: "CREATED BY", value: "GameVolt" },
         { label: "", value: "" },
         { label: "SPECIAL THANKS", value: "All our players!" },
         { label: "", value: "" },
-        { label: "VERSION", value: "1.0.0" }
+        { label: "VERSION", value: "1.1.0" }
     ];
 
     const lineHeight = 50;
@@ -1002,8 +1047,8 @@ function drawCredits() {
     window._creditsBackBtn = { x: btnX, y: btnY, w: btnW, h: btnH };
 }
 function startLevelFromMap(globalIndex) { let setName = 'LEVELS_EASY'; let localIndex = 0; if (globalIndex < 25) { setName = 'LEVELS_EASY'; localIndex = globalIndex; } else if (globalIndex < 50) { setName = 'LEVELS_MEDIUM'; localIndex = globalIndex - 25; } else if (globalIndex < 75) { setName = 'LEVELS_HARD'; localIndex = globalIndex - 50; } else { setName = 'LEVELS_ARCANE'; localIndex = globalIndex - 75; } if (ALL_LEVEL_SETS[setName] && ALL_LEVEL_SETS[setName][localIndex]) { startGame(setName, localIndex); } }
-function startGame(levelSetName, levelIndex) { currentLevelSetName = levelSetName; currentLevelSet = ALL_LEVEL_SETS[levelSetName]; currentLevelIndex = levelIndex; if (gameState !== "TIME_ATTACK") gameState = "PLAYING"; timeElapsed = 0; clearActiveHint(); saveProgress(); loadLevel(currentLevelIndex); }
-function goToMenu() { zenMode = false; gameState = "MENU"; pieces.length = 0; if (hud) { hud.levelStars = 0; hud.currency = totalGold; hud.ownedHints = ownedHints; } playSound('click'); if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.end({ outcome: 'quit' }); }
+function startGame(levelSetName, levelIndex) { currentLevelSetName = levelSetName; currentLevelSet = ALL_LEVEL_SETS[levelSetName]; currentLevelIndex = levelIndex; if (gameState !== "TIME_ATTACK") gameState = "PLAYING"; timeElapsed = 0; clearActiveHint(); saveProgress(); loadLevel(currentLevelIndex); if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.track('level_start', { level: currentLevelIndex + 1, set: currentLevelSetName, mode: zenMode ? 'zen' : (gameState === 'TIME_ATTACK' ? 'time_attack' : currentLevelSetName === 'LEVELS_DAILY' ? 'daily' : 'campaign') }); }
+function goToMenu() { zenMode = false; gameState = "MENU"; pieces.length = 0; if (hud) { hud.levelStars = 0; hud.currency = totalGold; hud.ownedHints = ownedHints; } playSound('click'); }
 
 function loadLevel(index) { 
     currentLevelSet = ALL_LEVEL_SETS[currentLevelSetName]; 
@@ -1259,7 +1304,7 @@ function handleTimeAttackGameOver() {
     if (window.GameVolt) GameVolt.leaderboard.submit(timeAttack.score, { mode: 'time-attack' });
     if (typeof gvPost === 'function') gvPost('game_over', { score: timeAttack.score, mode: 'time-attack' });
     if (isNewBest && typeof gvPost === 'function') gvPost('high_score', { score: timeAttack.score, mode: 'time-attack' });
-    if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.end({ score: timeAttack.score, outcome: 'game_over' });
+    if (typeof GameVoltTracker !== 'undefined') GameVoltTracker.track('time_attack_complete', { score: timeAttack.score, solved: solved, tier: tier });
 
     // Stoppa Time Attack-musiken
     if (audio) audio.stopMusic();
@@ -1334,12 +1379,15 @@ function drawMenu() {
         let isDisabled = false;
         let isCompleted = false;
         let secondaryText = "";
+        let recentCalendar = null;
         
         if (btn.name === 'DAILY') { 
             if (dailySystem) {
                 const dailyInfo = dailySystem.getDisplayInfo();
                 const dailyStreak = dailySystem.getStreak();
-                secondaryText = `#${dailyInfo.number} · ${dailyInfo.label}${dailyStreak > 0 ? ` · 🔥 ${dailyStreak}` : ''}`;
+                const longestStreak = dailySystem.getLongestStreak();
+                secondaryText = `#${dailyInfo.number} · ${dailyInfo.label} · ${dailyStreak}/${longestStreak}`;
+                recentCalendar = dailySystem.getRecentCalendar(7);
             }
             if (dailySystem && dailySystem.isCompleted()) { 
                 accentColor = "#B88716";
@@ -1393,14 +1441,7 @@ function drawMenu() {
         
         // Ikon
         const iconX = x + 35;
-        ctx.font = `${btnH * 0.4}px sans-serif`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "#FFF";
-        ctx.shadowColor = "rgba(0,0,0,0.3)";
-        ctx.shadowBlur = 4;
-        ctx.fillText(isCompleted ? "🏆" : (btn.icon || ""), iconX, y + btnH/2);
-        ctx.shadowBlur = 0;
+        drawMenuGlyph(iconX, y + btnH/2, btnH * 0.22, btn.glyph, isCompleted);
         
         // Text med skugga för läsbarhet
         ctx.fillStyle = "#FFF";
@@ -1417,6 +1458,19 @@ function drawMenu() {
             ctx.textAlign = "left";
             ctx.fillText(secondaryText, x + 60, y + btnH * 0.70);
         }
+        if (recentCalendar) {
+            const dotGap = 11;
+            const dotsStartX = x + btnW - 18 - dotGap * (recentCalendar.length - 1);
+            recentCalendar.forEach((day, dayIndex) => {
+                const dotX = dotsStartX + dayIndex * dotGap;
+                const dotY = y + btnH * 0.70;
+                ctx.beginPath();
+                ctx.arc(dotX, dotY, day.today ? 4 : 3.2, 0, Math.PI * 2);
+                ctx.fillStyle = day.completed ? "#FFD700" : "rgba(255,255,255,0.32)";
+                ctx.fill();
+                if (day.today) { ctx.strokeStyle = "#FFF"; ctx.lineWidth = 1; ctx.stroke(); }
+            });
+        }
         
         // Campaign: visa totala stjärnor
         if (btn.name === 'LEVELS_EASY') {
@@ -1428,7 +1482,7 @@ function drawMenu() {
             CAMPAIGN_SET_NAMES.forEach((setName) => {
                 (ALL_LEVEL_SETS[setName] || []).forEach((_, levelIndex) => { if (getStarsForLevel(setName, levelIndex) > 0) completedLevels++; });
             });
-            ctx.fillText(`${completedLevels}/100 · ⭐ ${allStars}`, x + btnW - 20, y + btnH/2 + 2);
+            ctx.fillText(`${completedLevels}/100 · ★ ${allStars}`, x + btnW - 20, y + btnH/2 + 2);
         }
 
         // Achievements: visa progress
@@ -1450,10 +1504,10 @@ function drawMenu() {
     ctx.fillStyle = "#555";
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
-    ctx.fillText("SmarProc Games", w / 2, h - 30);
+    ctx.fillText("A GAMEVOLT ORIGINAL", w / 2, h - 30);
     ctx.font = `400 12px sans-serif`;
     ctx.fillStyle = "#444";
-    ctx.fillText("v1.0.0", w / 2, h - 12); 
+    ctx.fillText("v1.1.0", w / 2, h - 12);
     ctx.restore(); 
 }
 window.onload = init; window.resetGame = function() { localStorage.clear(); window.location.reload(); }; window.cheat = function() { totalGold += 5000; ownedHints += 5; saveProgress(); console.log("💰 FUSK AKTIVERAT"); };

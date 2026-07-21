@@ -163,18 +163,20 @@
         try { window.parent.postMessage({ type: 'gamevolt', action: action, gameId: 'golden-glyphs', payload: payload || {} }, '*'); } catch(e) {}
       }
     }
-    var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
-    start:function(n){this.gameName=n;this.startTime=Date.now();this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',{game_name:n});if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
-    end:function(o){o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'});if(this.timerInterval)clearInterval(this.timerInterval);},
+    var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,ended:false,
+    start:function(n){if(this.startTime&&!this.ended)return;this.gameName=n;this.startTime=Date.now();this.ended=false;this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',{game_name:n});if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
+    track:function(n,p){p=p||{};p.game_name=this.gameName;this._send(n,p);},
+    end:function(o){if(this.ended)return;this.ended=true;o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'page_exit'});if(this.timerInterval)clearInterval(this.timerInterval);},
     _checkMilestones:function(){if(!this.startTime)return;var t=(Date.now()-this.startTime)/1000;if(t>=30&&!this.hasTracked30s){this.hasTracked30s=true;this._send('game_play_30s',{game_name:this.gameName});}if(t>=60&&!this.hasTracked60s){this.hasTracked60s=true;this._send('game_play_60s',{game_name:this.gameName});}},
     _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}if(typeof gtag==='function'){gtag('event',n,p);return;}}};
+    window.addEventListener('pagehide',function(){GameVoltTracker.end({outcome:'page_exit'});});
     if(window.parent!==window){var s=document.getElementById('seo-content');if(s)s.style.display='none';}
     </script>
 
     <!-- GameVolt SDK -->
     <script src="/sdk/gamevolt.js"></script>
 
-    <script type="module" src="./src/js/game.js?v=3"></script>
+    <script type="module" src="./src/js/game.js?v=4"></script>
 
 <script>
         const audioDiv = document.getElementById('audioOverlay');

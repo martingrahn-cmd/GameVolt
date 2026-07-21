@@ -105,4 +105,35 @@ export class DailySystem {
         }
         return streak;
     }
+
+    getLongestStreak() {
+        const dates = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('daily_complete_') && localStorage.getItem(key) === 'true') dates.push(key.slice(15));
+        }
+        dates.sort();
+        let longest = 0;
+        let current = 0;
+        let previous = null;
+        dates.forEach((dateKey) => {
+            const day = Date.parse(`${dateKey}T00:00:00Z`);
+            current = previous !== null && day - previous === 86400000 ? current + 1 : 1;
+            longest = Math.max(longest, current);
+            previous = day;
+        });
+        return longest;
+    }
+
+    getRecentCalendar(days = 7, date = new Date()) {
+        const today = this.getUtcDate(date);
+        return Array.from({ length: days }, (_, index) => {
+            const day = new Date(today.getTime() - (days - 1 - index) * 86400000);
+            return {
+                label: day.toLocaleDateString('en-US', { weekday: 'narrow', timeZone: 'UTC' }),
+                completed: localStorage.getItem(this.getDailyId(day)) === 'true',
+                today: index === days - 1
+            };
+        });
+    }
 }
