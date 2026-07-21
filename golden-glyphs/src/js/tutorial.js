@@ -171,7 +171,9 @@ export class Tutorial {
         // 2. RITA TEXT VID BITEN
         ctx.save();
         ctx.globalAlpha = textAlpha;
-        ctx.font = `900 24px 'Cinzel', serif`;
+        const viewportWidth = this.canvas.width / (window.devicePixelRatio || 1);
+        const fontSize = Math.max(16, Math.min(24, viewportWidth * 0.058));
+        ctx.font = `900 ${fontSize}px 'Cinzel', serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
         
@@ -190,16 +192,29 @@ export class Tutorial {
         }
         
         // Position: Ovanför biten (tillräckligt högt så det alltid syns)
-        const textY = pieceY - 80;
+        const textY = Math.max(126, pieceY - 80);
+        const textWidth = ctx.measureText(text).width;
+        const textX = Math.max(textWidth / 2 + 14, Math.min(viewportWidth - textWidth / 2 - 14, pieceX));
+
+        // A compact dark plate keeps instructions readable over every world
+        // background and prevents mobile text from being clipped off-screen.
+        const plateX = textX - textWidth / 2 - 10;
+        const plateY = textY - fontSize - 8;
+        ctx.globalAlpha = 0.72;
+        ctx.fillStyle = "rgba(5, 8, 18, 0.92)";
+        ctx.beginPath();
+        ctx.roundRect(plateX, plateY, textWidth + 20, fontSize + 14, 8);
+        ctx.fill();
+        ctx.globalAlpha = textAlpha;
 
         // Outline
-        ctx.lineWidth = 5;
+        ctx.lineWidth = Math.max(3, fontSize * 0.18);
         ctx.strokeStyle = "black";
-        ctx.strokeText(text, pieceX, textY);
+        ctx.strokeText(text, textX, textY);
         
         // Fill
         ctx.fillStyle = color;
-        ctx.fillText(text, pieceX, textY);
+        ctx.fillText(text, textX, textY);
         
         ctx.restore();
         

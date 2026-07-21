@@ -1,5 +1,7 @@
 // levels_daily.js
-export const LEVELS_DAILY = [
+import { LEVELS_EASY } from "./levels_easy.js";
+
+const DAILY_LEVELS_BASE = [
   {
     id: "day_01_medium",
     map: [
@@ -559,3 +561,28 @@ export const LEVELS_DAILY = [
     solution: [{"key":"5","col":3,"row":4,"rotation":0,"flipped":false},{"key":"9","col":5,"row":3,"rotation":0,"flipped":false},{"key":"10","col":6,"row":3,"rotation":0,"flipped":false},{"key":"11","col":5,"row":5,"rotation":1,"flipped":false},{"key":"12","col":7,"row":4,"rotation":0,"flipped":false}]
   },
 ];
+
+// Daily difficulty curve: 6 quick (3 pieces), 20 standard (4 pieces),
+// and 5 hard (5 pieces). The quick boards use later campaign layouts so
+// they remain real puzzles rather than tutorial-level fillers.
+const QUICK_DAILY_SLOTS = new Map([
+  [5, 18],
+  [6, 19],
+  [12, 20],
+  [13, 21],
+  [20, 22],
+  [21, 23]
+]);
+
+export const LEVELS_DAILY = DAILY_LEVELS_BASE.map((level, index) => {
+  if (!QUICK_DAILY_SLOTS.has(index)) return level;
+  const source = LEVELS_EASY[QUICK_DAILY_SLOTS.get(index)];
+  return {
+    ...source,
+    id: `day_${String(index + 1).padStart(2, '0')}_quick`,
+    difficulty: 'quick',
+    map: source.map.map((row) => [...row]),
+    pieces: [...source.pieces],
+    solution: source.solution.map((placement) => ({ ...placement }))
+  };
+});

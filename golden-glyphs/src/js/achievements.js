@@ -194,18 +194,13 @@ export class AchievementSystem {
     getDailyStreak() {
         let streak = 0;
         const now = new Date();
-        // Start from yesterday (today might not be completed yet)
-        // Actually start from today, if completed count it
+        const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
         for (let i = 0; i < 365; i++) {
-            const d = new Date(now);
-            d.setDate(d.getDate() - i);
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            const key = `daily_complete_${d.getFullYear()}-${m}-${day}`;
+            const d = new Date(todayUtc.getTime() - i * 86400000);
+            const key = `daily_complete_${d.toISOString().slice(0, 10)}`;
             if (localStorage.getItem(key) === 'true') {
                 streak++;
             } else {
-                // If today is not completed, that's ok, check from yesterday
                 if (i === 0) continue;
                 break;
             }

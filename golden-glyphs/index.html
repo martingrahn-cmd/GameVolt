@@ -146,10 +146,12 @@
 
     <!-- AUDIO OVERLAY -->
     <div id="audioOverlay" class="overlay">
-      <div class="overlay-box">
-        <h2 style="font-size: 2em; color: #00ffff; margin-bottom: 15px;">Tap to Activate Audio</h2>
-        <p style="font-size: 1.2em; opacity: 0.8;">Tap anywhere to start.</p>
-        <p style="font-size: 1em; color: #555; margin-top: 50px;">A SmartProc Games Production</p>
+      <div class="overlay-box" style="max-width:420px; width:min(84vw,420px); border-color:rgba(255,215,0,.45);">
+        <div style="font-size:clamp(2rem,8vw,3.4rem); color:#FFD700; font-family:'Cinzel',serif; font-weight:900; line-height:1.05; text-shadow:0 0 24px rgba(255,215,0,.45);">GOLDEN<br>GLYPHS</div>
+        <p style="font-size:1rem; color:#d8d1b0; margin:18px 0 24px; line-height:1.5;">Fit every glyph. Master 100 handcrafted puzzles.</p>
+        <button id="start-with-sound" type="button" style="display:block; width:100%; background:linear-gradient(180deg,#FFE066,#D4A700); color:#17120a; margin-bottom:12px;">PLAY WITH SOUND</button>
+        <button id="start-muted" type="button" style="display:block; width:100%; background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.25); box-shadow:none;">PLAY MUTED</button>
+        <p style="font-size:.78rem; color:#777; margin-top:24px;">A GameVolt Original</p>
       </div>
     </div>
     </main>
@@ -172,11 +174,13 @@
     <!-- GameVolt SDK -->
     <script src="/sdk/gamevolt.js"></script>
 
-    <script type="module" src="./src/js/game.js"></script>
+    <script type="module" src="./src/js/game.js?v=3"></script>
 
 <script>
         const audioDiv = document.getElementById('audioOverlay');
         const rotateDiv = document.getElementById('rotate-overlay');
+        const soundStartBtn = document.getElementById('start-with-sound');
+        const mutedStartBtn = document.getElementById('start-muted');
 
         function checkOrientation() {
             if (window.innerWidth > window.innerHeight) {
@@ -190,10 +194,13 @@
         window.addEventListener('orientationchange', checkOrientation);
         checkOrientation();
 
-        const enableAudio = (e) => {
+        const startGameAudio = (muted, e) => {
             if(e) e.preventDefault();
             audioDiv.classList.add('hidden');
             if (window.audio) {
+                window.audio.enabled = !muted;
+                if (muted && window.audio.currentAudio) window.audio.currentAudio.pause();
+                if (muted) return;
                 if (typeof window.audio.resume === 'function') {
                     window.audio.resume().catch(err => console.log("Audio resume failed:", err));
                 }
@@ -203,8 +210,8 @@
             }
         };
 
-        audioDiv.addEventListener('click', enableAudio);
-        audioDiv.addEventListener('touchstart', enableAudio, {passive: false});
+        soundStartBtn.addEventListener('click', (e) => startGameAudio(false, e));
+        mutedStartBtn.addEventListener('click', (e) => startGameAudio(true, e));
     </script>
 
 <!-- SEO content & footer — visible standalone, hidden inside the /play/ iframe -->

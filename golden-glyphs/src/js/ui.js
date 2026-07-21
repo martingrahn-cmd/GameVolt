@@ -35,7 +35,7 @@ export class UI {
         document.head.appendChild(style);
     }
 
-    showWinScreen(stars, reward, onAdReward, titleText="LEVEL COMPLETE", btnText="NEXT LEVEL", onMainButton=null, playSound=null, streakBonus=0) {
+    showWinScreen(stars, reward, onAdReward, titleText="LEVEL COMPLETE", btnText="NEXT LEVEL", onMainButton=null, playSound=null, streakBonus=0, dailySummary=null) {
         const overlay = document.getElementById('win-screen');
         if (!overlay) {
             console.error("UI Error: #win-screen missing in HTML");
@@ -127,6 +127,23 @@ export class UI {
         rewardText.style.fontFamily = "'Cinzel', serif";
         rewardText.style.position = "relative";
 
+        if (dailySummary) {
+            const minutes = Math.floor(dailySummary.time / 60);
+            const seconds = Math.floor(dailySummary.time % 60).toString().padStart(2, '0');
+            const dailyStats = document.createElement('div');
+            dailyStats.innerHTML = `DAILY #${dailySummary.number}<br><span style="color:#fff;font-size:1.25em">${minutes}:${seconds}</span> · ${dailySummary.hints} HINT${dailySummary.hints === 1 ? '' : 'S'}<br><span style="color:#FF9800">🔥 ${dailySummary.streak} DAY STREAK</span>${dailySummary.replay ? '<br><span style="color:#aaa;font-size:.75em">REPLAY — BEST RESULT KEPT</span>' : ''}`;
+            Object.assign(dailyStats.style, {
+                fontFamily: "'Cinzel', serif", fontSize: '1em', lineHeight: '1.65',
+                color: '#FFD700', margin: '-8px 0 22px', position: 'relative'
+            });
+            box.appendChild(title);
+            box.appendChild(starContainer);
+            box.appendChild(dailyStats);
+        } else {
+            box.appendChild(title);
+            box.appendChild(starContainer);
+        }
+
         // 6. Huvudknapp (Next Level) - glas-design
         const nextBtn = document.createElement('button');
         nextBtn.innerText = btnText;
@@ -156,8 +173,6 @@ export class UI {
         };
 
         // 7. Montera allt i boxen
-        box.appendChild(title);
-        box.appendChild(starContainer);
         box.appendChild(rewardText);
         
         // Annons-knapp (visas BARA om ad-SDK finns)
