@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0d0b1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <title>Table Tennis (prototype) — GameVolt</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -47,6 +53,20 @@
     .btn.hard:hover { background: rgba(255,80,120,0.14); box-shadow: 0 0 22px rgba(255,80,120,0.35); }
     .btn.ghost { border-color: rgba(255,255,255,0.22); color: #9fb4cc; background: transparent; }
     .menu-note { font-size: 0.68rem; color: #6d84a3; letter-spacing: 1px; margin-top: 6px; }
+    #install-btn {
+      font-family: inherit; font-weight: 800; letter-spacing: 2px; font-size: 0.72rem;
+      color: #bff4ff; background: transparent; border: 1px dashed rgba(0,234,255,0.4);
+      border-radius: 999px; padding: 8px 20px; cursor: pointer; margin-top: 8px;
+    }
+    #install-btn.hidden, #ios-hint.hidden, #update-chip.hidden { display: none; }
+    #ios-hint { font-size: 0.64rem; color: #8fa8c8; letter-spacing: 1px; margin-top: 8px; text-align: center; }
+    #update-chip {
+      font-family: inherit; font-weight: 800; letter-spacing: 2px; font-size: 0.78rem;
+      color: #0d0b1a; background: #ffd166; border: 0; border-radius: 10px;
+      padding: 10px 20px; cursor: pointer; margin-top: 10px;
+      box-shadow: 0 0 22px rgba(255,209,102,0.5); animation: chipPulse 1.5s infinite;
+    }
+    @keyframes chipPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
     #hud {
       position: fixed; top: max(10px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
@@ -115,6 +135,9 @@
     <button class="btn medium" data-level="medium">MEDIUM</button>
     <button class="btn hard" data-level="hard">HARD</button>
     <div class="menu-note">Drag to move your paddle — swipe through the ball to aim.<br>First to 11, win by 2. Tap to serve.</div>
+    <button id="update-chip" class="hidden">◆ NEW VERSION — TAP TO UPDATE</button>
+    <button id="install-btn" class="hidden">⬇ INSTALL APP</button>
+    <div id="ios-hint" class="hidden">On iPhone: Share <span style="font-size:0.8rem">⎋</span> → “Add to Home Screen”</div>
   </div>
 
   <div class="overlay hidden" id="end">
@@ -128,11 +151,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.4.0"></script>
-  <script src="tt-ai.js?v=0.4.0"></script>
+  <script src="tt-core.js?v=0.5.0"></script>
+  <script src="tt-ai.js?v=0.5.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.4.0';
+    var VERSION = '0.5.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -565,6 +588,64 @@
     });
 
     document.getElementById('version').textContent = 'v' + VERSION + ' · prototype';
+
+    // ---------- PWA: install button, iOS hint, update chip ----------
+    var installBtn = document.getElementById('install-btn');
+    var iosHint = document.getElementById('ios-hint');
+    var updateChip = document.getElementById('update-chip');
+    var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    var deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (!isStandalone) installBtn.classList.remove('hidden');
+    });
+    installBtn.addEventListener('click', function () {
+      if (!deferredPrompt) return;
+      installBtn.classList.add('hidden');
+      deferredPrompt.prompt();
+      deferredPrompt = null;
+    });
+    window.addEventListener('appinstalled', function () { installBtn.classList.add('hidden'); deferredPrompt = null; });
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (isIOS && !/crios|fxios/i.test(navigator.userAgent) && !isStandalone) iosHint.classList.remove('hidden');
+
+    // service worker + "new version available" flow (same as Vector Hexagon)
+    var userTriggeredUpdate = false;
+    function showUpdate(worker) {
+      updateChip.classList.remove('hidden');
+      updateChip.onclick = function () {
+        updateChip.textContent = 'UPDATING…';
+        userTriggeredUpdate = true;
+        worker.postMessage('skipWaiting'); // SW activates -> controllerchange -> reload
+      };
+    }
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').then(function (reg) {
+          // a worker already waiting from a previous visit
+          if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting);
+          reg.addEventListener('updatefound', function () {
+            var nw = reg.installing; if (!nw) return;
+            nw.addEventListener('statechange', function () {
+              // installed + a controller already exists => UPDATE, not first install
+              if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdate(nw);
+            });
+          });
+          // proactive update checks: shortly after launch (installed PWAs
+          // don't reliably check on navigation) and every 30 min while open
+          setTimeout(function () {
+            reg.update().catch(function () {});
+            if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting);
+          }, 4000);
+          setInterval(function () { reg.update().catch(function () {}); }, 1800000);
+        }).catch(function () {});
+        // reload ONLY when the user opted into the update (not on first-visit claim)
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          if (userTriggeredUpdate) location.reload();
+        });
+      });
+    }
 
     // Dev/debug handle
     window.__TT_DEBUG = {
