@@ -116,6 +116,7 @@
 </head>
 
 <body>
+    <main id="game-shell">
     <div id="rotate-overlay" class="hidden overlay">
         <div class="rotate-content" style="text-align: center; color: #FFD700; font-family: 'Cinzel', serif;">
             <div style="font-size: 80px; margin-bottom: 20px; animation: rotatePhone 2s ease-in-out infinite;">📱</div>
@@ -151,6 +152,7 @@
         <p style="font-size: 1em; color: #555; margin-top: 50px;">A SmartProc Games Production</p>
       </div>
     </div>
+    </main>
 
     <!-- postMessage bridge + GA4 tracker -->
     <script>
@@ -217,6 +219,8 @@
     display:block !important;
     touch-action:auto !important;
   }
+  #game-shell { position:relative; width:100%; height:100%; flex:0 0 100%; overflow:hidden; }
+  body.gv-standalone #game-shell { height:100svh; min-height:100vh; }
   /* The game JS sizes the canvas from window.innerWidth/innerHeight, so pin its
      CSS box to the viewport instead of the now-auto-height body. */
   body.gv-standalone #gameCanvas { width:100% !important; height:100vh !important; touch-action:none; }

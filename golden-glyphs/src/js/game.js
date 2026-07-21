@@ -116,7 +116,254 @@ function getStarsForLevel(levelSetName, levelIndex) { const key = `${levelSetNam
 export function getStarsForGlobalIndex(globalIndex) { let setName = 'LEVELS_EASY'; let localIndex = 0; if (globalIndex < 25) { setName = 'LEVELS_EASY'; localIndex = globalIndex; } else if (globalIndex < 50) { setName = 'LEVELS_MEDIUM'; localIndex = globalIndex - 25; } else if (globalIndex < 75) { setName = 'LEVELS_HARD'; localIndex = globalIndex - 50; } else { setName = 'LEVELS_ARCANE'; localIndex = globalIndex - 75; } if (ALL_LEVEL_SETS[setName] && ALL_LEVEL_SETS[setName][localIndex]) { return getStarsForLevel(setName, localIndex); } return 0; }
 function calculateTotalStars() { let total = 0; for (const setName in ALL_LEVEL_SETS) { if (ALL_LEVEL_SETS[setName] && Array.isArray(ALL_LEVEL_SETS[setName])) { const setLength = ALL_LEVEL_SETS[setName].length; for (let i = 0; i < setLength; i++) { total += getStarsForLevel(setName, i); } } } return total; }
 
-function saveProgress(stars = 0) { try { const progress = { set: currentLevelSetName, index: currentLevelIndex }; localStorage.setItem('goldenGlyphsProgress', JSON.stringify(progress)); localStorage.setItem('goldenGlyphsGold', totalGold.toString()); localStorage.setItem('goldenGlyphsHints', ownedHints.toString()); localStorage.setItem('goldenGlyphsInventory', JSON.stringify(ownedItems)); localStorage.setItem('goldenGlyphsActive', JSON.stringify(activeItems)); localStorage.setItem('goldenGlyphsTutorial', hasSeenTutorial ? 'true' : 'false'); if (stars > 0 && currentLevelSetName !== 'LEVELS_DAILY') { const levelKey = `${currentLevelSetName}_${currentLevelIndex}`; const existingStars = parseInt(localStorage.getItem(levelKey) || 0); if (stars > existingStars) localStorage.setItem(levelKey, stars.toString()); } } catch (e) {} }
+const CLOUD_SAVE_VERSION = 2;
+const CAMPAIGN_SET_NAMES = ['LEVELS_EASY', 'LEVELS_MEDIUM', 'LEVELS_HARD', 'LEVELS_ARCANE'];
+let cloudSaveTimer = null;
+let cloudSyncInProgress = false;
+
+function safeObject(value) { return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
+function safeArray(value) { return Array.isArray(value) ? value : []; }
+function finiteNumber(value, fallback = 0) { const n = Number(value); return Number.isFinite(n) ? n : fallback; }
+
+function collectCampaignStars() {
+    const stars = {};
+    CAMPAIGN_SET_NAMES.forEach((setName) => {
+        stars[setName] = {};
+        const levels = ALL_LEVEL_SETS[setName] || [];
+        levels.forEach((_, index) => {
+            const value = Math.max(0, Math.min(3, parseInt(localStorage.getItem(`${setName}_${index}`) || '0')));
+            if (value > 0) stars[setName][index] = value;
+        });
+    });
+    return stars;
+}
+
+function collectDailyCompletions() {
+    const completed = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('daily_complete_') && localStorage.getItem(key) === 'true') completed[key] = true;
+    }
+    return completed;
+}
+
+function buildGoldenGlyphsSave() {
+    let progress = { set: currentLevelSetName, index: currentLevelIndex };
+    let achievementsData = {};
+    let timeAttackPB = {};
+    let localLeaderboard = [];
+    try { progress = JSON.parse(localStorage.getItem('goldenGlyphsProgress') || 'null') || progress; } catch (e) {}
+    try { achievementsData = JSON.parse(localStorage.getItem('goldenGlyphsAchievements') || '{}'); } catch (e) {}
+    try { timeAttackPB = JSON.parse(localStorage.getItem('goldenGlyphsTA_PB') || '{}'); } catch (e) {}
+    try { localLeaderboard = JSON.parse(localStorage.getItem('goldenGlyphsLeaderboard') || '[]'); } catch (e) {}
+    if (!ALL_LEVEL_SETS[progress.set] || progress.set === 'LEVELS_DAILY') progress = { set: 'LEVELS_EASY', index: 0 };
+
+    return {
+        version: CLOUD_SAVE_VERSION,
+        updatedAt: new Date().toISOString(),
+        progress: { set: progress.set, index: Math.max(0, finiteNumber(progress.index, 0)) },
+        stars: collectCampaignStars(),
+        wallet: { gold: Math.max(0, finiteNumber(totalGold)), hints: Math.max(0, finiteNumber(ownedHints)) },
+        inventory: safeArray(ownedItems),
+        activeItems: safeObject(activeItems),
+        tutorialSeen: !!hasSeenTutorial,
+        achievements: safeObject(achievementsData),
+        stats: {
+            goldEarned: Math.max(0, finiteNumber(localStorage.getItem('goldenGlyphsGoldEarned'))),
+            goldSpent: Math.max(0, finiteNumber(localStorage.getItem('goldenGlyphsGoldSpent'))),
+            dailyCount: Math.max(0, finiteNumber(localStorage.getItem('goldenGlyphsDailyCount'))),
+            levelsWon: Math.max(0, finiteNumber(localStorage.getItem('goldenGlyphsLevelsWon')))
+        },
+        dailyCompletions: collectDailyCompletions(),
+        timeAttack: {
+            highScore: Math.max(0, finiteNumber(localStorage.getItem('goldenGlyphsHighScore'))),
+            bestScore: Math.max(0, finiteNumber(timeAttackPB.bestScore)),
+            bestSolved: Math.max(0, finiteNumber(timeAttackPB.bestSolved)),
+            bestTier: ['EASY', 'MEDIUM', 'HARD', 'ARCANE'].includes(timeAttackPB.bestTier) ? timeAttackPB.bestTier : 'EASY',
+            localLeaderboard: safeArray(localLeaderboard).map(Number).filter(Number.isFinite).sort((a, b) => b - a).slice(0, 5)
+        }
+    };
+}
+
+function sumSaveStars(save) {
+    let total = 0;
+    const stars = safeObject(save && save.stars);
+    CAMPAIGN_SET_NAMES.forEach((setName) => {
+        Object.values(safeObject(stars[setName])).forEach((value) => { total += Math.max(0, Math.min(3, finiteNumber(value))); });
+    });
+    return total;
+}
+
+function progressRank(progress) {
+    const value = safeObject(progress);
+    const setIndex = CAMPAIGN_SET_NAMES.indexOf(value.set);
+    if (setIndex < 0) return 0;
+    return setIndex * 25 + Math.max(0, finiteNumber(value.index));
+}
+
+function mergeGoldenGlyphsSaves(localSave, cloudSave) {
+    const local = safeObject(localSave);
+    const rawCloud = safeObject(cloudSave);
+    // The old broken migration stored only { set, index } at the cloud root.
+    // Preserve that progress when upgrading to the complete v2 save format.
+    const cloud = rawCloud.set && !rawCloud.progress
+        ? { version: 1, progress: { set: rawCloud.set, index: rawCloud.index } }
+        : rawCloud;
+    const mergedStars = {};
+    CAMPAIGN_SET_NAMES.forEach((setName) => {
+        mergedStars[setName] = {};
+        const localStars = safeObject(safeObject(local.stars)[setName]);
+        const cloudStars = safeObject(safeObject(cloud.stars)[setName]);
+        const levels = ALL_LEVEL_SETS[setName] || [];
+        levels.forEach((_, index) => {
+            const best = Math.max(finiteNumber(localStars[index]), finiteNumber(cloudStars[index]));
+            if (best > 0) mergedStars[setName][index] = Math.min(3, best);
+        });
+    });
+
+    const localProgress = safeObject(local.progress);
+    const cloudProgress = safeObject(cloud.progress);
+    const localStarTotal = sumSaveStars(local);
+    const cloudStarTotal = sumSaveStars(cloud);
+    const progress = cloudStarTotal > localStarTotal || (cloudStarTotal === localStarTotal && progressRank(cloudProgress) > progressRank(localProgress))
+        ? cloudProgress
+        : localProgress;
+    const localTA = safeObject(local.timeAttack);
+    const cloudTA = safeObject(cloud.timeAttack);
+    const tierRank = { EASY: 0, MEDIUM: 1, HARD: 2, ARCANE: 3 };
+    const bestTier = (tierRank[cloudTA.bestTier] || 0) > (tierRank[localTA.bestTier] || 0) ? cloudTA.bestTier : (localTA.bestTier || 'EASY');
+    const leaderboard = safeArray(localTA.localLeaderboard).concat(safeArray(cloudTA.localLeaderboard)).map(Number).filter(Number.isFinite).sort((a, b) => b - a).slice(0, 5);
+
+    return {
+        version: CLOUD_SAVE_VERSION,
+        updatedAt: new Date().toISOString(),
+        progress: ALL_LEVEL_SETS[progress.set] && progress.set !== 'LEVELS_DAILY'
+            ? { set: progress.set, index: Math.max(0, finiteNumber(progress.index)) }
+            : { set: 'LEVELS_EASY', index: 0 },
+        stars: mergedStars,
+        wallet: {
+            gold: Math.max(finiteNumber(safeObject(local.wallet).gold), finiteNumber(safeObject(cloud.wallet).gold)),
+            hints: Math.max(finiteNumber(safeObject(local.wallet).hints), finiteNumber(safeObject(cloud.wallet).hints))
+        },
+        inventory: Array.from(new Set(safeArray(cloud.inventory).concat(safeArray(local.inventory)))),
+        activeItems: Object.assign({}, safeObject(cloud.activeItems), safeObject(local.activeItems)),
+        tutorialSeen: !!(local.tutorialSeen || cloud.tutorialSeen),
+        achievements: Object.assign({}, safeObject(cloud.achievements), safeObject(local.achievements)),
+        stats: {
+            goldEarned: Math.max(finiteNumber(safeObject(local.stats).goldEarned), finiteNumber(safeObject(cloud.stats).goldEarned)),
+            goldSpent: Math.max(finiteNumber(safeObject(local.stats).goldSpent), finiteNumber(safeObject(cloud.stats).goldSpent)),
+            dailyCount: Math.max(finiteNumber(safeObject(local.stats).dailyCount), finiteNumber(safeObject(cloud.stats).dailyCount)),
+            levelsWon: Math.max(finiteNumber(safeObject(local.stats).levelsWon), finiteNumber(safeObject(cloud.stats).levelsWon))
+        },
+        dailyCompletions: Object.assign({}, safeObject(cloud.dailyCompletions), safeObject(local.dailyCompletions)),
+        timeAttack: {
+            highScore: Math.max(finiteNumber(localTA.highScore), finiteNumber(cloudTA.highScore)),
+            bestScore: Math.max(finiteNumber(localTA.bestScore), finiteNumber(cloudTA.bestScore)),
+            bestSolved: Math.max(finiteNumber(localTA.bestSolved), finiteNumber(cloudTA.bestSolved)),
+            bestTier: bestTier,
+            localLeaderboard: leaderboard
+        }
+    };
+}
+
+function legacyDataToGoldenGlyphsSave(local) {
+    const data = safeObject(local);
+    const parseStoredObject = (key, fallback) => {
+        const value = data[key];
+        if (value && typeof value === 'object') return value;
+        return fallback;
+    };
+    const legacy = {
+        version: CLOUD_SAVE_VERSION,
+        progress: parseStoredObject('goldenGlyphsProgress', { set: 'LEVELS_EASY', index: 0 }),
+        stars: {},
+        wallet: { gold: finiteNumber(data.goldenGlyphsGold), hints: finiteNumber(data.goldenGlyphsHints) },
+        inventory: safeArray(data.goldenGlyphsInventory),
+        activeItems: safeObject(data.goldenGlyphsActive),
+        tutorialSeen: data.goldenGlyphsTutorial === true,
+        achievements: safeObject(data.goldenGlyphsAchievements),
+        stats: {
+            goldEarned: finiteNumber(data.goldenGlyphsGoldEarned), goldSpent: finiteNumber(data.goldenGlyphsGoldSpent),
+            dailyCount: finiteNumber(data.goldenGlyphsDailyCount), levelsWon: finiteNumber(data.goldenGlyphsLevelsWon)
+        },
+        dailyCompletions: {},
+        timeAttack: Object.assign({ highScore: finiteNumber(data.goldenGlyphsHighScore), localLeaderboard: safeArray(data.goldenGlyphsLeaderboard) }, safeObject(data.goldenGlyphsTA_PB))
+    };
+    CAMPAIGN_SET_NAMES.forEach((setName) => {
+        legacy.stars[setName] = {};
+        (ALL_LEVEL_SETS[setName] || []).forEach((_, index) => {
+            const value = finiteNumber(data[`${setName}_${index}`]);
+            if (value > 0) legacy.stars[setName][index] = Math.min(3, value);
+        });
+    });
+    return legacy;
+}
+
+function applyGoldenGlyphsSave(save) {
+    const data = safeObject(save);
+    const progress = safeObject(data.progress);
+    if (ALL_LEVEL_SETS[progress.set] && progress.set !== 'LEVELS_DAILY') {
+        currentLevelSetName = progress.set;
+        currentLevelIndex = Math.min((ALL_LEVEL_SETS[progress.set] || []).length - 1, Math.max(0, finiteNumber(progress.index)));
+        localStorage.setItem('goldenGlyphsProgress', JSON.stringify({ set: currentLevelSetName, index: currentLevelIndex }));
+    }
+    const wallet = safeObject(data.wallet);
+    totalGold = Math.max(0, finiteNumber(wallet.gold));
+    ownedHints = Math.max(0, finiteNumber(wallet.hints));
+    ownedItems = safeArray(data.inventory);
+    activeItems = Object.assign({}, activeItems, safeObject(data.activeItems));
+    hasSeenTutorial = !!data.tutorialSeen;
+    localStorage.setItem('goldenGlyphsGold', totalGold.toString());
+    localStorage.setItem('goldenGlyphsHints', ownedHints.toString());
+    localStorage.setItem('goldenGlyphsInventory', JSON.stringify(ownedItems));
+    localStorage.setItem('goldenGlyphsActive', JSON.stringify(activeItems));
+    localStorage.setItem('goldenGlyphsTutorial', hasSeenTutorial ? 'true' : 'false');
+
+    const stars = safeObject(data.stars);
+    CAMPAIGN_SET_NAMES.forEach((setName) => {
+        Object.entries(safeObject(stars[setName])).forEach(([index, value]) => localStorage.setItem(`${setName}_${index}`, Math.min(3, finiteNumber(value)).toString()));
+    });
+    localStorage.setItem('goldenGlyphsAchievements', JSON.stringify(safeObject(data.achievements)));
+    const stats = safeObject(data.stats);
+    localStorage.setItem('goldenGlyphsGoldEarned', finiteNumber(stats.goldEarned).toString());
+    localStorage.setItem('goldenGlyphsGoldSpent', finiteNumber(stats.goldSpent).toString());
+    localStorage.setItem('goldenGlyphsDailyCount', finiteNumber(stats.dailyCount).toString());
+    localStorage.setItem('goldenGlyphsLevelsWon', finiteNumber(stats.levelsWon).toString());
+    Object.entries(safeObject(data.dailyCompletions)).forEach(([key, value]) => { if (value && key.startsWith('daily_complete_')) localStorage.setItem(key, 'true'); });
+    const ta = safeObject(data.timeAttack);
+    localStorage.setItem('goldenGlyphsHighScore', Math.max(finiteNumber(ta.highScore), finiteNumber(ta.bestScore)).toString());
+    localStorage.setItem('goldenGlyphsTA_PB', JSON.stringify({ bestScore: finiteNumber(ta.bestScore), bestSolved: finiteNumber(ta.bestSolved), bestTier: ta.bestTier || 'EASY' }));
+    localStorage.setItem('goldenGlyphsLeaderboard', JSON.stringify(safeArray(ta.localLeaderboard)));
+    if (achievements) achievements.load();
+    if (hud) { hud.currency = totalGold; hud.ownedHints = ownedHints; hud.highScore = Math.max(finiteNumber(ta.highScore), finiteNumber(ta.bestScore)); }
+    if (shop) shop.updateInventory(ownedItems, activeItems, ownedHints);
+    if (effects && activeItems.trail) effects.setTrailType(activeItems.trail);
+    if (grid && activeItems.glow) grid.setGlow(activeItems.glow);
+}
+
+function queueCloudSave() {
+    if (!window.GameVolt || !GameVolt.save || !GameVolt.auth || !GameVolt.auth.getUser || !GameVolt.auth.getUser()) return;
+    clearTimeout(cloudSaveTimer);
+    cloudSaveTimer = setTimeout(() => GameVolt.save.set(buildGoldenGlyphsSave()).catch(() => {}), 500);
+}
+
+async function syncGoldenGlyphsCloud() {
+    if (cloudSyncInProgress || !window.GameVolt || !GameVolt.save || !GameVolt.auth || !GameVolt.auth.getUser || !GameVolt.auth.getUser()) return;
+    cloudSyncInProgress = true;
+    try {
+        const local = buildGoldenGlyphsSave();
+        const cloud = await GameVolt.save.get();
+        const merged = mergeGoldenGlyphsSaves(local, cloud);
+        applyGoldenGlyphsSave(merged);
+        await GameVolt.save.set(merged);
+    } catch (e) {
+        console.warn('[Golden Glyphs] Cloud sync failed:', e);
+    } finally {
+        cloudSyncInProgress = false;
+    }
+}
+
+function saveProgress(stars = 0) { try { const progress = { set: currentLevelSetName, index: currentLevelIndex }; localStorage.setItem('goldenGlyphsProgress', JSON.stringify(progress)); localStorage.setItem('goldenGlyphsGold', totalGold.toString()); localStorage.setItem('goldenGlyphsHints', ownedHints.toString()); localStorage.setItem('goldenGlyphsInventory', JSON.stringify(ownedItems)); localStorage.setItem('goldenGlyphsActive', JSON.stringify(activeItems)); localStorage.setItem('goldenGlyphsTutorial', hasSeenTutorial ? 'true' : 'false'); if (stars > 0 && currentLevelSetName !== 'LEVELS_DAILY') { const levelKey = `${currentLevelSetName}_${currentLevelIndex}`; const existingStars = parseInt(localStorage.getItem(levelKey) || 0); if (stars > existingStars) localStorage.setItem(levelKey, stars.toString()); } queueCloudSave(); } catch (e) {} }
 function loadProgress() { try { const savedGold = localStorage.getItem('goldenGlyphsGold'); if (savedGold) totalGold = parseInt(savedGold); const savedHints = localStorage.getItem('goldenGlyphsHints'); if (savedHints) ownedHints = parseInt(savedHints); const savedInv = localStorage.getItem('goldenGlyphsInventory'); if (savedInv) ownedItems = JSON.parse(savedInv); const savedActive = localStorage.getItem('goldenGlyphsActive'); if (savedActive) { activeItems = JSON.parse(savedActive); /* Migrera gamla saves: bg_temple → default */ if (!activeItems.world || activeItems.world === 'bg_temple') activeItems.world = "default"; /* Migrera trail_none → trail_default */ if (!activeItems.trail || activeItems.trail === 'trail_none') activeItems.trail = "trail_default"; } if (!activeItems.glow) activeItems.glow = "glow_none"; /* Migrera ownedItems: trail_none → trail_default */ if (ownedItems.includes('trail_none')) { ownedItems = ownedItems.filter(id => id !== 'trail_none'); if (!ownedItems.includes('trail_default')) ownedItems.push('trail_default'); } hasSeenTutorial = localStorage.getItem('goldenGlyphsTutorial') === 'true'; const saved = localStorage.getItem('goldenGlyphsProgress'); if (saved) { const progress = JSON.parse(saved); if (progress.set !== 'LEVELS_DAILY' && ALL_LEVEL_SETS[progress.set]) { currentLevelSetName = progress.set; currentLevelIndex = progress.index; return true; } } } catch (e) {} return false; }
 
 function playSound(name) { if (window.audio) { if (typeof window.audio.playSfx === 'function') window.audio.playSfx(name); else if (typeof window.audio.play === 'function') window.audio.play(name); } }
@@ -248,11 +495,14 @@ function initSystems() {
 
   // --- GameVolt SDK ---
   if (window.GameVolt) {
-    GameVolt.init('golden-glyphs');
+    const migrationKeys = ['goldenGlyphsProgress', 'goldenGlyphsGold', 'goldenGlyphsHints', 'goldenGlyphsInventory', 'goldenGlyphsActive', 'goldenGlyphsTutorial', 'goldenGlyphsAchievements', 'goldenGlyphsGoldEarned', 'goldenGlyphsGoldSpent', 'goldenGlyphsDailyCount', 'goldenGlyphsLevelsWon', 'goldenGlyphsHighScore', 'goldenGlyphsLeaderboard', 'goldenGlyphsTA_PB'];
+    CAMPAIGN_SET_NAMES.forEach((setName) => {
+      (ALL_LEVEL_SETS[setName] || []).forEach((_, index) => migrationKeys.push(`${setName}_${index}`));
+    });
     GameVolt.save.registerMigration({
-      keys: ['goldenGlyphsProgress', 'goldenGlyphsGold', 'goldenGlyphsHints', 'goldenGlyphsInventory', 'goldenGlyphsActive', 'goldenGlyphsTutorial', 'goldenGlyphsAchievements', 'goldenGlyphsGoldEarned', 'goldenGlyphsGoldSpent', 'goldenGlyphsDailyCount', 'goldenGlyphsLevelsWon', 'goldenGlyphsHighScore', 'goldenGlyphsLeaderboard', 'goldenGlyphsTA_PB'],
+      keys: migrationKeys,
       merge: function(local, cloud) {
-        return cloud || local['goldenGlyphsProgress'] || {};
+        return mergeGoldenGlyphsSaves(legacyDataToGoldenGlyphsSave(local), cloud);
       },
       getAchievements: function(local) {
         var achs = local['goldenGlyphsAchievements'] || {};
@@ -265,6 +515,9 @@ function initSystems() {
         return [];
       }
     });
+    // Register migration before init so even an immediately restored session
+    // cannot miss the migration config.
+    GameVolt.init('golden-glyphs');
     // Sync local trophies to cloud on auth state change
     GameVolt.auth.onStateChange(function(user) {
       if (user && achievements && achievements.unlocked) {
@@ -287,6 +540,12 @@ function initSystems() {
       });
     }
     GameVolt.auth.onStateChange(backfillTrophies);
+    GameVolt.auth.onStateChange(function(user) {
+      if (!user) return;
+      // Await the SDK's legacy migration, then perform a full two-way merge.
+      // migrate() is idempotent; calling it here also covers restored sessions.
+      GameVolt.save.migrate().then(syncGoldenGlyphsCloud);
+    });
     if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
   }
   if (typeof gvPost === 'function') gvPost('game_start', {});
