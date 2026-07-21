@@ -3,7 +3,7 @@ import { SYSTEM_IMAGES } from "./config.js";
 
 export class WorldMap {
     // NYTT: getGoldFn i slutet av konstruktorn
-    constructor(canvas, onLevelSelect, onBack, getStarsFn, onShop, getGoldFn) {
+    constructor(canvas, onLevelSelect, onBack, getStarsFn, onShop, getGoldFn, getBestTimeFn) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
         this.onLevelSelect = onLevelSelect;
@@ -11,6 +11,7 @@ export class WorldMap {
         this.getStarsFn = getStarsFn;
         this.onShop = onShop;
         this.getGoldFn = getGoldFn || (() => 0); // Fallback om man glömmer uppdatera game.js
+        this.getBestTimeFn = getBestTimeFn || (() => 0);
 
         // --- 1. LADDA BILDER ---
         this.images = {};
@@ -87,7 +88,7 @@ export class WorldMap {
         const topY = h * 0.015;
 
         this.btnBack = { x: margin, y: topY, w: btnW, h: btnH, text: "BACK", icon: "↩" };
-        this.btnShop = { x: w - btnW - margin, y: topY, w: btnW, h: btnH, text: "SHOP", icon: "🛒" };
+        this.btnShop = { x: w - btnW - margin, y: topY, w: btnW, h: btnH, text: "SHOP" };
     }
 
     // --- RITA HJÄLPFUNKTIONER ---
@@ -137,8 +138,7 @@ export class WorldMap {
             this.drawBackArrow(ctx, iconX, centerY, iconSize);
             ctx.fillText(btn.text, textX, centerY + 1);
         } else {
-            // Använd emoji för andra knappar (t.ex. SHOP 🛒)
-            ctx.fillText(`${btn.icon} ${btn.text}`, x + w/2, y + h/2 + 1);
+            ctx.fillText(btn.text, x + w/2, y + h/2 + 1);
         }
         ctx.restore();
     }
@@ -264,10 +264,10 @@ export class WorldMap {
         ctx.fillText(`${gold}`, centerX - spacing - 33, statsY);
 
         // --- STJÄRNOR ---
-        ctx.font = `${fontSize}px sans-serif`;
+        ctx.font = `bold ${fontSize}px 'Cinzel', serif`;
         ctx.fillStyle = "#FFD700";
         ctx.textAlign = "center";
-        ctx.fillText("⭐", centerX + spacing + 15, statsY);
+        ctx.fillText("★", centerX + spacing + 15, statsY);
 
         ctx.font = `bold ${fontSize}px 'Cinzel', serif`;
         ctx.fillStyle = "#FFD700";
@@ -338,10 +338,10 @@ export class WorldMap {
             ctx.textAlign = "center";
 
             if (locked) {
-                // Lås-ikon
-                ctx.font = `${Math.floor(renderW * 0.18)}px sans-serif`;
+                // Låst-status
+                ctx.font = `900 ${Math.floor(renderW * 0.075)}px 'Cinzel', serif`;
                 ctx.fillStyle = "#888";
-                ctx.fillText("🔒", cardCenterX, renderY + renderH * 0.4);
+                ctx.fillText("LOCKED", cardCenterX, renderY + renderH * 0.4);
 
                 // Världsnamn (nedtonat)
                 ctx.fillStyle = "#888";
@@ -372,7 +372,7 @@ export class WorldMap {
                 // Kravtext
                 ctx.font = `600 ${Math.floor(renderW * 0.045)}px sans-serif`;
                 ctx.fillStyle = "#AAA";
-                ctx.fillText(`⭐ ${totalStars} / ${world.starsRequired}`, cardCenterX, barY + barH + 14);
+                ctx.fillText(`★ ${totalStars} / ${world.starsRequired}`, cardCenterX, barY + barH + 14);
             } else {
                 // Unlocked: vanlig rendering
                 ctx.fillStyle = "#FFF";
@@ -538,11 +538,33 @@ export class WorldMap {
             ctx.fillText(i + 1, node.x, node.y);
 
             if (stars > 0) {
-                ctx.font = `${node.r * 0.45}px sans-serif`;
+                ctx.font = `bold ${node.r * 0.38}px 'Cinzel', serif`;
                 ctx.fillStyle = "#FFD700";
-                ctx.fillText("⭐".repeat(stars), node.x, node.y + node.r * 1.5);
+                ctx.fillText("★".repeat(stars), node.x, node.y + node.r * 1.5);
             }
         });
+
+        const nextPlayable = this.levelNodes.find((node) => {
+            const globalIndex = world.start + node.index;
+            return this.getStarsFn(globalIndex) === 0 && (node.index === 0 || this.getStarsFn(globalIndex - 1) > 0);
+        });
+        const detailIndex = this.lastHoveredNode >= 0 ? this.lastHoveredNode : (nextPlayable ? nextPlayable.index : world.count - 1);
+        const detailGlobalIndex = world.start + detailIndex;
+        const detailStars = this.getStarsFn(detailGlobalIndex);
+        const bestTime = this.getBestTimeFn(detailGlobalIndex);
+        const minutes = Math.floor(bestTime / 60);
+        const seconds = Math.floor(bestTime % 60).toString().padStart(2, '0');
+        const detailY = h * 0.955;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(5,8,18,0.82)";
+        this.drawRoundedRect(w * 0.12, detailY - 22, w * 0.76, 40, 12); ctx.fill();
+        ctx.strokeStyle = world.color; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = "#FFF";
+        ctx.font = `700 ${Math.max(12, Math.min(17, w * 0.035))}px 'Cinzel', serif`;
+        const bestLabel = bestTime > 0 ? `${minutes}:${seconds}` : "--:--";
+        const nextLabel = detailStars === 0 ? "NEXT" : "CLEARED";
+        ctx.fillText(`${nextLabel} · LEVEL ${detailGlobalIndex + 1} · ${"★".repeat(detailStars)}${"☆".repeat(3-detailStars)} · BEST ${bestLabel}`, w / 2, detailY - 2);
     }
 
 // I src/js/worldmap.js

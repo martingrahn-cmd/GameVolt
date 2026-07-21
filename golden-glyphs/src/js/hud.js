@@ -67,7 +67,7 @@ export class HUD {
 
         // --- VÄNSTER SIDA: PAUSE/BACK-KNAPP ---
         this.btnMenu = { x: margin, y: centerY - btnSize/2, w: btnSize, h: btnSize };
-        this.drawSquareButton(ctx, this.btnMenu, window.GameVolt ? "⏸" : "↩", false);
+        this.drawSquareButton(ctx, this.btnMenu, window.GameVolt ? "pause" : "back", false);
 
 
         // --- HÖGER SIDA: HINT-KNAPP (Symmetrisk) ---
@@ -77,7 +77,7 @@ export class HUD {
         
         // Rita Hint-knappen (Ögat)
         // Vi skickar med 'true' för puls-effekt om man har hints, eller bara för att locka
-        this.drawSquareButton(ctx, this.btnHint, "👁️", true);
+        this.drawSquareButton(ctx, this.btnHint, "hint", true);
         
         // Badge för antal hints
         if (this.ownedHints > 0) {
@@ -283,16 +283,26 @@ export class HUD {
         ctx.lineWidth = 2;
         ctx.stroke();
         
-        // Ikon - rita chevron för back, annars emoji
+        // Monochrome canvas glyphs keep the HUD consistent across platforms.
         ctx.fillStyle = "#FFD700";
         const centerX = rect.x + rect.w/2;
         const centerY = rect.y + rect.h/2;
         
-        if (icon === "↩") {
-            // Rita snygg chevron istället för emoji
+        if (icon === "back") {
             this.drawBackArrow(ctx, centerX, centerY, rect.w * 0.35);
+        } else if (icon === "pause") {
+            ctx.fillRect(centerX - 8, centerY - 11, 5, 22);
+            ctx.fillRect(centerX + 3, centerY - 11, 5, 22);
+        } else if (icon === "hint") {
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY, 14, 9, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = "#FFD700";
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+            ctx.fill();
         } else {
-            // Emoji för andra ikoner
             ctx.font = `bold 28px sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
