@@ -158,11 +158,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.12.0"></script>
-  <script src="tt-ai.js?v=0.12.0"></script>
+  <script src="tt-core.js?v=0.13.0"></script>
+  <script src="tt-ai.js?v=0.13.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.12.0';
+    var VERSION = '0.13.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -207,6 +207,33 @@
         }
         return master;
       }
+      // Real recorded samples (ElevenLabs-generated, picked by ear); the
+      // synth versions below stay as fallback if a sample fails to load.
+      var samples = {};
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.13.0', bounce: 'assets/bounce.mp3?v=0.13.0', cheer: 'assets/cheer.mp3?v=0.13.0' };
+      function loadSamples() {
+        if (!ac()) return;
+        Object.keys(SAMPLE_SRC).forEach(function (k) {
+          if (samples[k] !== undefined) return;
+          samples[k] = null; // loading
+          fetch(SAMPLE_SRC[k])
+            .then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
+            .then(function (ab) { return ctx.decodeAudioData(ab); })
+            .then(function (b) { samples[k] = b; })
+            .catch(function () { samples[k] = false; });
+        });
+      }
+      function playSample(k, vol, rate, pan) {
+        if (!enabled || !ac() || !samples[k]) return false;
+        var src = ctx.createBufferSource();
+        src.buffer = samples[k];
+        src.playbackRate.value = rate || 1;
+        var g = ctx.createGain();
+        g.gain.value = vol;
+        src.connect(g); g.connect(out(pan));
+        src.start(ctx.currentTime);
+        return true;
+      }
       function blip(freq, dur, vol, type, pan, slide, delay) {
         if (!enabled || !ac()) return;
         var t0 = ctx.currentTime + (delay || 0);
@@ -234,20 +261,23 @@
       return {
         get enabled() { return enabled; },
         toggle: function () { enabled = !enabled; localStorage.setItem('ttSnd', enabled ? '1' : '0'); return enabled; },
-        unlock: function () { ac(); },
-        // A real pock is a woody CLICK + a short dull thump — no sustained
-        // tone (a tonal beep is what made v0.11 sound awful)
+        unlock: function () { ac(); loadSamples(); },
+        // Real recorded pock; pitch + volume scale with shot power, small
+        // random rate jitter so repeats never sound identical
         pock: function (power, pan) {
+          if (playSample('hit', 0.55 + power * 0.45, 0.92 + power * 0.3 + (Math.random() - 0.5) * 0.08, pan)) return;
           thwack(0.016 + power * 0.012, 0.5 + power * 0.3, 1900 + power * 1600, pan);
           blip(130 + power * 60, 0.04, 0.35 + power * 0.2, 'sine', pan, -70);
         },
         bounce: function (pan) {
+          if (playSample('bounce', 0.4, 0.95 + Math.random() * 0.1, pan)) return;
           thwack(0.012, 0.2, 900, pan);
           blip(95, 0.035, 0.18, 'sine', pan, -30);
         },
         net: function () { thwack(0.07, 0.35, 300, 0); blip(65, 0.08, 0.22, 'sine', 0, -20); },
         toss: function () { blip(500, 0.035, 0.07, 'sine', 0, 120); },
         point: function (mine) {
+          if (mine && playSample('cheer', 0.55, 1 + (Math.random() - 0.5) * 0.06, 0)) return;
           blip(mine ? 523 : 330, 0.11, 0.16, 'sine', 0);
           blip(mine ? 784 : 262, 0.14, 0.16, 'sine', 0, 0, 0.1);
         },
