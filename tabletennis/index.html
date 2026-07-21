@@ -151,11 +151,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.6.0"></script>
-  <script src="tt-ai.js?v=0.6.0"></script>
+  <script src="tt-core.js?v=0.7.0"></script>
+  <script src="tt-ai.js?v=0.7.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.6.0';
+    var VERSION = '0.7.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -514,18 +514,28 @@
     function tickGame() {
       if (toss) {
         toss.t++;
-        if (toss.t >= toss.dur) {
-          var wasHuman = game.server === 1;
+        var f = toss.t / toss.dur;
+        var wasHuman = game.server === 1;
+        var raw = Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6;
+        if (wasHuman && !toss.aim) {
+          // YOU pick the strike moment: once the toss is falling, a swipe
+          // ARMS the strike; it fires a few ticks later so the swipe's full
+          // speed registers (firing on the leading edge reads as soft)
+          if (toss.strikeAt === undefined && f >= 0.62 && raw > 1.1) { toss.strikeAt = toss.t + 4; toss.peak = raw; }
+          if (toss.strikeAt !== undefined && raw > toss.peak) toss.peak = raw;
+        }
+        if ((toss.strikeAt !== undefined && toss.t >= toss.strikeAt) || toss.t >= toss.dur) {
           var aim = toss.aim; // the AI decides its serve upfront…
           if (!aim) {
-            // …the human's serve is whatever the hand is doing at the strike:
-            // swipe through the falling ball = direction + pace of the serve
-            var raw = Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6;
-            var power = Math.min(1, Math.max(0, raw - 0.9) / 2.6);
+            // …the human's serve is the swipe: direction + paddle position
+            // place it, peak swipe speed = pace
+            var eff = toss.peak !== undefined ? toss.peak : raw;
+            var power = Math.min(1, Math.max(0, eff - 0.9) / 2.4);
             aim = {
               tx: Math.max(-0.65, Math.min(0.65, game.paddles[1].x * 0.3 + pointerVX * 0.5)),
               ty: K.NET_Y + 0.35 + 1.05 * power,
-              pace: power
+              pace: power,
+              lift: toss.strikeAt !== undefined ? tossHeight() : 0
             };
           }
           TTCore.serve(game, aim);

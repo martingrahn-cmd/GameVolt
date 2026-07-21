@@ -101,6 +101,9 @@
     // flatter/faster out of the bounce (smaller first-flight share)
     var pace = typeof aim.pace === 'number' ? Math.max(0, Math.min(1, aim.pace)) : 0;
     var frac = 0.42 - 0.12 * pace;
+    // lift: striking the toss mid-air (above paddle height) — capped so
+    // early strikes don't turn into balloon serves
+    if (typeof aim.lift === 'number') b.z += Math.max(0, Math.min(0.4, aim.lift));
     var y0 = b.y, z0 = b.z;
     var y1 = y0 + (ty - y0) * frac;
     if (s.server === 1) y1 = Math.max(0.28, Math.min(NET_Y - 0.18, y1));
