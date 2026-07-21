@@ -107,6 +107,12 @@
       position: fixed; bottom: 6px; right: 10px; z-index: 4; font-size: 0.58rem;
       color: rgba(143,168,200,0.5); letter-spacing: 1px; pointer-events: none;
     }
+    #snd-btn {
+      position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7;
+      width: 40px; height: 38px; font-size: 1.05rem; cursor: pointer;
+      color: #bff4ff; background: rgba(10,8,24,0.55); border: 1px solid rgba(0,234,255,0.25);
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
@@ -125,6 +131,7 @@
   <div id="banner"></div>
   <div id="hint"></div>
   <div id="version"></div>
+  <button id="snd-btn"></button>
 
   <div class="overlay" id="menu">
     <div class="title">TABLE TENNIS</div>
@@ -151,11 +158,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.10.0"></script>
-  <script src="tt-ai.js?v=0.10.0"></script>
+  <script src="tt-core.js?v=0.11.0"></script>
+  <script src="tt-ai.js?v=0.11.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.10.0';
+    var VERSION = '0.11.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -173,6 +180,81 @@
     var seedCtr = 1;
     function rng() { seedCtr = (seedCtr * 1664525 + 1013904223) >>> 0; return seedCtr / 4294967296; }
 
+    // ---------- sound (synthesized, no assets) ----------
+    var Sound = (function () {
+      var ctx = null, master = null;
+      var enabled = localStorage.getItem('ttSnd') !== '0';
+      function ac() {
+        if (!ctx) {
+          try {
+            ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var comp = ctx.createDynamicsCompressor();
+            master = ctx.createGain();
+            master.gain.value = 0.5;
+            master.connect(comp);
+            comp.connect(ctx.destination);
+          } catch (e) { ctx = null; return null; }
+        }
+        if (ctx.state === 'suspended') ctx.resume();
+        return ctx;
+      }
+      function out(pan) {
+        if (ctx.createStereoPanner) {
+          var p = ctx.createStereoPanner();
+          p.pan.value = Math.max(-1, Math.min(1, pan || 0));
+          p.connect(master);
+          return p;
+        }
+        return master;
+      }
+      function blip(freq, dur, vol, type, pan, slide, delay) {
+        if (!enabled || !ac()) return;
+        var t0 = ctx.currentTime + (delay || 0);
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = type || 'triangle';
+        o.frequency.setValueAtTime(freq, t0);
+        if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t0 + dur);
+        g.gain.setValueAtTime(vol, t0);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+        o.connect(g); g.connect(out(pan));
+        o.start(t0); o.stop(t0 + dur + 0.02);
+      }
+      function thwack(dur, vol, freq, pan) {
+        if (!enabled || !ac()) return;
+        var n = Math.floor(ctx.sampleRate * dur);
+        var buf = ctx.createBuffer(1, n, ctx.sampleRate);
+        var d = buf.getChannelData(0);
+        for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+        var src = ctx.createBufferSource(); src.buffer = buf;
+        var f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 1.1;
+        var g = ctx.createGain(); g.gain.value = vol;
+        src.connect(f); f.connect(g); g.connect(out(pan));
+        src.start(ctx.currentTime);
+      }
+      return {
+        get enabled() { return enabled; },
+        toggle: function () { enabled = !enabled; localStorage.setItem('ttSnd', enabled ? '1' : '0'); return enabled; },
+        unlock: function () { ac(); },
+        // the pock IS table tennis — pitch and snap scale with shot power
+        pock: function (power, pan) {
+          blip(165 + power * 140, 0.07, 0.45 + power * 0.4, 'triangle', pan, -60);
+          thwack(0.035, 0.4 + power * 0.35, 2300 + power * 1800, pan);
+        },
+        bounce: function (pan) { blip(115, 0.055, 0.28, 'sine', pan, -35); },
+        net: function () { thwack(0.12, 0.4, 480, 0); blip(85, 0.15, 0.3, 'sine', 0, -30); },
+        toss: function () { blip(660, 0.06, 0.12, 'sine', 0, 160); },
+        point: function (mine) {
+          blip(mine ? 440 : 320, 0.09, 0.3, 'square', 0);
+          blip(mine ? 660 : 215, 0.12, 0.3, 'square', 0, 0, 0.1);
+        },
+        end: function (win) {
+          [0, 0.12, 0.24].forEach(function (d, i) {
+            blip(win ? 392 * Math.pow(1.26, i) : 330 / Math.pow(1.19, i), 0.16, 0.3, 'square', 0, 0, d);
+          });
+        }
+      };
+    })();
+
     // ---------- projection (2.5D) ----------
     var CAM = { d0: 1.1, depth: 1.9, hor: 0, A: 0, S: 0 };
     function resize() {
@@ -185,7 +267,7 @@
       var portrait = H > W * 1.15;
       CAM.hor = H * (portrait ? 0.22 : 0.16);
       CAM.A = H * (portrait ? 0.52 : 0.68);
-      CAM.S = portrait ? Math.min(W * 0.68, H * 0.5) : Math.min(W * 0.55, H * 0.72);
+      CAM.S = portrait ? Math.min(W * 0.62, H * 0.46) : Math.min(W * 0.5, H * 0.64);
     }
     window.addEventListener('resize', resize);
 
@@ -370,8 +452,9 @@
     var padTilt = 0, padKick = 0;
     function drawNearPaddle() {
       var pad = game.paddles[1];
-      // lean into the reach (forehand/backhand angle) + a nudge from motion
-      var target = Math.max(-1.0, Math.min(1.0, pad.x * 0.45 + pointerVX * 0.09));
+      // lean into the reach — near-HORIZONTAL at full stretch — plus swing
+      var xm = Math.min(1.5, (W / 2 - 52) / ppm(0));
+      var target = Math.max(-1.55, Math.min(1.55, (pad.x / xm) * 1.5 + pointerVX * 0.05));
       padTilt += (target - padTilt) * 0.18;
       padKick *= 0.85;
       paddleShape(pad.x, K.PADDLE_Y[1], pad.z, 0.18, '#ff4d4d', '#a3122a', padTilt + padKick);
@@ -379,7 +462,7 @@
     function drawFarPaddle() {
       var pad = game.paddles[2];
       paddleShape(pad.x, K.PADDLE_Y[2], pad.z, 0.17, '#3aa0ff', '#134a91',
-        Math.max(-0.8, Math.min(0.8, -pad.x * 0.4)));
+        Math.max(-1.2, Math.min(1.2, -pad.x * 0.9)));
     }
 
     // ---------- input ----------
@@ -411,22 +494,27 @@
     }
     cv.addEventListener('pointermove', function (e) { onMove(e.clientX, e.clientY, performance.now()); });
     cv.addEventListener('pointerdown', function (e) {
+      Sound.unlock();
       onMove(e.clientX, e.clientY, performance.now());
       if (ui === 'playing' && game && game.phase === 'serve' && game.server === 1) humanServe();
     });
     cv.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
 
     function humanAim() {
-      // Power requires a deliberate swipe THROUGH the ball. Motion below the
-      // threshold (repositioning to reach it, or a dead-bat block) returns a
-      // soft, short ball the opponent can attack — standing in the way is a
-      // block, not a smash.
+      // Physical return model: the swing IS the shot. Direction from the
+      // swipe (plus where the ball meets the blade — the core adds that
+      // deflection); pace from swipe speed AND the incoming ball's speed,
+      // so blocking a rocket pops it back fast. Overcooking a LOW ball
+      // flies long — full power is safe on high balls, risky on low ones.
       var raw = Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6;
-      var speed = Math.min(1, Math.max(0, raw - 1.2) / 2.4);
+      var power = Math.min(1, Math.pow(Math.max(0, raw - 0.35) / 2.6, 0.9));
+      var inSpeed = game && game.ball ? Math.min(1, Math.abs(game.ball.vy) / 7) : 0;
+      var bz = game && game.ball ? game.ball.z : 0.25;
+      var lowRisk = Math.max(0, Math.min(1, 1 - bz / 0.45));
       return {
-        tx: Math.max(-0.68, Math.min(0.68, game.paddles[1].x * 0.25 + pointerVX * 0.42)),
-        ty: K.NET_Y + 0.30 + 1.0 * speed,
-        t: 0.72 - 0.32 * speed
+        tx: Math.max(-0.8, Math.min(0.8, game.paddles[1].x * 0.2 + pointerVX * 0.6)),
+        ty: K.NET_Y + 0.32 + 0.95 * power + 0.12 * inSpeed + 0.38 * lowRisk * power,
+        t: (0.70 - 0.30 * power) * (1 - 0.2 * inSpeed)
       };
     }
     function humanServe() {
@@ -439,6 +527,7 @@
     function beginToss(aim) {
       if (toss) return;
       toss = { t: 0, dur: 46, aim: aim };
+      Sound.toss();
       setHint('');
     }
     function tossHeight() {
@@ -542,6 +631,7 @@
             };
           }
           TTCore.serve(game, aim);
+          Sound.pock(Math.min(1, (aim.pace || 0.2) + 0.15), game.ball.x / 0.76);
           toss = null;
           if (wasHuman) padKick = 0.55; // strike swing
         }
@@ -553,15 +643,21 @@
       var res = TTCore.step(game, inputs);
       for (var i = 0; i < res.events.length; i++) {
         var e = res.events[i];
-        if (e.type === 'hit' && e.by === 1) padKick = Math.max(-0.6, Math.min(0.6, pointerVX * 0.14));
-        if (e.type === 'net') showBanner('NET!');
+        if (e.type === 'hit') {
+          Sound.pock(Math.min(1, Math.abs(game.ball.vy) / 7.5), e.x / 0.76);
+          if (e.by === 1) padKick = Math.max(-0.6, Math.min(0.6, pointerVX * 0.14));
+        }
+        if (e.type === 'bounce') Sound.bounce(e.x / 0.76);
+        if (e.type === 'net') { Sound.net(); showBanner('NET!'); }
         else if (e.type === 'point') {
+          Sound.point(e.to === 1);
           updateHud();
           if (!res.events.some(function (x) { return x.type === 'over'; })) {
             showBanner(e.to === 1 ? 'YOUR POINT' : 'AI POINT', 850);
           }
           pointTimer = 66; // ~1.1s pause, ball physics keep settling
         } else if (e.type === 'over') {
+          Sound.end(e.winner === 1);
           showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — AI', 1400);
           endMatch();
         }
@@ -609,6 +705,10 @@
     });
 
     document.getElementById('version').textContent = 'v' + VERSION + ' · prototype';
+    var sndBtn = document.getElementById('snd-btn');
+    function updSnd() { sndBtn.textContent = Sound.enabled ? '🔊' : '🔇'; }
+    sndBtn.addEventListener('click', function () { Sound.unlock(); Sound.toggle(); updSnd(); });
+    updSnd();
 
     // ---------- PWA: install button, iOS hint, update chip ----------
     var installBtn = document.getElementById('install-btn');
