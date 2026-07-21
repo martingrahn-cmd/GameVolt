@@ -16,6 +16,10 @@ export class Piece {
         } else {
             this.color = SHAPE_COLORS[String(shapeKey)] || "#999"; 
         }
+        if (window.GoldenGlyphsAccessibility && window.GoldenGlyphsAccessibility.colorblind) {
+            const accessiblePalette = ["#0072B2", "#E69F00", "#009E73", "#CC79A7", "#56B4E9", "#D55E00", "#F0E442", "#6A3D9A", "#1B9E77", "#B15928", "#E7298A", "#666666"];
+            this.color = accessiblePalette[(Number(shapeKey) - 1) % accessiblePalette.length];
+        }
 
         this.glowId = glowId;
         this.col = 0; this.row = 0;
@@ -267,7 +271,7 @@ export class Piece {
         const flashAlpha = this.flashIntensity * 0.6;
 
         // Rita varje cell
-        this.cells.forEach(cell => {
+        this.cells.forEach((cell, cellIndex) => {
             const cx = cell.c * pitch;
             const cy = cell.r * pitch;
             const size = pitch - gap * 2;
@@ -355,6 +359,13 @@ export class Piece {
                 ctx.fillStyle = `rgba(255,255,255,${flashAlpha})`;
                 this.drawRoundedRect(ctx, x, y, size, size, radius);
                 ctx.fill();
+            }
+            if (cellIndex === 0 && window.GoldenGlyphsAccessibility && window.GoldenGlyphsAccessibility.colorblind) {
+                ctx.fillStyle = "rgba(0,0,0,.72)";
+                ctx.font = `900 ${Math.max(9, size * 0.34)}px sans-serif`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(this.shapeKey, x + size / 2, y + size / 2 + 1);
             }
         });
 

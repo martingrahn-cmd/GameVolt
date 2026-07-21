@@ -8,10 +8,12 @@ export class Effects {
     this.floatingTexts = []; 
     this.trailType = "trail_default";
     this.screenShake = 0;
+    this.reducedMotion = false;
   }
 
   setTrailType(type) { this.trailType = type; }
-  shake(amount) { this.screenShake = amount; }
+  setReducedMotion(value) { this.reducedMotion = !!value; if (this.reducedMotion) { this.particles = []; this.screenShake = 0; } }
+  shake(amount) { if (!this.reducedMotion) this.screenShake = amount; }
 
   getShakeOffset() {
       if (this.screenShake <= 0) return { x: 0, y: 0 };
@@ -21,6 +23,7 @@ export class Effects {
   }
 
   emitTrail(x, y) {
+      if (this.reducedMotion) return;
       if (Math.random() > 0.5) return;
       
       const trailData = TRAILS[this.trailType];
@@ -52,6 +55,7 @@ export class Effects {
   }
 
   explode(x, y, color, count = 20) {
+    if (this.reducedMotion) return;
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = Math.random() * 5 + 2;
@@ -72,6 +76,7 @@ export class Effects {
   }
 
   triggerVictory(pieces) {
+      if (this.reducedMotion) return;
       this.shake(15);
       const cx = this.grid.originX + (this.grid.cols * this.grid.pitch) / 2;
       const cy = this.grid.originY + (this.grid.rows * this.grid.pitch) / 2;

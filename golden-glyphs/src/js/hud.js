@@ -18,6 +18,7 @@ export class HUD {
         this.btnHint = { x:0, y:0, w:0, h:0 };
         
         this.pulseTimer = 0;
+        this.textScale = 1;
     }
 
     resize() {}
@@ -90,7 +91,7 @@ export class HUD {
             const currencyX = this.btnHint.x - currencyGap;
 
             ctx.textAlign = "right"; ctx.textBaseline = "middle";
-            ctx.font = `bold 24px 'Cinzel', serif`;
+            ctx.font = `bold ${24 * this.textScale}px 'Cinzel', serif`;
             ctx.fillStyle = "#FFD700";
             ctx.fillText(`${this.currency}`, currencyX, centerY);
 
@@ -113,7 +114,7 @@ export class HUD {
             let timeStr = (this.time).toFixed(1);
             let timeColor = this.time < 10 ? "#FF4444" : "#FFD700";
 
-            ctx.font = `bold 32px sans-serif`;
+            ctx.font = `bold ${32 * this.textScale}px sans-serif`;
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillStyle = timeColor;
             ctx.shadowColor = "black"; ctx.shadowBlur = 4;
@@ -125,18 +126,18 @@ export class HUD {
             ctx.fillText(`SCORE: ${this.currentScore || 0}`, w/2, centerY + 18);
         } else {
             // Level Cirkel - visa INTE i Zen Mode eller Daily Challenge
-            const isZenMode = this.currentLevelName === "ZEN";
+            const isZenMode = this.currentLevelName.startsWith("ZEN");
             const isDailyChallenge = this.currentLevelName === "DAILY CHALLENGE";
             
             if (isZenMode) {
                 // ZEN text vänsterställd bredvid back-knappen, samma höjd som guld
                 const zenX = this.btnMenu.x + this.btnMenu.w + 15;
-                ctx.font = `bold 24px 'Cinzel', serif`;
+                ctx.font = `bold ${24 * this.textScale}px 'Cinzel', serif`;
                 ctx.fillStyle = "#FFD700";
                 ctx.textAlign = "left";
                 ctx.textBaseline = "middle";
                 ctx.shadowColor = "black"; ctx.shadowBlur = 4;
-                ctx.fillText("ZEN", zenX, centerY);
+                ctx.fillText(this.currentLevelName, zenX, centerY);
                 ctx.shadowBlur = 0;
             } else if (isDailyChallenge) {
                 // Daily Challenge - kalender-ikon med dagens datum
@@ -154,7 +155,7 @@ export class HUD {
                     timeStr = `${m}:${s.toString().padStart(2, '0')}`;
                 }
                 
-                ctx.font = `bold 28px 'Cinzel', serif`;
+                ctx.font = `bold ${28 * this.textScale}px 'Cinzel', serif`;
                 ctx.fillStyle = "#FFD700";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
@@ -189,7 +190,7 @@ export class HUD {
                     }
                 }
                 
-                ctx.font = `bold 28px 'Cinzel', serif`;
+                ctx.font = `bold ${28 * this.textScale}px 'Cinzel', serif`;
                 ctx.fillStyle = timeColor;
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";

@@ -18,6 +18,10 @@ export class Input {
     this.mx = 0;
     this.my = 0;
     this.hudCheckFn = null; // Set by game.js to check HUD hit areas
+    this.keyboardEnabledFn = null;
+    this.keyboardIndex = -1;
+    this.keyboardCol = 0;
+    this.keyboardRow = 0;
 
     const opts = { passive: false };
     canvas.addEventListener("pointerdown", e => this.onDown(e), opts);
@@ -29,6 +33,41 @@ export class Input {
         e.preventDefault();
         this.handleRightClick(e);
     });
+    document.addEventListener('keydown', e => this.onKeyDown(e));
+  }
+
+  onKeyDown(e) {
+    if (this.locked || (this.keyboardEnabledFn && !this.keyboardEnabledFn())) return;
+    const key = e.key.toLowerCase();
+    if (key === 'tab') {
+      e.preventDefault();
+      this.keyboardIndex = (this.keyboardIndex + 1) % this.pieces.length;
+      this.activePiece = this.pieces[this.keyboardIndex];
+      this.keyboardCol = this.activePiece.inTray ? Math.floor(this.grid.cols / 2) : this.activePiece.col;
+      this.keyboardRow = this.activePiece.inTray ? Math.floor(this.grid.rows / 2) : this.activePiece.row;
+      if (!this.activePiece.inTray && this.bitfield) { this.bitfield.lift(this.activePiece); this.activePiece.isPlaced = false; }
+      this.activePiece.targetX = this.grid.originX + this.keyboardCol * this.grid.pitch;
+      this.activePiece.targetY = this.grid.originY + this.keyboardRow * this.grid.pitch;
+      this.activePiece.onPickup();
+      this.updateGhost(this.activePiece);
+      this.playSound('pickup');
+      return;
+    }
+    const p = this.activePiece;
+    if (!p) return;
+    if (['arrowleft','arrowright','arrowup','arrowdown','r','f','enter','backspace'].includes(key)) e.preventDefault();
+    if (key === 'r') { p.rotate(); this.updateGhost(p); this.playSound('rotate'); return; }
+    if (key === 'f') { p.flip(); this.updateGhost(p); this.playSound('rotate'); return; }
+    if (key === 'backspace') { this.returnToTray(p); this.activePiece = null; return; }
+    if (key === 'enter') { this.tryPlacePiece(p); if (p.isPlaced) this.activePiece = null; return; }
+    if (key === 'arrowleft') this.keyboardCol--;
+    else if (key === 'arrowright') this.keyboardCol++;
+    else if (key === 'arrowup') this.keyboardRow--;
+    else if (key === 'arrowdown') this.keyboardRow++;
+    else return;
+    p.targetX = this.grid.originX + this.keyboardCol * this.grid.pitch;
+    p.targetY = this.grid.originY + this.keyboardRow * this.grid.pitch;
+    this.updateGhost(p);
   }
 
   playSound(name) {
