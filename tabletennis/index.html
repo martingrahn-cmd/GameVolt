@@ -158,11 +158,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.14.0"></script>
-  <script src="tt-ai.js?v=0.14.0"></script>
+  <script src="tt-core.js?v=0.15.0"></script>
+  <script src="tt-ai.js?v=0.15.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.14.0';
+    var VERSION = '0.15.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -210,7 +210,7 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.14.0', bounce: 'assets/bounce.mp3?v=0.14.0', cheer: 'assets/cheer.mp3?v=0.14.0', net: 'assets/net.mp3?v=0.14.0' };
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.15.0', bounce: 'assets/bounce.mp3?v=0.15.0', cheer: 'assets/cheer.mp3?v=0.15.0', net: 'assets/net.mp3?v=0.15.0' };
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
@@ -299,6 +299,7 @@
       W = window.innerWidth; H = window.innerHeight;
       cv.width = W * DPR; cv.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      arenaCv = null; // rebuild the pre-rendered arena for the new size
       // Portrait squeezes the table long and thin — widen it and compress
       // the depth there; landscape keeps the deeper view.
       var portrait = H > W * 1.15;
@@ -317,23 +318,121 @@
     }
 
     // ---------- rendering ----------
+    // Pro-arena backdrop (red tournament floor, sponsor barriers, crowd
+    // darkness, under-table LED glow) pre-rendered once per resize.
+    var arenaCv = null;
+    function buildArena() {
+      arenaCv = document.createElement('canvas');
+      arenaCv.width = W * DPR; arenaCv.height = H * DPR;
+      var a = arenaCv.getContext('2d');
+      a.setTransform(DPR, 0, 0, DPR, 0, 0);
+      var s77 = 77;
+      function arnd() { s77 = (s77 * 1664525 + 1013904223) >>> 0; return s77 / 4294967296; }
+
+      // arena void above
+      var sky = a.createLinearGradient(0, 0, 0, H * 0.45);
+      sky.addColorStop(0, '#06050d'); sky.addColorStop(1, '#131024');
+      a.fillStyle = sky; a.fillRect(0, 0, W, H * 0.5);
+
+      var BARRIER_Y = K.TABLE_L + 1.25, BARRIER_H = 0.78;
+      var bl = proj(-6, BARRIER_Y, 0), br = proj(6, BARRIER_Y, 0);
+      var tl = proj(-6, BARRIER_Y, BARRIER_H), tr = proj(6, BARRIER_Y, BARRIER_H);
+
+      // crowd darkness with silhouette heads + camera lights
+      var crowdTop = Math.max(0, tl.y - H * 0.17);
+      var cg = a.createLinearGradient(0, crowdTop, 0, tl.y);
+      cg.addColorStop(0, '#0a0816'); cg.addColorStop(1, '#191430');
+      a.fillStyle = cg; a.fillRect(0, crowdTop, W, tl.y - crowdTop);
+      for (var row = 2; row >= 0; row--) {
+        var ry = tl.y - 6 - row * H * 0.034;
+        a.fillStyle = 'rgba(7,5,16,' + (0.9 - row * 0.2) + ')';
+        for (var hx = -12; hx < W + 12; hx += 13 + row * 4) {
+          var jx = hx + arnd() * 9, jr = 5 + arnd() * 3 + row * 1.5;
+          a.beginPath(); a.arc(jx, ry, jr, Math.PI, 0); a.fill();
+        }
+      }
+      for (var clx = 0; clx < 9; clx++) {
+        a.fillStyle = arnd() > 0.55 ? 'rgba(255,90,90,0.8)' : 'rgba(215,232,255,0.7)';
+        a.beginPath(); a.arc(arnd() * W, crowdTop + arnd() * (tl.y - crowdTop) * 0.65, 1.4, 0, Math.PI * 2); a.fill();
+      }
+
+      // tournament floor — deep red like the pros play on
+      var fg = a.createLinearGradient(0, bl.y, 0, H);
+      fg.addColorStop(0, '#8e2a1e'); fg.addColorStop(0.45, '#a63526'); fg.addColorStop(1, '#5a1911');
+      a.fillStyle = fg; a.fillRect(0, bl.y - 1, W, H - bl.y + 1);
+      // court zone marking around the table
+      var c1 = proj(-2.2, -0.9, 0), c2 = proj(2.2, -0.9, 0), c3 = proj(2.2, BARRIER_Y - 0.06, 0), c4 = proj(-2.2, BARRIER_Y - 0.06, 0);
+      a.fillStyle = 'rgba(255,120,70,0.10)';
+      a.beginPath(); a.moveTo(c1.x, c1.y); a.lineTo(c2.x, c2.y); a.lineTo(c3.x, c3.y); a.lineTo(c4.x, c4.y); a.closePath(); a.fill();
+      a.strokeStyle = 'rgba(255,255,255,0.13)'; a.lineWidth = 2; a.stroke();
+
+      // far barrier: fictional sponsor panels
+      var ADS = [
+        { t: 'GAMEVOLT.IO', bg: '#101c3a', fg: '#00eaff' },
+        { t: 'VOLT+', bg: '#e8e6e0', fg: '#c8281e' },
+        { t: 'SPINTEC', bg: '#12266b', fg: '#ffffff' },
+        { t: 'AEROPONG', bg: '#e8e6e0', fg: '#12266b' },
+        { t: 'TOPSPIN PRO', bg: '#c8281e', fg: '#ffffff' },
+        { t: 'PING&CO', bg: '#101c3a', fg: '#ffd166' }
+      ];
+      var n = ADS.length;
+      for (var i = 0; i < n; i++) {
+        var x0 = bl.x + (br.x - bl.x) * (i / n), x1 = bl.x + (br.x - bl.x) * ((i + 1) / n);
+        a.fillStyle = ADS[i].bg;
+        a.fillRect(x0, tl.y, x1 - x0 - 2, bl.y - tl.y);
+        a.fillStyle = ADS[i].fg;
+        a.font = '800 ' + (bl.y - tl.y) * 0.42 + 'px "Segoe UI", system-ui, sans-serif';
+        a.textAlign = 'center'; a.textBaseline = 'middle';
+        a.fillText(ADS[i].t, (x0 + x1 - 2) / 2, (tl.y + bl.y) / 2 + 1, (x1 - x0) * 0.86);
+      }
+      a.fillStyle = 'rgba(255,255,255,0.85)';
+      a.fillRect(Math.max(0, bl.x), tl.y - 2, Math.min(W, br.x) - Math.max(0, bl.x), 2);
+
+      // side barriers with slanted brand text
+      function sideBarrier(sx, txt, col) {
+        var b0 = proj(sx, -0.6, 0), b1 = proj(sx, BARRIER_Y, 0);
+        var t0 = proj(sx, -0.6, BARRIER_H), t1 = proj(sx, BARRIER_Y, BARRIER_H);
+        var g2 = a.createLinearGradient(b0.x, 0, b1.x, 0);
+        g2.addColorStop(0, '#e2ded4'); g2.addColorStop(1, '#b5b0a3');
+        a.fillStyle = g2;
+        a.beginPath(); a.moveTo(b0.x, b0.y); a.lineTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.lineTo(t0.x, t0.y); a.closePath(); a.fill();
+        a.strokeStyle = 'rgba(255,255,255,0.5)'; a.lineWidth = 1.5;
+        a.beginPath(); a.moveTo(t0.x, t0.y); a.lineTo(t1.x, t1.y); a.stroke();
+        a.save();
+        var ax = t0.x * 0.42 + t1.x * 0.58, ay = ((t0.y + b0.y) / 2) * 0.42 + ((t1.y + b1.y) / 2) * 0.58;
+        a.translate(ax, ay);
+        a.rotate(Math.atan2(t1.y - t0.y, t1.x - t0.x));
+        a.fillStyle = col;
+        a.font = '800 ' + Math.max(10, ppm(BARRIER_Y * 0.55) * 0.34) + 'px "Segoe UI", system-ui, sans-serif';
+        a.textAlign = 'center'; a.textBaseline = 'middle';
+        a.fillText(txt, 0, 0);
+        a.restore();
+      }
+      sideBarrier(-2.6, 'SMASH ENERGY', '#c8281e');
+      sideBarrier(2.6, 'VOLTARENA', '#12266b');
+
+      // under-table LED glow, static base (a soft pulse is layered per frame)
+      var gp = proj(0, 1.35, K.FLOOR_Z);
+      var glow = a.createRadialGradient(gp.x, gp.y, 8, gp.x, gp.y, ppm(1.35) * 1.9);
+      glow.addColorStop(0, 'rgba(0,200,255,0.28)');
+      glow.addColorStop(0.5, 'rgba(0,130,255,0.10)');
+      glow.addColorStop(1, 'rgba(0,0,0,0)');
+      a.fillStyle = glow;
+      a.fillRect(0, H * 0.32, W, H * 0.68);
+    }
+
     function draw() {
       ctx.clearRect(0, 0, W, H);
-
-      // back wall + floor
-      var wall = ctx.createLinearGradient(0, 0, 0, H * 0.45);
-      wall.addColorStop(0, '#0d0b1c'); wall.addColorStop(1, '#181330');
-      ctx.fillStyle = wall; ctx.fillRect(0, 0, W, H * 0.45);
-      var floor = ctx.createLinearGradient(0, H * 0.42, 0, H);
-      floor.addColorStop(0, '#241a3a'); floor.addColorStop(0.5, '#1b1330'); floor.addColorStop(1, '#120c22');
-      ctx.fillStyle = floor; ctx.fillRect(0, H * 0.42, W, H * 0.58);
-      // spotlight pool under the table
-      var spot = ctx.createRadialGradient(W / 2, H * 0.62, 10, W / 2, H * 0.62, Math.max(W, H) * 0.55);
-      spot.addColorStop(0, 'rgba(90,70,160,0.20)'); spot.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = spot; ctx.fillRect(0, 0, W, H);
-      // horizon glow line
-      ctx.fillStyle = 'rgba(0,234,255,0.05)';
-      ctx.fillRect(0, H * 0.42 - 1, W, 2);
+      if (!arenaCv) buildArena();
+      ctx.drawImage(arenaCv, 0, 0, W, H);
+      // gentle breathing of the under-table light
+      var gp2 = proj(0, 1.35, K.FLOOR_Z);
+      var pulse = 0.09 + 0.045 * Math.sin(performance.now() / 900);
+      var pg = ctx.createRadialGradient(gp2.x, gp2.y, 6, gp2.x, gp2.y, ppm(1.35) * 1.35);
+      pg.addColorStop(0, 'rgba(0,220,255,' + pulse.toFixed(3) + ')');
+      pg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = pg;
+      ctx.fillRect(0, H * 0.3, W, H * 0.7);
 
       if (!game) return;
       var b = game.ball;
@@ -347,11 +446,27 @@
 
       drawFarPaddle();
 
-      // table legs
-      ctx.fillStyle = '#0e0c1e';
-      legPair(0.34); legPair(K.TABLE_L - 0.34);
+      // sculptural golden pedestal base (pro-table style) with LED rim
+      [0.62, K.TABLE_L - 0.62].forEach(function (yy) {
+        var top = proj(0, yy, -0.06);
+        var bot = proj(0, yy, K.FLOOR_Z);
+        var wTop = 0.5 * ppm(yy), wBot = 1.05 * ppm(yy);
+        var gold = ctx.createLinearGradient(top.x - wBot / 2, 0, top.x + wBot / 2, 0);
+        gold.addColorStop(0, '#6b4d0e'); gold.addColorStop(0.42, '#e8b83a');
+        gold.addColorStop(0.58, '#c2922a'); gold.addColorStop(1, '#5c420c');
+        ctx.fillStyle = gold;
+        ctx.beginPath();
+        ctx.moveTo(top.x - wTop / 2, top.y);
+        ctx.bezierCurveTo(top.x - wBot * 0.72, top.y + (bot.y - top.y) * 0.45, top.x - wBot / 2, bot.y - 6, top.x - wBot / 2, bot.y);
+        ctx.lineTo(top.x + wBot / 2, bot.y);
+        ctx.bezierCurveTo(top.x + wBot / 2, bot.y - 6, top.x + wBot * 0.72, top.y + (bot.y - top.y) * 0.45, top.x + wTop / 2, top.y);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = 'rgba(0,220,255,0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(top.x - wBot / 2, bot.y - 1); ctx.lineTo(top.x + wBot / 2, bot.y - 1); ctx.stroke();
+      });
 
-      // table top slab side (front face)
+      // table top slab side (front face) with LED strip underneath
       var nl = proj(-hw, 0, 0), nr = proj(hw, 0, 0);
       var slabH = 0.055 * ppm(0);
       ctx.fillStyle = '#0a2d66';
@@ -359,11 +474,20 @@
       ctx.moveTo(nl.x, nl.y); ctx.lineTo(nr.x, nr.y);
       ctx.lineTo(nr.x, nr.y + slabH); ctx.lineTo(nl.x, nl.y + slabH);
       ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(0,220,255,0.55)';
+      ctx.fillRect(nl.x, nl.y + slabH, nr.x - nl.x, 2);
 
-      // table surface
+      // table surface with a subtle broadcast-light sheen
       var g2 = ctx.createLinearGradient(0, proj(0, K.TABLE_L, 0).y, 0, nl.y);
       g2.addColorStop(0, '#0f56b8'); g2.addColorStop(1, '#1a74e8');
       ctx.fillStyle = g2;
+      trapezoid(-hw, 0, hw, K.TABLE_L, 0);
+      ctx.fill();
+      var sheen = ctx.createLinearGradient(0, proj(0, K.TABLE_L, 0).y, 0, nl.y);
+      sheen.addColorStop(0, 'rgba(255,255,255,0.10)');
+      sheen.addColorStop(0.4, 'rgba(255,255,255,0.02)');
+      sheen.addColorStop(1, 'rgba(255,255,255,0.06)');
+      ctx.fillStyle = sheen;
       trapezoid(-hw, 0, hw, K.TABLE_L, 0);
       ctx.fill();
 
@@ -400,14 +524,6 @@
     function line3(x0, y0, z0, x1, y1, z1) {
       var a = proj(x0, y0, z0), b2 = proj(x1, y1, z1);
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b2.x, b2.y); ctx.stroke();
-    }
-    function legPair(y) {
-      var hw = K.TABLE_W / 2 - 0.16;
-      [-hw, hw].forEach(function (x) {
-        var top = proj(x, y, -0.03), bot = proj(x, y, K.FLOOR_Z);
-        var w = 0.05 * top.s;
-        ctx.fillRect(top.x - w / 2, top.y, w, bot.y - top.y);
-      });
     }
 
     function drawNet() {
@@ -462,8 +578,12 @@
       var g3 = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.4, r * 0.15, p.x, p.y, r);
       g3.addColorStop(0, '#fff6e0'); g3.addColorStop(0.45, '#ffb020'); g3.addColorStop(1, '#b35c00');
       ctx.fillStyle = g3;
-      ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      // squash on bounce (set in tickGame, decays in the loop)
+      ctx.ellipse(p.x, p.y, r * (1 + 0.32 * ballSquash), r * (1 - 0.38 * ballSquash), 0, 0, Math.PI * 2);
+      ctx.fill();
     }
+    var ballSquash = 0;
 
     function paddleShape(px, py, pz, scale, color, dark, tilt) {
       var p = proj(px, py, pz);
@@ -686,7 +806,7 @@
           Sound.pock(Math.min(1, Math.abs(game.ball.vy) / 7.5), e.x / 0.76);
           if (e.by === 1) padKick = Math.max(-0.6, Math.min(0.6, pointerVX * 0.14));
         }
-        if (e.type === 'bounce') Sound.bounce(e.x / 0.76);
+        if (e.type === 'bounce') { Sound.bounce(e.x / 0.76); ballSquash = 1; }
         if (e.type === 'net') { Sound.net(); showBanner('NET!'); }
         else if (e.type === 'point') {
           Sound.point(e.to === 1);
@@ -729,6 +849,7 @@
       }
       // pointer velocity decays when the finger rests
       pointerVX *= 0.92; pointerVZ *= 0.92;
+      ballSquash *= 0.8;
       draw();
       requestAnimationFrame(loop);
     }
