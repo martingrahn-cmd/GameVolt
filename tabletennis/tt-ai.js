@@ -65,7 +65,7 @@
         out.serve = {
           tx: (rng() - 0.5) * K.TABLE_W * 0.7,
           ty: K.NET_Y + fwd * (0.45 + rng() * 0.85),
-          t: 0.5 + rng() * 0.14
+          pace: Math.min(1, (0.64 - L.tMin) * 2 + rng() * 0.3)
         };
       }
     } else if (s.phase !== 'serve') {

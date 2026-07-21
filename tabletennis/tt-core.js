@@ -97,8 +97,12 @@
     tx = Math.max(-TABLE_W / 2 - 0.4, Math.min(TABLE_W / 2 + 0.4, tx));
     if (s.server === 1) ty = Math.max(NET_Y + 0.05, Math.min(TABLE_L + 0.6, ty));
     else ty = Math.min(NET_Y - 0.05, Math.max(-0.6, ty));
+    // pace 0..1: harder serves bounce earlier on the own half and drive
+    // flatter/faster out of the bounce (smaller first-flight share)
+    var pace = typeof aim.pace === 'number' ? Math.max(0, Math.min(1, aim.pace)) : 0;
+    var frac = 0.42 - 0.12 * pace;
     var y0 = b.y, z0 = b.z;
-    var y1 = y0 + (ty - y0) * 0.42;
+    var y1 = y0 + (ty - y0) * frac;
     if (s.server === 1) y1 = Math.max(0.28, Math.min(NET_Y - 0.18, y1));
     else y1 = Math.min(TABLE_L - 0.28, Math.max(NET_Y + 0.18, y1));
     var D = y1 - y0;
