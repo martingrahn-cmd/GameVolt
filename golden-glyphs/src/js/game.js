@@ -2,17 +2,17 @@
 import { Layout } from "./layout.js";
 import { Grid } from "./grid.js?v=7";
 import { Piece } from "./piece.js?v=7";
-import { HUD } from "./hud.js?v=8";
+import { HUD } from "./hud.js?v=9";
 import { Input } from "./input.js?v=7";
 import { BitField } from "./bitfield.js?v=7";
 import { Tray } from "./tray.js?v=8";
 import { AudioManager } from "./audio.js";
-import { UI } from "./ui.js?v=5";
+import { UI } from "./ui.js?v=11";
 import { Effects } from "./effects.js?v=7";
 import { CONFIG, SHAPES, WORLDS, SYSTEM_IMAGES, SKINS, TRAILS, ACHIEVEMENTS } from "./config.js";
-import { AchievementSystem } from "./achievements.js?v=3";
-import { WorldMap } from "./worldmap.js?v=4";
-import { Shop } from "./shop.js";
+import { AchievementSystem } from "./achievements.js?v=4";
+import { WorldMap } from "./worldmap.js?v=12";
+import { Shop } from "./shop.js?v=13";
 import { Tutorial } from "./tutorial.js?v=3";
 import { DailySystem } from "./daily.js?v=4";
 import { DynamicBackground } from "./dynamic_background.js";
@@ -44,6 +44,7 @@ let transitionDir = 0;   // 0 = ingen, 1 = fading out, -1 = fading in
 let transitionCallback = null;
 let dailyHintsUsed = 0;
 let dailyCloudChallenge = null;
+let dailyBriefButtons = { back: null, play: null };
 let accessibilitySettings = { textScale: 1, colorblind: false, reducedMotion: false };
 
 function applyAccessibilitySettings() {
@@ -165,13 +166,16 @@ function adjustBrightness(hex, percent) {
     const b = Math.min(255, Math.max(0, (num & 0x0000FF) + percent));
     return `rgb(${r},${g},${b})`;
 }
-function drawMenuGlyph(x, y, radius, glyph, completed = false) {
+function drawMenuGlyph(x, y, radius, glyph, completed = false, accent = "#FFD700") {
     ctx.save();
+    ctx.shadowColor = completed ? "#FFD700" : accent;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(5,8,18,0.42)";
+    ctx.fillStyle = "rgba(2,5,10,.82)";
     ctx.fill();
-    ctx.strokeStyle = completed ? "#FFD700" : "rgba(255,255,255,0.82)";
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = completed ? "#FFD700" : accent;
     ctx.lineWidth = 2;
     ctx.stroke();
     ctx.fillStyle = completed ? "#FFD700" : "#FFF";
@@ -710,7 +714,7 @@ function initSystems() {
         const titleText = isDaily ? "DAILY COMPLETE" : "LEVEL COMPLETE";
         const btnText = isDaily ? "BACK TO MENU" : "NEXT LEVEL";
         ui.showWinScreen(awardedStars, reward, () => { totalGold += reward; saveProgress(); playSound('purchase'); }, titleText, btnText, null, (name) => playSound(name), streakBonus, dailySummary, worldUnlock); } else { gameState = "MAP"; } }, 1500); });
-  canvas.addEventListener('pointerdown', (e) => { const pos = getEventPos(e); if (gameState === "CREDITS") { const btn = window._creditsBackBtn; if (btn && pos.x >= btn.x && pos.x <= btn.x + btn.w && pos.y >= btn.y && pos.y <= btn.y + btn.h) { playSound('menu_back'); hideCredits(); } return; } if (gameState === "MENU") { playSound('click'); handleMenuClick(pos.x, pos.y); } else if (gameState === "MAP") { worldMap.handleInput('down', pos.x, pos.y); } else if (gameState === "SHOP") { shop.handleInput('down', pos.x, pos.y); } else if (gameState === "ACHIEVEMENTS") { if (achievements.checkBackButton(pos.x, pos.y)) { playSound('menu_back'); gameState = "MENU"; return; } achievements.handleInput('down', pos.x, pos.y); } else if (gameState === "PLAYING" || gameState === "TIME_ATTACK") { const hudAction = hud.checkHit(pos.x, pos.y); if (hudAction === 'menu') { playSound('click'); togglePause(); return; } if (hudAction === 'hint') { tryUseHint(); return; } } });
+  canvas.addEventListener('pointerdown', (e) => { const pos = getEventPos(e); if (gameState === "CREDITS") { const btn = window._creditsBackBtn; if (btn && pos.x >= btn.x && pos.x <= btn.x + btn.w && pos.y >= btn.y && pos.y <= btn.y + btn.h) { playSound('menu_back'); hideCredits(); } return; } if (gameState === "MENU") { playSound('click'); handleMenuClick(pos.x, pos.y); } else if (gameState === "DAILY_BRIEF") { handleDailyBriefClick(pos.x, pos.y); } else if (gameState === "MAP") { worldMap.handleInput('down', pos.x, pos.y); } else if (gameState === "SHOP") { shop.handleInput('down', pos.x, pos.y); } else if (gameState === "ACHIEVEMENTS") { if (achievements.checkBackButton(pos.x, pos.y)) { playSound('menu_back'); gameState = "MENU"; return; } achievements.handleInput('down', pos.x, pos.y); } else if (gameState === "PLAYING" || gameState === "TIME_ATTACK") { const hudAction = hud.checkHit(pos.x, pos.y); if (hudAction === 'menu') { playSound('click'); togglePause(); return; } if (hudAction === 'hint') { tryUseHint(); return; } } });
   canvas.addEventListener('pointermove', (e) => { const pos = getEventPos(e); if (gameState === "MAP") worldMap.handleInput('move', pos.x, pos.y); if (gameState === "SHOP") shop.handleInput('move', pos.x, pos.y); if (gameState === "ACHIEVEMENTS") achievements.handleInput('move', pos.x, pos.y); });
   canvas.addEventListener('pointerup', (e) => { const pos = getEventPos(e); if (gameState === "MAP") worldMap.handleInput('up', pos.x, pos.y); if (gameState === "SHOP") shop.handleInput('up', pos.x, pos.y); if (gameState === "ACHIEVEMENTS") achievements.handleInput('up', pos.x, pos.y); });
   canvas.addEventListener('wheel', (e) => { if (gameState === "MAP") { e.preventDefault(); worldMap.handleScroll(e.deltaY); } if (gameState === "SHOP") { e.preventDefault(); shop.handleWheel(e.deltaY); } if (gameState === "ACHIEVEMENTS") { e.preventDefault(); achievements.handleWheel(e.deltaY); } }, { passive: false });
@@ -970,7 +974,180 @@ function handleShopPurchase(item, action) {
         return { success: false };
     }
 }
-function handleMenuClick(clickX, clickY) { const { x, startY, w: btnW, h: btnH, gap } = menuBtnLayout; MENU_BUTTONS.forEach((btn, index) => { const y = startY + index * (btnH + gap); if (clickX >= x && clickX <= x + btnW && clickY >= y && clickY <= y + btnH) { if (btn.text === "CAMPAIGN") { if (!hasSeenTutorial) { startGame('LEVELS_EASY', 0); } else { gameState = "MAP"; } } else if (btn.name === 'DAILY') { dailyHintsUsed = 0; const dailyIndex = dailySystem.getTodayIndex(); startGame('LEVELS_DAILY', dailyIndex); } else if (btn.name === 'MODE_TIME') { timeAttack.start(); const next = timeAttack.getNextLevel(); gameState = "TIME_ATTACK"; startGame(next.set, next.index); timeAttack.markLevelStart(); if (audio) audio.playMusic('music_time_attack'); checkAchievements({ playedTimeAttack: true }); } else if (btn.name === 'MODE_ZEN') { showZenSettings(); } else if (btn.name === 'SHOP') { shopReturnState = "MENU"; gameState = "SHOP"; shop.updateInventory(ownedItems, activeItems, ownedHints); checkAchievements({ visitedShop: true }); } else if (btn.name === 'ACHIEVEMENTS') { gameState = "ACHIEVEMENTS"; achievements.resetScroll(); } } }); }
+function pointInRect(x, y, rect) {
+    return rect && x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h;
+}
+
+function getDailyDifficulty(level) {
+    const id = String(level?.id || '');
+    if (id.includes('boss')) return { label: 'MASTER', color: '#ff5e83', marks: 3 };
+    if (id.includes('hard')) return { label: 'HARD', color: '#ff9b55', marks: 3 };
+    if (id.includes('quick')) return { label: 'QUICK', color: '#70e0a1', marks: 1 };
+    return { label: 'STANDARD', color: '#66e2ff', marks: 2 };
+}
+
+function drawDailyBoardPreview(level, x, y, size, accent) {
+    const cells = [];
+    (level?.map || []).forEach((row, rowIndex) => row.forEach((value, colIndex) => { if (value) cells.push({ col: colIndex, row: rowIndex }); }));
+    if (!cells.length) return;
+    const minCol = Math.min(...cells.map(cell => cell.col));
+    const maxCol = Math.max(...cells.map(cell => cell.col));
+    const minRow = Math.min(...cells.map(cell => cell.row));
+    const maxRow = Math.max(...cells.map(cell => cell.row));
+    const cellSize = Math.min(size / (maxCol - minCol + 1), size / (maxRow - minRow + 1));
+    const offsetX = x + (size - (maxCol - minCol + 1) * cellSize) / 2;
+    const offsetY = y + (size - (maxRow - minRow + 1) * cellSize) / 2;
+    ctx.save();
+    ctx.shadowColor = accent;
+    ctx.shadowBlur = 10;
+    cells.forEach(cell => {
+        const cx = offsetX + (cell.col - minCol) * cellSize;
+        const cy = offsetY + (cell.row - minRow) * cellSize;
+        const tile = ctx.createLinearGradient(cx, cy, cx, cy + cellSize);
+        tile.addColorStop(0, 'rgba(102,226,255,.48)');
+        tile.addColorStop(1, 'rgba(20,67,86,.72)');
+        ctx.fillStyle = tile;
+        ctx.fillRect(cx + 1, cy + 1, Math.max(2, cellSize - 2), Math.max(2, cellSize - 2));
+    });
+    ctx.restore();
+}
+
+function drawDailyBrief() {
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.width / dpr;
+    const h = canvas.height / dpr;
+    const mobile = w < 700;
+    const info = dailySystem.getDisplayInfo();
+    const level = LEVELS_DAILY[info.levelIndex];
+    const difficulty = getDailyDifficulty(level);
+    const completed = dailySystem.isCompleted();
+    const result = dailySystem.getTodayResult();
+    const streak = dailySystem.getStreak();
+    const longest = dailySystem.getLongestStreak();
+
+    const bg = ctx.createRadialGradient(w / 2, h * .38, 20, w / 2, h * .45, Math.max(w, h) * .72);
+    bg.addColorStop(0, '#173244');
+    bg.addColorStop(.48, '#09141d');
+    bg.addColorStop(1, '#020509');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(233,30,99,.07)';
+    for (let r = 34; r < Math.max(w, h); r += 44) {
+        ctx.beginPath();
+        ctx.arc(w / 2, h * .38, r, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.fillStyle = '#ff5e96';
+    ctx.font = `800 ${mobile ? 10 : 12}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`DAILY CHALLENGE · UTC`, w / 2, mobile ? 76 : 68);
+    ctx.fillStyle = '#fff3cf';
+    ctx.font = `900 ${mobile ? 34 : 46}px 'Cinzel', serif`;
+    ctx.fillText(`#${info.number}`, w / 2, mobile ? 113 : 111);
+    ctx.fillStyle = 'rgba(225,231,235,.66)';
+    ctx.font = `700 ${mobile ? 11 : 12}px sans-serif`;
+    ctx.fillText(info.label.toUpperCase(), w / 2, mobile ? 142 : 150);
+
+    const cardW = Math.min(430, w - (mobile ? 28 : 48));
+    const cardH = mobile ? 390 : 410;
+    const cardX = (w - cardW) / 2;
+    const cardY = mobile ? 174 : 180;
+    const card = ctx.createLinearGradient(cardX, cardY, cardX, cardY + cardH);
+    card.addColorStop(0, 'rgba(27,40,48,.97)');
+    card.addColorStop(1, 'rgba(5,10,14,.98)');
+    ctx.fillStyle = card;
+    ctx.beginPath();
+    ctx.roundRect(cardX, cardY, cardW, cardH, 16);
+    ctx.fill();
+    ctx.strokeStyle = completed ? 'rgba(216,182,79,.65)' : 'rgba(102,226,255,.38)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    const previewSize = mobile ? 132 : 150;
+    drawDailyBoardPreview(level, w / 2 - previewSize / 2, cardY + 31, previewSize, difficulty.color);
+
+    ctx.fillStyle = difficulty.color;
+    ctx.font = `800 ${mobile ? 11 : 12}px sans-serif`;
+    ctx.fillText(difficulty.label, w / 2, cardY + previewSize + 50);
+    const markGap = 15;
+    for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        ctx.arc(w / 2 + (i - 1) * markGap, cardY + previewSize + 70, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = i < difficulty.marks ? difficulty.color : 'rgba(255,255,255,.13)';
+        ctx.fill();
+    }
+
+    ctx.fillStyle = 'rgba(225,231,235,.5)';
+    ctx.font = `700 ${mobile ? 9 : 10}px sans-serif`;
+    ctx.fillText(`${level?.pieces?.length || 4} GLYPHS · ONE SHARED PUZZLE`, w / 2, cardY + previewSize + 94);
+
+    const statY = cardY + previewSize + 132;
+    const statW = (cardW - 50) / 2;
+    [['CURRENT STREAK', `${streak} DAYS`], ['LONGEST STREAK', `${longest} DAYS`]].forEach(([label, value], index) => {
+        const sx = cardX + 20 + index * (statW + 10);
+        ctx.fillStyle = 'rgba(255,255,255,.045)';
+        ctx.beginPath();
+        ctx.roundRect(sx, statY, statW, 58, 8);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(225,231,235,.5)';
+        ctx.font = '700 8px sans-serif';
+        ctx.fillText(label, sx + statW / 2, statY + 17);
+        ctx.fillStyle = index ? '#d8b64f' : '#ff8c55';
+        ctx.font = `800 ${mobile ? 14 : 16}px 'Cinzel', serif`;
+        ctx.fillText(value, sx + statW / 2, statY + 39);
+    });
+
+    if (completed && result) {
+        const minutes = Math.floor(result.time / 60);
+        const seconds = Math.floor(result.time % 60).toString().padStart(2, '0');
+        ctx.fillStyle = '#d8b64f';
+        ctx.font = '700 10px sans-serif';
+        ctx.fillText(`COMPLETED · BEST ${minutes}:${seconds} · ${result.stars || 0}/3 STARS`, w / 2, cardY + cardH - 30);
+    } else {
+        ctx.fillStyle = 'rgba(225,231,235,.52)';
+        ctx.font = '700 9px sans-serif';
+        ctx.fillText('FIRST CLEAR REWARD · 500 GOLD', w / 2, cardY + cardH - 30);
+    }
+
+    const playW = Math.min(330, w - 50);
+    const playH = 54;
+    const playX = (w - playW) / 2;
+    const playY = Math.min(h - 82, cardY + cardH + 24);
+    ctx.shadowColor = completed ? '#d8b64f' : '#e91e63';
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = completed ? '#d8b64f' : '#f04b82';
+    ctx.beginPath();
+    ctx.roundRect(playX, playY, playW, playH, 11);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#080b0e';
+    ctx.font = `900 ${mobile ? 15 : 17}px 'Cinzel', serif`;
+    ctx.fillText(completed ? 'REPLAY TODAY\'S GLYPH' : 'BEGIN TODAY\'S GLYPH', w / 2, playY + playH / 2);
+
+    ctx.fillStyle = '#d8b64f';
+    ctx.font = '700 28px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('‹', 22, 32);
+    dailyBriefButtons = { back: { x: 0, y: 0, w: 60, h: 64 }, play: { x: playX, y: playY, w: playW, h: playH } };
+}
+
+function handleDailyBriefClick(x, y) {
+    if (pointInRect(x, y, dailyBriefButtons.back)) {
+        playSound('menu_back');
+        gameState = 'MENU';
+    } else if (pointInRect(x, y, dailyBriefButtons.play)) {
+        playSound('click');
+        dailyHintsUsed = 0;
+        startGame('LEVELS_DAILY', dailySystem.getTodayIndex());
+    }
+}
+
+function handleMenuClick(clickX, clickY) { const { x, startY, w: btnW, h: btnH, gap } = menuBtnLayout; MENU_BUTTONS.forEach((btn, index) => { const y = startY + index * (btnH + gap); if (clickX >= x && clickX <= x + btnW && clickY >= y && clickY <= y + btnH) { if (btn.text === "CAMPAIGN") { if (!hasSeenTutorial) { startGame('LEVELS_EASY', 0); } else { gameState = "MAP"; } } else if (btn.name === 'DAILY') { gameState = 'DAILY_BRIEF'; } else if (btn.name === 'MODE_TIME') { timeAttack.start(); const next = timeAttack.getNextLevel(); gameState = "TIME_ATTACK"; startGame(next.set, next.index); timeAttack.markLevelStart(); if (audio) audio.playMusic('music_time_attack'); checkAchievements({ playedTimeAttack: true }); } else if (btn.name === 'MODE_ZEN') { showZenSettings(); } else if (btn.name === 'SHOP') { shopReturnState = "MENU"; gameState = "SHOP"; shop.updateInventory(ownedItems, activeItems, ownedHints); checkAchievements({ visitedShop: true }); } else if (btn.name === 'ACHIEVEMENTS') { gameState = "ACHIEVEMENTS"; achievements.resetScroll(); } } }); }
 
 // --- ZEN MODE ---
 let zenMode = false;
@@ -1236,6 +1413,8 @@ function loadLevel(index) {
     if (grid && typeof grid.setTheme === 'function') grid.setTheme(boardTheme);
     if (tray && typeof tray.setTheme === 'function') tray.setTheme(boardTheme);
     if (hud && typeof hud.setTheme === 'function') hud.setTheme(boardTheme);
+    const gameShell = document.getElementById('game-shell');
+    if (gameShell) gameShell.dataset.visualTheme = boardTheme;
     
     setBgImage(targetBgSrc); 
     // Byt INTE musik om vi är i Time Attack - behåll music_time_attack
@@ -1355,7 +1534,7 @@ function loop(timestamp) {
     }
     
     const accessibilityOpen = document.getElementById('accessibility-open'); if (accessibilityOpen) accessibilityOpen.classList.toggle('hidden', gameState !== "MENU");
-    if (gameState === "MENU") { drawMenu(); } else if (gameState === "CREDITS") { drawCredits(); } else if (gameState === "MAP") { worldMap.update(dt); worldMap.draw(); } else if (gameState === "SHOP") { worldMap.draw(); shop.draw(ctx, totalGold); } else if (gameState === "ACHIEVEMENTS") { achievements.draw(ctx); } 
+    if (gameState === "MENU") { drawMenu(); } else if (gameState === "DAILY_BRIEF") { drawDailyBrief(); } else if (gameState === "CREDITS") { drawCredits(); } else if (gameState === "MAP") { worldMap.update(dt); worldMap.draw(); } else if (gameState === "SHOP") { worldMap.draw(); shop.draw(ctx, totalGold); } else if (gameState === "ACHIEVEMENTS") { achievements.draw(ctx); }
     else { 
         pieces.forEach(p => p.update(dt)); if (effects) effects.update(dt); grid.draw(ctx); 
         
@@ -1473,8 +1652,13 @@ function drawMenu() {
         ctx.drawImage(menuBgImage, offsetX, offsetY, renderW, renderH);
     }
 
-    // Mörkare overlay för läsbarhet
-    ctx.fillStyle = "rgba(5, 5, 15, 0.55)";
+    // Deep vignette focuses the eye on the relic-like menu stack.
+    ctx.fillStyle = "rgba(3, 5, 12, 0.5)";
+    ctx.fillRect(0, 0, w, h);
+    const vignette = ctx.createRadialGradient(w / 2, h * .46, Math.min(w,h) * .12, w / 2, h * .46, Math.max(w,h) * .72);
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(1, "rgba(0,0,0,.56)");
+    ctx.fillStyle = vignette;
     ctx.fillRect(0, 0, w, h);
 
     // Titel
@@ -1489,6 +1673,9 @@ function drawMenu() {
     ctx.textBaseline = "middle";
     ctx.fillText("GOLDEN GLYPHS", w / 2, (h * 0.15) + floatY);
     ctx.shadowBlur = 0;
+    ctx.font = `600 ${Math.max(10, titleSize * .27)}px 'Cinzel', serif`;
+    ctx.fillStyle = "rgba(255,236,176,.72)";
+    ctx.fillText("AN ANCIENT PUZZLE AWAITS", w / 2, (h * .15) + titleSize * .5);
     ctx.restore();
 
     // Knappar - Glasstil
@@ -1527,18 +1714,17 @@ function drawMenu() {
             } 
         } 
         
-        // Skugga
+        // Deep artifact panel with a restrained mode-colored energy edge.
         ctx.shadowColor = "rgba(0,0,0,0.5)";
-        ctx.shadowBlur = 15;
-        ctx.shadowOffsetY = 5;
+        ctx.shadowBlur = 18;
+        ctx.shadowOffsetY = 7;
         
-        // Färgad glas-bakgrund med gradient
+        // Dark stone/glass instead of a full saturated color block.
         const btnGrad = ctx.createLinearGradient(x, y, x, y + btnH);
         const baseColor = accentColor;
-        // Gör ljusare och mörkare varianter
-        btnGrad.addColorStop(0, adjustBrightness(baseColor, 30));
-        btnGrad.addColorStop(0.5, baseColor);
-        btnGrad.addColorStop(1, adjustBrightness(baseColor, -30));
+        btnGrad.addColorStop(0, "rgba(31,37,46,.96)");
+        btnGrad.addColorStop(.5, "rgba(12,17,25,.96)");
+        btnGrad.addColorStop(1, "rgba(4,7,12,.98)");
         
         ctx.fillStyle = btnGrad;
         ctx.beginPath();
@@ -1549,31 +1735,41 @@ function drawMenu() {
         ctx.shadowBlur = 0; 
         ctx.shadowOffsetY = 0;
         
-        // Glas-shine effekt (övre halvan)
+        // Narrow glass sheen and colored energy rail.
         const shineGrad = ctx.createLinearGradient(x, y, x, y + btnH * 0.5);
-        shineGrad.addColorStop(0, "rgba(255,255,255,0.35)");
+        shineGrad.addColorStop(0, "rgba(255,255,255,0.12)");
         shineGrad.addColorStop(1, "rgba(255,255,255,0)");
         ctx.fillStyle = shineGrad;
         ctx.beginPath();
         ctx.roundRect(x, y, btnW, btnH * 0.5, [cornerRadius, cornerRadius, 0, 0]);
         ctx.fill();
         
-        // Border - ljus kant överst
-        ctx.strokeStyle = "rgba(255,255,255,0.3)";
+        ctx.shadowColor = baseColor;
+        ctx.shadowBlur = 9;
+        ctx.fillStyle = baseColor;
+        ctx.beginPath();
+        ctx.roundRect(x, y + 8, 4, btnH - 16, 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Fine neutral border lets the accent carry the hierarchy.
+        ctx.strokeStyle = "rgba(225,235,242,.18)";
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.roundRect(x, y, btnW, btnH, cornerRadius);
         ctx.stroke();
         
-        // "3D" underkant
-        ctx.fillStyle = adjustBrightness(baseColor, -50);
+        // Colored lower reflection, kept deliberately subtle.
+        ctx.globalAlpha = .35;
+        ctx.fillStyle = baseColor;
         ctx.beginPath();
-        ctx.roundRect(x, y + btnH - 4, btnW, 4, [0, 0, cornerRadius, cornerRadius]);
+        ctx.roundRect(x + 10, y + btnH - 2, btnW - 20, 2, [0, 0, cornerRadius, cornerRadius]);
         ctx.fill();
+        ctx.globalAlpha = 1;
         
         // Ikon
         const iconX = x + 35;
-        drawMenuGlyph(iconX, y + btnH/2, btnH * 0.22, btn.glyph, isCompleted);
+        drawMenuGlyph(iconX, y + btnH/2, btnH * 0.22, btn.glyph, isCompleted, baseColor);
         
         // Text med skugga för läsbarhet
         ctx.fillStyle = "#FFF";
@@ -1586,7 +1782,7 @@ function drawMenu() {
 
         if (secondaryText) {
             ctx.font = `600 ${btnH * 0.17}px sans-serif`;
-            ctx.fillStyle = "rgba(255,255,255,0.88)";
+            ctx.fillStyle = "rgba(205,216,224,.78)";
             ctx.textAlign = "left";
             ctx.fillText(secondaryText, x + 60, y + btnH * 0.70);
         }
@@ -1598,7 +1794,7 @@ function drawMenu() {
                 const dotY = y + btnH * 0.70;
                 ctx.beginPath();
                 ctx.arc(dotX, dotY, day.today ? 4 : 3.2, 0, Math.PI * 2);
-                ctx.fillStyle = day.completed ? "#FFD700" : "rgba(255,255,255,0.32)";
+                ctx.fillStyle = day.completed ? "#FFD700" : "rgba(205,216,224,.28)";
                 ctx.fill();
                 if (day.today) { ctx.strokeStyle = "#FFF"; ctx.lineWidth = 1; ctx.stroke(); }
             });
@@ -1639,7 +1835,7 @@ function drawMenu() {
     ctx.fillText("A GAMEVOLT ORIGINAL", w / 2, h - 30);
     ctx.font = `400 12px sans-serif`;
     ctx.fillStyle = "#444";
-    ctx.fillText("v1.1.0", w / 2, h - 12);
+    ctx.fillText("v1.2.0", w / 2, h - 12);
     ctx.restore(); 
 }
 window.onload = init; window.resetGame = function() { localStorage.clear(); window.location.reload(); }; window.cheat = function() { totalGold += 5000; ownedHints += 5; saveProgress(); console.log("💰 FUSK AKTIVERAT"); };

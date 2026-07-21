@@ -144,6 +144,47 @@
             font-family: 'Segoe UI', sans-serif;
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        .system-overlay {
+            background: radial-gradient(circle at 50% 38%, rgba(25,55,66,.72), rgba(1,5,8,.94) 68%);
+            backdrop-filter: blur(7px);
+        }
+        .system-panel {
+            position: relative;
+            box-sizing: border-box;
+            padding: 26px 24px 22px;
+            border: 1px solid rgba(216,182,79,.28);
+            border-radius: 16px;
+            background: linear-gradient(180deg,rgba(29,39,43,.98),rgba(5,10,13,.99));
+            box-shadow: 0 24px 70px rgba(0,0,0,.62), inset 0 1px rgba(255,255,255,.07);
+            overflow: hidden;
+        }
+        .system-panel::before {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border: 1px solid rgba(255,255,255,.035);
+            border-radius: 11px;
+            pointer-events: none;
+        }
+        .system-kicker { text-align:center; color:rgba(225,231,235,.5); font:700 .68rem sans-serif; letter-spacing:.18em; margin-bottom:5px; }
+        .system-title { text-align:center; color:#fff3cf; font:900 1.85rem 'Cinzel',serif; margin:0; text-shadow:0 0 18px rgba(216,182,79,.2); }
+        .system-copy { color:rgba(225,231,235,.58); text-align:center; font-size:.86rem; line-height:1.5; margin:8px 0 20px; }
+        .system-field { display:block; margin:13px 0 6px; color:#d8b64f; font:700 .68rem 'Cinzel',serif; letter-spacing:.13em; }
+        .system-panel select {
+            box-sizing:border-box; width:100%; padding:12px 38px 12px 13px !important;
+            border:1px solid rgba(160,190,200,.23) !important; border-radius:9px !important;
+            color:#eef3f4 !important; background:#0b1419 !important; font:600 .9rem sans-serif;
+            box-shadow:inset 0 2px 8px rgba(0,0,0,.35); color-scheme:dark;
+        }
+        .system-check { display:flex; align-items:center; gap:11px; color:rgba(225,231,235,.72); font-size:.86rem; line-height:1.35; margin:17px 0 !important; }
+        .system-check input { appearance:none; width:21px; height:21px; flex:0 0 21px; border:1px solid rgba(216,182,79,.42); border-radius:5px; background:#091116; display:grid; place-items:center; }
+        .system-check input:checked { background:#d8b64f; box-shadow:0 0 10px rgba(216,182,79,.3); }
+        .system-check input:checked::after { content:"✓"; color:#111; font-weight:900; font-size:14px; }
+        .system-primary, .system-secondary { position:relative; width:100%; border-radius:9px !important; font:800 .92rem 'Cinzel',serif !important; letter-spacing:.05em; padding:14px !important; }
+        .system-primary { background:linear-gradient(180deg,#f5d766,#b98b17) !important; color:#151006 !important; box-shadow:0 0 16px rgba(216,182,79,.22) !important; }
+        .zen-panel .system-primary { background:linear-gradient(180deg,#75e5ec,#2695a5) !important; color:#061115 !important; box-shadow:0 0 16px rgba(70,210,225,.2) !important; }
+        .system-secondary { margin-top:9px; color:rgba(225,231,235,.68) !important; background:rgba(255,255,255,.045) !important; border:1px solid rgba(255,255,255,.1) !important; box-shadow:none !important; }
+        @media (max-width:430px) { .system-panel { padding:22px 19px 18px; } .system-title { font-size:1.55rem; } }
         @keyframes popIn {
             from { transform: scale(0.8); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
@@ -155,7 +196,7 @@
     <main id="game-shell">
     <div id="rotate-overlay" class="hidden overlay">
         <div class="rotate-content" style="text-align: center; color: #FFD700; font-family: 'Cinzel', serif;">
-            <div style="font-size: 80px; margin-bottom: 20px; animation: rotatePhone 2s ease-in-out infinite;">📱</div>
+            <div class="rotate-device-glyph" aria-hidden="true"><span></span></div>
             <h2 style="font-size: 1.5em; margin: 0;">Please rotate your device</h2>
             <p style="font-size: 1em; color: #888; margin-top: 10px;">This game is best played in portrait mode</p>
         </div>
@@ -167,6 +208,16 @@
             25% { transform: rotate(-30deg); }
             75% { transform: rotate(30deg); }
         }
+        .rotate-device-glyph {
+            position:relative; width:48px; height:76px; margin:0 auto 24px;
+            border:3px solid #d8b64f; border-radius:9px;
+            background:linear-gradient(180deg,rgba(28,39,43,.96),rgba(5,10,13,.98));
+            box-shadow:0 0 20px rgba(216,182,79,.28), inset 0 0 0 3px rgba(255,255,255,.035);
+            animation:rotatePhone 2s ease-in-out infinite;
+        }
+        .rotate-device-glyph::before { content:""; position:absolute; left:50%; top:5px; width:14px; height:2px; border-radius:2px; background:rgba(255,243,207,.7); transform:translateX(-50%); }
+        .rotate-device-glyph::after { content:""; position:absolute; left:50%; bottom:5px; width:5px; height:5px; border:1px solid rgba(255,243,207,.65); border-radius:50%; transform:translateX(-50%); }
+        .rotate-device-glyph span { position:absolute; inset:13px 6px; border:1px solid rgba(82,229,255,.32); background:radial-gradient(circle,rgba(82,229,255,.18),transparent 65%); }
     </style>
 
     <canvas id="gameCanvas"></canvas>
@@ -191,37 +242,38 @@
       </div>
     </div>
 
-    <div id="zen-settings" class="overlay hidden">
-      <div class="overlay-box" style="max-width:420px;width:min(86vw,420px);text-align:left;">
-        <div style="font:900 2rem 'Cinzel',serif;color:#65e6f3;text-align:center;margin-bottom:8px;">ZEN SESSION</div>
-        <p style="color:#aaa;text-align:center;margin:0 0 20px;">Choose your pace. No repeats within a session.</p>
-        <label style="display:block;color:#FFD700;font:700 .8rem 'Cinzel',serif;margin:12px 0 6px;">DIFFICULTY</label>
+    <div id="zen-settings" class="overlay system-overlay hidden">
+      <div class="overlay-box system-panel zen-panel" style="max-width:420px;width:min(86vw,420px);text-align:left;">
+        <div class="system-kicker">QUIET PLAY</div><div class="system-title">ZEN SESSION</div>
+        <p class="system-copy">Choose your pace. No timer, no pressure, no repeats.</p>
+        <label class="system-field">DIFFICULTY</label>
         <select id="zen-difficulty" style="width:100%;padding:12px;border-radius:8px;background:#111827;color:#fff;border:1px solid #456;">
           <option value="gentle">Gentle · 3 pieces</option><option value="mixed" selected>Mixed · 3–4 pieces</option><option value="master">Master · 5 pieces</option>
         </select>
-        <label style="display:block;color:#FFD700;font:700 .8rem 'Cinzel',serif;margin:12px 0 6px;">SESSION</label>
+        <label class="system-field">SESSION</label>
         <select id="zen-length" style="width:100%;padding:12px;border-radius:8px;background:#111827;color:#fff;border:1px solid #456;">
           <option value="5">5 puzzles</option><option value="10" selected>10 puzzles</option><option value="0">Endless</option>
         </select>
-        <label style="display:block;color:#FFD700;font:700 .8rem 'Cinzel',serif;margin:12px 0 6px;">ATMOSPHERE</label>
+        <label class="system-field">ATMOSPHERE</label>
         <select id="zen-theme" style="width:100%;padding:12px;border-radius:8px;background:#111827;color:#fff;border:1px solid #456;">
           <option value="zen" selected>Zen Garden</option><option value="temple">Temple</option><option value="ice">Frozen</option><option value="lava">Ember</option><option value="neon">Neon</option>
         </select>
-        <label style="display:flex;align-items:center;gap:10px;color:#ddd;margin:16px 0;"><input id="zen-reduced-motion" type="checkbox"> Reduced motion</label>
-        <button id="zen-start" type="button" style="width:100%;background:linear-gradient(180deg,#65e6f3,#1596a6);">START ZEN</button>
-        <button id="zen-cancel" type="button" style="width:100%;margin-top:10px;background:rgba(255,255,255,.07);border:1px solid #456;box-shadow:none;">BACK</button>
+        <label class="system-check"><input id="zen-reduced-motion" type="checkbox"> Reduced motion</label>
+        <button id="zen-start" class="system-primary" type="button">START ZEN</button>
+        <button id="zen-cancel" class="system-secondary" type="button">BACK</button>
       </div>
     </div>
-    <button id="accessibility-open" type="button" aria-label="Accessibility settings" class="hidden" style="position:absolute;left:14px;bottom:14px;z-index:25;width:auto;padding:8px 12px;font-size:12px;background:rgba(5,8,18,.8);border:1px solid #667;box-shadow:none;">ACCESSIBILITY</button>
-    <div id="accessibility-settings" class="overlay hidden">
-      <div class="overlay-box" style="max-width:400px;width:min(86vw,400px);text-align:left;">
-        <div style="font:900 1.7rem 'Cinzel',serif;color:#FFD700;text-align:center;margin-bottom:18px;">ACCESSIBILITY</div>
-        <label style="display:block;color:#FFD700;font:700 .8rem 'Cinzel',serif;margin:12px 0 6px;">TEXT SIZE</label>
+    <button id="accessibility-open" type="button" aria-label="Accessibility settings" class="hidden" style="position:absolute;left:14px;top:14px;z-index:25;width:auto;padding:8px 12px;font-size:11px;color:#c8d1d5;background:rgba(5,8,18,.84);border:1px solid rgba(160,180,190,.35);box-shadow:none;">ACCESSIBILITY</button>
+    <div id="accessibility-settings" class="overlay system-overlay hidden">
+      <div class="overlay-box system-panel" style="max-width:400px;width:min(86vw,400px);text-align:left;">
+        <div class="system-kicker">DISPLAY &amp; COMFORT</div><div class="system-title">ACCESSIBILITY</div>
+        <p class="system-copy">Tune Golden Glyphs for comfortable play.</p>
+        <label class="system-field">TEXT SIZE</label>
         <select id="access-text-scale" style="width:100%;padding:12px;border-radius:8px;background:#111827;color:#fff;border:1px solid #667;"><option value="1">Normal</option><option value="1.15">Large</option><option value="1.3">Extra large</option></select>
-        <label style="display:flex;align-items:center;gap:10px;color:#ddd;margin:18px 0;"><input id="access-colorblind" type="checkbox"> High-contrast colorblind palette + symbols</label>
-        <label style="display:flex;align-items:center;gap:10px;color:#ddd;margin:18px 0;"><input id="access-reduced-motion" type="checkbox"> Reduced motion everywhere</label>
-        <button id="access-save" type="button" style="width:100%;background:linear-gradient(180deg,#FFE066,#D4A700);color:#17120a;">SAVE</button>
-        <button id="access-cancel" type="button" style="width:100%;margin-top:10px;background:rgba(255,255,255,.07);border:1px solid #667;box-shadow:none;">BACK</button>
+        <label class="system-check"><input id="access-colorblind" type="checkbox"> High-contrast palette with shape symbols</label>
+        <label class="system-check"><input id="access-reduced-motion" type="checkbox"> Reduced motion everywhere</label>
+        <button id="access-save" class="system-primary" type="button">SAVE SETTINGS</button>
+        <button id="access-cancel" class="system-secondary" type="button">BACK</button>
       </div>
     </div>
     </main>
@@ -246,7 +298,7 @@
     <!-- GameVolt SDK -->
     <script src="/sdk/gamevolt.js"></script>
 
-    <script type="module" src="./src/js/game.js?v=8"></script>
+    <script type="module" src="./src/js/game.js?v=17"></script>
 
 <script>
         const audioDiv = document.getElementById('audioOverlay');

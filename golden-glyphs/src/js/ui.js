@@ -31,6 +31,13 @@ export class UI {
                 transition: transform 0.2s;
             }
             .btn-shine:active { transform: scale(0.95); }
+            .gg-result-star {
+                width: 46px; height: 46px; display: inline-block;
+                clip-path: polygon(50% 0%,61% 34%,98% 35%,68% 57%,79% 94%,50% 72%,21% 94%,32% 57%,2% 35%,39% 34%);
+                background: rgba(255,255,255,.1); filter: drop-shadow(0 3px 2px rgba(0,0,0,.45));
+            }
+            .gg-result-star.earned { background: linear-gradient(145deg,#FFF0A6 0%,#FFD43B 42%,#B97905 100%); filter: drop-shadow(0 0 10px rgba(255,205,47,.58)); }
+            .gg-result-rule { height:1px; margin:0 auto 20px; width:72%; background:linear-gradient(90deg,transparent,var(--result-accent),transparent); opacity:.7; }
             #game-shell[data-reduced-motion="true"] *,
             #game-shell[data-reduced-motion="true"] *::before,
             #game-shell[data-reduced-motion="true"] *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
@@ -49,16 +56,26 @@ export class UI {
 
         // 1. Rensa gammalt innehåll
         overlay.innerHTML = "";
+
+        const visualTheme = document.getElementById('game-shell')?.dataset.visualTheme || 'jungle';
+        const resultPalette = {
+            jungle:{ accent:'#E8C45B', glow:'rgba(232,196,91,.32)', top:'#263023', bottom:'#070C09' },
+            frozen:{ accent:'#9DE7FF', glow:'rgba(92,211,255,.3)', top:'#18303F', bottom:'#040D16' },
+            inferno:{ accent:'#FF9A4D', glow:'rgba(255,91,30,.32)', top:'#3B1B13', bottom:'#100405' },
+            neon:{ accent:'#52E5FF', glow:'rgba(207,65,255,.32)', top:'#161B3D', bottom:'#030513' },
+            zen:{ accent:'#8FD6BF', glow:'rgba(91,199,167,.28)', top:'#1B342D', bottom:'#06100D' }
+        }[visualTheme] || { accent:'#E8C45B', glow:'rgba(232,196,91,.32)', top:'#263023', bottom:'#070C09' };
+        overlay.style.setProperty('--result-accent', resultPalette.accent);
         
         // 2. Skapa boxen med glas-design
         const box = document.createElement('div');
         box.className = 'win-content';
         Object.assign(box.style, {
-            background: 'linear-gradient(180deg, rgba(20, 30, 50, 0.95) 0%, rgba(10, 15, 30, 0.98) 100%)',
-            padding: '40px',
-            borderRadius: '15px',
-            border: '2px solid rgba(255, 215, 0, 0.5)',
-            boxShadow: '0 0 30px rgba(255, 215, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
+            background: `linear-gradient(180deg, ${resultPalette.top} 0%, ${resultPalette.bottom} 100%)`,
+            padding: '34px clamp(22px,7vw,40px)',
+            borderRadius: '18px',
+            border: `1px solid ${resultPalette.accent}`,
+            boxShadow: `0 18px 60px rgba(0,0,0,.62), 0 0 26px ${resultPalette.glow}, inset 0 1px 0 rgba(255,255,255,.12)`,
             textAlign: 'center',
             color: '#fff',
             minWidth: 'min(300px, 82vw)',
@@ -73,7 +90,7 @@ export class UI {
         const shine = document.createElement('div');
         Object.assign(shine.style, {
             position: 'absolute', top: '0', left: '0', right: '0', height: '50%',
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,.1) 0%, rgba(255,255,255,0) 100%)',
             borderRadius: '13px 13px 0 0', pointerEvents: 'none'
         });
         box.appendChild(shine);
@@ -82,17 +99,16 @@ export class UI {
         const title = document.createElement('h1');
         title.innerText = titleText;
         Object.assign(title.style, {
-            fontSize: '2.2em', margin: '0 0 20px 0', 
-            textShadow: '0 0 20px rgba(255, 215, 0, 0.5)', 
-            color: '#FFD700',
+            fontSize: 'clamp(1.55rem,7vw,2.2rem)', margin: '0 0 10px 0',
+            textShadow: `0 0 20px ${resultPalette.glow}`,
+            color: resultPalette.accent,
             fontFamily: "'Cinzel', serif",
             position: 'relative'
         });
 
         // 4. Stjärnor — staggered pop-in med ljud per stjärna
         const starContainer = document.createElement('div');
-        starContainer.style.fontSize = "50px";
-        starContainer.style.marginBottom = "20px";
+        starContainer.style.marginBottom = "22px";
         starContainer.style.position = "relative";
         starContainer.style.display = "flex";
         starContainer.style.justifyContent = "center";
@@ -101,7 +117,7 @@ export class UI {
         for (let i = 0; i < 3; i++) {
             const earned = i < stars;
             const starEl = document.createElement('span');
-            starEl.innerText = earned ? "⭐" : "☆";
+            starEl.className = `gg-result-star${earned ? ' earned' : ''}`;
             starEl.style.display = "inline-block";
             starEl.style.transition = "none";
             if (earned) {
@@ -115,7 +131,7 @@ export class UI {
                     if (playSound) playSound('star1');
                 }, delay);
             } else {
-                starEl.style.opacity = "0.3";
+                starEl.style.opacity = "0.32";
             }
             starContainer.appendChild(starEl);
         }
@@ -123,13 +139,17 @@ export class UI {
 
         // 5. Belöningstext
         const rewardText = document.createElement('div');
-        rewardText.innerHTML = `REWARD: <span style="color:#FFD700; font-weight:bold; font-size:1.3em;">${reward}</span> <span style="color:#FFD700; font-size:1.3em;">●</span>`;
+        rewardText.innerHTML = `<span style="color:rgba(255,255,255,.62);font-size:.72em;letter-spacing:.12em">REWARD</span><br><span style="color:${resultPalette.accent};font-weight:900;font-size:1.45em;">${reward}</span> <span style="display:inline-block;width:.72em;height:.72em;border-radius:50%;background:linear-gradient(145deg,#FFF1A0,#D59610);box-shadow:0 0 8px rgba(255,210,70,.45)"></span>`;
         if (streakBonus > 0) {
-            rewardText.innerHTML += `<br><span style="color:#FF9800; font-size:0.75em;">STREAK BONUS +${streakBonus} 🔥</span>`;
+            rewardText.innerHTML += `<br><span style="color:#FFB65C;font-size:.72em;">STREAK BONUS +${streakBonus}</span>`;
         }
 
         rewardText.style.fontSize = "1.2em";
-        rewardText.style.marginBottom = "30px";
+        rewardText.style.margin = "0 0 24px";
+        rewardText.style.padding = "13px";
+        rewardText.style.border = "1px solid rgba(255,255,255,.08)";
+        rewardText.style.borderRadius = "10px";
+        rewardText.style.background = "rgba(0,0,0,.2)";
         rewardText.style.fontFamily = "'Cinzel', serif";
         rewardText.style.position = "relative";
 
@@ -137,12 +157,13 @@ export class UI {
             const minutes = Math.floor(dailySummary.time / 60);
             const seconds = Math.floor(dailySummary.time % 60).toString().padStart(2, '0');
             const dailyStats = document.createElement('div');
-            dailyStats.innerHTML = `DAILY #${dailySummary.number}<br><span style="color:#fff;font-size:1.25em">${minutes}:${seconds}</span> · ${dailySummary.hints} HINT${dailySummary.hints === 1 ? '' : 'S'}<br><span style="color:#FF9800">🔥 ${dailySummary.streak} DAY STREAK</span>${dailySummary.replay ? '<br><span style="color:#aaa;font-size:.75em">REPLAY — BEST RESULT KEPT</span>' : ''}`;
+            dailyStats.innerHTML = `<span style="color:#ff6b9b;font-size:.72em;letter-spacing:.16em">DAILY #${dailySummary.number}</span><br><span style="color:#fff;font-size:1.35em">${minutes}:${seconds}</span> <span style="color:rgba(255,255,255,.48);font-size:.72em">· ${dailySummary.hints} HINT${dailySummary.hints === 1 ? '' : 'S'}</span><br><span style="display:inline-block;margin-top:7px;padding:5px 10px;border:1px solid rgba(255,152,0,.36);border-radius:999px;color:#FFB45C;background:rgba(255,120,30,.08);font-size:.76em">${dailySummary.streak} DAY STREAK</span>${dailySummary.replay ? '<br><span style="color:#aaa;font-size:.68em;letter-spacing:.08em">REPLAY · BEST RESULT KEPT</span>' : ''}`;
             Object.assign(dailyStats.style, {
                 fontFamily: "'Cinzel', serif", fontSize: '1em', lineHeight: '1.65',
                 color: '#FFD700', margin: '-8px 0 22px', position: 'relative'
             });
             box.appendChild(title);
+            const rule = document.createElement('div'); rule.className = 'gg-result-rule'; box.appendChild(rule);
             box.appendChild(starContainer);
             box.appendChild(dailyStats);
 
@@ -197,6 +218,7 @@ export class UI {
             }).catch(() => { leaderboardBox.textContent = 'DAILY TOP 10 · UNAVAILABLE'; });
         } else {
             box.appendChild(title);
+            const rule = document.createElement('div'); rule.className = 'gg-result-rule'; box.appendChild(rule);
             box.appendChild(starContainer);
         }
 
@@ -205,19 +227,18 @@ export class UI {
         nextBtn.innerText = btnText;
         nextBtn.className = 'btn-shine';
         Object.assign(nextBtn.style, {
-            background: 'linear-gradient(180deg, #5cb85c 0%, #4CAF50 50%, #3d8b40 100%)',
-            color: 'white', 
-            border: 'none',
-            borderTop: '1px solid rgba(255,255,255,0.3)',
+            background: `linear-gradient(180deg, ${resultPalette.accent} 0%, ${resultPalette.accent} 100%)`,
+            color: '#07100d',
+            border: '1px solid rgba(255,255,255,.32)',
             padding: '15px 40px', 
             fontSize: '20px', 
             fontWeight: 'bold',
-            borderRadius: '10px', 
+            borderRadius: '9px',
             cursor: 'pointer', 
             fontFamily: "'Cinzel', serif",
             marginTop: '10px', 
             width: '100%',
-            boxShadow: '0 4px 0 #2E7D32, inset 0 1px 0 rgba(255,255,255,0.2)',
+            boxShadow: `0 5px 18px ${resultPalette.glow}, inset 0 1px 0 rgba(255,255,255,.3)`,
             textShadow: '0 1px 2px rgba(0,0,0,0.3)',
             position: 'relative'
         });
@@ -233,14 +254,14 @@ export class UI {
         if (worldUnlock) {
             const unlock = document.createElement('div');
             unlock.textContent = `WORLD UNLOCKED · ${worldUnlock.name}`;
-            Object.assign(unlock.style, { color:'#65e6f3', border:'1px solid rgba(101,230,243,.5)', background:'rgba(0,188,212,.12)', padding:'12px', borderRadius:'9px', margin:'0 0 16px', fontWeight:'900', fontFamily:"'Cinzel',serif", boxShadow:'0 0 18px rgba(0,188,212,.18)' });
+            Object.assign(unlock.style, { color:resultPalette.accent, border:`1px solid ${resultPalette.accent}`, background:'rgba(255,255,255,.045)', padding:'12px', borderRadius:'9px', margin:'0 0 16px', fontWeight:'900', fontFamily:"'Cinzel',serif", boxShadow:`0 0 18px ${resultPalette.glow}` });
             box.appendChild(unlock);
         }
         
         // Annons-knapp (visas BARA om ad-SDK finns)
         if (reward > 0 && onAdReward && this.ads && this.ads.isAvailable()) {
             const adBtn = document.createElement('button');
-            adBtn.innerText = "📺 DOUBLE GOLD (AD)";
+            adBtn.innerText = "DOUBLE GOLD · AD";
             adBtn.className = 'btn-shine';
             Object.assign(adBtn.style, {
                 background: 'linear-gradient(180deg, #FFB74D 0%, #FF9800 50%, #E65100 100%)',

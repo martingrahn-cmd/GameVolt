@@ -86,9 +86,10 @@ export class WorldMap {
         const btnH = isSmall ? 36 : isPortrait ? h * 0.06 : 50;
         const margin = w * 0.03;
         const topY = h * 0.015;
+        const authReserve = Math.min(108, w * 0.27);
 
         this.btnBack = { x: margin, y: topY, w: btnW, h: btnH, text: "BACK", icon: "↩" };
-        this.btnShop = { x: w - btnW - margin, y: topY, w: btnW, h: btnH, text: "SHOP" };
+        this.btnShop = { x: w - btnW - margin - authReserve, y: topY, w: btnW, h: btnH, text: "SHOP" };
     }
 
     // --- RITA HJÄLPFUNKTIONER ---
@@ -158,6 +159,20 @@ export class WorldMap {
         ctx.lineTo(x + size * 0.3, y + size * 0.4);
         ctx.stroke();
         
+        ctx.restore();
+    }
+
+    drawStar(ctx, x, y, radius, filled = true, color = '#FFD700') {
+        ctx.save(); ctx.beginPath();
+        for (let i = 0; i < 10; i++) {
+            const r = i % 2 === 0 ? radius : radius * .45;
+            const a = -Math.PI / 2 + i * Math.PI / 5;
+            const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        if (filled) { ctx.fillStyle = color; ctx.fill(); }
+        else { ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1.2; ctx.stroke(); }
         ctx.restore();
     }
 
@@ -243,9 +258,12 @@ export class WorldMap {
 
         // Placera under världskorten
         const cardBottom = h / 2 + this.cardHeight * 0.55;
-        const statsY = Math.min(cardBottom + 20, h - 40);
+        const statsY = this.mode === 'LEVEL_SELECT' ? Math.max(25, this.btnBack.y + this.btnBack.h / 2) : Math.min(cardBottom + 20, h - 40);
 
         ctx.save();
+        ctx.fillStyle = "rgba(2,6,12,.72)";
+        this.drawRoundedRect(centerX - 92, statsY - 18, 184, 36, 18); ctx.fill();
+        ctx.strokeStyle = "rgba(255,215,90,.24)"; ctx.lineWidth = 1; ctx.stroke();
         ctx.shadowColor = "black"; ctx.shadowBlur = 3;
         ctx.textBaseline = "middle";
 
@@ -264,10 +282,7 @@ export class WorldMap {
         ctx.fillText(`${gold}`, centerX - spacing - 33, statsY);
 
         // --- STJÄRNOR ---
-        ctx.font = `bold ${fontSize}px 'Cinzel', serif`;
-        ctx.fillStyle = "#FFD700";
-        ctx.textAlign = "center";
-        ctx.fillText("★", centerX + spacing + 15, statsY);
+        this.drawStar(ctx, centerX + spacing + 15, statsY, iconSize, true);
 
         ctx.font = `bold ${fontSize}px 'Cinzel', serif`;
         ctx.fillStyle = "#FFD700";
@@ -285,6 +300,13 @@ export class WorldMap {
 
         const totalStars = this.getTotalStars();
 
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(255,238,190,.82)';
+        ctx.font = `700 ${Math.max(13, Math.min(19, w * .045))}px 'Cinzel', serif`;
+        ctx.fillText('CHOOSE A WORLD', w / 2, h * .105);
+        ctx.restore();
+
         this.worlds.forEach((world, i) => {
             const baseX = this.startX + i * (this.cardWidth + this.cardGap);
             const x = baseX - this.scrollX;
@@ -300,8 +322,11 @@ export class WorldMap {
 
             const locked = !this.isWorldUnlocked(world);
 
-            // SKUGGA
-            ctx.shadowColor = "black"; ctx.shadowBlur = 20 * currentScale; ctx.shadowOffsetY = 10;
+            // Focused cards feel like illuminated expedition relics.
+            const isFocus = dist < 100;
+            ctx.shadowColor = isFocus && !locked ? world.color : "black";
+            ctx.shadowBlur = (isFocus && !locked ? 28 : 20) * currentScale;
+            ctx.shadowOffsetY = 10;
 
             const img = this.images[world.bg];
             if (img && img.complete) {
@@ -329,19 +354,38 @@ export class WorldMap {
             ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
 
             // Kantlinje
-            const isFocus = dist < 100;
             ctx.lineWidth = isFocus ? 3 : 1.5;
-            ctx.strokeStyle = locked ? "#555" : (isFocus ? "#FFF" : world.color);
+            ctx.strokeStyle = locked ? "#555" : (isFocus ? world.color : world.color);
             this.drawRoundedRect(renderX, renderY, renderW, renderH, 20); ctx.stroke();
+            ctx.globalAlpha = .35;
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = '#FFF';
+            this.drawRoundedRect(renderX + 6, renderY + 6, renderW - 12, renderH - 12, 15); ctx.stroke();
+            ctx.globalAlpha = 1;
+
+            // World number plate.
+            const badgeW = renderW * .3, badgeH = Math.max(22, renderH * .06);
+            ctx.fillStyle = locked ? 'rgba(20,20,20,.78)' : 'rgba(2,7,12,.78)';
+            this.drawRoundedRect(cardCenterX - badgeW / 2, renderY + renderH * .055, badgeW, badgeH, badgeH / 2); ctx.fill();
+            ctx.strokeStyle = locked ? '#555' : world.color; ctx.lineWidth = 1; ctx.stroke();
+            ctx.font = `700 ${Math.max(10, renderW * .035)}px 'Cinzel', serif`;
+            ctx.fillStyle = locked ? '#777' : '#FFF';
+            ctx.fillText(`WORLD ${i + 1}`, cardCenterX, renderY + renderH * .055 + badgeH * .68);
 
             // Text
             ctx.textAlign = "center";
 
             if (locked) {
-                // Låst-status
+                // Custom lock glyph.
+                const lockY = renderY + renderH * .34;
+                ctx.strokeStyle = '#8C9298'; ctx.lineWidth = Math.max(2, renderW * .012);
+                ctx.beginPath(); ctx.arc(cardCenterX, lockY - renderW * .028, renderW * .055, Math.PI, 0); ctx.stroke();
+                ctx.fillStyle = 'rgba(8,12,16,.86)';
+                this.drawRoundedRect(cardCenterX - renderW * .075, lockY - renderW * .025, renderW * .15, renderW * .12, 5); ctx.fill();
+                ctx.strokeStyle = '#8C9298'; ctx.stroke();
                 ctx.font = `900 ${Math.floor(renderW * 0.075)}px 'Cinzel', serif`;
                 ctx.fillStyle = "#888";
-                ctx.fillText("LOCKED", cardCenterX, renderY + renderH * 0.4);
+                ctx.fillText("LOCKED", cardCenterX, renderY + renderH * 0.51);
 
                 // Världsnamn (nedtonat)
                 ctx.fillStyle = "#888";
@@ -381,9 +425,10 @@ export class WorldMap {
                 ctx.fillText(world.name, cardCenterX, renderY + renderH * 0.85);
                 ctx.shadowBlur = 0;
 
-                ctx.font = `600 ${Math.floor(renderW * 0.05)}px sans-serif`;
-                ctx.fillStyle = isFocus ? "#FFD700" : "#AAA";
-                ctx.fillText(`${world.count} LEVELS`, cardCenterX, renderY + renderH * 0.92);
+                const cleared = Array.from({ length: world.count }, (_, level) => this.getStarsFn(world.start + level) > 0).filter(Boolean).length;
+                ctx.font = `600 ${Math.floor(renderW * 0.045)}px sans-serif`;
+                ctx.fillStyle = isFocus ? "#FFD700" : "#C5CBD0";
+                ctx.fillText(`${cleared}/${world.count} CLEARED`, cardCenterX, renderY + renderH * 0.92);
             }
 
             world.hitBox = { x: renderX, y: renderY, w: renderW, h: renderH };
@@ -505,15 +550,21 @@ export class WorldMap {
             const isPressed = !locked && this.pressedNode === i;
             const drawR = isPressed ? node.r * 0.9 : isHovered ? node.r * 1.08 : node.r;
 
-            // Cirkel
+            // Layered artifact medallion.
+            if (!locked) {
+                ctx.beginPath(); ctx.arc(node.x, node.y, drawR + 5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(2,6,12,.66)'; ctx.fill();
+                ctx.strokeStyle = stars > 0 ? 'rgba(255,215,0,.38)' : world.color;
+                ctx.lineWidth = 1; ctx.stroke();
+            }
             ctx.beginPath(); ctx.arc(node.x, node.y, drawR, 0, Math.PI*2);
             const grad = ctx.createRadialGradient(node.x, node.y, drawR*0.3, node.x, node.y, drawR);
             if (locked) {
                 grad.addColorStop(0, "#333"); grad.addColorStop(1, "#111");
             } else if (isHovered) {
-                grad.addColorStop(0, "#777"); grad.addColorStop(1, "#333");
+                grad.addColorStop(0, "#84909A"); grad.addColorStop(.45, "#303A43"); grad.addColorStop(1, "#10161D");
             } else {
-                grad.addColorStop(0, "#555"); grad.addColorStop(1, "#222");
+                grad.addColorStop(0, "#59636B"); grad.addColorStop(.45, "#293139"); grad.addColorStop(1, "#0D1218");
             }
             ctx.fillStyle = grad; ctx.fill();
 
@@ -538,9 +589,8 @@ export class WorldMap {
             ctx.fillText(i + 1, node.x, node.y);
 
             if (stars > 0) {
-                ctx.font = `bold ${node.r * 0.38}px 'Cinzel', serif`;
-                ctx.fillStyle = "#FFD700";
-                ctx.fillText("★".repeat(stars), node.x, node.y + node.r * 1.5);
+                const starGap = node.r * .45;
+                for (let s = 0; s < 3; s++) this.drawStar(ctx, node.x + (s - 1) * starGap, node.y + node.r * 1.48, node.r * .19, s < stars);
             }
         });
 
@@ -564,7 +614,7 @@ export class WorldMap {
         ctx.font = `700 ${Math.max(12, Math.min(17, w * 0.035))}px 'Cinzel', serif`;
         const bestLabel = bestTime > 0 ? `${minutes}:${seconds}` : "--:--";
         const nextLabel = detailStars === 0 ? "NEXT" : "CLEARED";
-        ctx.fillText(`${nextLabel} · LEVEL ${detailGlobalIndex + 1} · ${"★".repeat(detailStars)}${"☆".repeat(3-detailStars)} · BEST ${bestLabel}`, w / 2, detailY - 2);
+        ctx.fillText(`${nextLabel} · LEVEL ${detailGlobalIndex + 1} · ${detailStars}/3 STARS · BEST ${bestLabel}`, w / 2, detailY - 2);
     }
 
 // I src/js/worldmap.js

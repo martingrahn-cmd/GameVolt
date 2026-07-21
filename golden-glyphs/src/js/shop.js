@@ -490,7 +490,8 @@ export class Shop {
     const hintW = isMobile ? 70 : 90;
     const goldW = isMobile ? 100 : 130;
     const adW = isMobile ? 90 : 110;
-    const hintX = w - headMargin - hintW;
+    const authReserve = window.GameVolt ? (isMobile ? 90 : 110) : 0;
+    const hintX = w - headMargin - hintW - authReserve;
     const goldX = hintX - headGap - goldW;
     const adX = goldX - headGap - adW;
 
@@ -558,7 +559,7 @@ export class Shop {
       const gap = isMobile ? 12 : 20;
       const margin = isMobile ? 15 : 30;
       const itemW = (maxContentW - (margin*2) - gap * (cols-1)) / cols;
-      const itemH = isMobile ? 140 : 160;
+      const itemH = isMobile ? 164 : 184;
       const startY = 155 + this.scrollY + 10;
 
       for (let i = 0; i < items.length; i++) {
@@ -633,6 +634,46 @@ export class Shop {
       ctx.fillStyle = "rgba(255,255,255,0.5)";
       ctx.beginPath(); ctx.arc(-size*0.3, -size*0.3, size*0.25, 0, Math.PI*2); ctx.fill();
       ctx.restore();
+  }
+
+  drawMiniTile(ctx, x, y, size, color) {
+      const light = ctx.createLinearGradient(x, y, x, y + size);
+      light.addColorStop(0, color);
+      light.addColorStop(1, 'rgba(5,8,12,.92)');
+      ctx.fillStyle = light;
+      ctx.beginPath(); ctx.roundRect(x, y, size, size, Math.max(2, size * .16)); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,245,210,.38)'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,.2)';
+      ctx.beginPath(); ctx.arc(x + size * .28, y + size * .25, Math.max(1, size * .08), 0, Math.PI * 2); ctx.fill();
+  }
+
+  drawGearPreview(ctx, cx, cy, item, accent) {
+      ctx.save();
+      ctx.strokeStyle = accent; ctx.fillStyle = accent; ctx.lineWidth = 2;
+      ctx.shadowColor = accent; ctx.shadowBlur = 12;
+      if (item.type === 'consumable') {
+          ctx.beginPath(); ctx.ellipse(cx, cy, 23, 14, 0, 0, Math.PI * 2); ctx.stroke();
+          ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+          ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(255,255,255,.6)';
+          ctx.beginPath(); ctx.arc(cx - 2, cy - 2, 2, 0, Math.PI * 2); ctx.fill();
+      } else {
+          const w = 48, h = 34;
+          const grad = ctx.createLinearGradient(cx, cy - h/2, cx, cy + h/2);
+          grad.addColorStop(0, '#8C5B2D'); grad.addColorStop(1, '#3A1E12');
+          ctx.fillStyle = grad;
+          ctx.beginPath(); ctx.roundRect(cx - w/2, cy - h/2, w, h, 5); ctx.fill();
+          ctx.strokeStyle = '#D6A53D'; ctx.stroke();
+          ctx.fillStyle = '#D6A53D'; ctx.fillRect(cx - 3, cy - h/2, 6, h);
+          ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+  }
+
+  getTier(item) {
+      if (item.price >= 2500) return { label:'LEGENDARY', color:'#E067FF' };
+      if (item.price >= 1000) return { label:'RARE', color:'#58D7FF' };
+      if (item.price > 0) return { label:'UNCOMMON', color:'#80D879' };
+      return { label:'DEFAULT', color:'#AAB3BA' };
   }
 
   // Rita en snygg bakåtpil (chevron)
@@ -864,12 +905,12 @@ export class Shop {
     const isMobile = w < 800;
     const time = Date.now() / 1000;
 
-    // BACKGROUND - Ljusare gradient
+    // Deep relic-vault background, consistent with the new menu and board.
     const grad = ctx.createRadialGradient(w/2, h*0.2, 0, w/2, h*0.5, w);
-    grad.addColorStop(0, "#2a3a5a"); 
-    grad.addColorStop(0.4, "#1e2d4a");
-    grad.addColorStop(0.7, "#162035");
-    grad.addColorStop(1, "#0d1520"); 
+    grad.addColorStop(0, "#29322f");
+    grad.addColorStop(0.38, "#151d20");
+    grad.addColorStop(0.72, "#0a1015");
+    grad.addColorStop(1, "#030609");
     ctx.fillStyle = grad; 
     ctx.fillRect(0, 0, w, h);
     
@@ -894,7 +935,10 @@ export class Shop {
 
     // --- HEADER BAKGRUND ---
     ctx.save();
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    const headerGrad = ctx.createLinearGradient(0, 0, 0, 90);
+    headerGrad.addColorStop(0, 'rgba(4,9,12,.96)');
+    headerGrad.addColorStop(1, 'rgba(3,7,10,.78)');
+    ctx.fillStyle = headerGrad;
     ctx.fillRect(0, 0, w, 90);
     ctx.strokeStyle = "rgba(255,215,0,0.15)";
     ctx.lineWidth = 1;
@@ -943,7 +987,8 @@ export class Shop {
 
     // A. HINTS
     const hintW = isMobile ? 70 : 90;
-    const hintX = w - headMargin - hintW;
+    const authReserve = window.GameVolt ? (isMobile ? 90 : 110) : 0;
+    const hintX = w - headMargin - hintW - authReserve;
     
     ctx.save();
     ctx.fillStyle = "rgba(10, 15, 25, 0.9)";
@@ -956,11 +1001,13 @@ export class Shop {
     ctx.strokeStyle = hintBorder;
     ctx.lineWidth = 1;
     ctx.stroke();
-    ctx.fillStyle = "#FFF";
-    ctx.font = `bold ${isMobile ? 16 : 18}px sans-serif`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(`👁️ ${this.ownedHints}`, hintX + hintW/2, topY + barH/2);
+    const eyeX = hintX + hintW * .32, eyeY = topY + barH / 2;
+    ctx.strokeStyle = '#D7E2E8'; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.ellipse(eyeX, eyeY, 9, 6, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#D7E2E8'; ctx.beginPath(); ctx.arc(eyeX, eyeY, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.font = `bold ${isMobile ? 16 : 18}px 'Cinzel', serif`;
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText(`${this.ownedHints}`, hintX + hintW * .53, eyeY);
     ctx.restore();
 
     // B. GULD
@@ -1048,15 +1095,14 @@ export class Shop {
         ctx.roundRect(tx, tabY, tabW, tabH, radius);
         
         if (isActive) {
-            // Aktiv tab - fylld med färg
-            ctx.fillStyle = tab.color;
+            // Active relic tab: dark body with colored energy edge.
+            ctx.fillStyle = 'rgba(8,13,18,.96)';
             ctx.shadowColor = tab.color;
-            ctx.shadowBlur = 15;
+            ctx.shadowBlur = 10;
             ctx.fill();
             ctx.shadowBlur = 0;
-            
-            // Text i mörk färg för kontrast
-            ctx.fillStyle = "#000";
+            ctx.strokeStyle = tab.color; ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.fillStyle = tab.color;
         } else {
             // Inaktiv tab - transparent med kant
             ctx.fillStyle = "rgba(255,255,255,0.05)";
@@ -1077,6 +1123,13 @@ export class Shop {
         tabStartX += tabW + tabGap;
     });
     
+    ctx.save();
+    ctx.font = `700 ${isMobile ? 11 : 13}px 'Cinzel', serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(255,231,168,.62)';
+    ctx.fillText('RELIC VAULT', w / 2, 82);
+    ctx.restore();
+
     // Spara tab-positioner för klick-detektion
     this.tabRects = [];
     tabStartX = (w - totalTabsW) / 2;
@@ -1098,7 +1151,7 @@ export class Shop {
     const gap = isMobile ? 12 : 20;
     const margin = isMobile ? 15 : 30;
     const itemW = (maxContentW - (margin*2) - gap * (cols-1)) / cols;
-    const itemH = isMobile ? 140 : 160;
+    const itemH = isMobile ? 164 : 184;
     const rows = Math.ceil(items.length / cols);
     const totalContentH = rows * (itemH + gap) + margin;
     const minScroll = Math.min(0, listAreaH - totalContentH);
@@ -1123,6 +1176,7 @@ export class Shop {
         if (iy > h + 50 || iy + itemH < startListY - 50) return; 
 
         const isOwned = this.ownedItems.includes(item.id);
+        const tier = this.getTier(item);
         let isActiveItem = false;
         if (item.type === 'skin' && this.activeItems.skin === item.id) isActiveItem = true;
         if (item.type === 'trail' && this.activeItems.trail === item.id) isActiveItem = true;
@@ -1131,31 +1185,34 @@ export class Shop {
 
         ctx.save();
         
-        // Kort-skugga
+        // Recessed relic card.
         ctx.shadowColor = "rgba(0,0,0,0.4)";
-        ctx.shadowBlur = 10;
-        ctx.shadowOffsetY = 3;
-        
-        // Kort-bakgrund
-        ctx.fillStyle = "rgba(15, 20, 30, 0.92)";
+        ctx.shadowBlur = 14;
+        ctx.shadowOffsetY = 5;
+
+        const cardGrad = ctx.createLinearGradient(ix, iy, ix, iy + itemH);
+        cardGrad.addColorStop(0, 'rgba(28,35,40,.97)');
+        cardGrad.addColorStop(.48, 'rgba(12,18,23,.97)');
+        cardGrad.addColorStop(1, 'rgba(5,9,13,.98)');
+        ctx.fillStyle = cardGrad;
         ctx.beginPath(); 
         ctx.roundRect(ix, iy, itemW, itemH, 12);
         ctx.fill();
         ctx.shadowBlur = 0;
         ctx.shadowOffsetY = 0;
 
-        // Accent-linje på toppen
+        // Accent rail on the left is easier to scan than a generic top stripe.
         const accentColor = isActiveItem ? "#4CAF50" : (isOwned ? activeColor : "#333");
         ctx.fillStyle = accentColor;
         ctx.beginPath();
-        ctx.roundRect(ix, iy, itemW, 4, [12, 12, 0, 0]);
+        ctx.roundRect(ix, iy + 10, 4, itemH - 20, 2);
         ctx.fill();
 
         if (isActiveItem || isOwned) {
             ctx.shadowColor = accentColor;
             ctx.shadowBlur = 10;
             ctx.beginPath();
-            ctx.roundRect(ix, iy, itemW, 4, [12, 12, 0, 0]);
+            ctx.roundRect(ix, iy + 10, 4, itemH - 20, 2);
             ctx.fill();
             ctx.shadowBlur = 0;
         }
@@ -1173,66 +1230,21 @@ export class Shop {
 
         // Preview
         const cx = ix + itemW/2;
-        const cy = iy + itemH * 0.45;
+        const cy = iy + itemH * 0.42;
         const previewSize = isMobile ? 32 : 42;
 
         if (item.type === 'trail') {
             this.drawTrailPreview(ctx, cx, cy, item.id, item.color, 1);
         } else if (item.type === 'skin' && item.COLORS) {
-            // Visa 4x3 grid av nyanser
-            const cols = 4;
-            const rows = 3;
-            const cellSize = isMobile ? 10 : 12;
-            const gap = isMobile ? 2 : 2;
-            const gridW = cols * cellSize + (cols - 1) * gap;
-            const gridH = rows * cellSize + (rows - 1) * gap;
-            const startX = cx - gridW / 2;
-            const startY = cy - gridH / 2;
-
-            const colorKeys = Object.keys(item.COLORS);
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    const idx = r * cols + c;
-                    if (idx < colorKeys.length) {
-                        const color = item.COLORS[colorKeys[idx]];
-                        const px = startX + c * (cellSize + gap);
-                        const py = startY + r * (cellSize + gap);
-                        
-                        ctx.fillStyle = color;
-                        ctx.fillRect(px, py, cellSize, cellSize);
-                    }
-                }
-            }
-            // Subtil kant runt hela
-            ctx.strokeStyle = "rgba(255,255,255,0.3)";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(startX - 2, startY - 2, gridW + 4, gridH + 4);
+            const colors = Object.values(item.COLORS);
+            const cell = isMobile ? 15 : 18;
+            const shape = [[-1,0],[0,0],[1,0],[0,-1],[1,-1],[1,1]];
+            shape.forEach(([sx,sy], i) => this.drawMiniTile(ctx, cx + sx * (cell + 2) - cell/2, cy + sy * (cell + 2) - cell/2, cell, colors[i % colors.length]));
         } else if (item.type === 'skin' && !item.COLORS) {
-            // Classic Jade - visa originalfärger
-            const cols = 4;
-            const rows = 3;
-            const cellSize = isMobile ? 10 : 12;
-            const gap = isMobile ? 2 : 2;
-            const gridW = cols * cellSize + (cols - 1) * gap;
-            const gridH = rows * cellSize + (rows - 1) * gap;
-            const startX = cx - gridW / 2;
-            const startY = cy - gridH / 2;
-
             const defaultColors = ["#E63946", "#9B5DE5", "#F15BB5", "#FEE440", "#00BBF9", "#00F5D4", "#8338EC", "#FF9F1C", "#FF006E", "#3A86FF", "#80FFDB", "#FFFFFF"];
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    const idx = r * cols + c;
-                    if (idx < defaultColors.length) {
-                        const px = startX + c * (cellSize + gap);
-                        const py = startY + r * (cellSize + gap);
-                        ctx.fillStyle = defaultColors[idx];
-                        ctx.fillRect(px, py, cellSize, cellSize);
-                    }
-                }
-            }
-            ctx.strokeStyle = "rgba(255,255,255,0.3)";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(startX - 2, startY - 2, gridW + 4, gridH + 4);
+            const cell = isMobile ? 15 : 18;
+            const shape = [[-1,0],[0,0],[1,0],[0,-1],[1,-1],[1,1]];
+            shape.forEach(([sx,sy], i) => this.drawMiniTile(ctx, cx + sx * (cell + 2) - cell/2, cy + sy * (cell + 2) - cell/2, cell, defaultColors[i]));
         } else if (item.type === 'glow') {
             ctx.save(); 
             ctx.shadowColor = item.color; 
@@ -1284,11 +1296,7 @@ export class Shop {
                 ctx.stroke();
             }
         } else {
-            ctx.font = `${previewSize}px sans-serif`; 
-            ctx.textAlign = "center"; 
-            ctx.textBaseline = "middle"; 
-            ctx.fillStyle = "#FFF"; 
-            ctx.fillText(item.icon || "?", cx, cy);
+            this.drawGearPreview(ctx, cx, cy, item, activeColor);
         }
 
         // Item namn
@@ -1297,6 +1305,17 @@ export class Shop {
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
         ctx.fillText(item.name, cx, iy + 10);
+
+        // Museum-label hierarchy makes each reward feel like a collectible.
+        ctx.fillStyle = tier.color;
+        ctx.font = `700 ${isMobile ? 8 : 9}px sans-serif`;
+        ctx.fillText(tier.label, cx, iy + 29);
+
+        if (item.desc) {
+            ctx.fillStyle = "rgba(225,231,235,0.62)";
+            ctx.font = `${isMobile ? 9 : 10}px sans-serif`;
+            ctx.fillText(item.desc.toUpperCase(), cx, iy + itemH - (isMobile ? 49 : 54));
+        }
 
         // Action-knapp
         const btnPadding = isMobile ? 8 : 10;
@@ -1318,7 +1337,7 @@ export class Shop {
             ctx.font = `bold ${isMobile ? 10 : 12}px sans-serif`;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            ctx.fillText("✓ ACTIVE", cx, actionBtnY + actionBtnH/2);
+            ctx.fillText("ACTIVE", cx, actionBtnY + actionBtnH/2);
         } else if (isOwned && item.type !== 'consumable') {
             ctx.fillStyle = "rgba(255, 255, 255, 0.08)"; 
             ctx.fill(); 
@@ -1357,7 +1376,7 @@ export class Shop {
                 this.drawCoin(ctx, startX + coinSize, actionBtnY + actionBtnH/2, coinSize);
                 ctx.fillText(priceText, startX + coinSize * 2 + gap, actionBtnY + actionBtnH/2);
             } else {
-                // Kan inte köpa - visa lås-ikon och pris i rött
+                // Unavailable price; muted without a platform-dependent emoji.
                 ctx.fillStyle = "rgba(40,40,40,0.8)"; 
                 ctx.fill();
                 ctx.strokeStyle = "#333";
@@ -1368,7 +1387,7 @@ export class Shop {
                 ctx.font = `bold ${isMobile ? 10 : 12}px sans-serif`;
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText(`🔒 ${item.price}`, cx, actionBtnY + actionBtnH/2);
+                ctx.fillText(`LOCKED · ${item.price}`, cx, actionBtnY + actionBtnH/2);
             }
         }
         ctx.restore();

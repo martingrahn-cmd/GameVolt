@@ -352,16 +352,257 @@ export class AchievementSystem {
 
     _clampScroll() {
         const dpr = window.devicePixelRatio || 1;
+        const w = this.canvas.width / dpr;
         const h = this.canvas.height / dpr;
-        const ids = Object.keys(ACHIEVEMENTS);
-        const rowH = 80;
-        const headerH = 100;
+        const metrics = this._getGridMetrics(w);
         const maxScroll = 0;
-        const minScroll = Math.min(0, h - headerH - ids.length * rowH - 40);
+        const minScroll = Math.min(0, h - metrics.headerH - metrics.contentH - 28);
         this.targetScrollY = Math.max(minScroll, Math.min(maxScroll, this.targetScrollY));
     }
 
+    _getGridMetrics(w) {
+        const padding = w < 700 ? 14 : 24;
+        const columns = w < 700 ? 2 : 3;
+        const gap = w < 700 ? 9 : 12;
+        const headerH = 112;
+        const cardH = w < 700 ? 112 : 122;
+        const sectionHeadH = 34;
+        const sectionGap = 13;
+        const ids = Object.keys(ACHIEVEMENTS);
+        const tiers = ['bronze', 'silver', 'gold', 'platinum'];
+        const contentH = tiers.reduce((height, tier) => {
+            const count = ids.filter(id => ACHIEVEMENTS[id].tier === tier).length;
+            return height + sectionHeadH + Math.ceil(count / columns) * (cardH + gap) + sectionGap;
+        }, 8);
+        return { padding, columns, gap, headerH, cardH, sectionHeadH, sectionGap, contentH };
+    }
+
+    _drawMedal(ctx, x, y, radius, tier, unlocked, id) {
+        const color = TIER_COLORS[tier].bg;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.globalAlpha = unlocked ? 1 : 0.32;
+
+        ctx.fillStyle = unlocked ? color : '#3c4248';
+        ctx.beginPath();
+        ctx.moveTo(-radius * .55, radius * .55);
+        ctx.lineTo(-radius * .18, radius * 1.05);
+        ctx.lineTo(0, radius * .62);
+        ctx.lineTo(radius * .18, radius * 1.05);
+        ctx.lineTo(radius * .55, radius * .55);
+        ctx.closePath();
+        ctx.fill();
+
+        if (unlocked) {
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
+        }
+        const metal = ctx.createRadialGradient(-radius * .25, -radius * .3, 1, 0, 0, radius);
+        metal.addColorStop(0, unlocked ? '#fff6cf' : '#687078');
+        metal.addColorStop(.35, unlocked ? color : '#424950');
+        metal.addColorStop(1, unlocked ? TIER_COLORS[tier].border : '#20262b');
+        ctx.fillStyle = metal;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = unlocked ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.12)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Stable rune gives every trophy its own mark without platform emoji.
+        const rune = (Array.from(id).reduce((sum, char) => sum + char.charCodeAt(0), 0) % 6) + 1;
+        ctx.strokeStyle = unlocked ? 'rgba(18,20,22,.78)' : 'rgba(10,12,14,.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -radius * .48);
+        ctx.lineTo(0, radius * .48);
+        ctx.moveTo(-radius * .38, radius * (rune % 2 ? -.12 : .15));
+        ctx.lineTo(0, radius * (rune % 3 ? .05 : -.18));
+        ctx.lineTo(radius * .38, radius * (rune % 2 ? .22 : -.08));
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    _drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) {
+        const words = text.split(/\s+/);
+        let line = '';
+        let lineNo = 0;
+        for (let i = 0; i < words.length && lineNo < maxLines; i++) {
+            const test = line ? `${line} ${words[i]}` : words[i];
+            if (ctx.measureText(test).width > maxWidth && line) {
+                ctx.fillText(line, x, y + lineNo * lineHeight);
+                line = words[i];
+                lineNo++;
+            } else {
+                line = test;
+            }
+        }
+        if (line && lineNo < maxLines) ctx.fillText(line, x, y + lineNo * lineHeight);
+    }
+
     draw(ctx) {
+        const dpr = window.devicePixelRatio || 1;
+        const w = this.canvas.width / dpr;
+        const h = this.canvas.height / dpr;
+        const isMobile = w < 700;
+        const metrics = this._getGridMetrics(w);
+
+        this.scrollY += (this.targetScrollY - this.scrollY) * 0.15;
+        if (!this.isDragging) {
+            this.targetScrollY += this.velocity * 0.92;
+            this.velocity *= 0.92;
+            if (Math.abs(this.velocity) < 0.1) this.velocity = 0;
+            this._clampScroll();
+        }
+
+        const bg = ctx.createLinearGradient(0, 0, 0, h);
+        bg.addColorStop(0, '#10181d');
+        bg.addColorStop(.55, '#071014');
+        bg.addColorStop(1, '#020608');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        // Quiet carved-glyph field behind the collection.
+        ctx.save();
+        ctx.strokeStyle = 'rgba(215,180,82,.035)';
+        ctx.lineWidth = 1;
+        for (let gy = 130; gy < h + 40; gy += 58) {
+            for (let gx = 24 + ((gy / 58) % 2) * 25; gx < w; gx += 52) {
+                ctx.save();
+                ctx.translate(gx, gy);
+                ctx.rotate(Math.PI / 4);
+                ctx.strokeRect(-7, -7, 14, 14);
+                ctx.restore();
+            }
+        }
+        ctx.restore();
+
+        // Scrollable tier grid.
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, metrics.headerH, w, h - metrics.headerH);
+        ctx.clip();
+        const usableW = Math.min(680, w - metrics.padding * 2);
+        const gridX = (w - usableW) / 2;
+        const cardW = (usableW - metrics.gap * (metrics.columns - 1)) / metrics.columns;
+        const tiers = ['bronze', 'silver', 'gold', 'platinum'];
+        const labels = { bronze: 'BRONZE', silver: 'SILVER', gold: 'GOLD', platinum: 'PLATINUM' };
+        let y = metrics.headerH + this.scrollY + 8;
+
+        tiers.forEach(tier => {
+            const entries = Object.entries(ACHIEVEMENTS).filter(([, ach]) => ach.tier === tier);
+            const tierColor = TIER_COLORS[tier].bg;
+            const got = entries.filter(([id]) => this.isUnlocked(id)).length;
+
+            ctx.fillStyle = tierColor;
+            ctx.font = `700 ${isMobile ? 11 : 12}px 'Cinzel', serif`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(labels[tier], gridX + 3, y + 14);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = 'rgba(225,231,235,.62)';
+            ctx.font = `700 ${isMobile ? 9 : 10}px sans-serif`;
+            ctx.fillText(`${got}/${entries.length} UNLOCKED`, gridX + usableW - 3, y + 14);
+            ctx.strokeStyle = `${tierColor}55`;
+            ctx.beginPath();
+            ctx.moveTo(gridX, y + 28);
+            ctx.lineTo(gridX + usableW, y + 28);
+            ctx.stroke();
+            y += metrics.sectionHeadH;
+
+            entries.forEach(([id, ach], index) => {
+                const col = index % metrics.columns;
+                const row = Math.floor(index / metrics.columns);
+                const entryW = tier === 'platinum' ? usableW : cardW;
+                const x = tier === 'platinum' ? gridX : gridX + col * (cardW + metrics.gap);
+                const cy = y + row * (metrics.cardH + metrics.gap);
+                const unlocked = this.isUnlocked(id);
+
+                ctx.save();
+                const card = ctx.createLinearGradient(x, cy, x, cy + metrics.cardH);
+                card.addColorStop(0, unlocked ? 'rgba(31,39,42,.98)' : 'rgba(19,25,28,.9)');
+                card.addColorStop(1, unlocked ? 'rgba(8,13,16,.98)' : 'rgba(5,9,11,.92)');
+                ctx.fillStyle = card;
+                ctx.beginPath();
+                ctx.roundRect(x, cy, entryW, metrics.cardH, 9);
+                ctx.fill();
+                ctx.strokeStyle = unlocked ? `${tierColor}66` : 'rgba(255,255,255,.08)';
+                ctx.lineWidth = unlocked ? 1.4 : 1;
+                ctx.stroke();
+
+                ctx.fillStyle = unlocked ? tierColor : 'rgba(255,255,255,.12)';
+                ctx.fillRect(x, cy + 9, 3, metrics.cardH - 18);
+                this._drawMedal(ctx, x + 27, cy + 29, isMobile ? 15 : 17, tier, unlocked, id);
+
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                ctx.fillStyle = unlocked ? '#f3f0e6' : '#697177';
+                ctx.font = `700 ${isMobile ? 10 : 11}px 'Cinzel', serif`;
+                this._drawWrappedText(ctx, ach.name.toUpperCase(), x + 51, cy + 15, entryW - 59, 13, 2);
+
+                ctx.fillStyle = unlocked ? 'rgba(219,224,226,.64)' : 'rgba(135,145,150,.42)';
+                ctx.font = `${isMobile ? 9 : 10}px sans-serif`;
+                this._drawWrappedText(ctx, ach.desc, x + 12, cy + 60, entryW - 24, 13, 2);
+
+                ctx.fillStyle = unlocked ? tierColor : '#50585e';
+                ctx.font = `700 8px sans-serif`;
+                ctx.fillText(unlocked ? 'UNLOCKED' : 'LOCKED', x + 12, cy + metrics.cardH - 18);
+                ctx.restore();
+            });
+
+            y += Math.ceil(entries.length / metrics.columns) * (metrics.cardH + metrics.gap) + metrics.sectionGap;
+        });
+        ctx.restore();
+
+        // Fixed header follows the common GameVolt information hierarchy.
+        const headFade = ctx.createLinearGradient(0, 0, 0, metrics.headerH);
+        headFade.addColorStop(0, 'rgba(3,7,10,1)');
+        headFade.addColorStop(.82, 'rgba(5,11,14,.98)');
+        headFade.addColorStop(1, 'rgba(5,11,14,.75)');
+        ctx.fillStyle = headFade;
+        ctx.fillRect(0, 0, w, metrics.headerH);
+        ctx.fillStyle = '#d8b64f';
+        ctx.font = `900 ${isMobile ? 24 : 32}px 'Cinzel', serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('TROPHIES', w / 2, 30);
+
+        const unlocked = this.getUnlockedCount();
+        const total = this.getTotalCount();
+        ctx.fillStyle = 'rgba(225,231,235,.66)';
+        ctx.font = '700 10px sans-serif';
+        ctx.fillText(`${unlocked} / ${total} UNLOCKED`, w / 2, 53);
+        const barW = Math.min(300, w * .68);
+        const barX = (w - barW) / 2;
+        ctx.fillStyle = 'rgba(255,255,255,.09)';
+        ctx.beginPath();
+        ctx.roundRect(barX, 68, barW, 7, 4);
+        ctx.fill();
+        if (unlocked) {
+            const fill = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+            fill.addColorStop(0, '#a96f2d');
+            fill.addColorStop(.65, '#ffd75b');
+            fill.addColorStop(1, '#dffcff');
+            ctx.fillStyle = fill;
+            ctx.beginPath();
+            ctx.roundRect(barX, 68, barW * unlocked / total, 7, 4);
+            ctx.fill();
+        }
+        ctx.strokeStyle = 'rgba(216,182,79,.22)';
+        ctx.beginPath();
+        ctx.moveTo(0, metrics.headerH - 1);
+        ctx.lineTo(w, metrics.headerH - 1);
+        ctx.stroke();
+
+        ctx.fillStyle = '#d8b64f';
+        ctx.font = '700 28px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('‹', 22, 31);
+        this._backBtn = { x: 0, y: 0, w: 60, h: 62 };
+    }
+
+    drawLegacy(ctx) {
         const dpr = window.devicePixelRatio || 1;
         const w = this.canvas.width / dpr;
         const h = this.canvas.height / dpr;

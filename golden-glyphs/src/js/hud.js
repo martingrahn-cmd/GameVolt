@@ -163,7 +163,7 @@ export class HUD {
             } else if (isDailyChallenge) {
                 // Daily Challenge - kalender-ikon med dagens datum
                 const iconX = this.btnMenu.x + this.btnMenu.w + 15;
-                const today = new Date().getDate();
+                const today = new Date().getUTCDate();
 
                 // Rita kalender-ikon
                 this.drawCalendarIcon(ctx, iconX + 18, centerY, 20, today);
@@ -368,36 +368,54 @@ export class HUD {
         ctx.restore();
     }
     
-    // Rita kalender-ikon med dagens datum
+    // Daily date relic: UTC day marker styled like the rest of the temple HUD.
     drawCalendarIcon(ctx, x, y, size, day) {
         ctx.save();
-        
-        // Kalender-kropp (rundad rektangel)
-        const w = size * 1.8;
-        const h = size * 1.6;
-        const cornerRadius = size * 0.15;
-        
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        const w = size * 1.9;
+        const h = size * 1.9;
+        const left = x - w / 2;
+        const top = y - h / 2;
+        const cornerRadius = size * 0.22;
+
+        ctx.shadowColor = "rgba(82,229,255,.45)";
+        ctx.shadowBlur = 9;
+        const stone = ctx.createLinearGradient(left, top, left, top + h);
+        stone.addColorStop(0, "rgba(25,36,48,.98)");
+        stone.addColorStop(1, "rgba(3,8,15,.98)");
+        ctx.fillStyle = stone;
         ctx.beginPath();
-        ctx.roundRect(x - w/2, y - h/2, w, h, cornerRadius);
+        ctx.roundRect(left, top, w, h, cornerRadius);
         ctx.fill();
-        ctx.strokeStyle = "#FFD700";
-        ctx.lineWidth = 2;
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = "rgba(82,229,255,.72)";
+        ctx.lineWidth = 1.5;
         ctx.stroke();
-        
-        // Röd topp (månad-bar)
-        ctx.fillStyle = "#E63946";
+
+        // Narrow Daily energy rail, matching the menu and challenge briefing.
+        ctx.fillStyle = "#FF5E96";
+        ctx.shadowColor = "rgba(255,94,150,.65)";
+        ctx.shadowBlur = 6;
         ctx.beginPath();
-        ctx.roundRect(x - w/2, y - h/2, w, h * 0.3, [cornerRadius, cornerRadius, 0, 0]);
+        ctx.roundRect(left + 3, top + 4, 3, h - 8, 2);
         ctx.fill();
-        
-        // Dagens datum i mitten
-        ctx.fillStyle = "#FFD700";
-        ctx.font = `bold ${size * 0.9}px sans-serif`;
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "rgba(255,255,255,.52)";
+        ctx.font = `800 ${Math.max(6, size * .32)}px sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(day.toString(), x, y + h * 0.1);
-        
+        ctx.fillText("UTC", x + 2, top + h * .25);
+
+        ctx.fillStyle = "#FFF3CF";
+        ctx.font = `900 ${size * 0.88}px 'Cinzel', serif`;
+        ctx.fillText(day.toString(), x + 2, top + h * .66);
+
+        ctx.strokeStyle = "rgba(255,255,255,.08)";
+        ctx.beginPath();
+        ctx.moveTo(left + 9, top + h * .39);
+        ctx.lineTo(left + w - 5, top + h * .39);
+        ctx.stroke();
         ctx.restore();
     }
     
