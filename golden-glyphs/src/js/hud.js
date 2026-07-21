@@ -19,6 +19,19 @@ export class HUD {
         
         this.pulseTimer = 0;
         this.textScale = 1;
+        this.theme = 'jungle';
+    }
+
+    setTheme(theme) { this.theme = theme || 'jungle'; }
+
+    getPalette() {
+        return {
+            jungle: { line:'#E8C45B', glow:'rgba(232,196,91,.55)', panel:'rgba(4,10,7,.88)', soft:'rgba(84,105,70,.22)' },
+            frozen: { line:'#9DE7FF', glow:'rgba(100,218,255,.52)', panel:'rgba(3,13,23,.9)', soft:'rgba(96,178,211,.2)' },
+            inferno: { line:'#FF9A4D', glow:'rgba(255,97,35,.55)', panel:'rgba(18,5,6,.9)', soft:'rgba(176,62,30,.22)' },
+            neon: { line:'#52E5FF', glow:'rgba(211,64,255,.52)', panel:'rgba(2,4,17,.91)', soft:'rgba(62,80,180,.22)' },
+            zen: { line:'#8FD6BF', glow:'rgba(94,203,170,.45)', panel:'rgba(4,14,13,.88)', soft:'rgba(90,143,126,.2)' }
+        }[this.theme] || { line:'#E8C45B', glow:'rgba(232,196,91,.55)', panel:'rgba(4,10,7,.88)', soft:'rgba(84,105,70,.22)' };
     }
 
     resize() {}
@@ -49,18 +62,26 @@ export class HUD {
     draw(ctx) {
         const dpr = window.devicePixelRatio || 1;
         const w = ctx.canvas.width / dpr;
+        const palette = this.getPalette();
 
         this.pulseTimer += 0.03;
 
         // 1. TOP BAR BAKGRUND
         const barHeight = 95;
 
-        ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+        const barGradient = ctx.createLinearGradient(0, 0, 0, barHeight);
+        barGradient.addColorStop(0, palette.panel);
+        barGradient.addColorStop(1, 'rgba(0,0,0,.78)');
+        ctx.fillStyle = barGradient;
         ctx.fillRect(0, 0, w, barHeight);
+
+        // Fine inner bevel keeps the HUD tied to the physical board.
+        ctx.fillStyle = palette.soft;
+        ctx.fillRect(0, 0, w, 3);
 
         // Guldlinje
         ctx.beginPath(); ctx.moveTo(0, barHeight); ctx.lineTo(w, barHeight);
-        ctx.strokeStyle = "#FFD700"; ctx.lineWidth = 2; ctx.stroke();
+        ctx.strokeStyle = palette.line; ctx.lineWidth = 2; ctx.shadowColor = palette.glow; ctx.shadowBlur = 8; ctx.stroke(); ctx.shadowBlur = 0;
 
         const centerY = barHeight * 0.5;
         const btnSize = 50;
@@ -68,7 +89,7 @@ export class HUD {
 
         // --- VÄNSTER SIDA: PAUSE/BACK-KNAPP ---
         this.btnMenu = { x: margin, y: centerY - btnSize/2, w: btnSize, h: btnSize };
-        this.drawSquareButton(ctx, this.btnMenu, window.GameVolt ? "pause" : "back", false);
+        this.drawSquareButton(ctx, this.btnMenu, window.GameVolt ? "pause" : "back", false, palette);
 
 
         // --- HÖGER SIDA: HINT-KNAPP (Symmetrisk) ---
@@ -78,7 +99,7 @@ export class HUD {
         
         // Rita Hint-knappen (Ögat)
         // Vi skickar med 'true' för puls-effekt om man har hints, eller bara för att locka
-        this.drawSquareButton(ctx, this.btnHint, "hint", true);
+        this.drawSquareButton(ctx, this.btnHint, "hint", true, palette);
         
         // Badge för antal hints
         if (this.ownedHints > 0) {
@@ -259,7 +280,7 @@ export class HUD {
     }
 
     // Hjälpfunktion för att rita identiska knappar
-    drawSquareButton(ctx, rect, icon, pulse) {
+    drawSquareButton(ctx, rect, icon, pulse, palette = this.getPalette()) {
         ctx.save();
         
         // Puls-effekt (skala)
@@ -275,17 +296,20 @@ export class HUD {
         }
 
         // Bakgrund
-        ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+        const buttonGrad = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + rect.h);
+        buttonGrad.addColorStop(0, palette.soft);
+        buttonGrad.addColorStop(1, 'rgba(0,0,0,.3)');
+        ctx.fillStyle = buttonGrad;
         this.drawRoundedRect(ctx, rect.x, rect.y, rect.w, rect.h, 10);
         ctx.fill();
         
         // Ram
-        ctx.strokeStyle = "rgba(255, 215, 0, 0.5)"; 
+        ctx.strokeStyle = palette.line;
         ctx.lineWidth = 2;
         ctx.stroke();
         
         // Monochrome canvas glyphs keep the HUD consistent across platforms.
-        ctx.fillStyle = "#FFD700";
+        ctx.fillStyle = palette.line;
         const centerX = rect.x + rect.w/2;
         const centerY = rect.y + rect.h/2;
         
@@ -297,7 +321,7 @@ export class HUD {
         } else if (icon === "hint") {
             ctx.beginPath();
             ctx.ellipse(centerX, centerY, 14, 9, 0, 0, Math.PI * 2);
-            ctx.strokeStyle = "#FFD700";
+            ctx.strokeStyle = palette.line;
             ctx.lineWidth = 2.5;
             ctx.stroke();
             ctx.beginPath();

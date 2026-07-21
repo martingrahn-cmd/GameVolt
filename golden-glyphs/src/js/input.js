@@ -163,7 +163,8 @@ export class Input {
       const col = Math.round((p.targetX - this.grid.originX) / pitch);
       const row = Math.round((p.targetY - this.grid.originY) / pitch);
       const ghostCells = p.shape.map(([dx, dy]) => ({ col: col + dx, row: row + dy }));
-      this.grid.setHoverCells(ghostCells);
+      const valid = !this.bitfield || this.bitfield.canPlace(p, col, row);
+      this.grid.setHoverCells(ghostCells, valid);
   }
 
   onUp(e) {
@@ -230,8 +231,11 @@ export class Input {
         if (this.effects) {
             const centerX = p.targetX + (p.widthCells * pitch) / 2;
             const centerY = p.targetY + (p.heightCells * pitch) / 2;
-            this.effects.explode(centerX, centerY, "#FFD700", 15);
+            this.effects.placeGlyph(centerX, centerY, p.color, p.shape.length);
             this.effects.shake(4); 
+        }
+        if (this.grid && typeof this.grid.triggerFit === 'function') {
+            this.grid.triggerFit(p.shape.map(([dx, dy]) => ({ col: col + dx, row: row + dy })), p.color);
         }
         
         p.col = col; p.row = row; p.inTray = false; p.isPlaced = true; 
@@ -244,6 +248,11 @@ export class Input {
 
     } else {
         this.playSound('place_invalid');
+        if (typeof p.showInvalid === 'function') p.showInvalid();
+        if (this.effects) {
+            this.effects.invalidDrop(p.targetX + p.width / 2, p.targetY + p.height / 2);
+            this.effects.shake(2.5);
+        }
         this.returnToTray(p, true);
     }
   }

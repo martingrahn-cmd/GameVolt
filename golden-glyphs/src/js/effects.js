@@ -75,16 +75,61 @@ export class Effects {
     });
   }
 
+  placeGlyph(x, y, color, cellCount = 4) {
+    if (this.reducedMotion) return;
+    const count = Math.min(18, 7 + cellCount * 2);
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i / count) + (Math.random() - .5) * .24;
+      const speed = 1.6 + Math.random() * 2.8;
+      this.particles.push({
+        x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+        life: 1, decay: .035 + Math.random() * .025,
+        color: i % 3 === 0 ? "#FFE9A6" : color,
+        size: 2 + Math.random() * 3, type: 'glyphSpark'
+      });
+    }
+    this.particles.push({ x, y, vx: 0, vy: 0, life: 1, decay: .045, color: "#FFD76A", radius: 4, maxRadius: 58, type: 'ring' });
+  }
+
+  invalidDrop(x, y) {
+    if (this.reducedMotion) return;
+    this.particles.push({ x, y, vx: 0, vy: 0, life: 1, decay: .09, color: "#FF5B4F", radius: 5, maxRadius: 34, type: 'ring' });
+    for (let i = 0; i < 6; i++) {
+      const angle = Math.PI * 2 * i / 6;
+      this.particles.push({
+        x, y, vx: Math.cos(angle) * 2.2, vy: Math.sin(angle) * 2.2,
+        life: .8, decay: .08, color: "#FF8A72", size: 3, type: 'glyphSpark'
+      });
+    }
+  }
+
   triggerVictory(pieces) {
       if (this.reducedMotion) return;
-      this.shake(15);
+      this.shake(10);
       const cx = this.grid.originX + (this.grid.cols * this.grid.pitch) / 2;
       const cy = this.grid.originY + (this.grid.rows * this.grid.pitch) / 2;
+
+      // A board-wide golden wave ties the solved shape together before confetti.
+      this.particles.push({
+          x: cx, y: cy, vx: 0, vy: 0, life: 1, decay: .018,
+          color: "#FFE39A", radius: 8,
+          maxRadius: Math.hypot(this.grid.cols * this.grid.pitch, this.grid.rows * this.grid.pitch) * .58,
+          type: 'victoryWave'
+      });
+      (pieces || []).filter(piece => piece.isPlaced).forEach((piece, index) => {
+          const px = this.grid.originX + (piece.col + piece.minC + piece.widthCells / 2) * this.grid.pitch;
+          const py = this.grid.originY + (piece.row + piece.minR + piece.heightCells / 2) * this.grid.pitch;
+          this.particles.push({
+              x: px, y: py, vx: 0, vy: 0, life: 1 + index * .08, decay: .026,
+              color: piece.color || "#FFD76A", radius: 3, maxRadius: this.grid.pitch * 1.2,
+              type: 'victoryGlyph', delay: index * .07
+          });
+      });
 
       // Festliga färger
       const colors = ["#FFD700", "#FF6B6B", "#4ECDC4", "#A06CD5", "#FF9F43", "#54E346", "#FF69B4", "#00E5FF"];
 
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 72; i++) {
           const angle = Math.random() * Math.PI * 2;
           const speed = Math.random() * 12 + 5;
           // Rektangulär konfetti med tumbling
@@ -102,6 +147,7 @@ export class Effects {
               rotationSpeed: (Math.random() - 0.5) * 0.3,
               tumble: Math.random() * Math.PI * 2,
               tumbleSpeed: (Math.random() - 0.5) * 0.15,
+              delay: .18 + Math.random() * .16,
               type: 'confetti'
           });
       }
@@ -123,11 +169,14 @@ export class Effects {
 
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
+      if (p.delay > 0) { p.delay = Math.max(0, p.delay - dt); continue; }
       p.x += p.vx; p.y += p.vy; p.life -= p.decay;
       if (p.gravity) p.vy += p.gravity;
       if (p.rotation !== undefined) p.rotation += p.rotationSpeed || 0;
       if (p.tumble !== undefined) p.tumble += p.tumbleSpeed || 0;
       if (p.type === 'ring') p.radius += (p.maxRadius - p.radius) * 0.15;
+      if (p.type === 'victoryWave') p.radius += (p.maxRadius - p.radius) * 0.095;
+      if (p.type === 'victoryGlyph') p.radius += (p.maxRadius - p.radius) * 0.12;
       // Air resistance for confetti
       if (p.type === 'confetti') { p.vx *= 0.98; }
       if (p.life <= 0) this.particles.splice(i, 1);
@@ -269,6 +318,7 @@ export class Effects {
   draw(ctx) {
     ctx.save();
     for (const p of this.particles) {
+      if (p.delay > 0) continue;
       ctx.globalAlpha = p.life;
       ctx.fillStyle = p.color;
       ctx.strokeStyle = p.color;
@@ -291,9 +341,42 @@ export class Effects {
           ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
           ctx.stroke();
       }
+      else if (p.type === 'victoryWave') {
+          const progress = 1 - p.life;
+          ctx.save();
+          ctx.globalAlpha = Math.sin(Math.min(1, progress) * Math.PI) * .8;
+          ctx.strokeStyle = p.color;
+          ctx.shadowColor = "#FFD76A";
+          ctx.shadowBlur = 24;
+          ctx.lineWidth = 5 * p.life + 1;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+      }
+      else if (p.type === 'victoryGlyph') {
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, p.life) * .65;
+          ctx.fillStyle = p.color;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 22;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, Math.max(2, p.radius * .32), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+      }
       else if (p.type === 'victory') {
           const halfSize = p.size / 2;
           ctx.fillRect(p.x - halfSize, p.y - halfSize, p.size, p.size);
+      }
+      else if (p.type === 'glyphSpark') {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(Math.PI / 4);
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 8;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
       }
       else if (p.type === 'trail') {
           ctx.save();
