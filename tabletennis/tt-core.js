@@ -214,7 +214,7 @@
           // where the ball meets the blade deflects the shot — an off-center
           // contact angles the return (physical feel, and honest whiff-ish
           // shanks when you barely reach a wide ball)
-          var off = (cx - pad2.x) * 0.9;
+          var off = (cx - pad2.x) * 0.7;
           launchAt(s, p,
             (typeof aim.tx === 'number' ? aim.tx : 0) + off,
             typeof aim.ty === 'number' ? aim.ty : NET_Y + fwd * 0.9,
