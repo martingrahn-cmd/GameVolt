@@ -236,12 +236,16 @@
 
     // table bounce — judged at the INTERPOLATED landing point, not the
     // post-step position: a fast ball moves ~8cm per tick, so judging at
-    // step boundaries called genuinely-in edge balls out
+    // step boundaries called genuinely-in edge balls out. The 0.055m grace
+    // is the ball's visual radius: the ball is DRAWN ~4.5cm wide but lands
+    // as a point, so anything that visually clips the line counts as IN —
+    // arcade line calls always match what the player saw.
     if (b.z <= 0 && b.vz < 0) {
       var fz = (pz0 - b.z) > 1e-9 ? Math.max(0, Math.min(1, pz0 / (pz0 - b.z))) : 1;
       var landX = px0 + (b.x - px0) * fz;
       var landY = py0 + (b.y - py0) * fz;
-      if (Math.abs(landX) <= TABLE_W / 2 && landY >= 0 && landY <= TABLE_L) {
+      var GRACE = 0.055;
+      if (Math.abs(landX) <= TABLE_W / 2 + GRACE && landY >= -GRACE && landY <= TABLE_L + GRACE) {
         b.z = 0;
         if (s.phase === 'rally') {
           b.vz = -b.vz * BOUNCE;

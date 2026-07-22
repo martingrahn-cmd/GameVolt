@@ -74,7 +74,7 @@ check('serve alternates in pairs', servers.join('') === '112211');
 // 8. win by 2 at 11+ — every point goes to player 1 (P2's serves sail long)
 function playPointFor1(s) {
   if (s.server === 1) TT.serve(s, { tx: 0, ty: K.NET_Y + 0.9, t: 0.68 });
-  else TT.serve(s, { tx: 0, ty: -0.6, t: 0.55 }); // P2 serves out
+  else TT.serve(s, { tx: 1.4, ty: -0.6, t: 0.55 }); // P2 serves out wide (clear of the corner grace)
   var guard = 0;
   while (s.phase === 'rally' && guard++ < 600) TT.step(s, { 1: { x: 1.5 }, 2: { x: 1.5 } });
   if (s.phase === 'point') TT.nextRally(s);
@@ -132,6 +132,13 @@ evs = run(g, 200, { 2: { x: 1.5, z: 0.9 } });
 var edgeBounces = evs.filter(function (e) { return e.type === 'bounce' && e.side === 2; });
 check('deep edge ball bounces IN', edgeBounces.length >= 1);
 check('edge landing y within the table', edgeBounces.length >= 1 && edgeBounces[0].y <= K.TABLE_L + 1e-9);
+
+// 8e. arcade grace: a ball grazing 4cm PAST the line still visually clips it
+// (the drawn ball is ~4.5cm wide) — counts IN, matching what the player saw
+g = TT.createGame(1);
+TT.serve(g, { tx: 0, ty: K.TABLE_L + 0.04, pace: 1 });
+evs = run(g, 200, { 2: { x: 1.5, z: 0.9 } });
+check('line-grazing ball counts IN', evs.some(function (e) { return e.type === 'bounce' && e.side === 2; }));
 
 // 9. determinism: identical input scripts -> identical states
 function scripted() {
