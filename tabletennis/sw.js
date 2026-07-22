@@ -4,17 +4,19 @@
      1. VERSION in index.html
      2. the ?v= on the script tags in index.html
      3. CACHE below AND the ?v= entries in ASSETS */
-const CACHE = 'ttpwa-v0.24.0';
+const CACHE = 'ttpwa-v0.25.0';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './tt-core.js?v=0.24.0',
-  './tt-ai.js?v=0.24.0',
-  './assets/hit.mp3?v=0.24.0',
-  './assets/bounce.mp3?v=0.24.0',
-  './assets/cheer.mp3?v=0.24.0',
-  './assets/net.mp3?v=0.24.0',
+  './tt-core.js?v=0.25.0',
+  './tt-ai.js?v=0.25.0',
+  './assets/hit.mp3?v=0.25.0',
+  './assets/bounce.mp3?v=0.25.0',
+  './assets/cheer.mp3?v=0.25.0',
+  './assets/net.mp3?v=0.25.0',
+  './assets/opp-hans.png?v=0.25.0',
+  './assets/opp-hummel.png?v=0.25.0',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-192.png',
