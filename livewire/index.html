@@ -109,6 +109,12 @@
   .stage::after{ content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; opacity:.045; mix-blend-mode:overlay;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
   canvas{width:100%; height:100%; display:block; touch-action:none; cursor:crosshair;}
+  .stage.win{animation:stage-win .72s cubic-bezier(.2,.8,.2,1);}
+  @keyframes stage-win{
+    0%{box-shadow:inset 0 1px 0 rgba(255,255,255,.10),inset 0 0 0 1px rgba(255,255,255,.05),0 40px 100px -46px rgba(70,90,160,.55)}
+    38%{box-shadow:inset 0 0 0 2px rgba(103,224,200,.72),0 0 42px rgba(103,224,200,.48),0 34px 90px -30px rgba(90,176,255,.65)}
+    100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.10),inset 0 0 0 1px rgba(255,255,255,.05),0 40px 100px -46px rgba(70,90,160,.55)}
+  }
 
   .status{max-width:540px; width:100%; text-align:center; font-size:12.5px; letter-spacing:.04em;
           color:var(--mut); min-height:1.4em; transition:color .2s;}
@@ -216,6 +222,10 @@
   #trophy-toast-tier.gold{color:#ffd700;} #trophy-toast-tier.platinum{color:#b4ffff;}
   #trophy-toast-name{font-size:14px; color:#fff; font-weight:700; letter-spacing:1px;}
   @media (max-width:520px){ .tcards{grid-template-columns:repeat(2,1fr);} }
+  @media (max-height:600px){
+    body{padding-top:7px;gap:6px} header{min-height:30px} .stage{width:min(540px,92vw,calc(100dvh - 190px))}
+    .controls{gap:4px} button{padding:7px 9px} .credit{display:none}
+  }
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;} }
 </style>
 <script src="/sdk/gamevolt.js"></script>
@@ -229,7 +239,7 @@
     </div>
   </header>
 
-  <div class="stage">
+  <div class="stage" id="stage">
     <canvas id="cv"></canvas>
     <div class="brand"><span class="v">⚡</span> GameVolt</div>
     <div class="overlay" id="menuOv">
@@ -246,7 +256,7 @@
   </div>
 
   <div class="rail" id="rail"></div>
-  <div class="status" id="status">Drag a wire between two dots of the same color.</div>
+  <div class="status" id="status" aria-live="polite">Drag between matching dots.</div>
 
   <div class="controls">
     <button id="prev">‹</button>
@@ -419,6 +429,7 @@ const starStr=n=>"★★★".slice(0,n)+"☆☆☆".slice(0,3-n);
 const starsByDiff={}, bestByDiff={};
 for(const d of DIFFS){ starsByDiff[d]=store.get("fb_stars_"+d,{}); bestByDiff[d]=store.get("fb_best_"+d,{}); }
 let runStart=0,runMs=0,runActive=false,lastSec=-1,runHinted=false,runErred=false;
+function startRun(){ if(runActive||winning)return; runStart=now(); runActive=true; }
 function updateTimeUI(){ const el=document.getElementById("mTime"); if(!el)return;
   let best=0; if(mode==="campaign")best=bestByDiff[diff][cIdx]||0; else if(mode==="daily")best=dailyBest||0;
   el.textContent=fmtT(runMs)+(best?("  ·  best "+fmtT(best)):""); }
@@ -459,7 +470,7 @@ function liveValid(pts,from){for(const p of paths)if(polyX(pts,p.pts))return fal
 function smooth(pts){if(pts.length<=3)return pts;const o=[pts[0]];for(let i=1;i<pts.length-1;i++)o.push({x:(pts[i-1].x+2*pts[i].x+pts[i+1].x)/4,y:(pts[i-1].y+2*pts[i].y+pts[i+1].y)/4});o.push(pts[pts.length-1]);return o;}
 
 /* ===== Canvas ===== */
-function resize(){const dpr=Math.min(window.devicePixelRatio||1,2.5),w=cv.clientWidth,h=cv.clientHeight;cv.width=w*dpr;cv.height=h*dpr;scale=(w*dpr)/100;ctx.setTransform(scale,0,0,scale,0,0);}
+function resize(){const dpr=Math.min(window.devicePixelRatio||1,2),w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);scale=(w*dpr)/100;ctx.setTransform(scale,0,0,scale,0,0);}
 function stroke(pts,color,width,alpha,dash){ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin="round";ctx.lineCap="round";ctx.shadowColor=color;ctx.shadowBlur=7;ctx.setLineDash(dash||[]);ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.stroke();ctx.restore();}
 function drawX(p,s){ctx.save();ctx.translate(p.x,p.y);ctx.lineCap="round";ctx.shadowColor="#ff2a1a";ctx.shadowBlur=9;
   ctx.strokeStyle="#fff";ctx.globalAlpha=.95;ctx.lineWidth=s*.66;ctx.beginPath();ctx.moveTo(-s,-s);ctx.lineTo(s,s);ctx.moveTo(s,-s);ctx.lineTo(-s,s);ctx.stroke();
@@ -553,7 +564,7 @@ let ac=null; const audio=()=>{if(!ac){try{ac=new(window.AudioContext||window.web
 function beep(f,dur=.08,type="sine",g0=.05,t0=0){if(muted)return;const a=audio();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;const t=a.currentTime+t0;g.gain.setValueAtTime(g0,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur);}
 const sndBad=()=>beep(150,.13,"sawtooth",.035);
 const sndResolve=()=>{beep(440,.09,"sine",.04);beep(660,.1,"sine",.035,.05);};
-const sndWin=()=>[523,659,784,1047,1319].forEach((f,i)=>beep(f,.2,"triangle",.05,i*.07));
+const sndWin=()=>{beep(196,.42,"sine",.045);[523,659,784,1047,1319].forEach((f,i)=>beep(f,.24,"triangle",.055,i*.075));};
 
 /* ===== Haptik (progressiv – ignoreras där stöd saknas, t.ex. iOS Safari) ===== */
 const haptic=p=>{ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} };
@@ -574,6 +585,7 @@ const toLocal=ev=>{const r=cv.getBoundingClientRect();return{x:(ev.clientX-r.lef
 cv.addEventListener("pointerdown",ev=>{ if(winning||trans)return; ev.preventDefault(); audio();
   const p=toLocal(ev),di=nearestDot(p);
   if(di>=0){ if(used[di]){const pi=paths.findIndex(pp=>pp.a===di||pp.b===di);if(pi>=0){snapshot();const pp=paths[pi];used[pp.a]=used[pp.b]=false;paths.splice(pi,1);afterChange();}}
+    startRun();
     draw0={c:dots[di].c,from:di,pts:[{x:dots[di].x,y:dots[di].y}]}; cv.setPointerCapture(ev.pointerId); return; }
   const ep=nearestPath(p); if(ep>=0){snapshot();const pp=paths[ep];used[pp.a]=used[pp.b]=false;paths.splice(ep,1);afterChange();}
 });
@@ -605,6 +617,7 @@ function status(){ const total=dots.length/2,{bP,cross,touch}=conflicts(); statu
       : cross ? "Wires can't cross — tap one to remove it."
       : "A wire is touching another dot — reroute or remove it."; return;}
   if(paths.length===total){statusEl.classList.add("good");statusEl.textContent="Clean!";return;}
+  if(mode==="campaign"&&diff==="easy"&&cIdx===0&&paths.length===0){statusEl.textContent="Drag between matching dots.";return;}
   statusEl.textContent=paths.length+" / "+total+" pairs."; }
 function checkWin(){ if(winning||!used.every(Boolean)||conflicts().bP.size>0)return; winning=true;
   runActive=false; updateUndoBtn();
@@ -623,13 +636,14 @@ function checkWin(){ if(winning||!used.every(Boolean)||conflicts().bP.size>0)ret
     endlessSolved++; store.set("fb_esolved",endlessSolved);
     if(window.GameVolt){ try{ GameVolt.leaderboard.submit(endlessSolved,{mode:"endless"}); }catch(e){} }
     gvPost("high_score",{score:endlessSolved,mode:"endless"}); }
-  sndWin(); haptic([0,30,40,30,40,70]); flash={text:pick(["Nice!","Clean!","Great!","Sweet!","Done!"]),life:46,max:46};
-  for(const d of dots)for(let i=0;i<7;i++){const a=Math.random()*Math.PI*2,s=.4+Math.random()*1.3;
+  sndWin(); haptic([0,30,40,30,40,70]); flash={text:pick(["Nice!","Clean!","Great!","Sweet!","Done!"]),life:64,max:64};
+  const stageEl=document.getElementById("stage"); stageEl.classList.remove("win"); void stageEl.offsetWidth; stageEl.classList.add("win");
+  for(const d of dots)for(let i=0;i<10;i++){const a=Math.random()*Math.PI*2,s=.4+Math.random()*1.5;
     parts.push({x:d.x,y:d.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-.4,r:.6+Math.random()*1.1,life:30+Math.random()*26,max:56,c:d.c});}
   statusEl.classList.add("good");
   statusEl.textContent = (mode==="endless") ? ("Done!  "+fmtT(ms)) : ("Done!  "+starStr(stars)+"  "+fmtT(ms));
   updateTimeUI();
-  setTimeout(()=>{ if(winning && mode!=="daily") trans={p:0,t:0}; }, 600);   // sjunk ner till nästa (ej daily)
+  setTimeout(()=>{ if(winning && mode!=="daily") trans={p:0,t:0}; }, 900);   // låt vinsten landa före nästa bana
 }
 
 /* ===== Ledtråd (funkar på alla banor) ===== */
@@ -647,7 +661,8 @@ function curLevel(){ if(mode==="campaign")return PACKS[diff][cIdx];
   const pairs=Math.min(6,3+Math.floor(eIdx/2)),m=eIdx<3?"clean":"tangle";const L=genLevel(pairs,m);L.name="Random";return L; }
 function load(){ level=curLevel(); dots=level.dots.map(d=>({...d})); used=dots.map(()=>false);
   paths=[]; draw0=null; ghost=null; parts=[]; pulses=[]; flash=null; winning=false; prevBad=0; hintHi=null;
-  undoStack=[]; runStart=now(); runMs=0; runActive=true; lastSec=-1; runHinted=false; runErred=false;
+  document.getElementById("stage").classList.remove("win");
+  undoStack=[]; runStart=0; runMs=0; runActive=false; lastSec=-1; runHinted=false; runErred=false;
   // skala in prickarna så allt ryms i spelcirkeln
   let maxR=0; for(const d of dots){const r=Math.hypot(d.x-50,d.y-50); if(r>maxR)maxR=r;}
   const f=maxR>FIT_R?FIT_R/maxR:1;
