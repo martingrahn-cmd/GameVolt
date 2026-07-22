@@ -78,11 +78,11 @@
         </header>
 
         <nav class="hub-menu" role="tablist" aria-label="Main menu">
-          <button id="campaignModeBtn" type="button" class="active">Campaign</button>
-          <button id="challengeModeBtn" type="button">Daily</button>
-          <button id="highScoreMenuBtn" type="button">High-score</button>
-          <button id="achievementMenuBtn" type="button">🏆 Achievements</button>
-          <button id="creditsMenuBtn" type="button">Credits</button>
+          <button id="campaignModeBtn" type="button" role="tab" aria-selected="true" class="active">Campaign</button>
+          <button id="challengeModeBtn" type="button" role="tab" aria-selected="false" tabindex="-1">Daily</button>
+          <button id="highScoreMenuBtn" type="button" role="tab" aria-selected="false" tabindex="-1">High-score</button>
+          <button id="achievementMenuBtn" type="button" role="tab" aria-selected="false" tabindex="-1">🏆 Achievements</button>
+          <button id="creditsMenuBtn" type="button" role="tab" aria-selected="false" tabindex="-1">Credits</button>
         </nav>
 
         <div id="playSidebar" class="play-sidebar">
@@ -122,6 +122,10 @@
             <button id="resetBtn" type="button">Reset <kbd>R</kbd></button>
             <button id="hintBtn" type="button" class="hint-btn">Hint <kbd>H</kbd></button>
             <button id="nextBtn" type="button" class="primary">Next <kbd>N</kbd></button>
+          </div>
+          <div class="feedback-settings" aria-label="Feedback settings">
+            <button id="soundToggleBtn" type="button" aria-pressed="true">Sound: On</button>
+            <button id="hapticsToggleBtn" type="button" aria-pressed="true">Haptics: On</button>
           </div>
 
           <details class="panel-inset rules-details">
@@ -277,7 +281,7 @@
             <div class="stage-corners" aria-hidden="true">
               <span></span><span></span><span></span><span></span>
             </div>
-            <div id="board" class="board" aria-label="Game board"></div>
+            <div id="board" class="board" role="grid" tabindex="0" aria-label="Game board. Use arrow keys to extend the path."></div>
             <div id="countdownOverlay" class="countdown-overlay" hidden>
               <button id="readyBtn" type="button" class="ready-btn">Ready?</button>
               <span id="countdownNumber" class="countdown-number" hidden>3</span>
@@ -475,6 +479,19 @@
             <option value="medium">Medium</option>
             <option value="hard">Hard</option>
             <option value="very-hard">Very Hard</option>
+          </select>
+          <select id="levelSelectChapterFilter" aria-label="Filter campaign chapter">
+            <option value="all">All Chapters</option>
+            <option value="1">Chapter 1 · First Lines</option>
+            <option value="2">Chapter 2 · Open Paths</option>
+            <option value="3">Chapter 3 · Crossroads</option>
+            <option value="4">Chapter 4 · Deep Routes</option>
+            <option value="5">Chapter 5 · Precision</option>
+            <option value="6">Chapter 6 · Labyrinths</option>
+            <option value="7">Chapter 7 · Hard Turns</option>
+            <option value="8">Chapter 8 · Long Lines</option>
+            <option value="9">Chapter 9 · Expert Paths</option>
+            <option value="10">Chapter 10 · Final Stroke</option>
           </select>
           <select id="levelSelectStatusFilter" aria-label="Filter status">
             <option value="all">All Statuses</option>

@@ -3,7 +3,7 @@
 **Datum:** 2026-07-22  
 **Omfattning:** kampanj (200 nivåer), tutorial, Daily Challenge, challenges, mobil/touch, progression, GameVolt-SDK, PWA/offline, achievements, delning och marknadsassets.
 
-**Status 2026-07-22:** båda P0-buggarna, P1-buggarna och P1-polishpasset är åtgärdade. Cloud save använder nu ett versionssatt schema med pull/merge, cloud challenges skapas inte längre vid sidladdning eller Daily-start, Daily är konsekvent UTC-baserad och samtliga marknadsbilder visar rätt spel. Onboarding nivå 1–3 har kontextuella board-callouts, nivå 9–20 har en jämnare komplexitetskurva och completion visar tid, PB-delta och kampanjprogress med förbättrad feedback.
+**Status 2026-07-22:** P0, P1 och P2 är genomförda. P2 lade till plausibility-gate för rankade runs, cacheversionering, cloud-synkad Daily-historik/streak, egen rank utanför topp 20, kampanjkapitel i level select, valbart ljud/haptik samt förbättrade tab-, modal- och keyboard-gridflöden.
 
 ## Sammanfattning
 
@@ -60,13 +60,13 @@ Migrationen gör problemet mer riskabelt: första migrationen kan returnera hela
 
 **Fix:** skriv om capture-scriptet mot One Strokes DOM och skapa desktop-, mobil- och actionbilder på nytt. Lägg en enkel kontroll som kräver att sidtiteln innehåller `One Stroke` före capture.
 
-### P2 — Anti-cheatresultatet påverkar inte leaderboard-submit
+### P2 — Anti-cheatresultatet påverkar inte leaderboard-submit — ÅTGÄRDAD
 
 Challenge-runnen kör `checkRunResult()` och sparar `plausible`, men `submitToLeaderboard()` skickar ändå alltid poängen för inloggade användare. En manipulerad klient kan dessutom anropa leaderboard-API:t direkt.
 
 **Fix:** submit endast när lokal plausibility är godkänd och visa en tydlig status om en run inte kan rankas. För en seriös topplista behövs på sikt servervalidering eller åtminstone server-side bounds per fem splits.
 
-### P2 — Service worker-versionen är statisk
+### P2 — Service worker-versionen är statisk — ÅTGÄRDAD
 
 Cache heter fortfarande `one-stroke-v1`. Uppdateringar hämtas i bakgrunden men den aktuella navigationen får ofta den gamla cachade filen, vilket kan göra buggrapporter och releaseverifiering svårtolkade.
 

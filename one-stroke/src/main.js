@@ -8,11 +8,13 @@ if (window.GameVolt) {
       "one-stroke-campaign-progress-v2",
       "one-stroke-challenge-run-history-v1",
       "one-stroke-achievement-unlocks-v1",
+      "one-stroke-daily-progress-v1",
     ],
     merge: function(localData, cloudData) {
       return OneStrokeApp.mergeCloudSaveData(
         localData["one-stroke-campaign-progress-v2"],
         cloudData,
+        localData["one-stroke-daily-progress-v1"],
       );
     },
     getAchievements: function(localData) {

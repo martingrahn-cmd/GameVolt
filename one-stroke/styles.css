@@ -233,6 +233,25 @@ body::after {
     #153228;
 }
 
+.feedback-settings {
+  display: flex;
+  gap: 7px;
+  margin-top: -3px;
+}
+
+.feedback-settings button {
+  padding: 6px 9px;
+  border-color: #315d70;
+  color: #8eabb9;
+  font-size: 0.68rem;
+}
+
+.feedback-settings button[aria-pressed="true"] {
+  border-color: #2d8875;
+  color: #9ce7d4;
+  background: #123b39;
+}
+
 .status-box.status-loss {
   border-color: #b84e54;
   color: #ffdfe1;
@@ -1099,6 +1118,11 @@ details.rules-details summary h2 {
   background: linear-gradient(160deg, #102938, #0f2532);
   touch-action: none;
   user-select: none;
+}
+
+.board:focus-visible {
+  outline: 3px solid #6bcbff;
+  outline-offset: 4px;
 }
 
 .board.invalid {
@@ -2424,6 +2448,16 @@ div.cell {
   color: #eaf8ff;
   font-family: var(--display-font);
   font-size: 0.9rem;
+}
+
+.leaderboard-separator {
+  padding: 8px 4px 4px;
+  color: #6bcbff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .board.completion-burst {

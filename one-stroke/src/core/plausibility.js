@@ -47,7 +47,7 @@ export function checkLevelResult(result, levelMeta) {
 
   const nodeCount = Number(levelMeta.nodeCount ?? levelMeta.par + 1) || 0;
   const par = Number(levelMeta.par) || 0;
-  const durationMs = Number(result.durationMs) || 0;
+  const durationMs = Number(result.durationMs ?? result.timeMs) || 0;
   const undoCount = Number(result.undoCount) || 0;
   const resetCount = Number(result.resetCount) || 0;
   const hintCount = Number(result.hintCount) || 0;
