@@ -90,10 +90,20 @@
 
     /* VS card (Punch-Out style pre-match) */
     #vs-stage { font-size: 0.72rem; letter-spacing: 5px; color: #ffd166; text-transform: uppercase; }
-    #vs-face {
-      width: 148px; height: 168px; image-rendering: pixelated;
+    #vs-duel { display: flex; align-items: center; gap: 12px; }
+    .vs-side { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    #vs-face, #vs-face-p {
+      width: min(122px, 32vw); height: auto; image-rendering: pixelated;
       border: 2px solid rgba(0,234,255,0.35); border-radius: 10px;
       background: #0a0918; box-shadow: 0 0 30px rgba(0,234,255,0.2);
+    }
+    #vs-face-p { border-color: rgba(255,80,120,0.45); transform: rotate(-2deg); }
+    #vs-face { transform: rotate(2deg); }
+    .vs-side-name { font-size: 0.68rem; font-weight: 800; letter-spacing: 2px; color: #bff4ff; }
+    #vs-pname { cursor: pointer; border-bottom: 1px dashed rgba(191,244,255,0.4); }
+    #vs-vs {
+      font-style: italic; font-weight: 900; font-size: 1.7rem; color: #ffd166;
+      transform: rotate(-8deg); text-shadow: 3px 3px 0 rgba(200,40,30,0.5);
     }
     #vs-name { font-size: clamp(1.4rem, 6vw, 2rem); font-weight: 900; letter-spacing: 3px; color: #fff; }
     #vs-country { font-size: 0.85rem; letter-spacing: 2px; color: #9fb4cc; }
@@ -187,7 +197,7 @@
   <canvas id="cv"></canvas>
 
   <div id="hud" class="hidden">
-    <span class="who">YOU</span>
+    <span class="who" id="who1">YOU</span>
     <span class="serve-dot" id="dot1"></span>
     <span class="sc" id="sc1">0</span>
     <span style="color:#54708f">·</span>
@@ -234,7 +244,17 @@
 
   <div class="overlay hidden" id="vs">
     <div id="vs-stage"></div>
-    <canvas id="vs-face" width="140" height="160"></canvas>
+    <div id="vs-duel">
+      <div class="vs-side">
+        <canvas id="vs-face-p" width="120" height="136"></canvas>
+        <div class="vs-side-name" id="vs-pname" title="Tap to change your name"></div>
+      </div>
+      <div id="vs-vs">VS</div>
+      <div class="vs-side">
+        <canvas id="vs-face" width="120" height="136"></canvas>
+        <div class="vs-side-name" id="vs-oname"></div>
+      </div>
+    </div>
     <div id="vs-name"></div>
     <div id="vs-country"></div>
     <div id="vs-style"></div>
@@ -256,11 +276,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.25.0"></script>
-  <script src="tt-ai.js?v=0.25.0"></script>
+  <script src="tt-core.js?v=0.26.0"></script>
+  <script src="tt-ai.js?v=0.26.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.25.0';
+    var VERSION = '0.26.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -308,7 +328,7 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.25.0', bounce: 'assets/bounce.mp3?v=0.25.0', cheer: 'assets/cheer.mp3?v=0.25.0', net: 'assets/net.mp3?v=0.25.0' };
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.26.0', bounce: 'assets/bounce.mp3?v=0.26.0', cheer: 'assets/cheer.mp3?v=0.26.0', net: 'assets/net.mp3?v=0.26.0' };
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
@@ -679,7 +699,8 @@
       ctx.font = '700 ' + jh * 0.2 + 'px "Segoe UI", system-ui, sans-serif';
       ctx.fillStyle = '#7f98b8';
       var oppLbl = campaignOpp ? campaignOpp.short : 'AI';
-      ctx.fillText((game.server === 1 ? '● YOU' : 'YOU') + '        ' + (game.server === 2 ? oppLbl + ' ●' : oppLbl), W / 2, jy + jh * 0.78);
+      var meLbl = playerName();
+      ctx.fillText((game.server === 1 ? '● ' + meLbl : meLbl) + '        ' + (game.server === 2 ? oppLbl + ' ●' : oppLbl), W / 2, jy + jh * 0.78);
     }
 
     // live camera flashes popping in the crowd
@@ -1106,7 +1127,8 @@
       el.sc2.textContent = game.scores[2];
       el.dot1.textContent = game.server === 1 ? '●' : '';
       el.dot2.textContent = game.server === 2 ? '●' : '';
-      // campaign: the opponent's NAME replaces the generic "AI" label
+      // campaign: real names on both sides of the score
+      document.getElementById('who1').textContent = playerName();
       document.getElementById('who2').textContent = campaignOpp ? campaignOpp.short : 'AI';
       el.lvl.textContent = campaignOpp ? '' : String(level).toUpperCase();
     }
@@ -1203,6 +1225,43 @@
     var campStage = Math.min(3, parseInt(localStorage.getItem('ttCampaign') || '0', 10) || 0);
     var campaignOpp = null, campIdx = -1, vsIdx = 0, campPractice = false;
 
+    // your own Little Mac: editable name + portrait (assets/opp-player.png
+    // overrides the built-in pixel kid, same as the opponents)
+    var PLAYER = {
+      id: 'player',
+      pal: { H: '#5a3a1a', C: '#00b8d4', X: '#007e94', S: '#e8b48c', D: '#1c1410', N: '#c98f6a', W: '#ffffff', R: '#12266b', K: '#0a1226' },
+      px: [
+        '..HHHHHHHHHH..',
+        '.HHHHHHHHHHHH.',
+        '.CCCCCCCCCCCC.',
+        '.CXCCCCCCCCXC.',
+        '..SSSSSSSSSS..',
+        '..SDDSSSSDDS..',
+        '..SSDSSSSDSS..',
+        '..SSSSNNSSSS..',
+        '..SSSSSSSSSS..',
+        '..SSDWWWWDSS..',
+        '...SSSSSSSS...',
+        '....SSSSSS....',
+        '..RRRRRRRRRR..',
+        '.RRRRKKKKRRRR.',
+        '.RRRRKKKKRRRR.',
+        '.RRRRRRRRRRRR.'
+      ]
+    };
+    function playerName() {
+      return (localStorage.getItem('ttName') || 'YOU').toUpperCase().slice(0, 12) || 'YOU';
+    }
+    function editPlayerName() {
+      var cur = playerName();
+      var n = window.prompt('Your fighter name:', cur === 'YOU' ? '' : cur);
+      if (n === null) return;
+      n = n.trim().toUpperCase().slice(0, 12);
+      localStorage.setItem('ttName', n || 'YOU');
+      document.getElementById('vs-pname').textContent = playerName() + ' ✎';
+      document.getElementById('who1').textContent = playerName();
+    }
+
     function drawPortrait(cvEl, opp) {
       var c = cvEl.getContext('2d');
       c.imageSmoothingEnabled = false;
@@ -1267,6 +1326,9 @@
       document.getElementById('vs-country').textContent = o.flag + ' ' + o.country;
       document.getElementById('vs-style').textContent = o.style;
       document.getElementById('vs-taunt').textContent = o.taunt;
+      document.getElementById('vs-pname').textContent = playerName() + ' ✎';
+      document.getElementById('vs-oname').textContent = o.short;
+      drawPortrait(document.getElementById('vs-face-p'), PLAYER);
       document.getElementById('vs-bracket').innerHTML = OPPONENTS.map(function (op, i) {
         var cls = i < idx ? 'done' : (i === idx ? 'cur' : '');
         var mark = i < idx ? '✓ ' : (i === idx ? '▶ ' : '🔒 ');
@@ -1484,6 +1546,7 @@
       startMatch(OPPONENTS[vsIdx].params, OPPONENTS[vsIdx]);
     });
     document.getElementById('vs-back').addEventListener('click', openLadder);
+    document.getElementById('vs-pname').addEventListener('click', editPlayerName);
     document.getElementById('ladder-back').addEventListener('click', function () {
       document.getElementById('ladder').classList.add('hidden');
       el.menu.classList.remove('hidden');
