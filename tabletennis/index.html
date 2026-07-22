@@ -158,11 +158,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.17.0"></script>
-  <script src="tt-ai.js?v=0.17.0"></script>
+  <script src="tt-core.js?v=0.18.0"></script>
+  <script src="tt-ai.js?v=0.18.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.17.0';
+    var VERSION = '0.18.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -210,7 +210,7 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.17.0', bounce: 'assets/bounce.mp3?v=0.17.0', cheer: 'assets/cheer.mp3?v=0.17.0', net: 'assets/net.mp3?v=0.17.0' };
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.18.0', bounce: 'assets/bounce.mp3?v=0.18.0', cheer: 'assets/cheer.mp3?v=0.18.0', net: 'assets/net.mp3?v=0.18.0' };
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
@@ -538,8 +538,15 @@
       }
     }
 
+    var shook = false;
     function draw() {
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       ctx.clearRect(0, 0, W, H);
+      shook = shakeT > 0;
+      if (shook) {
+        var amp = shakeAmp * (shakeT / 190);
+        ctx.translate((Math.random() - 0.5) * amp * 2, (Math.random() - 0.5) * amp * 2);
+      }
       if (!arenaCv) buildArena();
       ctx.drawImage(arenaCv, 0, 0, W, H);
       // gentle breathing of the under-table light
@@ -687,15 +694,27 @@
         ctx.beginPath(); ctx.arc(tp2.x, tp2.y, tr2, 0, Math.PI * 2); ctx.fill();
         return;
       }
-      // motion trail
+      // motion trail — turns into a fire streak on hard shots
+      var spd = Math.hypot(b.vx, b.vy);
+      var heat = Math.max(0, Math.min(1, (spd - 3.4) / 3.2));
       for (var i = 0; i < trail.length; i++) {
         var t = trail[i];
         var tp = proj(t.x, t.y, t.z);
-        ctx.fillStyle = 'rgba(255,176,32,' + (0.05 + 0.05 * i) + ')';
-        ctx.beginPath(); ctx.arc(tp.x, tp.y, 0.045 * tp.s * (0.5 + 0.1 * i), 0, Math.PI * 2); ctx.fill();
+        var f2 = (i + 1) / trail.length;
+        var aTr = (0.04 + 0.08 * f2) + heat * 0.34 * f2;
+        ctx.fillStyle = heat > 0.55 && f2 > 0.6
+          ? 'rgba(255,240,200,' + aTr.toFixed(3) + ')'
+          : 'rgba(255,' + Math.round(150 + heat * 70) + ',32,' + aTr.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(tp.x, tp.y, 0.045 * tp.s * (0.35 + 0.55 * f2) * (1 + heat * 0.7), 0, Math.PI * 2);
+        ctx.fill();
       }
       var p = proj(b.x, b.y, b.z);
       var r = Math.max(3, 0.045 * p.s);
+      if (heat > 0.3) {
+        ctx.shadowColor = 'rgba(255,150,40,' + (heat * 0.9).toFixed(3) + ')';
+        ctx.shadowBlur = 20 * heat;
+      }
       var g3 = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.4, r * 0.15, p.x, p.y, r);
       g3.addColorStop(0, '#fff6e0'); g3.addColorStop(0.45, '#ffb020'); g3.addColorStop(1, '#b35c00');
       ctx.fillStyle = g3;
@@ -703,8 +722,72 @@
       // squash on bounce (set in tickGame, decays in the loop)
       ctx.ellipse(p.x, p.y, r * (1 + 0.32 * ballSquash), r * (1 - 0.38 * ballSquash), 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.shadowBlur = 0;
     }
     var ballSquash = 0;
+    // ---------- impact juice (Mario Tennis-style hard-shot feedback) ----------
+    var hitStop = 0;      // sim freeze frames on big impacts
+    var shakeT = 0, shakeAmp = 0;
+    var parts = [];       // sparks {x,y,vx,vy,life,col,r} (screen space)
+    var rings = [];       // shockwaves {x,y,r,a}
+    var labels = [];      // floating text {text,x,y,t,col}
+    function spawnSparks(x, y, power, dir) {
+      var n = 8 + Math.round(power * 8);
+      for (var i = 0; i < n; i++) {
+        var ang = Math.random() * Math.PI * 2;
+        var sp = (1.5 + Math.random() * 3.5) * (0.6 + power);
+        parts.push({
+          x: x, y: y,
+          vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 1.5 * power,
+          life: 1, col: Math.random() > 0.4 ? '#ffd166' : (Math.random() > 0.5 ? '#ffffff' : '#ff7a1a'),
+          r: 1.2 + Math.random() * 2.2
+        });
+      }
+    }
+    function addLabel(text, x, y, col) {
+      labels.push({ text: text, x: x, y: y, t: 0, col: col });
+    }
+    function drawJuice(dt) {
+      for (var i = parts.length - 1; i >= 0; i--) {
+        var p = parts[i];
+        p.x += p.vx; p.y += p.vy; p.vy += 0.12;
+        p.life -= dt / 380;
+        if (p.life <= 0) { parts.splice(i, 1); continue; }
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.col;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      for (var j = rings.length - 1; j >= 0; j--) {
+        var rg = rings[j];
+        rg.r += 4.5; rg.a -= 0.07;
+        if (rg.a <= 0) { rings.splice(j, 1); continue; }
+        ctx.strokeStyle = 'rgba(255,230,160,' + rg.a.toFixed(3) + ')';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(rg.x, rg.y, rg.r, 0, Math.PI * 2); ctx.stroke();
+      }
+      for (var k = labels.length - 1; k >= 0; k--) {
+        var L = labels[k];
+        L.t += dt / 850;
+        if (L.t >= 1) { labels.splice(k, 1); continue; }
+        var pop = L.t < 0.18 ? (L.t / 0.18) * 1.25 : 1.25 - (L.t - 0.18) * 0.3;
+        var alpha = L.t > 0.6 ? 1 - (L.t - 0.6) / 0.4 : 1;
+        ctx.save();
+        ctx.translate(L.x, L.y - L.t * 44);
+        ctx.scale(pop, pop);
+        ctx.rotate(-0.06);
+        ctx.font = 'italic 900 26px "Segoe UI", system-ui, sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = 'rgba(20,10,0,0.85)';
+        ctx.lineWidth = 5;
+        ctx.strokeText(L.text, 0, 0);
+        ctx.fillStyle = L.col;
+        ctx.fillText(L.text, 0, 0);
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+    }
     var landMark = null; // { x, y, a } — fading ring where an OUT ball landed
     function drawLandMark() {
       if (!landMark) return;
@@ -924,6 +1007,11 @@
           }
           TTCore.serve(game, aim);
           Sound.pock(Math.min(1, (aim.pace || 0.2) + 0.15), game.ball.x / 0.76);
+          if (wasHuman && (aim.pace || 0) > 0.65) {
+            var sp3 = proj(game.ball.x, K.PADDLE_Y[1], game.ball.z);
+            spawnSparks(sp3.x, sp3.y, aim.pace, 1);
+            addLabel('POWER SERVE!', sp3.x, sp3.y - 26, '#7fd8ff');
+          }
           toss = null;
           if (wasHuman) padKick = 0.55; // strike swing
         }
@@ -936,8 +1024,18 @@
       for (var i = 0; i < res.events.length; i++) {
         var e = res.events[i];
         if (e.type === 'hit') {
-          Sound.pock(Math.min(1, Math.abs(game.ball.vy) / 7.5), e.x / 0.76);
+          var shotP = Math.min(1, Math.abs(game.ball.vy) / 7.5);
+          Sound.pock(shotP, e.x / 0.76);
           if (e.by === 1) padKick = Math.max(-0.6, Math.min(0.6, pointerVX * 0.14));
+          var cp = proj(e.x, K.PADDLE_Y[e.by], Math.max(0.05, e.z));
+          if (shotP > 0.5) spawnSparks(cp.x, cp.y, shotP, e.by);
+          if (shotP > 0.7) {
+            // a big hit should FEEL big: freeze, shockwave, shake, callout
+            rings.push({ x: cp.x, y: cp.y, r: 6, a: 0.9 });
+            hitStop = 3;
+            shakeT = 190; shakeAmp = 3 + shotP * 4.5;
+            if (e.by === 1) addLabel(shotP > 0.88 ? 'SMASH!!' : 'SMASH!', cp.x, cp.y - 26, '#ffd166');
+          }
         }
         if (e.type === 'bounce') { Sound.bounce(e.x / 0.76); ballSquash = 1; }
         if (e.type === 'floor' && e.out) {
@@ -965,12 +1063,10 @@
         updateHud();
         if (game.server === 1) setHint('TAP TO TOSS · SWIPE TO STRIKE');
       }
-      // ball trail bookkeeping
+      // ball trail bookkeeping (denser samples so fast streaks read smoothly)
       if (game.phase === 'rally') {
-        if (game.tick % 2 === 0) {
-          trail.push({ x: game.ball.x, y: game.ball.y, z: game.ball.z });
-          if (trail.length > 4) trail.shift();
-        }
+        trail.push({ x: game.ball.x, y: game.ball.y, z: game.ball.z });
+        if (trail.length > 8) trail.shift();
       } else if (trail.length) trail = [];
     }
 
@@ -982,13 +1078,16 @@
       var steps = 0;
       while (acc >= TICK_MS && ui === 'playing') {
         if (++steps > 10) { acc = 0; break; }
+        if (hitStop > 0) { hitStop--; acc = 0; break; } // impact freeze-frame
         acc -= TICK_MS;
         tickGame();
       }
       // pointer velocity decays when the finger rests
       pointerVX *= 0.92; pointerVZ *= 0.92;
       ballSquash *= 0.8;
+      if (shakeT > 0) shakeT = Math.max(0, shakeT - dt);
       draw();
+      drawJuice(dt);
       requestAnimationFrame(loop);
     }
 
