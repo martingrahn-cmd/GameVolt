@@ -158,11 +158,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.19.0"></script>
-  <script src="tt-ai.js?v=0.19.0"></script>
+  <script src="tt-core.js?v=0.20.0"></script>
+  <script src="tt-ai.js?v=0.20.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.19.0';
+    var VERSION = '0.20.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -210,7 +210,7 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.19.0', bounce: 'assets/bounce.mp3?v=0.19.0', cheer: 'assets/cheer.mp3?v=0.19.0', net: 'assets/net.mp3?v=0.19.0' };
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.20.0', bounce: 'assets/bounce.mp3?v=0.20.0', cheer: 'assets/cheer.mp3?v=0.20.0', net: 'assets/net.mp3?v=0.20.0' };
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
@@ -701,11 +701,15 @@
       }
 
       var ballBehindNet = b.y > K.NET_Y;
+      // during the player's serve phase the ball renders ON TOP of the near
+      // paddle (it rests/tosses above it) instead of hiding behind it
+      var ballOnTop = game.phase === 'serve' && game.server === 1;
       if (ballBehindNet) drawBall();
       drawNet();
-      if (!ballBehindNet) drawBall();
+      if (!ballBehindNet && !ballOnTop) drawBall();
 
       drawNearPaddle();
+      if (ballOnTop && !ballBehindNet) drawBall();
     }
 
     function trapezoid(x0, y0, x1, y1, z) {
@@ -749,10 +753,23 @@
 
     function drawBall() {
       var b = game.ball;
-      var tz = game.phase === 'serve' ? tossHeight() : 0;
+      var tz = 0;
+      if (game.phase === 'serve') {
+        // during your serve the ball hovers visibly ABOVE the paddle (with a
+        // gentle bob + glow) instead of hiding behind it; tossing lifts it
+        tz = toss ? tossHeight()
+          : (game.server === 1 ? 0.17 + 0.02 * Math.sin(performance.now() / 280) : 0.08);
+      }
       if (tz) {
         var tp2 = proj(b.x, b.y, b.z + tz);
         var tr2 = Math.max(3, 0.045 * tp2.s);
+        if (!toss && game.server === 1) {
+          var rg2 = ctx.createRadialGradient(tp2.x, tp2.y, tr2 * 0.4, tp2.x, tp2.y, tr2 * 3.2);
+          rg2.addColorStop(0, 'rgba(255,220,140,0.35)');
+          rg2.addColorStop(1, 'rgba(255,220,140,0)');
+          ctx.fillStyle = rg2;
+          ctx.beginPath(); ctx.arc(tp2.x, tp2.y, tr2 * 3.2, 0, Math.PI * 2); ctx.fill();
+        }
         var tg = ctx.createRadialGradient(tp2.x - tr2 * 0.35, tp2.y - tr2 * 0.4, tr2 * 0.15, tp2.x, tp2.y, tr2);
         tg.addColorStop(0, '#fff6e0'); tg.addColorStop(0.45, '#ffb020'); tg.addColorStop(1, '#b35c00');
         ctx.fillStyle = tg;
