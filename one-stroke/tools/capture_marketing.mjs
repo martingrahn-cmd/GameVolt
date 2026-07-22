@@ -5,163 +5,126 @@ import { chromium } from "playwright";
 const BASE_URL = process.env.BASE_URL || "http://127.0.0.1:5173";
 const OUT_DIR = path.resolve(process.cwd(), "assets/marketing");
 
-async function ensureOutputDir() {
-  await fs.mkdir(OUT_DIR, { recursive: true });
-}
-
-async function prepHUD(page) {
-  await page.waitForSelector("#board .tile", { timeout: 15000 });
+async function openGame(page) {
+  await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector("#board .cell.playable", { timeout: 15_000 });
+  const title = await page.title();
+  if (!title.includes("One Stroke")) {
+    throw new Error(`Expected One Stroke, received page title: ${title}`);
+  }
+  await page.addStyleTag({
+    content: `
+      #gv-user-widget { display: none !important; }
+      *, *::before, *::after {
+        animation-delay: 0s !important;
+        animation-duration: 0s !important;
+        transition-duration: 0s !important;
+      }
+    `,
+  });
+  await page.evaluate(() => document.fonts?.ready);
   await page.evaluate(() => {
-    const setText = (id, value) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = value;
-    };
-
-    setText("score", "12840");
-    setText("level", "7 / 10");
-    setText("moves", "14");
-    setText("combo", "x2.4");
-    setText("feverState", "Nära!");
-    setText("feverPercent", "86%");
-    setText("feverTurns", "2 drag boost");
-    setText("dailyStreak", "Streak 6");
-    setText("dailyTask", "Samla Sakura ❀ x23 idag.");
-    setText("dailyCount", "18/23");
-    setText("dailyReward", "Belöning: +2 drag, +690 score, +20% FEVER");
-    setText("status", "Combo chain x4! Linjeattack laddad.");
-
-    const feverFill = document.getElementById("feverFill");
-    if (feverFill) feverFill.style.width = "86%";
-    const feverMeter = document.getElementById("feverMeter");
-    if (feverMeter) feverMeter.setAttribute("aria-valuenow", "86");
-
-    const dailyFill = document.getElementById("dailyFill");
-    if (dailyFill) dailyFill.style.width = "78%";
-    const dailyProgress = document.getElementById("dailyProgress");
-    if (dailyProgress) dailyProgress.setAttribute("aria-valuenow", "78");
-
-    const goals = [...document.querySelectorAll("#goalsList li")];
-    if (goals[0]) goals[0].textContent = "Klar: Score 5600/5600";
-    if (goals[1]) goals[1].textContent = "Samla Sakura ❀ 9/12";
-    if (goals[2]) goals[2].textContent = "Rensa Panel Frame 4/8";
+    window.__oneStroke?.loadCampaignLevel(84, {
+      bypassLock: true,
+      announce: false,
+    });
   });
 }
 
-async function captureDesktop(page) {
-  await page.setViewportSize({ width: 1728, height: 1117 });
-  await page.goto(BASE_URL, { waitUntil: "networkidle" });
-  await prepHUD(page);
-  await page.screenshot({
-    path: path.join(OUT_DIR, "screenshot-desktop.png"),
-    fullPage: true,
-  });
-}
-
-async function captureAction(page) {
-  await page.setViewportSize({ width: 1728, height: 1117 });
-  await page.goto(BASE_URL, { waitUntil: "networkidle" });
-  await prepHUD(page);
-  await page.evaluate(() => {
-    document.querySelector(".hud-panel")?.classList.add("fever-on");
-    document.querySelector(".board-panel")?.classList.add("fever-on");
-    const burst = document.getElementById("comboBurst");
-    if (burst) {
-      burst.textContent = "MEGA CHAIN x5";
-      burst.classList.add("show");
+async function drawPartialSolution(page, ratio = 0.72) {
+  await page.evaluate((pathRatio) => {
+    const app = window.__oneStroke;
+    const level = app?.state?.level;
+    if (!app || !level?.solution || !Array.isArray(level.start)) return;
+    app.resetLevel();
+    let [x, y] = level.start;
+    const moves = level.solution.slice(0, Math.max(1, Math.floor(level.solution.length * pathRatio)));
+    const delta = { R: [1, 0], L: [-1, 0], U: [0, -1], D: [0, 1] };
+    for (const move of moves) {
+      const [dx, dy] = delta[move];
+      x += dx;
+      y += dy;
+      app.handleCellInput(`${x},${y}`);
     }
-    const board = document.getElementById("board");
-    board?.classList.add("impact-chain", "hit-flash");
-  });
-  await page.waitForTimeout(120);
-  const boardPanel = page.locator(".board-panel");
-  await boardPanel.screenshot({
+    app.setStatus("One line. Every node. No repeats.");
+  }, ratio);
+}
+
+async function captureDesktop(browser) {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await openGame(page);
+  await drawPartialSolution(page, 0.58);
+  await page.screenshot({ path: path.join(OUT_DIR, "screenshot-desktop.png") });
+  await page.close();
+}
+
+async function captureAction(browser) {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await openGame(page);
+  await drawPartialSolution(page, 0.82);
+  await page.locator(".board-panel").screenshot({
     path: path.join(OUT_DIR, "screenshot-action.png"),
   });
+  await page.close();
 }
 
-async function captureMobile(page) {
-  await page.setViewportSize({ width: 1170, height: 2532 });
-  await page.goto(BASE_URL, { waitUntil: "networkidle" });
-  await prepHUD(page);
-  await page.evaluate(() => {
-    document.getElementById("status").textContent = "Mobilvy: tydlig HUD och brickor.";
+async function captureMobile(browser) {
+  const page = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 3,
+    isMobile: true,
+    hasTouch: true,
   });
-  await page.screenshot({
+  await openGame(page);
+  await drawPartialSolution(page, 0.66);
+  await page.locator(".board-panel").screenshot({
     path: path.join(OUT_DIR, "screenshot-mobile.png"),
-    fullPage: true,
   });
+  await page.close();
 }
 
-async function captureOgImage(page) {
-  await page.setViewportSize({ width: 1200, height: 630 });
-  await page.goto(BASE_URL, { waitUntil: "networkidle" });
-  await prepHUD(page);
+async function captureOgImage(browser) {
+  const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
+  await openGame(page);
+  await drawPartialSolution(page, 0.72);
   await page.evaluate(() => {
     const style = document.createElement("style");
     style.textContent = `
-      .og-overlay {
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        background:
-          linear-gradient(135deg, rgba(6, 12, 38, 0.66), rgba(6, 12, 38, 0.18) 52%, rgba(6, 12, 38, 0.72));
-        z-index: 9999;
-      }
-      .og-copy {
-        position: fixed;
-        left: 44px;
-        top: 34px;
-        z-index: 10000;
-        color: #fffaf0;
-        text-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
-        font-family: "Bangers", "Impact", sans-serif;
-        letter-spacing: 1.4px;
-      }
-      .og-copy h2 {
-        margin: 0;
-        font-size: 78px;
-        line-height: 0.95;
-        font-weight: 400;
-      }
-      .og-copy p {
-        margin: 10px 0 0;
-        font-family: "M PLUS Rounded 1c", sans-serif;
-        font-size: 26px;
-        font-weight: 800;
-      }
+      .marketing-shade { position: fixed; inset: 0; z-index: 9990; pointer-events: none;
+        background: linear-gradient(90deg, rgba(5,16,22,.92) 0%, rgba(5,16,22,.58) 42%, transparent 72%); }
+      .marketing-copy { position: fixed; z-index: 9991; left: 54px; top: 72px; width: 440px;
+        color: #eefbff; font-family: "Oxanium", sans-serif; text-shadow: 0 5px 24px #000; }
+      .marketing-copy h2 { margin: 0; font-size: 70px; line-height: .95; letter-spacing: -.04em; }
+      .marketing-copy p { margin: 22px 0 0; color: #a9c0cd; font: 600 25px/1.35 "Plus Jakarta Sans", sans-serif; }
+      .marketing-copy strong { color: #1ed6a5; }
     `;
     document.head.append(style);
-
-    const overlay = document.createElement("div");
-    overlay.className = "og-overlay";
+    const shade = document.createElement("div");
+    shade.className = "marketing-shade";
     const copy = document.createElement("div");
-    copy.className = "og-copy";
-    copy.innerHTML = "<h2>MANGA MATCH!</h2><p>Anime-stil. Snappy combos. 10 banor.</p>";
-    document.body.append(overlay, copy);
+    copy.className = "marketing-copy";
+    copy.innerHTML = "<h2>ONE<br>STROKE</h2><p>Visit every node.<br><strong>Draw one perfect path.</strong></p>";
+    document.body.append(shade, copy);
   });
-
-  await page.screenshot({
-    path: path.join(OUT_DIR, "og-image.png"),
-    fullPage: false,
-  });
+  await page.screenshot({ path: path.join(OUT_DIR, "og-image.png") });
+  await page.close();
 }
 
 async function main() {
-  await ensureOutputDir();
+  await fs.mkdir(OUT_DIR, { recursive: true });
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
   try {
-    await captureDesktop(page);
-    await captureAction(page);
-    await captureMobile(page);
-    await captureOgImage(page);
+    await captureDesktop(browser);
+    await captureAction(browser);
+    await captureMobile(browser);
+    await captureOgImage(browser);
   } finally {
     await browser.close();
   }
-  console.log(`Saved marketing assets to ${OUT_DIR}`);
+  console.log(`Saved One Stroke marketing assets to ${OUT_DIR}`);
 }
 
 main().catch((error) => {
   console.error(error);
-  process.exit(1);
+  process.exitCode = 1;
 });

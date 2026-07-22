@@ -5,11 +5,27 @@ import {
 import { DIFFICULTY_META, DIFFICULTY_ORDER } from "../data/difficulty.js";
 import { TUTORIAL_LEVELS } from "../data/tutorial-levels.js";
 
-// Replace first N generated levels with hand-crafted tutorials.
+// Replace the opening with hand-crafted tutorials, then smooth the first
+// generated chapter so the jump from training to full boards is gradual.
+const EARLY_RAMP_END = 20;
+const generatedOpening = GENERATED_LEVELS
+  .slice(TUTORIAL_LEVELS.length, EARLY_RAMP_END)
+  .sort((a, b) => {
+    const complexity = (level) =>
+      (level.par + 1) + level.branchingRatio * 5 + level.turnRatio * 2;
+    return complexity(a) - complexity(b);
+  });
 const CAMPAIGN_LEVELS = [
   ...TUTORIAL_LEVELS,
-  ...GENERATED_LEVELS.slice(TUTORIAL_LEVELS.length),
-];
+  ...generatedOpening,
+  ...GENERATED_LEVELS.slice(EARLY_RAMP_END),
+].map((level, index) => ({
+  ...level,
+  campaignIndex: index + 1,
+  name: level.pathStyle === "tutorial" || level.pathStyle === "bridge"
+    ? level.name
+    : `${DIFFICULTY_META[level.difficulty].label} ${String(index + 1).padStart(2, "0")}`,
+}));
 const CAMPAIGN_TOTAL_LEVELS = CAMPAIGN_LEVELS.length;
 
 import {
@@ -39,6 +55,8 @@ import { createMixedChallenge } from "./challenge-pool.js";
 import {
   clamp,
   todaySeed,
+  utcDaySeed,
+  formatUtcDay,
   createRunId,
   toDisplayTime,
   toDisplayScore,
@@ -116,6 +134,10 @@ export class OneStrokeApp {
     this.nextBtn = document.getElementById("nextBtn");
     this.winModalEl = document.getElementById("winModal");
     this.winTextEl = document.getElementById("winText");
+    this.winMetricsEl = document.getElementById("winMetrics");
+    this.winTimeEl = document.getElementById("winTime");
+    this.winBestEl = document.getElementById("winBest");
+    this.winProgressEl = document.getElementById("winProgress");
     this.modalResetBtn = document.getElementById("modalResetBtn");
     this.modalNextBtn = document.getElementById("modalNextBtn");
     this.modalCloseBtn = document.getElementById("modalCloseBtn");
@@ -290,7 +312,7 @@ export class OneStrokeApp {
     this.renderModeButtons();
     this.setHubView("single-player", { syncMode: false });
     this.updateDailyUI();
-    this.setStatus("Drag from the start node to a neighbor. Drag backward to undo.");
+    this.setStatus(this.getCampaignGuidance(this.state.level));
 
     // Check URL for cloud challenge invite
     this.handleChallengeUrl();
@@ -509,9 +531,7 @@ export class OneStrokeApp {
   }
 
   getDateString(daysAgo = 0) {
-    const d = new Date();
-    d.setDate(d.getDate() - daysAgo);
-    return d.toISOString().slice(0, 10);
+    return utcDaySeed(daysAgo);
   }
 
   updateStreak() {
@@ -560,13 +580,7 @@ export class OneStrokeApp {
 
   updateDailyUI() {
     if (this.dailyDateLabel) {
-      const today = new Date();
-      this.dailyDateLabel.textContent = new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }).format(today);
+      this.dailyDateLabel.textContent = `${formatUtcDay(todaySeed())} · UTC`;
     }
   }
 
@@ -2054,6 +2068,10 @@ export class OneStrokeApp {
       hintCount: 0,
     };
     this.activeHintKey = null;
+    this.boardEl.dataset.tutorial =
+      this.state.mode === "campaign" && level.campaignIndex <= 3
+        ? String(level.campaignIndex)
+        : "";
 
     this.buildBoard();
     this.hideModal();
@@ -2070,7 +2088,11 @@ export class OneStrokeApp {
           ? `Campaign level ${level.campaignIndex}`
           : `Challenge ${this.challenge.cursor + 1}`;
       const endHint = this.state.endKey ? " (fixed end node)" : "";
-      this.setStatus(`${modePrefix}: ${level.name}${endHint}`);
+      this.setStatus(
+        this.state.mode === "campaign"
+          ? this.getCampaignGuidance(level)
+          : `${modePrefix}: ${level.name}${endHint}`,
+      );
     }
 
     if (this.state.mode === "challenge") {
@@ -2078,6 +2100,20 @@ export class OneStrokeApp {
     } else {
       this.startLiveTimer();
     }
+  }
+
+  getCampaignGuidance(level) {
+    const guidance = {
+      1: "Hold the glowing start node and drag right across every node.",
+      2: "Keep holding as the path turns. One continuous stroke.",
+      3: "Plan around the blocked center. Drag backward one node to undo.",
+      4: "The training wheels are off: choose a route that covers every node.",
+      5: "Blocked cells shape the path. Look ahead before committing.",
+      8: "Final training board. Find the full route without a hint.",
+      9: "Training complete. Welcome to the full Easy campaign.",
+    };
+    return guidance[level?.campaignIndex]
+      || `Campaign level ${level?.campaignIndex}: ${level?.name}`;
   }
 
   buildBoard() {
@@ -2103,6 +2139,19 @@ export class OneStrokeApp {
         }
         this.boardEl.append(node);
       }
+    }
+    const tutorialLabels = {
+      1: "Hold + drag →",
+      2: "Keep holding through the turn",
+      3: "Plan ahead · drag back to undo",
+    };
+    const tutorialLabel = tutorialLabels[Number(this.boardEl.dataset.tutorial)];
+    if (tutorialLabel) {
+      const callout = document.createElement("div");
+      callout.className = "tutorial-board-callout";
+      callout.textContent = tutorialLabel;
+      callout.setAttribute("aria-hidden", "true");
+      this.boardEl.append(callout);
     }
   }
 
@@ -2692,14 +2741,28 @@ export class OneStrokeApp {
     };
 
     let pbTag = "";
+    let campaignCompletion = null;
     if (this.state.mode === "campaign") {
       const previous = this.progress.solvedLevels[this.state.level.id];
+      const firstClear = !previous;
+      const previousBestMs = previous?.bestTimeMs ?? null;
       if (!previous) {
         pbTag = " · First clear!";
       } else if (durationMs < previous.bestTimeMs) {
         pbTag = ` · New PB! (${toDisplayTime(previous.bestTimeMs)} → ${toDisplayTime(durationMs)})`;
       }
       this.recordCampaignResult(this.state.level, result);
+      campaignCompletion = {
+        durationMs,
+        firstClear,
+        newBest: Number.isFinite(previousBestMs) && durationMs < previousBestMs,
+        bestDeltaMs: Number.isFinite(previousBestMs) ? previousBestMs - durationMs : null,
+        bestTimeMs: this.progress.solvedLevels[this.state.level.id]?.bestTimeMs ?? durationMs,
+        solvedCount: Object.keys(this.progress.solvedLevels).length,
+        totalLevels: CAMPAIGN_TOTAL_LEVELS,
+        tutorialComplete: this.state.level.campaignIndex === TUTORIAL_LEVELS.length,
+        campaignComplete: this.state.level.campaignIndex === CAMPAIGN_TOTAL_LEVELS,
+      };
     } else {
       this.recordChallengeResult(this.state.level, result);
     }
@@ -2725,11 +2788,21 @@ export class OneStrokeApp {
       `${result.undoCount} undo${fmtPenalty(result.undoCount, CHALLENGE_UNDO_PENALTY_SECONDS)}`,
     ].join(" · ");
     if (this.state.mode === "campaign") {
+      const title = campaignCompletion.campaignComplete
+        ? "Campaign Complete!"
+        : campaignCompletion.tutorialComplete
+          ? "Training Complete!"
+          : campaignCompletion.newBest
+            ? "New Personal Best!"
+            : campaignCompletion.firstClear
+              ? "Path Complete!"
+              : "Level Complete";
       this.showModal(
         hasNext
-          ? `Campaign cleared. ${timingText}${pbTag}. Next level unlocked.`
-          : `Final campaign level cleared. ${timingText}${pbTag}.`,
+          ? `Campaign cleared. ${timingText}${pbTag} Next level unlocked.`
+          : `Final campaign level cleared. ${timingText}${pbTag || "."}`,
         hasNext,
+        { title, completion: campaignCompletion },
       );
     } else {
       const solvedCount = Object.keys(this.challenge.resultsByLevelId).length;
@@ -3166,7 +3239,13 @@ export class OneStrokeApp {
   }
 
   showModal(text, showNext, options = {}) {
-    const { showMatchExport = false, showDailyShare = false, title = "Level Complete", splits = null } = options;
+    const {
+      showMatchExport = false,
+      showDailyShare = false,
+      title = "Level Complete",
+      splits = null,
+      completion = null,
+    } = options;
     this.winModalEl.querySelector("#winTitle").textContent = title;
     this.winTextEl.textContent = text;
     this.modalNextBtn.hidden = !showNext;
@@ -3182,8 +3261,31 @@ export class OneStrokeApp {
       this.modalExportConfirmEl.hidden = true;
       this.modalExportConfirmEl.textContent = "";
     }
+    this.renderCompletionMetrics(completion);
     this.renderWinSplitTable(splits);
     this.winModalEl.classList.remove("hidden");
+    this.winModalEl.classList.toggle("celebrating", Boolean(completion));
+    if (completion) {
+      this.boardEl.classList.remove("completion-burst");
+      void this.boardEl.offsetWidth;
+      this.boardEl.classList.add("completion-burst");
+      window.setTimeout(() => this.boardEl.classList.remove("completion-burst"), 900);
+    }
+  }
+
+  renderCompletionMetrics(completion) {
+    if (!this.winMetricsEl) return;
+    this.winMetricsEl.hidden = !completion;
+    if (!completion) return;
+    this.winTimeEl.textContent = toDisplayTime(completion.durationMs);
+    if (completion.firstClear) {
+      this.winBestEl.textContent = "First clear";
+    } else if (completion.newBest) {
+      this.winBestEl.textContent = `${(completion.bestDeltaMs / 1000).toFixed(1)}s faster`;
+    } else {
+      this.winBestEl.textContent = `PB ${toDisplayTime(completion.bestTimeMs)}`;
+    }
+    this.winProgressEl.textContent = `${completion.solvedCount} / ${completion.totalLevels}`;
   }
 
   renderWinSplitTable(splits) {
@@ -4228,6 +4330,7 @@ export class OneStrokeApp {
 
   hideModal() {
     this.winModalEl.classList.add("hidden");
+    this.winModalEl.classList.remove("celebrating");
     this.cancelCountdown();
   }
 

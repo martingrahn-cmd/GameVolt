@@ -2,8 +2,26 @@ export function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-export function todaySeed() {
-  return new Date().toISOString().slice(0, 10);
+export function utcDaySeed(daysAgo = 0, now = new Date()) {
+  const date = new Date(now);
+  date.setUTCDate(date.getUTCDate() - daysAgo);
+  return date.toISOString().slice(0, 10);
+}
+
+export function todaySeed(now = new Date()) {
+  return utcDaySeed(0, now);
+}
+
+export function formatUtcDay(daySeed, locale = "en-US") {
+  const date = new Date(`${daySeed}T12:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return daySeed;
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(date);
 }
 
 export function createRunId() {
