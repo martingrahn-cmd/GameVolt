@@ -145,7 +145,7 @@
     <span style="color:#54708f">·</span>
     <span class="sc" id="sc2">0</span>
     <span class="serve-dot" id="dot2"></span>
-    <span class="who">AI</span>
+    <span class="who" id="who2">AI</span>
     <span class="lvl" id="lvl"></span>
   </div>
   <div id="banner"></div>
@@ -193,11 +193,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.21.0"></script>
-  <script src="tt-ai.js?v=0.21.0"></script>
+  <script src="tt-core.js?v=0.22.0"></script>
+  <script src="tt-ai.js?v=0.22.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.21.0';
+    var VERSION = '0.22.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -245,7 +245,7 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.21.0', bounce: 'assets/bounce.mp3?v=0.21.0', cheer: 'assets/cheer.mp3?v=0.21.0', net: 'assets/net.mp3?v=0.21.0' };
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.22.0', bounce: 'assets/bounce.mp3?v=0.22.0', cheer: 'assets/cheer.mp3?v=0.22.0', net: 'assets/net.mp3?v=0.22.0' };
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
@@ -1043,7 +1043,9 @@
       el.sc2.textContent = game.scores[2];
       el.dot1.textContent = game.server === 1 ? '●' : '';
       el.dot2.textContent = game.server === 2 ? '●' : '';
-      el.lvl.textContent = campaignOpp ? campaignOpp.short : String(level).toUpperCase();
+      // campaign: the opponent's NAME replaces the generic "AI" label
+      document.getElementById('who2').textContent = campaignOpp ? campaignOpp.short : 'AI';
+      el.lvl.textContent = campaignOpp ? '' : String(level).toUpperCase();
     }
     var bannerTimer = 0;
     function showBanner(txt, ms) {
@@ -1316,13 +1318,13 @@
           Sound.point(e.to === 1);
           updateHud();
           if (!res.events.some(function (x) { return x.type === 'over'; })) {
-            addLabel(e.to === 1 ? 'POINT!' : 'AI POINT', W / 2, H * 0.42,
+            addLabel(e.to === 1 ? 'POINT!' : (campaignOpp ? campaignOpp.short : 'AI') + ' POINT', W / 2, H * 0.42,
               e.to === 1 ? '#7dffb0' : '#ff8aa8', 46, 1150);
           }
           pointTimer = 66; // ~1.1s pause, ball physics keep settling
         } else if (e.type === 'over') {
           Sound.end(e.winner === 1);
-          showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — AI', 1400);
+          showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — ' + (campaignOpp ? campaignOpp.short : 'AI'), 1400);
           endMatch();
         }
       }
