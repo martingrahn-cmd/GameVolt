@@ -18,9 +18,11 @@
   var K = TTCore.constants;
 
   var LEVELS = {
-    easy:   { speed: 1.7, react: 20, err: 0.30, outP: 0.10, tMin: 0.58, depth: 0.55, serveWait: 70, leaveP: 0.5 },
-    medium: { speed: 2.0, react: 16, err: 0.26, outP: 0.085, tMin: 0.58, depth: 0.62, serveWait: 55, leaveP: 0.8 },
-    hard:   { speed: 4.3, react: 3,  err: 0.07, outP: 0.012, tMin: 0.42, depth: 0.92, serveWait: 40, leaveP: 0.98 }
+    // Playtest-driven reshuffle: the old medium played like a wall, so hard
+    // now sits where medium was, and medium is barely above easy.
+    easy:   { speed: 1.7,  react: 20, err: 0.30, outP: 0.10, tMin: 0.58, depth: 0.55, serveWait: 70, leaveP: 0.5 },
+    medium: { speed: 1.85, react: 18, err: 0.28, outP: 0.10, tMin: 0.60, depth: 0.58, serveWait: 58, leaveP: 0.7 },
+    hard:   { speed: 2.2,  react: 14, err: 0.24, outP: 0.07, tMin: 0.56, depth: 0.66, serveWait: 50, leaveP: 0.85 }
   };
 
   // Integrate a copy of the ball to the AI's paddle plane (with table
