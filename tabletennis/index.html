@@ -52,6 +52,26 @@
     .btn.hard { border-color: rgba(255,80,120,0.5); color: #ff9ab5; background: rgba(255,80,120,0.06); }
     .btn.hard:hover { background: rgba(255,80,120,0.14); box-shadow: 0 0 22px rgba(255,80,120,0.35); }
     .btn.ghost { border-color: rgba(255,255,255,0.22); color: #9fb4cc; background: transparent; }
+    .btn.camp {
+      border-color: rgba(255,209,102,0.6); color: #ffe8ad; background: rgba(255,209,102,0.08);
+      box-shadow: 0 0 18px rgba(255,209,102,0.2);
+    }
+    .btn.camp:hover { background: rgba(255,209,102,0.16); box-shadow: 0 0 26px rgba(255,209,102,0.4); }
+
+    /* VS card (Punch-Out style pre-match) */
+    #vs-stage { font-size: 0.72rem; letter-spacing: 5px; color: #ffd166; text-transform: uppercase; }
+    #vs-face {
+      width: 148px; height: 168px; image-rendering: pixelated;
+      border: 2px solid rgba(0,234,255,0.35); border-radius: 10px;
+      background: #0a0918; box-shadow: 0 0 30px rgba(0,234,255,0.2);
+    }
+    #vs-name { font-size: clamp(1.4rem, 6vw, 2rem); font-weight: 900; letter-spacing: 3px; color: #fff; }
+    #vs-country { font-size: 0.85rem; letter-spacing: 2px; color: #9fb4cc; }
+    #vs-style { font-size: 0.72rem; letter-spacing: 2px; color: #00eaff; text-transform: uppercase; }
+    #vs-taunt { font-size: 0.9rem; font-style: italic; color: #d7c9a8; max-width: 300px; text-align: center; line-height: 1.4; }
+    #vs-bracket { display: flex; gap: 14px; font-size: 0.68rem; letter-spacing: 1px; color: #6d84a3; }
+    #vs-bracket .done { color: #7dffb0; }
+    #vs-bracket .cur { color: #ffd166; }
     .menu-note { font-size: 0.68rem; color: #6d84a3; letter-spacing: 1px; margin-top: 6px; }
     #install-btn {
       font-family: inherit; font-weight: 800; letter-spacing: 2px; font-size: 0.72rem;
@@ -138,6 +158,8 @@
     <div class="subtitle">2.5D arcade ping pong</div>
     <div class="proto-tag">Prototype · Phase 0</div>
     <div style="height:8px"></div>
+    <button class="btn camp" id="campaign-btn">🏆 CAMPAIGN</button>
+    <div class="menu-note" style="margin:2px 0 -6px">QUICK MATCH</div>
     <button class="btn easy" data-level="easy">EASY</button>
     <button class="btn medium" data-level="medium">MEDIUM</button>
     <button class="btn hard" data-level="hard">HARD</button>
@@ -145,6 +167,19 @@
     <button id="update-chip" class="hidden">◆ NEW VERSION — TAP TO UPDATE</button>
     <button id="install-btn" class="hidden">⬇ INSTALL APP</button>
     <div id="ios-hint" class="hidden">On iPhone: Share <span style="font-size:0.8rem">⎋</span> → “Add to Home Screen”</div>
+  </div>
+
+  <div class="overlay hidden" id="vs">
+    <div id="vs-stage"></div>
+    <canvas id="vs-face" width="140" height="160"></canvas>
+    <div id="vs-name"></div>
+    <div id="vs-country"></div>
+    <div id="vs-style"></div>
+    <div id="vs-taunt"></div>
+    <div id="vs-bracket"></div>
+    <div style="height:6px"></div>
+    <button class="btn hard" id="vs-fight">FIGHT!</button>
+    <button class="btn ghost" id="vs-back">BACK</button>
   </div>
 
   <div class="overlay hidden" id="end">
@@ -158,11 +193,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.20.0"></script>
-  <script src="tt-ai.js?v=0.20.0"></script>
+  <script src="tt-core.js?v=0.21.0"></script>
+  <script src="tt-ai.js?v=0.21.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.20.0';
+    var VERSION = '0.21.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -210,7 +245,7 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.20.0', bounce: 'assets/bounce.mp3?v=0.20.0', cheer: 'assets/cheer.mp3?v=0.20.0', net: 'assets/net.mp3?v=0.20.0' };
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.21.0', bounce: 'assets/bounce.mp3?v=0.21.0', cheer: 'assets/cheer.mp3?v=0.21.0', net: 'assets/net.mp3?v=0.21.0' };
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
@@ -580,7 +615,8 @@
       ctx.shadowBlur = 0;
       ctx.font = '700 ' + jh * 0.2 + 'px "Segoe UI", system-ui, sans-serif';
       ctx.fillStyle = '#7f98b8';
-      ctx.fillText((game.server === 1 ? '● YOU' : 'YOU') + '        ' + (game.server === 2 ? 'AI ●' : 'AI'), W / 2, jy + jh * 0.78);
+      var oppLbl = campaignOpp ? campaignOpp.short : 'AI';
+      ctx.fillText((game.server === 1 ? '● YOU' : 'YOU') + '        ' + (game.server === 2 ? oppLbl + ' ●' : oppLbl), W / 2, jy + jh * 0.78);
     }
 
     // live camera flashes popping in the crowd
@@ -1007,7 +1043,7 @@
       el.sc2.textContent = game.scores[2];
       el.dot1.textContent = game.server === 1 ? '●' : '';
       el.dot2.textContent = game.server === 2 ? '●' : '';
-      el.lvl.textContent = level.toUpperCase();
+      el.lvl.textContent = campaignOpp ? campaignOpp.short : String(level).toUpperCase();
     }
     var bannerTimer = 0;
     function showBanner(txt, ms) {
@@ -1021,9 +1057,135 @@
       el.hint.classList.toggle('on', !!txt);
     }
 
+    // ---------- campaign (Punch-Out style ladder) ----------
+    // Portraits: built-in pixel-art placeholders; drop assets/opp-<id>.png
+    // (e.g. Grok-generated art) into the repo and it replaces the placeholder
+    // automatically.
+    var OPPONENTS = [
+      {
+        id: 'hans', name: 'HANS GRUBER', short: 'GRUBER', flag: '🇩🇪', country: 'GERMANY',
+        stage: 'QUARTERFINAL', style: 'Ice-cold precision', taunt: '“Nothing personal. Strictly business.”',
+        params: { speed: 1.9, react: 16, err: 0.24, outP: 0.08, tMin: 0.58, depth: 0.62, serveWait: 60, leaveP: 0.7 },
+        pal: { H: '#3a2a1a', S: '#e6b48e', D: '#1c1410', B: '#4a3826', K: '#16161f', W: '#e8e8ee', R: '#7a1420', N: '#c98f6a' },
+        px: [
+          '..HHHHHHHHHH..',
+          '.HHHHHHHHHHHH.',
+          '.HHHHHHHHHHHH.',
+          '.HSSSSSSSSSSH.',
+          '.HSSSSSSSSSSH.',
+          '.HSDDSSSSDDSH.',
+          '.HSSDSSSSDSSH.',
+          '..SSSSNNSSSS..',
+          '..SSSSNNSSSS..',
+          '..BSSSSSSSSB..',
+          '..BBSDDDDSBB..',
+          '..BBBBBBBBBB..',
+          '...BBBBBBBB...',
+          '..KKKWWWWKKK..',
+          '.KKKKWRRWKKKK.',
+          '.KKKKWRRWKKKK.'
+        ]
+      },
+      {
+        id: 'hummel', name: 'GENERAL HUMMEL', short: 'HUMMEL', flag: '🇺🇸', country: 'USA',
+        stage: 'SEMIFINAL', style: 'Heavy artillery drives', taunt: '“I don’t lose, son.”',
+        params: { speed: 2.6, react: 11, err: 0.18, outP: 0.05, tMin: 0.50, depth: 0.78, serveWait: 52, leaveP: 0.85 },
+        pal: { U: '#3f4f2a', G: '#b9b9b9', S: '#e0a882', D: '#181410', Y: '#d9b23a', M: '#8a2020', L: '#2e3a20', N: '#c08a60' },
+        px: [
+          '..UUUUUUUUUU..',
+          '.UUUUUUUUUUUU.',
+          '.UUUUUYYUUUUU.',
+          '.UUUUUUUUUUUU.',
+          '..GSSSSSSSSG..',
+          '..GSDDSSDDSG..',
+          '..SSSDSSDSSS..',
+          '..SSSSNNSSSS..',
+          '..SSSSSSSSSS..',
+          '..SSDDDDDDSS..',
+          '...SSSSSSSS...',
+          '..UUUUUUUUUU..',
+          '.UUYMUUUUMYUU.',
+          '.UUUUUUUUUUUU.',
+          '.LLUUUUUUUULL.',
+          '.LLUUUUUUUULL.'
+        ]
+      },
+      {
+        id: 'chongli', name: 'CHONG LI', short: 'CHONG LI', flag: '🇨🇳', country: 'CHINA',
+        stage: 'THE FINAL', style: 'The reigning champion', taunt: '“You are next!”',
+        params: { speed: 4.0, react: 4, err: 0.09, outP: 0.02, tMin: 0.44, depth: 0.9, serveWait: 42, leaveP: 0.96 },
+        pal: { H: '#0e0e12', R: '#c8281e', S: '#d9a06a', D: '#141008', N: '#b07b48', X: '#8a1410' },
+        px: [
+          '..H..HHHH..H..',
+          '.HHHHHHHHHHHH.',
+          '.HHHHHHHHHHHH.',
+          '.RRRRRRRRRRRR.',
+          '.RXRRRRRRRRXR.',
+          '..SSSSSSSSSS..',
+          '..SDDSSSSDDS..',
+          '..SSDSSSSDSS..',
+          '..SSSSNNSSSS..',
+          '..SSSSSSSSSS..',
+          '..SSDDDDDDSS..',
+          '...SSSSSSSS...',
+          '....SSSSSS....',
+          '..SSSSSSSSSS..',
+          '.SSSSSSSSSSSS.',
+          '.SSSSSSSSSSSS.'
+        ]
+      }
+    ];
+    var campStage = Math.min(3, parseInt(localStorage.getItem('ttCampaign') || '0', 10) || 0);
+    var campaignOpp = null, campIdx = -1, vsIdx = 0;
+
+    function drawPortrait(cvEl, opp) {
+      var c = cvEl.getContext('2d');
+      c.imageSmoothingEnabled = false;
+      function bg() { c.fillStyle = '#0a0918'; c.fillRect(0, 0, cvEl.width, cvEl.height); }
+      function grid() {
+        bg();
+        var rows = opp.px;
+        var cell = Math.floor(Math.min(cvEl.width / rows[0].length, cvEl.height / rows.length));
+        var ox = (cvEl.width - cell * rows[0].length) / 2, oy = (cvEl.height - cell * rows.length) / 2;
+        for (var y = 0; y < rows.length; y++) {
+          for (var x = 0; x < rows[y].length; x++) {
+            var ch = rows[y][x];
+            if (ch === '.') continue;
+            c.fillStyle = opp.pal[ch] || '#fff';
+            c.fillRect(ox + x * cell, oy + y * cell, cell, cell);
+          }
+        }
+      }
+      grid(); // placeholder now; real art (if the file exists) replaces it
+      var img = new Image();
+      img.onload = function () { bg(); c.drawImage(img, 0, 0, cvEl.width, cvEl.height); };
+      img.src = 'assets/opp-' + opp.id + '.png';
+    }
+
+    function openVs(idx) {
+      vsIdx = idx;
+      var o = OPPONENTS[idx];
+      document.getElementById('vs-stage').textContent = o.stage;
+      document.getElementById('vs-name').textContent = o.name;
+      document.getElementById('vs-country').textContent = o.flag + ' ' + o.country;
+      document.getElementById('vs-style').textContent = o.style;
+      document.getElementById('vs-taunt').textContent = o.taunt;
+      document.getElementById('vs-bracket').innerHTML = OPPONENTS.map(function (op, i) {
+        var cls = i < idx ? 'done' : (i === idx ? 'cur' : '');
+        var mark = i < idx ? '✓ ' : (i === idx ? '▶ ' : '🔒 ');
+        return '<span class="' + cls + '">' + mark + op.short + '</span>';
+      }).join('');
+      drawPortrait(document.getElementById('vs-face'), o);
+      el.menu.classList.add('hidden');
+      el.end.classList.add('hidden');
+      document.getElementById('vs').classList.remove('hidden');
+    }
+
     // ---------- game flow ----------
-    function startMatch(lvl) {
+    function startMatch(lvl, opp) {
       level = lvl;
+      campaignOpp = opp || null;
+      document.getElementById('vs').classList.add('hidden');
       game = TTCore.createGame(1);
       aiMem = {};
       trail = [];
@@ -1043,9 +1205,31 @@
     function endMatch() {
       ui = 'over';
       var won = game.winner === 1;
-      el.endTitle.textContent = won ? 'YOU WIN!' : 'AI WINS';
+      var againBtn = document.getElementById('again-btn');
       el.endTitle.className = 'modal-title ' + (won ? 'win' : 'lose');
-      el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · ' + level.toUpperCase();
+      if (campaignOpp) {
+        if (won && campIdx >= 2) {
+          campStage = 3;
+          localStorage.setItem('ttCampaign', '3');
+          el.endTitle.textContent = '🏆 CHAMPION!';
+          el.endSub.textContent = 'You conquered the GameVolt Open! ' + game.scores[1] + ' — ' + game.scores[2] + ' in the final.';
+          againBtn.textContent = 'MENU';
+        } else if (won) {
+          campStage = campIdx + 1;
+          localStorage.setItem('ttCampaign', String(campStage));
+          el.endTitle.textContent = 'VICTORY!';
+          el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · the ' + OPPONENTS[campStage].stage.toLowerCase() + ' awaits';
+          againBtn.textContent = 'NEXT OPPONENT';
+        } else {
+          el.endTitle.textContent = 'DEFEAT';
+          el.endSub.textContent = campaignOpp.name + ' wins ' + game.scores[2] + ' — ' + game.scores[1] + '.  ' + campaignOpp.taunt;
+          againBtn.textContent = 'REMATCH';
+        }
+      } else {
+        el.endTitle.textContent = won ? 'YOU WIN!' : 'AI WINS';
+        el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · ' + String(level).toUpperCase();
+        againBtn.textContent = 'PLAY AGAIN';
+      }
       setHint('');
       setTimeout(function () { el.end.classList.remove('hidden'); }, 700);
     }
@@ -1053,8 +1237,10 @@
     function toMenu() {
       ui = 'menu';
       game = null;
+      campaignOpp = null;
       el.end.classList.add('hidden');
       el.hud.classList.add('hidden');
+      document.getElementById('vs').classList.add('hidden');
       el.menu.classList.remove('hidden');
       setHint('');
       draw();
@@ -1178,7 +1364,28 @@
     Array.prototype.forEach.call(document.querySelectorAll('[data-level]'), function (b) {
       b.addEventListener('click', function () { startMatch(b.getAttribute('data-level')); });
     });
-    document.getElementById('again-btn').addEventListener('click', function () { startMatch(level); });
+    document.getElementById('again-btn').addEventListener('click', function () {
+      if (campaignOpp) {
+        var won = game && game.winner === 1;
+        if (won && campIdx >= 2) { toMenu(); return; }
+        if (won) { el.end.classList.add('hidden'); openVs(campStage); return; }
+        startMatch(campaignOpp.params, campaignOpp);
+        return;
+      }
+      startMatch(level);
+    });
+    document.getElementById('campaign-btn').addEventListener('click', function () {
+      if (campStage >= 3) campStage = 0; // champion starts a fresh run
+      openVs(campStage);
+    });
+    document.getElementById('vs-fight').addEventListener('click', function () {
+      campIdx = vsIdx;
+      startMatch(OPPONENTS[vsIdx].params, OPPONENTS[vsIdx]);
+    });
+    document.getElementById('vs-back').addEventListener('click', function () {
+      document.getElementById('vs').classList.add('hidden');
+      el.menu.classList.remove('hidden');
+    });
     document.getElementById('menu-btn').addEventListener('click', toMenu);
     window.addEventListener('keydown', function (e) {
       if (e.code === 'Escape' && ui === 'playing') toMenu();
