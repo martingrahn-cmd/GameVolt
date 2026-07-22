@@ -4,21 +4,101 @@ const STORAGE_KEYS = {
   achievementUnlocks: "one-stroke-achievement-unlocks-v1",
 };
 
+export const CLOUD_SAVE_VERSION = 1;
+
+function finiteNonNegative(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : fallback;
+}
+
+function normalizeSolvedEntry(entry) {
+  if (!entry || typeof entry !== "object") return null;
+  return {
+    bestTimeMs: finiteNonNegative(entry.bestTimeMs),
+    bestUndoCount: finiteNonNegative(entry.bestUndoCount),
+    bestResetCount: finiteNonNegative(entry.bestResetCount),
+    bestHintCount: finiteNonNegative(entry.bestHintCount),
+    playedCount: Math.max(1, Math.floor(finiteNonNegative(entry.playedCount, 1))),
+  };
+}
+
+export function normalizeCampaignProgress(progress, defaultUnlockedLevel = 1) {
+  const source = progress && typeof progress === "object" ? progress : {};
+  const solvedLevels = {};
+  if (source.solvedLevels && typeof source.solvedLevels === "object") {
+    for (const [levelId, entry] of Object.entries(source.solvedLevels)) {
+      const normalized = normalizeSolvedEntry(entry);
+      if (levelId && normalized) solvedLevels[levelId] = normalized;
+    }
+  }
+  const unlocked = Number(source.unlockedLevel);
+  return {
+    unlockedLevel: Number.isInteger(unlocked) && unlocked >= 1 ? unlocked : defaultUnlockedLevel,
+    solvedLevels,
+  };
+}
+
+function bestLower(localValue, cloudValue) {
+  const local = finiteNonNegative(localValue, Infinity);
+  const cloud = finiteNonNegative(cloudValue, Infinity);
+  const best = Math.min(local, cloud);
+  return Number.isFinite(best) ? best : 0;
+}
+
+export function mergeCampaignProgress(localProgress, cloudProgress) {
+  const local = normalizeCampaignProgress(localProgress);
+  const cloud = normalizeCampaignProgress(cloudProgress);
+  const solvedLevels = {};
+  const ids = new Set([...Object.keys(local.solvedLevels), ...Object.keys(cloud.solvedLevels)]);
+  for (const id of ids) {
+    const a = local.solvedLevels[id];
+    const b = cloud.solvedLevels[id];
+    if (!a) solvedLevels[id] = b;
+    else if (!b) solvedLevels[id] = a;
+    else {
+      solvedLevels[id] = {
+        bestTimeMs: bestLower(a.bestTimeMs, b.bestTimeMs),
+        bestUndoCount: bestLower(a.bestUndoCount, b.bestUndoCount),
+        bestResetCount: bestLower(a.bestResetCount, b.bestResetCount),
+        bestHintCount: bestLower(a.bestHintCount, b.bestHintCount),
+        playedCount: Math.max(a.playedCount, b.playedCount),
+      };
+    }
+  }
+  return {
+    unlockedLevel: Math.max(local.unlockedLevel, cloud.unlockedLevel),
+    solvedLevels,
+  };
+}
+
+export function campaignProgressFromCloudSave(save) {
+  if (!save || typeof save !== "object") return normalizeCampaignProgress(null);
+  if (save.campaign && typeof save.campaign === "object") return normalizeCampaignProgress(save.campaign);
+  if (save.campaignProgress && typeof save.campaignProgress === "object") {
+    return normalizeCampaignProgress(save.campaignProgress);
+  }
+  return normalizeCampaignProgress(save);
+}
+
+export function buildCloudSave(progress) {
+  return {
+    version: CLOUD_SAVE_VERSION,
+    campaign: normalizeCampaignProgress(progress),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function mergeOneStrokeCloudSave(localProgress, cloudSave) {
+  return buildCloudSave(mergeCampaignProgress(localProgress, campaignProgressFromCloudSave(cloudSave)));
+}
+
 export function loadCampaignProgress(defaultUnlockedLevel = 1) {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.campaignProgress);
     if (!raw) {
       return { unlockedLevel: defaultUnlockedLevel, solvedLevels: {} };
     }
-    const parsed = JSON.parse(raw);
-    const unlockedLevel = Number(parsed.unlockedLevel);
-    const solvedLevels = typeof parsed.solvedLevels === "object" && parsed.solvedLevels !== null
-      ? parsed.solvedLevels
-      : {};
-    if (!Number.isInteger(unlockedLevel) || unlockedLevel < 1) {
-      return { unlockedLevel: defaultUnlockedLevel, solvedLevels: {} };
-    }
-    return { unlockedLevel, solvedLevels };
+    return normalizeCampaignProgress(JSON.parse(raw), defaultUnlockedLevel);
   } catch {
     return { unlockedLevel: defaultUnlockedLevel, solvedLevels: {} };
   }
