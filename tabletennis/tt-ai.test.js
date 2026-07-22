@@ -55,6 +55,12 @@ var a = playGame('medium', 'hard', 42);
 var b = playGame('medium', 'hard', 42);
 check('seeded games are identical', JSON.stringify(a) === JSON.stringify(b));
 
+// 3b. custom personality param objects are accepted (campaign opponents)
+var dCustom = AI.decide(TT.createGame(1), 2,
+  { speed: 2.2, react: 12, err: 0.2, outP: 0.05, tMin: 0.52, depth: 0.7, serveWait: 50, leaveP: 0.8 },
+  lcg(3), {});
+check('custom personality params work', typeof dCustom.x === 'number' && typeof dCustom.z === 'number');
+
 // 4. AI serves eventually (doesn't deadlock the serve phase)
 var g2 = TT.createGame(2);
 var rng2 = lcg(5), mem2 = {};

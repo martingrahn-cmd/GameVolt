@@ -50,7 +50,9 @@
   }
 
   function decide(s, pid, level, rng, mem) {
-    var L = LEVELS[level] || LEVELS.medium;
+    // level: a preset name ('easy'/'medium'/'hard') or a custom personality
+    // parameter object (campaign opponents)
+    var L = typeof level === 'object' && level ? level : (LEVELS[level] || LEVELS.medium);
     var opp = TTCore.other(pid);
     if (mem.x === undefined) { mem.x = s.paddles[pid].x; mem.z = s.paddles[pid].z; }
 
