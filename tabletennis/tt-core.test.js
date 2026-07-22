@@ -124,6 +124,15 @@ for (var sd = 1; sd <= 6; sd++) {
 }
 check('soft serve is returnable by medium AI (' + returned + '/6)', returned >= 5);
 
+// 8d. edge-ball justice: a fast serve landing 4cm inside the end line must
+// be judged IN (step-boundary judging used to call these out)
+g = TT.createGame(1);
+TT.serve(g, { tx: 0, ty: K.TABLE_L - 0.04, pace: 1 });
+evs = run(g, 200, { 2: { x: 1.5, z: 0.9 } });
+var edgeBounces = evs.filter(function (e) { return e.type === 'bounce' && e.side === 2; });
+check('deep edge ball bounces IN', edgeBounces.length >= 1);
+check('edge landing y within the table', edgeBounces.length >= 1 && edgeBounces[0].y <= K.TABLE_L + 1e-9);
+
 // 9. determinism: identical input scripts -> identical states
 function scripted() {
   var s = TT.createGame(1);

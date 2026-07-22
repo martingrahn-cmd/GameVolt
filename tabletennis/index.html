@@ -158,11 +158,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.16.0"></script>
-  <script src="tt-ai.js?v=0.16.0"></script>
+  <script src="tt-core.js?v=0.17.0"></script>
+  <script src="tt-ai.js?v=0.17.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.16.0';
+    var VERSION = '0.17.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -210,7 +210,7 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.16.0', bounce: 'assets/bounce.mp3?v=0.16.0', cheer: 'assets/cheer.mp3?v=0.16.0', net: 'assets/net.mp3?v=0.16.0' };
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.17.0', bounce: 'assets/bounce.mp3?v=0.17.0', cheer: 'assets/cheer.mp3?v=0.17.0', net: 'assets/net.mp3?v=0.17.0' };
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
@@ -616,6 +616,8 @@
       trapezoid(-hw, 0, hw, K.TABLE_L, 0); ctx.stroke();
       line3(0, 0.02, 0, 0, K.TABLE_L - 0.02, 0); // center line
 
+      drawLandMark();
+
       // ball shadow
       var overTable = Math.abs(b.x) <= hw && b.y >= 0 && b.y <= K.TABLE_L;
       var shz = overTable ? 0 : K.FLOOR_Z;
@@ -703,6 +705,17 @@
       ctx.fill();
     }
     var ballSquash = 0;
+    var landMark = null; // { x, y, a } — fading ring where an OUT ball landed
+    function drawLandMark() {
+      if (!landMark) return;
+      var p = proj(landMark.x, landMark.y, K.FLOOR_Z);
+      ctx.strokeStyle = 'rgba(255,70,70,' + (0.85 * landMark.a).toFixed(3) + ')';
+      ctx.lineWidth = 2.5;
+      var r = 0.09 * p.s * (1.6 - 0.6 * landMark.a);
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, r * 1.5, r * 0.5, 0, 0, Math.PI * 2); ctx.stroke();
+      landMark.a -= 0.012;
+      if (landMark.a <= 0) landMark = null;
+    }
 
     function paddleShape(px, py, pz, scale, color, dark, tilt) {
       var p = proj(px, py, pz);
@@ -788,10 +801,10 @@
       var bz = game && game.ball ? game.ball.z : 0.25;
       var lowRisk = Math.max(0, Math.min(1, 1 - bz / 0.45));
       return {
-        // full power on a HIGH ball lands deep but IN (~2.65 of 2.74);
-        // only overcooking a LOW ball flies long
-        tx: Math.max(-0.72, Math.min(0.72, game.paddles[1].x * 0.2 + pointerVX * 0.6)),
-        ty: K.NET_Y + 0.30 + 0.88 * power + 0.10 * inSpeed + 0.32 * lowRisk * power,
+        // full power on a HIGH ball lands deep but safely IN (~2.57 of
+        // 2.74); only overcooking a LOW ball flies long
+        tx: Math.max(-0.68, Math.min(0.68, game.paddles[1].x * 0.2 + pointerVX * 0.55)),
+        ty: K.NET_Y + 0.30 + 0.82 * power + 0.08 * inSpeed + 0.30 * lowRisk * power,
         t: (0.70 - 0.30 * power) * (1 - 0.2 * inSpeed)
       };
     }
@@ -850,6 +863,7 @@
       aiMem = {};
       trail = [];
       toss = null;
+      landMark = null;
       pointTimer = 0;
       ui = 'playing';
       el.menu.classList.add('hidden');
@@ -926,6 +940,11 @@
           if (e.by === 1) padKick = Math.max(-0.6, Math.min(0.6, pointerVX * 0.14));
         }
         if (e.type === 'bounce') { Sound.bounce(e.x / 0.76); ballSquash = 1; }
+        if (e.type === 'floor' && e.out) {
+          // line call: show WHERE it landed so outs never feel like robbery
+          showBanner('OUT');
+          landMark = { x: e.x, y: e.y, a: 1 };
+        }
         if (e.type === 'net') { Sound.net(); showBanner('NET!'); }
         else if (e.type === 'point') {
           Sound.point(e.to === 1);

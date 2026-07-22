@@ -214,7 +214,7 @@
           // where the ball meets the blade deflects the shot — an off-center
           // contact angles the return (physical feel, and honest whiff-ish
           // shanks when you barely reach a wide ball)
-          var off = (cx - pad2.x) * 0.7;
+          var off = (cx - pad2.x) * 0.55;
           launchAt(s, p,
             (typeof aim.tx === 'number' ? aim.tx : 0) + off,
             typeof aim.ty === 'number' ? aim.ty : NET_Y + fwd * 0.9,
@@ -234,23 +234,29 @@
       }
     }
 
-    // table bounce
-    if (b.z <= 0 && b.vz < 0 && Math.abs(b.x) <= TABLE_W / 2 &&
-        b.y >= 0 && b.y <= TABLE_L) {
-      b.z = 0;
-      if (s.phase === 'rally') {
-        b.vz = -b.vz * BOUNCE;
-        var side = b.y < NET_Y ? 1 : 2;
-        ev.push({ type: 'bounce', side: side, x: b.x, y: b.y });
-        if (s.lastHitBy && side === other(s.lastHitBy)) {
-          if (s.bounced) award(s, s.lastHitBy, ev); // double bounce: receiver never got there
-          else s.bounced = true;
-        } else if (s.lastHitBy) {
-          if (s.serveBounce) s.serveBounce = false; // the serve's own-side bounce is legal
-          else award(s, other(s.lastHitBy), ev);    // otherwise own-side bounce = fault
+    // table bounce — judged at the INTERPOLATED landing point, not the
+    // post-step position: a fast ball moves ~8cm per tick, so judging at
+    // step boundaries called genuinely-in edge balls out
+    if (b.z <= 0 && b.vz < 0) {
+      var fz = (pz0 - b.z) > 1e-9 ? Math.max(0, Math.min(1, pz0 / (pz0 - b.z))) : 1;
+      var landX = px0 + (b.x - px0) * fz;
+      var landY = py0 + (b.y - py0) * fz;
+      if (Math.abs(landX) <= TABLE_W / 2 && landY >= 0 && landY <= TABLE_L) {
+        b.z = 0;
+        if (s.phase === 'rally') {
+          b.vz = -b.vz * BOUNCE;
+          var side = landY < NET_Y ? 1 : 2;
+          ev.push({ type: 'bounce', side: side, x: landX, y: landY });
+          if (s.lastHitBy && side === other(s.lastHitBy)) {
+            if (s.bounced) award(s, s.lastHitBy, ev); // double bounce: receiver never got there
+            else s.bounced = true;
+          } else if (s.lastHitBy) {
+            if (s.serveBounce) s.serveBounce = false; // the serve's own-side bounce is legal
+            else award(s, other(s.lastHitBy), ev);    // otherwise own-side bounce = fault
+          }
+        } else {
+          b.vz = -b.vz * 0.55; b.vx *= 0.85; b.vy *= 0.85; // cosmetic settle
         }
-      } else {
-        b.vz = -b.vz * 0.55; b.vx *= 0.85; b.vy *= 0.85; // cosmetic settle
       }
     }
 
@@ -265,8 +271,8 @@
       b.vz = -b.vz * 0.4;
       b.vx *= 0.7; b.vy *= 0.7;
       if (s.phase === 'rally') {
-        ev.push({ type: 'floor' });
         // bounced on the receiver's side first -> they missed; otherwise out
+        ev.push({ type: 'floor', x: b.x, y: b.y, out: !s.bounced });
         award(s, s.bounced ? s.lastHitBy : other(s.lastHitBy), ev);
       }
     }
