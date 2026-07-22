@@ -54,6 +54,7 @@ import {
   loadAchievementUnlocks,
   loadCampaignProgress,
   loadChallengeRunHistory,
+  mergeOneStrokeCloudSave,
   saveAchievementUnlocks,
   saveCampaignProgress,
   saveChallengeRunHistory,
@@ -83,6 +84,10 @@ const CHALLENGE_SUMMARY_SCHEMA_KIND = "one-stroke.challenge-summary";
 const TROPHY_CATALOG = createTrophyCatalog(CAMPAIGN_TOTAL_LEVELS);
 
 export class OneStrokeApp {
+  static mergeCloudSaveData(localProgress, cloudSave) {
+    return mergeOneStrokeCloudSave(localProgress, cloudSave);
+  }
+
   constructor() {
     this.validateCampaignData();
 
@@ -252,6 +257,7 @@ export class OneStrokeApp {
     this.activeMatch = null;
     this.cloudChallengeId = null; // GameVolt challenge UUID
     this.dailyMode = false;
+    this.cloudSyncPromise = null;
 
     this.levelAttempt = {
       startedAtMs: Date.now(),
@@ -467,20 +473,8 @@ export class OneStrokeApp {
       this.activeMatch = null;
     }
 
-    // Create cloud challenge via GameVolt SDK
+    // Cloud challenges are created only after an explicit export/share action.
     this.cloudChallengeId = null;
-    if (window.GameVolt?.challenge && GameVolt.auth.getUser()) {
-      GameVolt.challenge.create({
-        seed: challenge.seed,
-        levelCount: challenge.levels.length,
-        config: { levelIds: challenge.levels.map((l) => l.id) },
-      }).then((ch) => {
-        this.cloudChallengeId = ch.id;
-        console.log("[gamevolt] challenge created:", ch.id);
-      }).catch((e) => {
-        console.warn("[gamevolt] challenge create failed:", e);
-      });
-    }
 
     if (this.challengeSeedInput) {
       this.challengeSeedInput.value = challenge.seed;
@@ -2782,7 +2776,12 @@ export class OneStrokeApp {
         this.showModal(
           `Match complete! ${solvedCount}/${totalLevels} levels · ${toDisplayScore(summary.totalScore)} p · ${toDisplayTime(summary.totalTimeMs)}`,
           false,
-          { title: this.dailyMode ? "Daily challenge complete!" : "Match complete!", splits: modalSplits, showDailyShare: this.dailyMode },
+          {
+            title: this.dailyMode ? "Daily challenge complete!" : "Match complete!",
+            splits: modalSplits,
+            showDailyShare: this.dailyMode,
+            showMatchExport: !this.dailyMode,
+          },
         );
         // Transition to share phase
         this.setMatchPhase("share");
@@ -2918,27 +2917,15 @@ export class OneStrokeApp {
 
     // Submit run to GameVolt cloud
     this._cloudSubmitPromise = null;
-    if (this.cloudChallengeId && window.GameVolt?.challenge && GameVolt.auth.getUser()) {
-      this._cloudSubmitPromise = GameVolt.challenge.submit(this.cloudChallengeId, {
-        score: summary.totalScore,
-        timeMs: summary.totalTimeMs,
-        completedCount: summary.completedCount,
-        totalCount: summary.totalLevels,
-        splits: summary.splits.map((s) => ({
-          levelId: s.levelId,
-          time: s.timeMs,
-          score: s.score,
-          undos: s.undoCount,
-          resets: s.resetCount,
-          hints: s.hintCount,
-        })),
-        stats: {
-          undos: totals.undoCount,
-          resets: totals.resetCount,
-          hints: totals.hintCount,
-          plausible: plausibility.ok,
-        },
-      }).then(() => {
+    const cloudChallengeReady = this.dailyMode
+      ? this.ensureDailyCloudChallenge()
+      : Promise.resolve(this.cloudChallengeId);
+    if (window.GameVolt?.challenge && GameVolt.auth.getUser()) {
+      this._cloudSubmitPromise = cloudChallengeReady.then((challengeId) => {
+        if (!challengeId) return false;
+        return GameVolt.challenge.submit(challengeId, this.getCloudRunPayload()).then(() => true);
+      }).then((submitted) => {
+        if (!submitted) return;
         console.log("[gamevolt] challenge run submitted");
         const cid = this.cloudChallengeId;
         const user = GameVolt.auth.getUser();
@@ -3353,7 +3340,10 @@ export class OneStrokeApp {
       return;
     }
 
-    // Prefer cloud challenge link, fall back to local match code
+    // Backend state is created only as a consequence of this explicit share.
+    await this.ensureCloudChallenge();
+
+    // Prefer cloud challenge link, fall back to local match code.
     let shareText;
     if (this.cloudChallengeId) {
       const origin = window.location.origin;
@@ -3389,6 +3379,88 @@ export class OneStrokeApp {
       this.setStatus(this.cloudChallengeId ? "Challenge link copied!" : "Match code copied!");
     } catch {
       this.setStatus("Could not copy.", "loss");
+    }
+  }
+
+  async ensureCloudChallenge() {
+    if (this.cloudChallengeId) return this.cloudChallengeId;
+    if (this.dailyMode || !window.GameVolt?.challenge || !GameVolt.auth?.getUser?.()) return null;
+
+    try {
+      const challenge = await GameVolt.challenge.create({
+        seed: this.challenge.seed,
+        levelCount: this.challenge.levels.length,
+        config: { levelIds: this.challenge.levels.map((level) => level.id) },
+      });
+      this.cloudChallengeId = challenge.id;
+
+      // Export normally happens after completion. Include the creator's result
+      // so the recipient has a result to compare against.
+      if (this.challengeRunMeta.saved && this.isCurrentChallengeCompleted()) {
+        await GameVolt.challenge.submit(this.cloudChallengeId, this.getCloudRunPayload());
+      }
+      return this.cloudChallengeId;
+    } catch (error) {
+      console.warn("[gamevolt] challenge export failed:", error);
+      this.cloudChallengeId = null;
+      return null;
+    }
+  }
+
+  getCloudRunPayload() {
+    const summary = this.getChallengeSummary();
+    const totals = this.getChallengeActionTotals(summary.splits);
+    const plausibility = checkRunResult({
+      totalTimeMs: summary.totalTimeMs,
+      completedCount: summary.completedCount,
+      totalLevels: summary.totalLevels,
+      splits: summary.splits,
+    });
+    return {
+      score: summary.totalScore,
+      timeMs: summary.totalTimeMs,
+      completedCount: summary.completedCount,
+      totalCount: summary.totalLevels,
+      splits: summary.splits.map((split) => ({
+        levelId: split.levelId,
+        time: split.timeMs,
+        score: split.score,
+        undos: split.undoCount,
+        resets: split.resetCount,
+        hints: split.hintCount,
+      })),
+      stats: {
+        undos: totals.undoCount,
+        resets: totals.resetCount,
+        hints: totals.hintCount,
+        plausible: plausibility.ok,
+      },
+    };
+  }
+
+  async ensureDailyCloudChallenge() {
+    if (!this.dailyMode || !window.GameVolt?.challenge || !GameVolt.auth?.getUser?.()) return null;
+    const storageKey = `one-stroke-daily-cloud-id-${this.getDailySeed()}`;
+    try {
+      const existingId = localStorage.getItem(storageKey);
+      if (existingId) {
+        this.cloudChallengeId = existingId;
+        return existingId;
+      }
+      const challenge = await GameVolt.challenge.create({
+        seed: this.getDailySeed(),
+        levelCount: this.challenge.levels.length,
+        config: {
+          mode: "daily",
+          levelIds: this.challenge.levels.map((level) => level.id),
+        },
+      });
+      this.cloudChallengeId = challenge.id;
+      localStorage.setItem(storageKey, challenge.id);
+      return challenge.id;
+    } catch (error) {
+      console.warn("[gamevolt] daily challenge creation failed:", error);
+      return null;
     }
   }
 
@@ -4199,14 +4271,31 @@ export class OneStrokeApp {
   // ── Cloud save ────────────────────────────────────────────
 
   syncCloudSave() {
-    if (!window.GameVolt?.save) return;
-    GameVolt.save.set({
-      campaignProgress: {
-        unlockedLevel: this.progress.unlockedLevel,
-        solvedCount: Object.keys(this.progress.solvedLevels).length,
-      },
-      achievementCount: Object.keys(this.achievementUnlocks).length,
-    }).catch(() => {});
+    this.syncCloudProgress();
+  }
+
+  syncCloudProgress() {
+    if (!window.GameVolt?.save || !GameVolt.auth?.getUser?.()) return Promise.resolve(null);
+    if (this.cloudSyncPromise) return this.cloudSyncPromise;
+
+    this.cloudSyncPromise = (async () => {
+      const cloud = await GameVolt.save.get();
+      const mergedSave = mergeOneStrokeCloudSave(this.progress, cloud);
+      this.progress = mergedSave.campaign;
+      this.progress.unlockedLevel = clamp(this.progress.unlockedLevel, 1, CAMPAIGN_TOTAL_LEVELS);
+      saveCampaignProgress(this.progress);
+      await GameVolt.save.set(mergedSave);
+      this.renderHubPanels();
+      this.renderLevelList();
+      return mergedSave;
+    })().catch((error) => {
+      console.warn("[gamevolt] cloud progress sync failed:", error);
+      return null;
+    }).finally(() => {
+      this.cloudSyncPromise = null;
+    });
+
+    return this.cloudSyncPromise;
   }
 
   // ── Leaderboard submission ────────────────────────────────

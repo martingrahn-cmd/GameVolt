@@ -2,8 +2,6 @@ import { OneStrokeApp } from "./game/app.js";
 
 // Initialize GameVolt SDK (optional — works without it)
 if (window.GameVolt) {
-  GameVolt.init("one-stroke");
-
   // Migrate localStorage data to cloud on first login
   GameVolt.save.registerMigration({
     keys: [
@@ -12,8 +10,10 @@ if (window.GameVolt) {
       "one-stroke-achievement-unlocks-v1",
     ],
     merge: function(localData, cloudData) {
-      if (cloudData) return cloudData;
-      return localData["one-stroke-campaign-progress-v2"] || {};
+      return OneStrokeApp.mergeCloudSaveData(
+        localData["one-stroke-campaign-progress-v2"],
+        cloudData,
+      );
     },
     getAchievements: function(localData) {
       var unlocks = localData["one-stroke-achievement-unlocks-v1"] || {};
@@ -29,6 +29,9 @@ if (window.GameVolt) {
       return [{ score: best.totalScore || 0, mode: "default" }];
     }
   });
+
+  // Register migration before init so a restored session cannot miss it.
+  GameVolt.init("one-stroke");
 }
 
 const app = new OneStrokeApp();
@@ -46,8 +49,16 @@ if (window.GameVolt) {
       app.mergeCloudTrophies(ids);
     });
   };
-  GameVolt.auth.onStateChange(backfillTrophies);
-  if (GameVolt.auth.getUser) { var u = GameVolt.auth.getUser(); if (u) backfillTrophies(u); }
+  var syncSignedInData = function(user) {
+    if (!user) return;
+    backfillTrophies(user);
+    app.syncCloudProgress();
+  };
+  GameVolt.auth.onStateChange(syncSignedInData);
+  GameVolt.onReady(function() {
+    var user = GameVolt.auth.getUser ? GameVolt.auth.getUser() : null;
+    if (user) syncSignedInData(user);
+  });
 }
 
 // Register service worker for PWA / offline support
