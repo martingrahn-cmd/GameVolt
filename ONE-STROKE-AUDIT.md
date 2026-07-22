@@ -3,7 +3,7 @@
 **Datum:** 2026-07-22  
 **Omfattning:** kampanj (200 nivåer), tutorial, Daily Challenge, challenges, mobil/touch, progression, GameVolt-SDK, PWA/offline, achievements, delning och marknadsassets.
 
-**Status 2026-07-22:** båda P0-buggarna nedan är åtgärdade. Cloud save använder nu ett versionssatt schema med pull/merge, och cloud challenges skapas inte längre vid sidladdning eller Daily-start.
+**Status 2026-07-22:** båda P0-buggarna, P1-buggarna och P1-polishpasset är åtgärdade. Cloud save använder nu ett versionssatt schema med pull/merge, cloud challenges skapas inte längre vid sidladdning eller Daily-start, Daily är konsekvent UTC-baserad och samtliga marknadsbilder visar rätt spel. Onboarding nivå 1–3 har kontextuella board-callouts, nivå 9–20 har en jämnare komplexitetskurva och completion visar tid, PB-delta och kampanjprogress med förbättrad feedback.
 
 ## Sammanfattning
 
@@ -48,13 +48,13 @@ Migrationen gör problemet mer riskabelt: första migrationen kan returnera hela
 
 **Fix:** gör lokal challenge-generering ren och utan backendeffekt. Skapa en cloud challenge först när spelaren uttryckligen väljer `Challenge a friend`/`Share challenge`. Daily ska använda Daily-API:t och inte skapa en 1v1-challenge.
 
-### P1 — Daily använder UTC-seed men visar lokal kalenderdag
+### P1 — Daily använder UTC-seed men visar lokal kalenderdag — ÅTGÄRDAD
 
 `todaySeed()` bygger datum med `toISOString()` (UTC), medan rubriken formaterar `new Date()` i spelarens lokala tidszon. Runt lokal midnatt kan UI därför säga exempelvis 23 juli medan seed, save-key och leaderboard fortfarande gäller 22 juli. Streakberäkningen blandar också lokal `setDate()` med UTC-serialisering.
 
 **Fix:** välj en enda kontrakterad tidszon. För en global challenge är UTC enklast: skapa ett gemensamt `dailyDayId`, formatera även labeln från detta ID och använd samma ID för seed, storage, streak, share och leaderboard.
 
-### P1 — Marketing capture-scriptet tillhör Manga Match
+### P1 — Marketing capture-scriptet tillhör Manga Match — ÅTGÄRDAD
 
 **Bekräftat i fil och asset.** `one-stroke/tools/capture_marketing.mjs` letar efter Manga Match-element som `#score`, `#combo`, `.hud-panel` och skriver `MANGA MATCH!` i OG-layouten. Den befintliga `screenshot-mobile.png` visar Manga Match, inte One Stroke. `og-image.png` är däremot en giltig One Stroke-bild.
 

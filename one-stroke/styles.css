@@ -1441,6 +1441,33 @@ div.cell {
     0 0 13px #ffb84d99;
 }
 
+/* First-session guidance lives on the board, next to the action. */
+.tutorial-board-callout {
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  top: 10px;
+  width: max-content;
+  max-width: calc(100% - 20px);
+  padding: 6px 9px;
+  border: 1px solid #6bcbff88;
+  border-radius: 999px;
+  background: #071923ee;
+  color: #dff8ff;
+  font: 700 0.64rem/1 var(--display-font);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  box-shadow: 0 8px 20px #0008, 0 0 18px #35d8ff33;
+  pointer-events: none;
+  animation: tutorial-callout 1.6s ease-in-out infinite;
+}
+
+@keyframes tutorial-callout {
+  0%, 100% { transform: translate(-50%, 0); }
+  50% { transform: translate(-50%, -4px); }
+}
+
 .modal {
   position: fixed;
   inset: 0;
@@ -2358,6 +2385,60 @@ div.cell {
 
 .win-modal-card {
   width: min(520px, 100%);
+}
+
+.modal.celebrating .win-modal-card {
+  border-color: #38e2b0;
+  box-shadow: 0 24px 52px #0000006b, 0 0 42px #1ed6a533;
+  animation: completion-card-in 420ms cubic-bezier(.2,.9,.2,1.15) both;
+}
+
+.win-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.win-metrics[hidden] { display: none; }
+
+.win-metrics article {
+  padding: 10px 8px;
+  border: 1px solid #35677a;
+  border-radius: 11px;
+  background: #071a2499;
+  text-align: center;
+}
+
+.win-metrics span {
+  display: block;
+  margin-bottom: 4px;
+  color: #7f9ba9;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.win-metrics strong {
+  color: #eaf8ff;
+  font-family: var(--display-font);
+  font-size: 0.9rem;
+}
+
+.board.completion-burst {
+  animation: completion-board-pulse 700ms ease-out;
+}
+
+@keyframes completion-card-in {
+  from { opacity: 0; transform: translateY(12px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes completion-board-pulse {
+  0% { filter: brightness(1); }
+  32% { filter: brightness(1.35) saturate(1.25); }
+  100% { filter: brightness(1); }
 }
 
 /* ── Win split table ── */
