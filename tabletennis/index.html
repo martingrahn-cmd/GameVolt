@@ -72,13 +72,31 @@
     #vs-bracket { display: flex; gap: 14px; font-size: 0.68rem; letter-spacing: 1px; color: #6d84a3; }
     #vs-bracket .done { color: #7dffb0; }
     #vs-bracket .cur { color: #ffd166; }
+
+    /* the ladder (campaign overview, top -> down) */
+    #ladder-rows { display: flex; flex-direction: column; align-items: center; }
+    .lrow {
+      display: flex; align-items: center; gap: 14px; width: min(340px, 86vw);
+      background: rgba(16,13,34,0.8); border: 1px solid rgba(0,234,255,0.2);
+      border-radius: 12px; padding: 10px 14px; cursor: pointer;
+    }
+    .lrow canvas { width: 48px; height: 54px; image-rendering: pixelated; border-radius: 6px; background: #0a0918; flex: none; }
+    .lrow .lstage { font-size: 0.6rem; letter-spacing: 2px; color: #ffd166; }
+    .lrow .lname { font-weight: 800; letter-spacing: 1px; font-size: 0.95rem; color: #fff; }
+    .lrow .lstatus { font-size: 0.62rem; letter-spacing: 1px; color: #6d84a3; margin-top: 2px; }
+    .lrow.cleared { border-color: rgba(70,230,150,0.4); }
+    .lrow.cleared .lstatus { color: #7dffb0; }
+    .lrow.next { border-color: rgba(255,209,102,0.65); box-shadow: 0 0 18px rgba(255,209,102,0.25); }
+    .lrow.next .lstatus { color: #ffd166; }
+    .lrow.locked { opacity: 0.45; cursor: default; }
+    .lconn { width: 2px; height: 14px; background: rgba(0,234,255,0.3); }
     .menu-note { font-size: 0.68rem; color: #6d84a3; letter-spacing: 1px; margin-top: 6px; }
     #install-btn {
       font-family: inherit; font-weight: 800; letter-spacing: 2px; font-size: 0.72rem;
       color: #bff4ff; background: transparent; border: 1px dashed rgba(0,234,255,0.4);
       border-radius: 999px; padding: 8px 20px; cursor: pointer; margin-top: 8px;
     }
-    #install-btn.hidden, #ios-hint.hidden, #update-chip.hidden { display: none; }
+    #install-btn.hidden, #ios-hint.hidden, #update-chip.hidden, #ladder-reset.hidden { display: none; }
     #ios-hint { font-size: 0.64rem; color: #8fa8c8; letter-spacing: 1px; margin-top: 8px; text-align: center; }
     #update-chip {
       font-family: inherit; font-weight: 800; letter-spacing: 2px; font-size: 0.78rem;
@@ -169,6 +187,16 @@
     <div id="ios-hint" class="hidden">On iPhone: Share <span style="font-size:0.8rem">⎋</span> → “Add to Home Screen”</div>
   </div>
 
+  <div class="overlay hidden" id="ladder">
+    <div class="title" style="font-size:clamp(1.3rem,6vw,1.9rem)">THE LADDER</div>
+    <div class="subtitle">GameVolt Open · beat all three</div>
+    <div style="height:4px"></div>
+    <div id="ladder-rows"></div>
+    <div style="height:4px"></div>
+    <button class="btn ghost" id="ladder-back">BACK</button>
+    <button class="btn ghost hidden" id="ladder-reset">RESET CAMPAIGN</button>
+  </div>
+
   <div class="overlay hidden" id="vs">
     <div id="vs-stage"></div>
     <canvas id="vs-face" width="140" height="160"></canvas>
@@ -193,11 +221,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.22.0"></script>
-  <script src="tt-ai.js?v=0.22.0"></script>
+  <script src="tt-core.js?v=0.23.0"></script>
+  <script src="tt-ai.js?v=0.23.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.22.0';
+    var VERSION = '0.23.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -245,7 +273,7 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.22.0', bounce: 'assets/bounce.mp3?v=0.22.0', cheer: 'assets/cheer.mp3?v=0.22.0', net: 'assets/net.mp3?v=0.22.0' };
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.23.0', bounce: 'assets/bounce.mp3?v=0.23.0', cheer: 'assets/cheer.mp3?v=0.23.0', net: 'assets/net.mp3?v=0.23.0' };
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
@@ -1138,7 +1166,7 @@
       }
     ];
     var campStage = Math.min(3, parseInt(localStorage.getItem('ttCampaign') || '0', 10) || 0);
-    var campaignOpp = null, campIdx = -1, vsIdx = 0;
+    var campaignOpp = null, campIdx = -1, vsIdx = 0, campPractice = false;
 
     function drawPortrait(cvEl, opp) {
       var c = cvEl.getContext('2d');
@@ -1164,7 +1192,39 @@
       img.src = 'assets/opp-' + opp.id + '.png';
     }
 
+    // the ladder: top -> down, cleared opponents replayable as practice
+    function openLadder() {
+      var rowsEl = document.getElementById('ladder-rows');
+      rowsEl.innerHTML = '';
+      OPPONENTS.forEach(function (o, i) {
+        if (i > 0) {
+          var conn = document.createElement('div');
+          conn.className = 'lconn';
+          rowsEl.appendChild(conn);
+        }
+        var st = i < campStage ? 'cleared' : (i === campStage ? 'next' : 'locked');
+        var row = document.createElement('div');
+        row.className = 'lrow ' + st;
+        row.innerHTML =
+          '<canvas width="56" height="64"></canvas>' +
+          '<div><div class="lstage">' + o.stage + '</div>' +
+          '<div class="lname">' + o.flag + ' ' + o.name + '</div>' +
+          '<div class="lstatus">' +
+            (st === 'cleared' ? '✓ CLEARED — TAP TO PRACTICE' : st === 'next' ? '▶ NEXT MATCH' : '🔒 LOCKED') +
+          '</div></div>';
+        drawPortrait(row.querySelector('canvas'), o);
+        if (st !== 'locked') row.addEventListener('click', function () { openVs(i); });
+        rowsEl.appendChild(row);
+      });
+      document.getElementById('ladder-reset').classList.toggle('hidden', campStage < 3);
+      el.menu.classList.add('hidden');
+      el.end.classList.add('hidden');
+      document.getElementById('vs').classList.add('hidden');
+      document.getElementById('ladder').classList.remove('hidden');
+    }
+
     function openVs(idx) {
+      document.getElementById('ladder').classList.add('hidden');
       vsIdx = idx;
       var o = OPPONENTS[idx];
       document.getElementById('vs-stage').textContent = o.stage;
@@ -1210,7 +1270,12 @@
       var againBtn = document.getElementById('again-btn');
       el.endTitle.className = 'modal-title ' + (won ? 'win' : 'lose');
       if (campaignOpp) {
-        if (won && campIdx >= 2) {
+        if (campPractice) {
+          // sparring against a cleared opponent — progression untouched
+          el.endTitle.textContent = won ? 'PRACTICE WIN!' : 'DEFEAT';
+          el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' vs ' + campaignOpp.name + ' · sparring, no stakes';
+          againBtn.textContent = won ? 'PLAY AGAIN' : 'REMATCH';
+        } else if (won && campIdx >= 2) {
           campStage = 3;
           localStorage.setItem('ttCampaign', '3');
           el.endTitle.textContent = '🏆 CHAMPION!';
@@ -1221,7 +1286,7 @@
           localStorage.setItem('ttCampaign', String(campStage));
           el.endTitle.textContent = 'VICTORY!';
           el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · the ' + OPPONENTS[campStage].stage.toLowerCase() + ' awaits';
-          againBtn.textContent = 'NEXT OPPONENT';
+          againBtn.textContent = 'CONTINUE';
         } else {
           el.endTitle.textContent = 'DEFEAT';
           el.endSub.textContent = campaignOpp.name + ' wins ' + game.scores[2] + ' — ' + game.scores[1] + '.  ' + campaignOpp.taunt;
@@ -1243,6 +1308,7 @@
       el.end.classList.add('hidden');
       el.hud.classList.add('hidden');
       document.getElementById('vs').classList.add('hidden');
+      document.getElementById('ladder').classList.add('hidden');
       el.menu.classList.remove('hidden');
       setHint('');
       draw();
@@ -1369,24 +1435,28 @@
     document.getElementById('again-btn').addEventListener('click', function () {
       if (campaignOpp) {
         var won = game && game.winner === 1;
-        if (won && campIdx >= 2) { toMenu(); return; }
-        if (won) { el.end.classList.add('hidden'); openVs(campStage); return; }
-        startMatch(campaignOpp.params, campaignOpp);
+        if (!campPractice && won && campIdx >= 2) { toMenu(); return; }
+        if (!campPractice && won) { el.end.classList.add('hidden'); openLadder(); return; }
+        startMatch(campaignOpp.params, campaignOpp); // rematch / spar again
         return;
       }
       startMatch(level);
     });
-    document.getElementById('campaign-btn').addEventListener('click', function () {
-      if (campStage >= 3) campStage = 0; // champion starts a fresh run
-      openVs(campStage);
-    });
+    document.getElementById('campaign-btn').addEventListener('click', openLadder);
     document.getElementById('vs-fight').addEventListener('click', function () {
       campIdx = vsIdx;
+      campPractice = vsIdx < campStage; // replaying a cleared opponent = sparring
       startMatch(OPPONENTS[vsIdx].params, OPPONENTS[vsIdx]);
     });
-    document.getElementById('vs-back').addEventListener('click', function () {
-      document.getElementById('vs').classList.add('hidden');
+    document.getElementById('vs-back').addEventListener('click', openLadder);
+    document.getElementById('ladder-back').addEventListener('click', function () {
+      document.getElementById('ladder').classList.add('hidden');
       el.menu.classList.remove('hidden');
+    });
+    document.getElementById('ladder-reset').addEventListener('click', function () {
+      campStage = 0;
+      localStorage.setItem('ttCampaign', '0');
+      openLadder();
     });
     document.getElementById('menu-btn').addEventListener('click', toMenu);
     window.addEventListener('keydown', function (e) {
