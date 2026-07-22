@@ -72,10 +72,12 @@ import {
   loadAchievementUnlocks,
   loadCampaignProgress,
   loadChallengeRunHistory,
+  loadDailyProgress,
   mergeOneStrokeCloudSave,
   saveAchievementUnlocks,
   saveCampaignProgress,
   saveChallengeRunHistory,
+  saveDailyProgress,
 } from "./storage.js";
 import {
   TROPHY_TIER_ORDER,
@@ -98,12 +100,17 @@ const CHALLENGE_RESET_PENALTY_SECONDS = 7;
 const CHALLENGE_HISTORY_LIMIT = 20;
 const CHALLENGE_SUMMARY_SCHEMA_VERSION = 1;
 const CHALLENGE_SUMMARY_SCHEMA_KIND = "one-stroke.challenge-summary";
+const CAMPAIGN_CHAPTER_SIZE = 20;
+const CAMPAIGN_CHAPTER_NAMES = [
+  "First Lines", "Open Paths", "Crossroads", "Deep Routes", "Precision",
+  "Labyrinths", "Hard Turns", "Long Lines", "Expert Paths", "Final Stroke",
+];
 
 const TROPHY_CATALOG = createTrophyCatalog(CAMPAIGN_TOTAL_LEVELS);
 
 export class OneStrokeApp {
-  static mergeCloudSaveData(localProgress, cloudSave) {
-    return mergeOneStrokeCloudSave(localProgress, cloudSave);
+  static mergeCloudSaveData(localProgress, cloudSave, localDailyProgress = null) {
+    return mergeOneStrokeCloudSave(localProgress, cloudSave, localDailyProgress);
   }
 
   constructor() {
@@ -132,6 +139,8 @@ export class OneStrokeApp {
     this.resetBtn = document.getElementById("resetBtn");
     this.hintBtn = document.getElementById("hintBtn");
     this.nextBtn = document.getElementById("nextBtn");
+    this.soundToggleBtn = document.getElementById("soundToggleBtn");
+    this.hapticsToggleBtn = document.getElementById("hapticsToggleBtn");
     this.winModalEl = document.getElementById("winModal");
     this.winTextEl = document.getElementById("winText");
     this.winMetricsEl = document.getElementById("winMetrics");
@@ -186,6 +195,7 @@ export class OneStrokeApp {
     this.levelSelectSummaryEl = document.getElementById("levelSelectSummary");
     this.levelSelectSearchInput = document.getElementById("levelSelectSearchInput");
     this.levelSelectDifficultyFilter = document.getElementById("levelSelectDifficultyFilter");
+    this.levelSelectChapterFilter = document.getElementById("levelSelectChapterFilter");
     this.levelSelectStatusFilter = document.getElementById("levelSelectStatusFilter");
     this.levelSelectGridEl = document.getElementById("levelSelectGrid");
     this.matchLevelCountSelect = document.getElementById("matchLevelCountSelect");
@@ -255,8 +265,12 @@ export class OneStrokeApp {
     this.hubView = "single-player";
     this.matchPhase = "setup"; // setup | play | share | results
     this.selectedHighScoreRunId = null;
+    this.lastModalFocus = null;
+    this.feedbackSettings = this.loadFeedbackSettings();
+    this.audioContext = null;
 
     this.progress = loadCampaignProgress(1);
+    this.dailyProgress = loadDailyProgress();
     this.progress.unlockedLevel = clamp(this.progress.unlockedLevel, 1, CAMPAIGN_TOTAL_LEVELS);
     if (!this.progress.solvedLevels || typeof this.progress.solvedLevels !== "object") {
       this.progress.solvedLevels = {};
@@ -290,6 +304,7 @@ export class OneStrokeApp {
     this.levelSelectFilters = {
       query: "",
       difficulty: "all",
+      chapter: "all",
       status: "all",
     };
 
@@ -310,6 +325,7 @@ export class OneStrokeApp {
     this.loadCampaignLevel(this.campaignCursorIndex, { announce: false, bypassLock: true });
     this.renderChallengePanel();
     this.renderModeButtons();
+    this.renderFeedbackSettings();
     this.setHubView("single-player", { syncMode: false });
     this.updateDailyUI();
     this.setStatus(this.getCampaignGuidance(this.state.level));
@@ -345,6 +361,8 @@ export class OneStrokeApp {
     this.resetBtn.addEventListener("click", () => this.resetLevel());
     this.hintBtn.addEventListener("click", () => this.requestHint());
     this.nextBtn.addEventListener("click", () => this.goToNextLevel());
+    this.soundToggleBtn?.addEventListener("click", () => this.toggleFeedbackSetting("sound"));
+    this.hapticsToggleBtn?.addEventListener("click", () => this.toggleFeedbackSetting("haptics"));
     this.undoBtnMobile?.addEventListener("click", () => this.undo());
     this.resetBtnMobile?.addEventListener("click", () => this.resetLevel());
     this.hintBtnMobile?.addEventListener("click", () => this.requestHint());
@@ -425,6 +443,10 @@ export class OneStrokeApp {
     });
     this.levelSelectDifficultyFilter?.addEventListener("change", () => {
       this.levelSelectFilters.difficulty = this.levelSelectDifficultyFilter.value;
+      this.renderFullLevelSelect();
+    });
+    this.levelSelectChapterFilter?.addEventListener("change", () => {
+      this.levelSelectFilters.chapter = this.levelSelectChapterFilter.value;
       this.renderFullLevelSelect();
     });
     this.levelSelectStatusFilter?.addEventListener("change", () => {
@@ -518,15 +540,24 @@ export class OneStrokeApp {
   }
 
   markDailyAsPlayed(summary) {
-    const key = `daily-played-${todaySeed()}`;
+    const dayId = todaySeed();
+    const key = `daily-played-${dayId}`;
+    const result = {
+      score: summary.totalScore,
+      timeMs: summary.totalTimeMs,
+      completedCount: summary.completedCount,
+      totalCount: summary.totalLevels,
+    };
     try {
-      localStorage.setItem(key, JSON.stringify({
-        score: summary.totalScore,
-        timeMs: summary.totalTimeMs,
-        completedCount: summary.completedCount,
-        totalCount: summary.totalLevels,
-      }));
+      localStorage.setItem(key, JSON.stringify(result));
+      const previous = this.dailyProgress.results[dayId];
+      if (!previous || result.score > previous.score
+        || (result.score === previous.score && result.timeMs < previous.timeMs)) {
+        this.dailyProgress.results[dayId] = result;
+      }
       this.updateStreak();
+      saveDailyProgress(this.dailyProgress);
+      this.syncCloudSave();
     } catch {}
   }
 
@@ -535,19 +566,21 @@ export class OneStrokeApp {
   }
 
   updateStreak() {
-    // Count consecutive days played backwards from today
+    // Preserve a live streak through today or yesterday, using UTC day IDs.
     let streak = 0;
+    const todayPlayed = Boolean(this.dailyProgress.results[todaySeed()]);
+    const startOffset = todayPlayed ? 0 : 1;
     for (let i = 0; i < 365; i++) {
-      const key = `daily-played-${this.getDateString(i)}`;
-      try {
-        if (localStorage.getItem(key) !== null) {
-          streak++;
-        } else {
-          break;
-        }
-      } catch { break; }
+      const dayId = this.getDateString(i + startOffset);
+      if (this.dailyProgress.results[dayId]) streak++;
+      else break;
     }
-    try { localStorage.setItem("daily-streak", String(streak)); } catch {}
+    this.dailyProgress.currentStreak = streak;
+    this.dailyProgress.longestStreak = Math.max(this.dailyProgress.longestStreak, streak);
+    try {
+      localStorage.setItem("daily-streak", String(streak));
+      saveDailyProgress(this.dailyProgress);
+    } catch {}
     return streak;
   }
 
@@ -558,10 +591,17 @@ export class OneStrokeApp {
   }
 
   getDailyPlayedResult() {
-    const key = `daily-played-${todaySeed()}`;
+    const dayId = todaySeed();
+    if (this.dailyProgress.results[dayId]) return this.dailyProgress.results[dayId];
+    const key = `daily-played-${dayId}`;
     try {
       const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : null;
+      const legacy = raw ? JSON.parse(raw) : null;
+      if (legacy) {
+        this.dailyProgress.results[dayId] = legacy;
+        saveDailyProgress(this.dailyProgress);
+      }
+      return legacy;
     } catch { return null; }
   }
 
@@ -606,6 +646,7 @@ export class OneStrokeApp {
     if (badge && countEl) {
       if (streak >= 2) {
         countEl.textContent = streak;
+        badge.title = `Current streak: ${streak} days · Best: ${this.dailyProgress.longestStreak} days`;
         badge.hidden = false;
       } else {
         badge.hidden = true;
@@ -961,11 +1002,19 @@ export class OneStrokeApp {
   }
 
   renderModeButtons() {
-    this.campaignModeBtn?.classList.toggle("active", this.hubView === "single-player");
-    this.challengeModeBtn?.classList.toggle("active", this.hubView === "multiplayer");
-    this.highScoreMenuBtn?.classList.toggle("active", this.hubView === "high-score");
-    this.achievementMenuBtn?.classList.toggle("active", this.hubView === "achievement");
-    this.creditsMenuBtn?.classList.toggle("active", this.hubView === "credit");
+    const tabs = [
+      [this.campaignModeBtn, "single-player"],
+      [this.challengeModeBtn, "multiplayer"],
+      [this.highScoreMenuBtn, "high-score"],
+      [this.achievementMenuBtn, "achievement"],
+      [this.creditsMenuBtn, "credit"],
+    ];
+    for (const [tab, view] of tabs) {
+      const active = this.hubView === view;
+      tab?.classList.toggle("active", active);
+      tab?.setAttribute("aria-selected", String(active));
+      if (tab) tab.tabIndex = active ? 0 : -1;
+    }
   }
 
   isGameplayHubView() {
@@ -1756,7 +1805,9 @@ export class OneStrokeApp {
     }
     this.levelSelectFilters.query = this.levelSelectSearchInput?.value.trim() ?? "";
     this.levelSelectFilters.difficulty = this.levelSelectDifficultyFilter?.value ?? "all";
+    this.levelSelectFilters.chapter = this.levelSelectChapterFilter?.value ?? "all";
     this.levelSelectFilters.status = this.levelSelectStatusFilter?.value ?? "all";
+    this.rememberModalFocus();
     this.renderFullLevelSelect();
     this.levelSelectModalEl.classList.remove("hidden");
     window.requestAnimationFrame(() => {
@@ -1767,6 +1818,7 @@ export class OneStrokeApp {
 
   closeLevelSelect() {
     this.levelSelectModalEl?.classList.add("hidden");
+    this.restoreModalFocus();
   }
 
   renderFullLevelSelect() {
@@ -1776,6 +1828,7 @@ export class OneStrokeApp {
 
     const query = this.levelSelectFilters.query.toLowerCase();
     const difficultyFilter = this.levelSelectFilters.difficulty;
+    const chapterFilter = this.levelSelectFilters.chapter;
     const statusFilter = this.levelSelectFilters.status;
     const solvedCount = Object.keys(this.progress.solvedLevels).length;
     const unlockedCount = this.progress.unlockedLevel;
@@ -1786,11 +1839,15 @@ export class OneStrokeApp {
       const solved = Boolean(this.progress.solvedLevels[level.id]);
       const diff = DIFFICULTY_META[level.difficulty];
       const searchable = `${levelNumber} ${level.id} ${level.name} ${diff.label}`.toLowerCase();
+      const chapter = Math.floor(index / CAMPAIGN_CHAPTER_SIZE) + 1;
 
       if (query && !searchable.includes(query)) {
         return false;
       }
       if (difficultyFilter !== "all" && level.difficulty !== difficultyFilter) {
+        return false;
+      }
+      if (chapterFilter !== "all" && chapter !== Number(chapterFilter)) {
         return false;
       }
       if (statusFilter === "locked" && unlocked) {
@@ -1808,8 +1865,11 @@ export class OneStrokeApp {
       return true;
     });
 
+    const activeChapter = chapterFilter === "all"
+      ? "All chapters"
+      : `Chapter ${chapterFilter}: ${CAMPAIGN_CHAPTER_NAMES[Number(chapterFilter) - 1]}`;
     this.levelSelectSummaryEl.textContent =
-      `Showing ${visibleLevels.length}/${CAMPAIGN_TOTAL_LEVELS} · Unlocked ${unlockedCount} · Solved ${solvedCount}`;
+      `${activeChapter} · Showing ${visibleLevels.length}/${CAMPAIGN_TOTAL_LEVELS} · Unlocked ${unlockedCount} · Solved ${solvedCount}`;
 
     this.levelSelectGridEl.innerHTML = "";
     if (visibleLevels.length === 0) {
@@ -1844,8 +1904,9 @@ export class OneStrokeApp {
 
       const meta = document.createElement("span");
       meta.className = "level-select-meta";
+      const chapter = Math.floor(index / CAMPAIGN_CHAPTER_SIZE) + 1;
       meta.textContent = unlocked
-        ? `${level.width}x${level.height} · ${level.par + 1} nodes${solved ? " · Solved" : ""}`
+        ? `Ch. ${chapter} · ${level.width}x${level.height} · ${level.par + 1} nodes${solved ? " · Solved" : ""}`
         : "Locked level";
 
       card.append(number, name, meta);
@@ -1865,6 +1926,19 @@ export class OneStrokeApp {
 
   onKeyDown(event) {
     const key = event.key;
+    if (key === "Tab" && this.trapModalFocus(event)) return;
+    if (event.target?.getAttribute?.("role") === "tab"
+      && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(key)) {
+      const tabs = [...document.querySelectorAll('.hub-menu [role="tab"]')];
+      const current = tabs.indexOf(event.target);
+      const next = key === "Home" ? 0
+        : key === "End" ? tabs.length - 1
+          : (current + (key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+      event.preventDefault();
+      tabs[next]?.focus();
+      tabs[next]?.click();
+      return;
+    }
     if (key === "Escape") {
       // SDK pause menu handles its own ESC-to-close internally
       if (window.GameVolt?.ui?.isPaused()) return;
@@ -2130,6 +2204,7 @@ export class OneStrokeApp {
         node.className = blocked ? "cell blocked" : "cell playable";
         if (!blocked) {
           node.type = "button";
+          node.setAttribute("role", "gridcell");
           node.dataset.key = key;
           node.setAttribute("aria-label", `Node ${x + 1},${y + 1}`);
           node.append(this.createTraceNode());
@@ -2595,6 +2670,8 @@ export class OneStrokeApp {
     this.state.path.push(targetKey);
     this.state.visited.add(targetKey);
     this.activeHintKey = null;
+    this.vibrate(8);
+    this.playFeedback("step");
 
     if (this.state.visited.size === this.state.playableCount) {
       if (this.state.endKey && this.getTailKey() !== this.state.endKey) {
@@ -2643,6 +2720,8 @@ export class OneStrokeApp {
       this.state.mode === "challenge" ? ` (-${CHALLENGE_UNDO_PENALTY_SECONDS}s challenge penalty)` : "";
     const prefix = source === "drag" ? "Dragged back one step." : "Undid one step.";
     this.setStatus(`${prefix}${challengePenaltyText} ${remaining} nodes remaining.`);
+    this.vibrate(12);
+    this.playFeedback("undo");
     return true;
   }
 
@@ -2730,6 +2809,8 @@ export class OneStrokeApp {
     this.stopDrag();
     this.stopLiveTimer();
     this.updateLiveStats();
+    this.vibrate([24, 36, 42]);
+    this.playFeedback("win");
 
     const durationMs = Date.now() - this.levelAttempt.startedAtMs;
     const result = {
@@ -2990,10 +3071,12 @@ export class OneStrokeApp {
 
     // Submit run to GameVolt cloud
     this._cloudSubmitPromise = null;
-    const cloudChallengeReady = this.dailyMode
-      ? this.ensureDailyCloudChallenge()
-      : Promise.resolve(this.cloudChallengeId);
-    if (window.GameVolt?.challenge && GameVolt.auth.getUser()) {
+    const cloudChallengeReady = plausibility.ok
+      ? (this.dailyMode
+          ? this.ensureDailyCloudChallenge()
+          : Promise.resolve(this.cloudChallengeId))
+      : Promise.resolve(null);
+    if (plausibility.ok && window.GameVolt?.challenge && GameVolt.auth.getUser()) {
       this._cloudSubmitPromise = cloudChallengeReady.then((challengeId) => {
         if (!challengeId) return false;
         return GameVolt.challenge.submit(challengeId, this.getCloudRunPayload()).then(() => true);
@@ -3027,11 +3110,14 @@ export class OneStrokeApp {
 
     this.renderHubPanels();
     this.syncCloudSave();
-    this.submitToLeaderboard(summary.totalScore);
+    this.submitToLeaderboard(summary.totalScore, plausibility);
     this.checkTrophies();
     if (this.dailyMode) {
       this.markDailyAsPlayed(summary);
       this.showDailyResult();
+    }
+    if (!plausibility.ok) {
+      this.setStatus("Run saved locally, but not ranked because its timing data was invalid.", "loss");
     }
   }
 
@@ -3194,9 +3280,76 @@ export class OneStrokeApp {
     this.boardEl.classList.remove("invalid");
     void this.boardEl.offsetWidth;
     this.boardEl.classList.add("invalid");
+    this.vibrate([18, 24, 18]);
+    this.playFeedback("invalid");
     this.invalidTimer = window.setTimeout(() => {
       this.boardEl.classList.remove("invalid");
     }, 260);
+  }
+
+  vibrate(pattern) {
+    if (!this.feedbackSettings.haptics) return;
+    try {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    } catch {
+      // Optional enhancement; unsupported browsers simply ignore it.
+    }
+  }
+
+  loadFeedbackSettings() {
+    try {
+      const saved = JSON.parse(localStorage.getItem("one-stroke-feedback-v1") || "{}");
+      return { sound: saved.sound !== false, haptics: saved.haptics !== false };
+    } catch {
+      return { sound: true, haptics: true };
+    }
+  }
+
+  toggleFeedbackSetting(setting) {
+    this.feedbackSettings[setting] = !this.feedbackSettings[setting];
+    localStorage.setItem("one-stroke-feedback-v1", JSON.stringify(this.feedbackSettings));
+    this.renderFeedbackSettings();
+    if (setting === "sound" && this.feedbackSettings.sound) this.playFeedback("step");
+    if (setting === "haptics" && this.feedbackSettings.haptics) this.vibrate(12);
+  }
+
+  renderFeedbackSettings() {
+    if (this.soundToggleBtn) {
+      this.soundToggleBtn.textContent = `Sound: ${this.feedbackSettings.sound ? "On" : "Off"}`;
+      this.soundToggleBtn.setAttribute("aria-pressed", String(this.feedbackSettings.sound));
+    }
+    if (this.hapticsToggleBtn) {
+      this.hapticsToggleBtn.textContent = `Haptics: ${this.feedbackSettings.haptics ? "On" : "Off"}`;
+      this.hapticsToggleBtn.setAttribute("aria-pressed", String(this.feedbackSettings.haptics));
+    }
+  }
+
+  playFeedback(type) {
+    if (!this.feedbackSettings.sound || document.hidden) return;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    try {
+      this.audioContext ||= new AudioContextClass();
+      if (this.audioContext.state === "suspended") this.audioContext.resume();
+      const tones = type === "win"
+        ? [[440, 0], [660, 75], [880, 150]]
+        : [[type === "step" ? 360 : type === "undo" ? 240 : 140, 0]];
+      for (const [frequency, delayMs] of tones) {
+        const start = this.audioContext.currentTime + delayMs / 1000;
+        const oscillator = this.audioContext.createOscillator();
+        const gain = this.audioContext.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(frequency, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(type === "win" ? 0.045 : 0.025, start + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + (type === "win" ? 0.12 : 0.055));
+        oscillator.connect(gain).connect(this.audioContext.destination);
+        oscillator.start(start);
+        oscillator.stop(start + (type === "win" ? 0.13 : 0.065));
+      }
+    } catch {
+      // Audio feedback is optional.
+    }
   }
 
   setStatus(message, tone = "neutral") {
@@ -3239,6 +3392,7 @@ export class OneStrokeApp {
   }
 
   showModal(text, showNext, options = {}) {
+    this.rememberModalFocus();
     const {
       showMatchExport = false,
       showDailyShare = false,
@@ -3271,6 +3425,43 @@ export class OneStrokeApp {
       this.boardEl.classList.add("completion-burst");
       window.setTimeout(() => this.boardEl.classList.remove("completion-burst"), 900);
     }
+    window.requestAnimationFrame(() => {
+      const preferred = showNext ? this.modalNextBtn : this.modalCloseBtn;
+      preferred?.focus();
+    });
+  }
+
+  rememberModalFocus() {
+    const active = document.activeElement;
+    if (active && active !== document.body) this.lastModalFocus = active;
+  }
+
+  restoreModalFocus() {
+    if (this.lastModalFocus?.isConnected) this.lastModalFocus.focus();
+    this.lastModalFocus = null;
+  }
+
+  trapModalFocus(event) {
+    const modal = [this.winModalEl, this.levelSelectModalEl, this.matchImportModalEl]
+      .find((candidate) => candidate && !candidate.classList.contains("hidden"));
+    if (!modal) return false;
+    const focusable = [...modal.querySelectorAll(
+      'button:not([hidden]):not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+    )].filter((element) => element.offsetParent !== null);
+    if (!focusable.length) return false;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+      return true;
+    }
+    if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+      return true;
+    }
+    return false;
   }
 
   renderCompletionMetrics(completion) {
@@ -3570,6 +3761,7 @@ export class OneStrokeApp {
     if (!this.matchImportModalEl) {
       return;
     }
+    this.rememberModalFocus();
     if (this.matchImportTextarea) {
       this.matchImportTextarea.value = "";
     }
@@ -3582,6 +3774,7 @@ export class OneStrokeApp {
 
   closeMatchImport() {
     this.matchImportModalEl?.classList.add("hidden");
+    this.restoreModalFocus();
   }
 
   setMatchImportError(message) {
@@ -3837,7 +4030,7 @@ export class OneStrokeApp {
 
     try {
       const seed = this.getDailySeed();
-      const rows = await GameVolt.challenge.getDailyLeaderboard(seed, { limit: 20 });
+      const rows = await GameVolt.challenge.getDailyLeaderboard(seed, { limit: 1000 });
       const user = GameVolt.auth.getUser();
 
       targetEl.innerHTML = "";
@@ -3846,7 +4039,20 @@ export class OneStrokeApp {
         return;
       }
 
-      for (const row of rows) {
+      const topRows = rows.slice(0, 20);
+      const myRow = user ? rows.find((row) => row.user_id === user.id) : null;
+      const rowsToRender = myRow && !topRows.includes(myRow)
+        ? [...topRows, { separator: true }, myRow]
+        : topRows;
+
+      for (const row of rowsToRender) {
+        if (row.separator) {
+          const separator = document.createElement("div");
+          separator.className = "leaderboard-separator";
+          separator.textContent = "Your rank";
+          targetEl.append(separator);
+          continue;
+        }
         const el = document.createElement("article");
         el.className = "match-standing-row";
         const isYou = user && row.user_id === user.id;
@@ -4332,6 +4538,7 @@ export class OneStrokeApp {
     this.winModalEl.classList.add("hidden");
     this.winModalEl.classList.remove("celebrating");
     this.cancelCountdown();
+    this.restoreModalFocus();
   }
 
   goToNextLevel() {
@@ -4383,10 +4590,13 @@ export class OneStrokeApp {
 
     this.cloudSyncPromise = (async () => {
       const cloud = await GameVolt.save.get();
-      const mergedSave = mergeOneStrokeCloudSave(this.progress, cloud);
+      const mergedSave = mergeOneStrokeCloudSave(this.progress, cloud, this.dailyProgress);
       this.progress = mergedSave.campaign;
+      this.dailyProgress = mergedSave.daily;
       this.progress.unlockedLevel = clamp(this.progress.unlockedLevel, 1, CAMPAIGN_TOTAL_LEVELS);
       saveCampaignProgress(this.progress);
+      this.updateStreak();
+      saveDailyProgress(this.dailyProgress);
       await GameVolt.save.set(mergedSave);
       this.renderHubPanels();
       this.renderLevelList();
@@ -4403,8 +4613,11 @@ export class OneStrokeApp {
 
   // ── Leaderboard submission ────────────────────────────────
 
-  submitToLeaderboard(score) {
+  submitToLeaderboard(score, plausibility = { ok: true }) {
+    if (!plausibility.ok) return Promise.resolve(false);
     if (!window.GameVolt?.leaderboard || !GameVolt.auth.getUser()) return;
-    GameVolt.leaderboard.submit(score, { mode: "daily" }).catch(() => {});
+    return GameVolt.leaderboard.submit(score, { mode: "daily" })
+      .then(() => true)
+      .catch(() => false);
   }
 }

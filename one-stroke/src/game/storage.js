@@ -2,9 +2,10 @@ const STORAGE_KEYS = {
   campaignProgress: "one-stroke-campaign-progress-v2",
   challengeRunHistory: "one-stroke-challenge-run-history-v1",
   achievementUnlocks: "one-stroke-achievement-unlocks-v1",
+  dailyProgress: "one-stroke-daily-progress-v1",
 };
 
-export const CLOUD_SAVE_VERSION = 1;
+export const CLOUD_SAVE_VERSION = 2;
 
 function finiteNonNegative(value, fallback = 0) {
   const number = Number(value);
@@ -80,16 +81,59 @@ export function campaignProgressFromCloudSave(save) {
   return normalizeCampaignProgress(save);
 }
 
-export function buildCloudSave(progress) {
+export function normalizeDailyProgress(progress) {
+  const source = progress && typeof progress === "object" ? progress : {};
+  const results = {};
+  if (source.results && typeof source.results === "object") {
+    for (const [dayId, result] of Object.entries(source.results)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dayId) || !result || typeof result !== "object") continue;
+      results[dayId] = {
+        score: finiteNonNegative(result.score),
+        timeMs: finiteNonNegative(result.timeMs),
+        completedCount: finiteNonNegative(result.completedCount),
+        totalCount: finiteNonNegative(result.totalCount),
+      };
+    }
+  }
+  return {
+    results,
+    currentStreak: Math.floor(finiteNonNegative(source.currentStreak)),
+    longestStreak: Math.floor(finiteNonNegative(source.longestStreak)),
+  };
+}
+
+export function mergeDailyProgress(localProgress, cloudProgress) {
+  const local = normalizeDailyProgress(localProgress);
+  const cloud = normalizeDailyProgress(cloudProgress);
+  const results = { ...cloud.results };
+  for (const [dayId, localResult] of Object.entries(local.results)) {
+    const cloudResult = results[dayId];
+    if (!cloudResult || localResult.score > cloudResult.score
+      || (localResult.score === cloudResult.score && localResult.timeMs < cloudResult.timeMs)) {
+      results[dayId] = localResult;
+    }
+  }
+  return {
+    results,
+    currentStreak: Math.max(local.currentStreak, cloud.currentStreak),
+    longestStreak: Math.max(local.longestStreak, cloud.longestStreak),
+  };
+}
+
+export function buildCloudSave(progress, dailyProgress = null) {
   return {
     version: CLOUD_SAVE_VERSION,
     campaign: normalizeCampaignProgress(progress),
+    daily: normalizeDailyProgress(dailyProgress),
     updatedAt: new Date().toISOString(),
   };
 }
 
-export function mergeOneStrokeCloudSave(localProgress, cloudSave) {
-  return buildCloudSave(mergeCampaignProgress(localProgress, campaignProgressFromCloudSave(cloudSave)));
+export function mergeOneStrokeCloudSave(localProgress, cloudSave, localDailyProgress = null) {
+  return buildCloudSave(
+    mergeCampaignProgress(localProgress, campaignProgressFromCloudSave(cloudSave)),
+    mergeDailyProgress(localDailyProgress, cloudSave?.daily),
+  );
 }
 
 export function loadCampaignProgress(defaultUnlockedLevel = 1) {
@@ -106,6 +150,19 @@ export function loadCampaignProgress(defaultUnlockedLevel = 1) {
 
 export function saveCampaignProgress(progress) {
   localStorage.setItem(STORAGE_KEYS.campaignProgress, JSON.stringify(progress));
+}
+
+export function loadDailyProgress() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.dailyProgress);
+    return raw ? normalizeDailyProgress(JSON.parse(raw)) : normalizeDailyProgress(null);
+  } catch {
+    return normalizeDailyProgress(null);
+  }
+}
+
+export function saveDailyProgress(progress) {
+  localStorage.setItem(STORAGE_KEYS.dailyProgress, JSON.stringify(normalizeDailyProgress(progress)));
 }
 
 function sanitizeChallengeRunEntry(entry) {
