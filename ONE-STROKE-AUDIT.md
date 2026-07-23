@@ -3,7 +3,7 @@
 **Datum:** 2026-07-22  
 **Omfattning:** kampanj (200 nivåer), tutorial, Daily Challenge, challenges, mobil/touch, progression, GameVolt-SDK, PWA/offline, achievements, delning och marknadsassets.
 
-**Status 2026-07-23:** P0–P6 är genomförda. P6 lägger till levande UTC-resetnedräkning, mode-aware delningskort för Daily/Weekly/Bonus och en synlig reload-notis när PWA-cachen byter version.
+**Status 2026-07-23:** P0–P9 är genomförda. P9 inför serverägda UTC-event, first-write-wins för rankade Daily/Weekly-runs och server-side grundvalidering.
 
 ## Sammanfattning
 
@@ -42,6 +42,9 @@ Min rekommendation är en **One Stroke 1.1 — Clean Line Update** i tre tydliga
 | P6 | UTC-resetnedräkning för Daily och Weekly — **P6A åtgärdad** | Feature/live ops | Liten | Medel–hög |
 | P6 | Mode-aware delningskort — **P6B åtgärdad** | Feature/growth | Medel | Medel–hög |
 | P6 | PWA update-notis med kontrollerad reload — **P6C åtgärdad** | Polish/reliability | Liten | Medel |
+| P7 | Personlig Daily/Weekly-rank i lobby, resultat och delningskort — **P7 åtgärdad** | Feature/retention | Liten–medel | Medel–hög |
+| P8 | En rankad Weekly-run per UTC-vecka, därefter Practice — **P8 åtgärdad** | Feature/integritet | Liten–medel | Hög |
+| P9 | Serverstyrda event-ID:n, engångslås och validerad Daily/Weekly-submit — **P9 åtgärdad** | Bugg/backend/integritet | Medel | Mycket hög |
 
 ## Buggar
 
@@ -193,5 +196,8 @@ Kodbasen har redan mycket av infrastrukturen för matchkoder och cloud challenge
 - Browser-QA av P4: en komplett femnivåers Daily-run växlade replay till `Daily Practice` med dold delning; friend create/join och 200 mastery-badges verifierades utan konsolfel.
 - Browser-QA av P5: exakt sju UTC-dagar renderades med dagens markering, modefiltret gav korrekt tomläge och publik copy/FAQ exponerade Weekly, mastery och friend challenge utan konsolfel.
 - Browser-QA av P6: Daily/Weekly-resetlabels, mode-anpassade shareknappar och dold PWA-notis i normalt läge verifierades; update-notisen visas först vid verkligt controllerbyte.
+- QA av P7: Daily- och Weekly-rankstatus renderades i browserns gästläge; kodgranskning verifierade separat personlig rad utanför topp 20 och valfri rank på delningskortet.
+- QA av P8: fresh-week-badgen och den rankade 10-nivåersstarten verifierades i browser; syntax, submit-gates och återläsning av befintlig cloud-rank verifierades statiskt.
+- QA av P9: server-RPC-kontrakt, first-write-wins-fråga och totalsvalidering granskades statiskt; browser-QA verifierade att Daily/Weekly och rankad Daily-start fungerar när servermigrationen ännu saknas.
 
-Verkliga inloggade GameVolt/Supabase-anrop bör fortfarande smoke-testas mot produktion före release.
+SQL-filen `sql/one-stroke-competition-integrity.sql` måste installeras innan P9:s serverlås blir aktivt. Verkliga inloggade GameVolt/Supabase-anrop bör fortfarande smoke-testas mot produktion före release.

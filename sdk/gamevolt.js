@@ -1126,6 +1126,41 @@
         if (res.error) throw res.error;
         return res.data || [];
       }).catch(function() { return []; });
+    },
+
+    /**
+     * Server-owned Daily / Weekly event metadata.
+     * Returns { mode, event_id, seed, level_count, opens_at, closes_at }.
+     */
+    getCompetitionEvent: function(mode) {
+      if (!sb) return Promise.resolve(null);
+      return sb.rpc('get_one_stroke_competition_event', {
+        p_mode: mode
+      }).then(function(res) {
+        if (res.error) throw res.error;
+        return res.data && res.data[0] ? res.data[0] : null;
+      });
+    },
+
+    /**
+     * First-write-wins ranked event submission with server UTC + validation.
+     */
+    submitCompetition: function(mode, result) {
+      if (!currentUser || !sb) return Promise.reject('Login required to submit competition runs');
+      result = result || {};
+      return sb.rpc('submit_one_stroke_competition_run', {
+        p_game_id: currentGameId,
+        p_mode: mode,
+        p_score: result.score || 0,
+        p_time_ms: result.timeMs || 0,
+        p_completed_count: result.completedCount || 0,
+        p_total_count: result.totalCount || 0,
+        p_splits: result.splits || [],
+        p_stats: result.stats || {}
+      }).then(function(res) {
+        if (res.error) throw res.error;
+        return res.data && res.data[0] ? res.data[0] : null;
+      });
     }
   };
 
