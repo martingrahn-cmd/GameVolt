@@ -1,4 +1,4 @@
-const CACHE_NAME = "one-stroke-v11";
+const CACHE_NAME = "one-stroke-v12";
 
 const PRECACHE_URLS = [
   "./",
@@ -27,7 +27,14 @@ const PRECACHE_URLS = [
 // Install: precache all core assets
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
+    caches.open(CACHE_NAME).then((cache) =>
+      Promise.all(PRECACHE_URLS.map(async (url) => {
+        const request = new Request(url, { cache: "reload" });
+        const response = await fetch(request);
+        if (!response.ok) throw new Error(`Precache failed: ${url}`);
+        await cache.put(url, response);
+      }))
+    )
   );
   self.skipWaiting();
 });
@@ -59,7 +66,8 @@ self.addEventListener("fetch", (event) => {
     caches.match(event.request).then((cached) => {
       if (cached) {
         // Return cache hit, but update in background
-        const fetchPromise = fetch(event.request).then((response) => {
+        const freshRequest = new Request(event.request, { cache: "no-cache" });
+        const fetchPromise = fetch(freshRequest).then((response) => {
           if (response && response.status === 200) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
