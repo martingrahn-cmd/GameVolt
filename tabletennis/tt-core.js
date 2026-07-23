@@ -96,11 +96,13 @@
     var ty = typeof aim.ty === 'number' ? aim.ty : NET_Y + fwd * 0.85;
     tx = Math.max(-TABLE_W / 2 - 0.4, Math.min(TABLE_W / 2 + 0.4, tx));
     // Depth floor: neither side can move in depth, so a serve dropped just
-    // past the net double-bounces before the receiver's paddle plane and is
-    // physically untakeable — a free point, not a risk shot. Minimum depth
-    // guarantees the post-bounce carry reaches the receiver.
-    if (s.server === 1) ty = Math.max(NET_Y + 0.55, Math.min(TABLE_L + 0.6, ty));
-    else ty = Math.min(NET_Y - 0.55, Math.max(-0.6, ty));
+    // past the net lands short and arrives at the receiver below the table
+    // edge — physically untakeable, a free point rather than a risk shot
+    // (the "hold the paddle still on serve" exploit). A deep minimum
+    // guarantees the ball carries to the receiver's paddle at a hittable
+    // height. ~0.9m past the net lands around 2.3 of the 2.74 table.
+    if (s.server === 1) ty = Math.max(NET_Y + 0.9, Math.min(TABLE_L + 0.6, ty));
+    else ty = Math.min(NET_Y - 0.9, Math.max(-0.6, ty));
     // pace 0..1: harder serves bounce earlier on the own half and drive
     // flatter/faster out of the bounce (smaller first-flight share)
     var pace = typeof aim.pace === 'number' ? Math.max(0, Math.min(1, aim.pace)) : 0;
@@ -164,7 +166,13 @@
   // One fixed 1/60s step. inputs: { 1: {x, z, aim:{tx,ty,t}}, 2: {...} }
   // Paddle positions are commanded (the shell/AI own smoothing & speed
   // limits); aim is read at the moment of contact.
-  function step(s, inputs) {
+  // opts (online): { hitPid } restricts which paddle may make contact
+  //   (myPid on the authority, -1 = neither on the mirror), and { noScore }
+  //   suppresses local point awards (the authority is the sole scorer).
+  function step(s, inputs, opts) {
+    opts = opts || {};
+    // the authority scores; the mirror (noScore) applies points from the wire
+    var aw = opts.noScore ? function () {} : award;
     s.tick++;
     var ev = [];
     for (var pid = 1; pid <= 2; pid++) {
@@ -198,6 +206,7 @@
       // paddle contact: ball crosses the receiver's paddle plane within reach
       for (var p = 1; p <= 2; p++) {
         if (s.lastHitBy === p) continue;
+        if (opts.hitPid !== undefined && opts.hitPid !== p) continue; // online: only the authority's paddle hits
         var plane = PADDLE_Y[p];
         var toward = p === 1 ? b.vy < 0 : b.vy > 0;
         if (!toward) continue;
@@ -230,7 +239,7 @@
         b.vy = -b.vy * 0.12;
         b.vx *= 0.5;
         ev.push({ type: 'net' });
-        award(s, other(s.lastHitBy), ev); // ball keeps falling for the visual
+        aw(s, other(s.lastHitBy), ev); // ball keeps falling for the visual
       }
     }
 
@@ -252,11 +261,11 @@
           var side = landY < NET_Y ? 1 : 2;
           ev.push({ type: 'bounce', side: side, x: landX, y: landY });
           if (s.lastHitBy && side === other(s.lastHitBy)) {
-            if (s.bounced) award(s, s.lastHitBy, ev); // double bounce: receiver never got there
+            if (s.bounced) aw(s, s.lastHitBy, ev); // double bounce: receiver never got there
             else s.bounced = true;
           } else if (s.lastHitBy) {
             if (s.serveBounce) s.serveBounce = false; // the serve's own-side bounce is legal
-            else award(s, other(s.lastHitBy), ev);    // otherwise own-side bounce = fault
+            else aw(s, other(s.lastHitBy), ev);    // otherwise own-side bounce = fault
           }
         } else {
           b.vz = -b.vz * 0.55; b.vx *= 0.85; b.vy *= 0.85; // cosmetic settle
@@ -277,7 +286,7 @@
       if (s.phase === 'rally') {
         // bounced on the receiver's side first -> they missed; otherwise out
         ev.push({ type: 'floor', x: b.x, y: b.y, out: !s.bounced });
-        award(s, s.bounced ? s.lastHitBy : other(s.lastHitBy), ev);
+        aw(s, s.bounced ? s.lastHitBy : other(s.lastHitBy), ev);
       }
     }
 

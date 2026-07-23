@@ -140,6 +140,18 @@ TT.serve(g, { tx: 0, ty: K.TABLE_L + 0.04, pace: 1 });
 evs = run(g, 200, { 2: { x: 1.5, z: 0.9 } });
 check('line-grazing ball counts IN', evs.some(function (e) { return e.type === 'bounce' && e.side === 2; }));
 
+// 8f. online opts: hitPid restricts contact, noScore suppresses awards
+g = TT.createGame(1);
+TT.serve(g, { tx: 0, ty: K.NET_Y + 0.9 });
+// mirror step: neither paddle may hit, no scoring — even a parked receiver
+// that would normally return does nothing, and no point is ever awarded
+var mevs = [];
+for (var mi = 0; mi < 400 && g.phase === 'rally'; mi++) {
+  mevs = mevs.concat(TT.step(g, { 2: { x: 0, z: 0.25, aim: { tx: 0, ty: K.NET_Y - 0.9 } } }, { hitPid: -1, noScore: true }).events);
+}
+check('mirror step never returns the ball', !mevs.some(function (e) { return e.type === 'hit'; }));
+check('mirror step never scores', g.scores[1] === 0 && g.scores[2] === 0 && g.phase === 'rally');
+
 // 9. determinism: identical input scripts -> identical states
 function scripted() {
   var s = TT.createGame(1);
