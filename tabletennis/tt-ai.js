@@ -21,7 +21,7 @@
     // Playtest-driven reshuffle: the old medium played like a wall, so hard
     // now sits where medium was, and medium is barely above easy.
     easy:   { speed: 1.7,  react: 20, err: 0.30, outP: 0.10, tMin: 0.58, depth: 0.55, serveWait: 70, leaveP: 0.5 },
-    medium: { speed: 1.85, react: 18, err: 0.28, outP: 0.10, tMin: 0.60, depth: 0.58, serveWait: 58, leaveP: 0.7 },
+    medium: { speed: 1.72, react: 19, err: 0.31, outP: 0.11, tMin: 0.62, depth: 0.55, serveWait: 60, leaveP: 0.66 },
     hard:   { speed: 2.2,  react: 14, err: 0.24, outP: 0.07, tMin: 0.56, depth: 0.66, serveWait: 50, leaveP: 0.85 }
   };
 
