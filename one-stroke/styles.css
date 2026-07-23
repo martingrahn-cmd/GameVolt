@@ -548,6 +548,46 @@ details.rules-details summary h2 {
   padding-right: 2px;
 }
 
+.ghost-pace-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid rgba(128, 184, 214, 0.3);
+  border-radius: 10px;
+  color: #c7e3f2;
+  background: rgba(17, 40, 56, 0.72);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.ghost-pace-card[hidden] {
+  display: none;
+}
+
+.ghost-pace-card.ahead {
+  border-color: rgba(46, 168, 133, 0.65);
+  color: #bff4df;
+  background: rgba(18, 66, 55, 0.68);
+}
+
+.ghost-pace-card.behind {
+  border-color: rgba(222, 126, 111, 0.55);
+  color: #ffd6d0;
+  background: rgba(70, 37, 38, 0.62);
+}
+
+.ghost-pace-icon {
+  font-size: 1.15rem;
+  color: #72dcc6;
+}
+
+.ghost-result-card {
+  justify-content: center;
+  text-align: center;
+}
+
 .split-row {
   border: 1px solid #355f72;
   border-radius: 10px;
@@ -1889,6 +1929,75 @@ div.cell {
   color: #7f9ba9;
   font-style: italic;
   margin: 0;
+}
+
+.weekly-challenge-card {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid rgba(114, 220, 198, 0.25);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(26, 71, 72, 0.34), rgba(15, 30, 39, 0.9));
+}
+
+.weekly-challenge-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.weekly-challenge-head h2 {
+  margin: 0;
+}
+
+.weekly-badge {
+  flex: none;
+  padding: 5px 9px;
+  border: 1px solid rgba(114, 220, 198, 0.3);
+  border-radius: 999px;
+  color: #a8f0df;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bonus-challenge-card {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(232, 168, 83, 0.35);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(82, 50, 26, 0.42), rgba(24, 29, 38, 0.92));
+}
+
+.bonus-badge {
+  flex: none;
+  padding: 5px 9px;
+  border: 1px solid rgba(232, 168, 83, 0.4);
+  border-radius: 999px;
+  color: #ffd69a;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.level-rule-badge {
+  display: inline-block;
+  margin: 5px 0 0;
+  padding: 4px 8px;
+  border: 1px solid rgba(232, 168, 83, 0.42);
+  border-radius: 999px;
+  color: #ffd69a;
+  background: rgba(74, 43, 23, 0.68);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.level-rule-badge[hidden] {
+  display: none;
 }
 
 .daily-result-card {

@@ -24,6 +24,32 @@ export function formatUtcDay(daySeed, locale = "en-US") {
   }).format(date);
 }
 
+export function utcWeekInfo(now = new Date(), locale = "en-US") {
+  const date = new Date(now);
+  const utcDay = date.getUTCDay() || 7;
+  const monday = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  monday.setUTCDate(monday.getUTCDate() - utcDay + 1);
+  const thursday = new Date(monday);
+  thursday.setUTCDate(thursday.getUTCDate() + 3);
+  const weekYear = thursday.getUTCFullYear();
+  const yearStart = new Date(Date.UTC(weekYear, 0, 1));
+  const week = Math.ceil((((thursday - yearStart) / 86_400_000) + 1) / 7);
+  const sunday = new Date(monday);
+  sunday.setUTCDate(sunday.getUTCDate() + 6);
+  const format = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+  return {
+    id: `${weekYear}-W${String(week).padStart(2, "0")}`,
+    seed: `weekly-${weekYear}-W${String(week).padStart(2, "0")}`,
+    startDay: monday.toISOString().slice(0, 10),
+    endDay: sunday.toISOString().slice(0, 10),
+    label: `${format.format(monday)}–${format.format(sunday)} · UTC`,
+  };
+}
+
 export function createRunId() {
   return `run-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
 }

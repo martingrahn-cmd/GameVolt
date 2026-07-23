@@ -91,3 +91,35 @@ export function createMixedChallenge(levels, seedInput, levelCount = 10) {
     mix,
   };
 }
+
+function getSolutionEnd(level) {
+  const deltaByDirection = {
+    U: [0, -1],
+    D: [0, 1],
+    L: [-1, 0],
+    R: [1, 0],
+  };
+  const end = [...level.start];
+  for (const direction of level.solution ?? "") {
+    const delta = deltaByDirection[direction];
+    if (!delta) return null;
+    end[0] += delta[0];
+    end[1] += delta[1];
+  }
+  return end;
+}
+
+export function createBonusChallenge(levels, seedInput) {
+  const base = createMixedChallenge(levels, seedInput, 5);
+  return {
+    ...base,
+    levels: base.levels.map((level, index) => ({
+      ...level,
+      name: `Bonus ${index + 1} · ${level.name}`,
+      endMode: "fixed",
+      end: getSolutionEnd(level),
+      undoLimit: index < 2 ? 2 : 1,
+      bonusRule: "fixed-end-limited-undo",
+    })),
+  };
+}
