@@ -1954,6 +1954,44 @@ div.cell {
   text-transform: capitalize;
 }
 
+.event-reset-label {
+  margin: 2px 0 0;
+  color: #79b9d5;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.pwa-update-notice {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(360px, calc(100vw - 36px));
+  padding: 12px 14px;
+  border: 1px solid rgba(111, 210, 255, 0.5);
+  border-radius: 12px;
+  color: #e8f7ff;
+  background: rgba(12, 32, 44, 0.96);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.pwa-update-notice[hidden] {
+  display: none;
+}
+
+.pwa-update-notice button {
+  min-height: 34px;
+  padding: 6px 11px;
+  color: #09202b;
+  background: #72d8ff;
+}
+
 .daily-play-btn {
   margin-top: 4px;
   min-height: 48px;

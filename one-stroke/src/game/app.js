@@ -219,10 +219,12 @@ export class OneStrokeApp {
     this.dailyCompletedLabel = document.getElementById("dailyCompletedLabel");
     this.dailyShareBtn = document.getElementById("dailyShareBtn");
     this.dailyDateLabel = document.getElementById("dailyDateLabel");
+    this.dailyResetLabel = document.getElementById("dailyResetLabel");
     this.dailyAttemptBadge = document.getElementById("dailyAttemptBadge");
     this.dailyWeekStrip = document.getElementById("dailyWeekStrip");
     this.weeklyChallengeBtn = document.getElementById("weeklyChallengeBtn");
     this.weeklyDateLabel = document.getElementById("weeklyDateLabel");
+    this.weeklyResetLabel = document.getElementById("weeklyResetLabel");
     this.weeklyLeaderboardListEl = document.getElementById("weeklyLeaderboardList");
     this.bonusChallengeBtn = document.getElementById("bonusChallengeBtn");
     this.friendChallengeBtn = document.getElementById("friendChallengeBtn");
@@ -345,6 +347,10 @@ export class OneStrokeApp {
     this.setHubView("single-player", { syncMode: false });
     this.updateDailyUI();
     this.updateWeeklyUI();
+    this.eventClockDayId = todaySeed();
+    this.eventClockWeekId = utcWeekInfo().id;
+    this.updateEventCountdowns();
+    this.eventCountdownInterval = window.setInterval(() => this.updateEventCountdowns(), 30_000);
     this.setStatus(this.getCampaignGuidance(this.state.level));
 
     // Check URL for cloud challenge invite
@@ -645,6 +651,38 @@ export class OneStrokeApp {
     }
   }
 
+  formatResetCountdown(targetMs) {
+    const totalMinutes = Math.max(0, Math.ceil((targetMs - Date.now()) / 60_000));
+    const days = Math.floor(totalMinutes / 1440);
+    const hours = Math.floor((totalMinutes % 1440) / 60);
+    const minutes = totalMinutes % 60;
+    return [days > 0 ? `${days}d` : "", hours > 0 ? `${hours}h` : "", `${minutes}m`]
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  updateEventCountdowns() {
+    const now = new Date();
+    const nextDayMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+    const week = utcWeekInfo(now);
+    const nextWeekMs = Date.parse(`${week.endDay}T00:00:00.000Z`) + 86_400_000;
+    if (this.dailyResetLabel) {
+      this.dailyResetLabel.textContent = `Next Daily in ${this.formatResetCountdown(nextDayMs)}`;
+    }
+    if (this.weeklyResetLabel) {
+      this.weeklyResetLabel.textContent = `Next Weekly in ${this.formatResetCountdown(nextWeekMs)}`;
+    }
+
+    if (this.eventClockDayId && this.eventClockDayId !== todaySeed()) {
+      this.eventClockDayId = todaySeed();
+      if (this.hubView === "multiplayer" && this.matchPhase === "setup") this.setMatchPhase("setup");
+    }
+    if (this.eventClockWeekId && this.eventClockWeekId !== week.id) {
+      this.eventClockWeekId = week.id;
+      if (this.hubView === "multiplayer" && this.matchPhase === "setup") this.setMatchPhase("setup");
+    }
+  }
+
   getWeeklySeed() {
     return utcWeekInfo().seed;
   }
@@ -734,7 +772,12 @@ export class OneStrokeApp {
       element.textContent = this.weeklyMode ? "This Week's Leaderboard" : "Today's Leaderboard";
     });
     if (this.dailyShareBtn2) {
-      this.dailyShareBtn2.hidden = !this.dailyMode || this.dailyPracticeMode;
+      this.dailyShareBtn2.hidden = this.friendMode || this.dailyPracticeMode;
+      this.dailyShareBtn2.textContent = this.weeklyMode
+        ? "Share Weekly Result"
+        : this.bonusMode
+          ? "Share Bonus Result"
+          : "Share Result";
     }
     if (this.competitionLeaderboardShareEl) {
       this.competitionLeaderboardShareEl.hidden = !this.dailyMode && !this.weeklyMode;
@@ -844,8 +887,27 @@ export class OneStrokeApp {
       { undoCount: 0, resetCount: 0, hintCount: 0 },
     );
 
+    const week = utcWeekInfo();
+    const modeLabel = this.weeklyMode
+      ? "Weekly Challenge"
+      : this.bonusMode
+        ? "Bonus Paths"
+        : "Daily Challenge";
+    const eventLabel = this.weeklyMode || this.bonusMode
+      ? week.id
+      : formatUtcDay(todaySeed());
+    const slug = this.weeklyMode
+      ? week.seed
+      : this.bonusMode
+        ? `bonus-${week.id}`
+        : `daily-${todaySeed()}`;
     const canvas = generateShareImage({
       date: todaySeed(),
+      eventLabel,
+      modeLabel,
+      cta: this.bonusMode
+        ? "Can you reach every goal with fewer undos?"
+        : "Can you beat my One Stroke result?",
       score: summary.totalScore,
       timeMs: summary.totalTimeMs,
       levelCount: this.challenge.levels.length,
@@ -855,7 +917,11 @@ export class OneStrokeApp {
       hintCount: totals.hintCount,
     });
 
-    const result = await shareResult(canvas, { date: todaySeed() });
+    const result = await shareResult(canvas, {
+      slug,
+      title: `One Stroke — ${modeLabel}`,
+      text: `I scored ${toDisplayScore(summary.totalScore)} points in ${modeLabel}. Can you beat me?`,
+    });
     if (result === "shared") {
       this.setStatus("Result shared!");
     } else {
@@ -3267,7 +3333,7 @@ export class OneStrokeApp {
                   ? "Weekly challenge complete!"
                   : (this.bonusMode ? "Bonus Paths complete!" : "Match complete!")),
             splits: modalSplits,
-            showDailyShare: this.dailyMode && !this.dailyPracticeMode,
+            showDailyShare: (this.dailyMode || this.weeklyMode || this.bonusMode) && !this.dailyPracticeMode,
             showMatchExport: !this.dailyMode && !this.weeklyMode && !this.bonusMode,
           },
         );

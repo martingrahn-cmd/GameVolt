@@ -151,6 +151,7 @@
             <section id="matchPhaseSetup" class="panel-inset match-panel match-phase daily-challenge-panel">
               <h2>Daily Challenge</h2>
               <p id="dailyDateLabel" class="daily-date-label"></p>
+              <p id="dailyResetLabel" class="event-reset-label"></p>
               <p class="match-description">5 levels — the same for everyone today. Play, compare and compete for the leaderboard!</p>
               <p id="dailyAttemptBadge" class="daily-attempt-badge" hidden></p>
               <div id="dailyWeekStrip" class="daily-week-strip" aria-label="Last seven UTC days"></div>
@@ -193,6 +194,7 @@
                   <div>
                     <h2>Weekly Challenge</h2>
                     <p id="weeklyDateLabel" class="daily-date-label"></p>
+                    <p id="weeklyResetLabel" class="event-reset-label"></p>
                   </div>
                   <span class="weekly-badge">10 levels</span>
                 </div>
@@ -845,6 +847,10 @@
         <div class="os-copy">© 2026 GameVolt. All rights reserved.</div>
       </div>
     </footer>
+    </div>
+    <div id="pwaUpdateNotice" class="pwa-update-notice" role="status" hidden>
+      <span>A new One Stroke version is ready.</span>
+      <button id="pwaReloadBtn" type="button">Reload</button>
     </div>
     <script>
       // Reveal SEO content only when loaded standalone — hide everything in iframe (e.g. /play/?game=one-stroke)

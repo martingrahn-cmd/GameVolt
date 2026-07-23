@@ -65,5 +65,17 @@ if (window.GameVolt) {
 
 // Register service worker for PWA / offline support
 if ("serviceWorker" in navigator) {
+  var hadServiceWorkerController = Boolean(navigator.serviceWorker.controller);
+  var updateNotice = document.getElementById("pwaUpdateNotice");
+  var updateReloadBtn = document.getElementById("pwaReloadBtn");
+  var updateReady = false;
+  updateReloadBtn?.addEventListener("click", function() {
+    window.location.reload();
+  });
+  navigator.serviceWorker.addEventListener("controllerchange", function() {
+    if (!hadServiceWorkerController || updateReady) return;
+    updateReady = true;
+    if (updateNotice) updateNotice.hidden = false;
+  });
   navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
