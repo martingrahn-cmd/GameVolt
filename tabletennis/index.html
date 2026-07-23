@@ -358,12 +358,12 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.34.0"></script>
-  <script src="tt-ai.js?v=0.34.0"></script>
-  <script src="sb-net.js?v=0.34.0"></script>
+  <script src="tt-core.js?v=0.35.0"></script>
+  <script src="tt-ai.js?v=0.35.0"></script>
+  <script src="sb-net.js?v=0.35.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.34.0';
+    var VERSION = '0.35.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -413,10 +413,10 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.34.0', bounce: 'assets/bounce.mp3?v=0.34.0',
-        cheer: 'assets/cheer.mp3?v=0.34.0', net: 'assets/net.mp3?v=0.34.0',
-        crowd: 'assets/crowd.mp3?v=0.34.0', winfare: 'assets/winfare.mp3?v=0.34.0',
-        lose: 'assets/lose.mp3?v=0.34.0', matchpoint: 'assets/matchpoint.mp3?v=0.34.0'
+        hit: 'assets/hit.mp3?v=0.35.0', bounce: 'assets/bounce.mp3?v=0.35.0',
+        cheer: 'assets/cheer.mp3?v=0.35.0', net: 'assets/net.mp3?v=0.35.0',
+        crowd: 'assets/crowd.mp3?v=0.35.0', winfare: 'assets/winfare.mp3?v=0.35.0',
+        lose: 'assets/lose.mp3?v=0.35.0', matchpoint: 'assets/matchpoint.mp3?v=0.35.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -542,6 +542,9 @@
     }
     window.addEventListener('resize', resize);
 
+    // Online uses a mirror-per-client model: each player is always player 1
+    // (near, red) in their own frame, so no view flip is needed here — the
+    // ball is mirrored on the wire instead (see mirrorBall).
     function dist(y) { return Math.max(0.2, CAM.d0 + (y / K.TABLE_L) * CAM.depth); }
     function ppm(y) { return CAM.S / dist(y); }        // pixels per meter at depth y
     function proj(x, y, z) {
@@ -813,7 +816,7 @@
       ctx.shadowBlur = 0;
       ctx.font = '700 ' + jh * 0.2 + 'px "Segoe UI", system-ui, sans-serif';
       ctx.fillStyle = '#7f98b8';
-      var oppLbl = campaignOpp ? campaignOpp.short : 'AI';
+      var oppLbl = online ? charById(oppChar).short : (campaignOpp ? campaignOpp.short : 'AI');
       var meLbl = playerName();
       ctx.fillText((game.server === 1 ? '● ' + meLbl : meLbl) + '        ' + (game.server === 2 ? oppLbl + ' ●' : oppLbl), W / 2, jy + jh * 0.78);
     }
@@ -1242,10 +1245,10 @@
       el.sc2.textContent = game.scores[2];
       el.dot1.textContent = game.server === 1 ? '●' : '';
       el.dot2.textContent = game.server === 2 ? '●' : '';
-      // campaign: real names on both sides of the score
+      // names on both sides of the score
       document.getElementById('who1').textContent = playerName();
-      document.getElementById('who2').textContent = campaignOpp ? campaignOpp.short : 'AI';
-      el.lvl.textContent = campaignOpp ? '' : String(level).toUpperCase();
+      document.getElementById('who2').textContent = online ? (charById(oppChar).short) : (campaignOpp ? campaignOpp.short : 'AI');
+      el.lvl.textContent = (online || campaignOpp) ? '' : String(level).toUpperCase();
     }
     var bannerTimer = 0;
     function showBanner(txt, ms) {
@@ -1472,6 +1475,7 @@
 
     // ---------- game flow ----------
     function startMatch(lvl, opp) {
+      online = false; // single-player path clears any online state
       level = lvl;
       campaignOpp = opp || null;
       document.getElementById('vs').classList.add('hidden');
@@ -1570,6 +1574,9 @@
     function toMenu() {
       ui = 'menu';
       Sound.crowdStop();
+      if (online && window.SBNet) { try { SBNet.leave(); } catch (e) {} }
+      online = false; myChar = null; oppChar = null;
+      document.getElementById('again-btn').disabled = false;
       game = null;
       campaignOpp = null;
       el.end.classList.add('hidden');
@@ -1583,44 +1590,46 @@
       draw();
     }
 
-    function tickGame() {
-      if (toss) {
-        toss.t++;
-        var f = toss.t / toss.dur;
-        var wasHuman = game.server === 1;
-        var raw = Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6;
-        if (wasHuman && !toss.aim) {
-          // YOU pick the strike moment: once the toss is falling, a swipe
-          // ARMS the strike; it fires a few ticks later so the swipe's full
-          // speed registers (firing on the leading edge reads as soft)
-          if (toss.strikeAt === undefined && f >= 0.62 && raw > 1.1) { toss.strikeAt = toss.t + 4; toss.peak = raw; }
-          if (toss.strikeAt !== undefined && raw > toss.peak) toss.peak = raw;
-        }
-        if ((toss.strikeAt !== undefined && toss.t >= toss.strikeAt) || toss.t >= toss.dur) {
-          var aim = toss.aim; // the AI decides its serve upfront…
-          if (!aim) {
-            // …the human's serve is the swipe: direction + paddle position
-            // place it, peak swipe speed = pace
-            var eff = toss.peak !== undefined ? toss.peak : raw;
-            var power = Math.min(1, Math.max(0, eff - 0.9) / 2.4);
-            aim = {
-              tx: Math.max(-0.65, Math.min(0.65, game.paddles[1].x * 0.3 + pointerVX * 0.5)),
-              ty: K.NET_Y + 0.55 + 0.85 * power,
-              pace: power,
-              lift: toss.strikeAt !== undefined ? tossHeight() : 0
-            };
-          }
-          TTCore.serve(game, aim);
-          Sound.pock(Math.min(1, (aim.pace || 0.2) + 0.15), game.ball.x / 0.76);
-          if (wasHuman && (aim.pace || 0) > 0.65) {
-            var sp3 = proj(game.ball.x, K.PADDLE_Y[1], game.ball.z);
-            spawnSparks(sp3.x, sp3.y, aim.pace, 1);
-            addLabel('POWER SERVE!', sp3.x, sp3.y - 26, '#7fd8ff');
-          }
-          toss = null;
-          if (wasHuman) padKick = 0.55; // strike swing
-        }
+    // Advance the serve toss; returns true the tick the serve is struck.
+    // Same for single-player and online (I'm always player 1 = the server).
+    function advanceToss() {
+      if (!toss) return false;
+      toss.t++;
+      var f = toss.t / toss.dur;
+      var wasHuman = game.server === 1;
+      var raw = Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6;
+      if (wasHuman && !toss.aim) {
+        if (toss.strikeAt === undefined && f >= 0.62 && raw > 1.1) { toss.strikeAt = toss.t + 4; toss.peak = raw; }
+        if (toss.strikeAt !== undefined && raw > toss.peak) toss.peak = raw;
       }
+      if ((toss.strikeAt !== undefined && toss.t >= toss.strikeAt) || toss.t >= toss.dur) {
+        var aim = toss.aim;
+        if (!aim) {
+          var eff = toss.peak !== undefined ? toss.peak : raw;
+          var power = Math.min(1, Math.max(0, eff - 0.9) / 2.4);
+          aim = {
+            tx: Math.max(-0.65, Math.min(0.65, game.paddles[1].x * 0.3 + pointerVX * 0.5)),
+            ty: K.NET_Y + 0.55 + 0.85 * power,
+            pace: power,
+            lift: toss.strikeAt !== undefined ? tossHeight() : 0
+          };
+        }
+        TTCore.serve(game, aim);
+        Sound.pock(Math.min(1, (aim.pace || 0.2) + 0.15), game.ball.x / 0.76);
+        if (wasHuman && (aim.pace || 0) > 0.65) {
+          var sp3 = proj(game.ball.x, K.PADDLE_Y[1], game.ball.z);
+          spawnSparks(sp3.x, sp3.y, aim.pace, 1);
+          addLabel('POWER SERVE!', sp3.x, sp3.y - 26, '#7fd8ff');
+        }
+        toss = null;
+        if (wasHuman) padKick = 0.55;
+        return true;
+      }
+      return false;
+    }
+
+    function tickGame() {
+      advanceToss();
       var inputs = { 1: { x: pointer.x, z: pointer.z, aim: humanAim() } };
       var ai = TTAi.decide(game, 2, level, rng, aiMem);
       if (game.phase === 'serve' && game.server === 2 && ai.serve) beginToss(ai.serve);
@@ -1688,6 +1697,118 @@
       } else if (trail.length) trail = [];
     }
 
+    function ballState() {
+      var b = game.ball;
+      return { x: b.x, y: b.y, z: b.z, vx: b.vx, vy: b.vy, vz: b.vz };
+    }
+
+    // Online step: mirror-per-client. I'm player 1; the authority (whoever's
+    // half the ball is on) simulates & scores, the mirror follows via the wire.
+    function onlineTick() {
+      processNetQ();
+      if (ui !== 'playing') return;
+      // serve toss only runs when I'm the server (server === 1 in my frame)
+      var served = false;
+      if (game.server === 1 && game.phase === 'serve') served = advanceToss();
+
+      var inputs = {
+        1: { x: pointer.x, z: pointer.z, aim: humanAim() },
+        2: { x: oppPaddle.x, z: oppPaddle.z }
+      };
+      var auth = iAmAuthority();
+      var opts = auth ? { hitPid: 1 } : { hitPid: -1, noScore: true };
+      var res = TTCore.step(game, inputs, opts);
+
+      if (served) netSend('serve', { ball: ballState(), tick: game.tick });
+
+      for (var i = 0; i < res.events.length; i++) {
+        var e = res.events[i];
+        if (e.type === 'hit' && e.by === 1) {
+          netSend('hit', { ball: ballState(), tick: game.tick });
+          var shotP = Math.min(1, Math.abs(game.ball.vy) / 7.5);
+          Sound.pock(shotP, e.x / 0.76);
+          padKick = Math.max(-0.6, Math.min(0.6, pointerVX * 0.14));
+          var cp = proj(e.x, K.PADDLE_Y[1], Math.max(0.05, e.z));
+          if (shotP > 0.5) spawnSparks(cp.x, cp.y, shotP, 1);
+          if (shotP > 0.7) {
+            rings.push({ x: cp.x, y: cp.y, r: 6, a: 0.9 });
+            hitStop = 3; shakeT = 190; shakeAmp = 3 + shotP * 4.5;
+            addLabel(shotP > 0.88 ? 'SMASH!!' : 'SMASH!', cp.x, cp.y - 26, '#ffd166');
+          }
+        }
+        if (e.type === 'bounce') { Sound.bounce(e.x / 0.76); ballSquash = 1; }
+        if (e.type === 'floor' && e.out) { addLabel('OUT!', W / 2, H * 0.32, '#ff5a5a', 44, 1100); landMark = { x: e.x, y: e.y, a: 1 }; }
+        if (e.type === 'net') { Sound.net(); addLabel('NET!', W / 2, H * 0.32, '#ffae42', 40, 1000); }
+        if (e.type === 'point') {
+          // I'm the authority (mirror never scores): tell the opponent
+          netSend('pt', { as: game.scores[1], os: game.scores[2], authWon: e.to === 1 });
+          Sound.point(e.to === 1);
+          updateHud();
+          if (!res.events.some(function (x) { return x.type === 'over'; })) {
+            addLabel(e.to === 1 ? 'POINT!' : 'RIVAL POINT', W / 2, H * 0.42, e.to === 1 ? '#7dffb0' : '#ff8aa8', 46, 1150);
+            onlineMatchPointFx();
+            pointTimer = 66;
+          }
+        }
+        if (e.type === 'over') {
+          Sound.end(e.winner === 1);
+          showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — RIVAL', 1400);
+          endOnlineMatch();
+        }
+      }
+
+      var now = performance.now();
+      if (auth && game.phase === 'rally' && now - lastBallSend > 60) { lastBallSend = now; netSend('ball', { ball: ballState() }); }
+      if (now - lastPadSend > 55) { lastPadSend = now; netSend('pad', { x: pointer.x, z: pointer.z }); }
+
+      if (game.phase === 'point' && pointTimer > 0 && --pointTimer === 0) {
+        TTCore.nextRally(game);
+        updateHud();
+        setHint(game.server === 1 ? 'TAP TO TOSS · SWIPE TO STRIKE' : 'RIVAL SERVES…');
+      }
+      if (game.phase === 'rally') {
+        trail.push({ x: game.ball.x, y: game.ball.y, z: game.ball.z });
+        if (trail.length > 8) trail.shift();
+      } else if (trail.length) trail = [];
+    }
+
+    function endOnlineMatch() {
+      ui = 'over';
+      Sound.crowdStop();
+      var won = game.winner === 1;
+      el.endTitle.textContent = won ? 'YOU WIN!' : 'RIVAL WINS';
+      el.endTitle.className = 'modal-title ' + (won ? 'win' : 'lose');
+      document.getElementById('end-report').classList.remove('hidden');
+      document.getElementById('er-pname').textContent = playerName();
+      document.getElementById('er-oname').textContent = charById(oppChar).short;
+      document.getElementById('er-score').textContent = game.scores[1] + '–' + game.scores[2];
+      drawPortrait(document.getElementById('er-face-p'), charById(myChar));
+      drawPortrait(document.getElementById('er-face'), charById(oppChar));
+      document.getElementById('end-cheese').textContent = won ? 'Match won! Play again or head back.' : 'So close — run it back!';
+      el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · online';
+      document.getElementById('again-btn').textContent = 'REMATCH';
+      setHint('');
+      setTimeout(function () { el.end.classList.remove('hidden'); }, 700);
+    }
+
+    function requestOnlineRematch() {
+      iRematch = true;
+      netSend('rematch', {});
+      document.getElementById('again-btn').textContent = 'WAITING…';
+      document.getElementById('again-btn').disabled = true;
+      maybeOnlineRematch();
+    }
+    function maybeOnlineRematch() {
+      if (iRematch && oppRematch) {
+        iRematch = oppRematch = false;
+        document.getElementById('again-btn').disabled = false;
+        el.end.classList.add('hidden');
+        startOnlineGame();
+      } else if (oppRematch && ui === 'over') {
+        document.getElementById('again-btn').textContent = 'REMATCH (RIVAL READY!)';
+      }
+    }
+
     function loop(ts) {
       if (ui !== 'playing' && ui !== 'over') return;
       if (!last) last = ts;
@@ -1698,7 +1819,7 @@
         if (++steps > 10) { acc = 0; break; }
         if (hitStop > 0) { hitStop--; acc = 0; break; } // impact freeze-frame
         acc -= TICK_MS;
-        tickGame();
+        if (online) onlineTick(); else tickGame();
       }
       // pointer velocity decays when the finger rests
       pointerVX *= 0.92; pointerVZ *= 0.92;
@@ -1714,6 +1835,11 @@
       b.addEventListener('click', function () { startMatch(b.getAttribute('data-level')); });
     });
     document.getElementById('again-btn').addEventListener('click', function () {
+      if (online) {
+        if (document.getElementById('again-btn').textContent === 'MENU') { toMenu(); return; }
+        requestOnlineRematch();
+        return;
+      }
       if (campaignOpp) {
         var won = game && game.winner === 1;
         if (!campPractice && won && campIdx >= 2) { toMenu(); return; }
@@ -1828,9 +1954,24 @@
       else st.textContent = 'PICK A CHARACTER';
     }
 
-    // Phase A.5: characters chosen, VS card shown. The synced rally
-    // (streamed-authority netcode) lands in Phase B.
+    // ---------- online match (Phase B: mirror-per-client netcode) ----------
+    // Both players are player 1 (near) in their own frame; the ball is mirrored
+    // on the wire. Authority = whoever's half the ball is on simulates it and
+    // streams; the mirror integrates for smooth rendering but never scores.
+    var online = false, netRole = 'host', oppPaddle = { x: 0, z: 0.25 };
+    var netQ = [], lastBallSend = 0, lastPadSend = 0, oppRematch = false, iRematch = false;
+
+    function mirrorBall(b) { // transform a ball state between the two frames
+      return { x: -b.x, y: K.TABLE_L - b.y, z: b.z, vx: -b.vx, vy: -b.vy, vz: b.vz };
+    }
+    function netSend(k, extra) {
+      if (!window.SBNet) return;
+      var m = { k: k }; if (extra) for (var p in extra) m[p] = extra[p];
+      SBNet.input(m);
+    }
+
     function startOnlineMatch() {
+      // show the online VS card briefly, then start the synced match
       var me = charById(myChar), opp = charById(oppChar);
       document.getElementById('vs-stage').textContent = 'ONLINE MATCH';
       document.getElementById('vs-pname').textContent = playerName();
@@ -1838,23 +1979,128 @@
       document.getElementById('vs-name').textContent = 'FIRST TO 11';
       document.getElementById('vs-country').textContent = '🌐 ONLINE · ROOM ' + (SBNet.code || '');
       document.getElementById('vs-style').textContent = playerName() + ' vs ' + opp.short;
-      document.getElementById('vs-taunt').textContent = 'Live rallies arrive in the next update — your fighters are locked in!';
+      document.getElementById('vs-taunt').textContent = 'First to 11, win by 2 — good luck!';
       document.getElementById('vs-bracket').innerHTML = '';
       drawPortrait(document.getElementById('vs-face-p'), me);
       drawPortrait(document.getElementById('vs-face'), opp);
       var fight = document.getElementById('vs-fight');
-      fight.textContent = 'RALLIES: NEXT UPDATE';
-      fight.disabled = true;
+      fight.textContent = 'GET READY…'; fight.disabled = true;
       el.menu.classList.add('hidden');
       document.getElementById('vs').classList.remove('hidden');
+      setTimeout(startOnlineGame, 2200);
     }
+
+    function startOnlineGame() {
+      document.getElementById('vs').classList.add('hidden');
+      online = true;
+      netRole = (SBNet.myPlayer === 1) ? 'host' : 'guest';
+      // I am always player 1 in my own frame; the host serves the first rally,
+      // so in the host frame server=1, in the guest frame server=2 (the host).
+      game = TTCore.createGame(netRole === 'host' ? 1 : 2);
+      oppChar_disp = charById(oppChar);
+      aiMem = {}; trail = []; toss = null; landMark = null; pointTimer = 0;
+      netQ = []; oppPaddle = { x: 0, z: 0.25 }; oppRematch = iRematch = false;
+      ui = 'playing';
+      el.hud.classList.remove('hidden');
+      updateHud();
+      setHint(game.server === 1 ? 'TAP TO TOSS · SWIPE TO STRIKE' : 'RIVAL SERVES…');
+      Sound.unlock(); Sound.crowdStart();
+      setTimeout(function () { if (ui === 'playing') Sound.crowdStart(); }, 600);
+      last = 0; acc = 0;
+      requestAnimationFrame(loop);
+    }
+    var oppChar_disp = null;
+
+    function iAmAuthority() {
+      if (!game) return false;
+      if (game.phase === 'serve') return game.server === 1;
+      return game.ball.y < K.NET_Y; // ball on my (near) half
+    }
+
+    function processNetQ() {
+      while (netQ.length) {
+        var d = netQ.shift();
+        if (d.k === 'pad') { oppPaddle.x = -d.x; oppPaddle.z = d.z; }
+        else if (d.k === 'serve') {
+          var mb = mirrorBall(d.ball);
+          game.ball.x = mb.x; game.ball.y = mb.y; game.ball.z = mb.z;
+          game.ball.vx = mb.vx; game.ball.vy = mb.vy; game.ball.vz = mb.vz;
+          game.phase = 'rally'; game.lastHitBy = 2; game.bounced = false; game.serveBounce = true;
+          setHint('');
+        }
+        else if (d.k === 'hit') {
+          var hb = mirrorBall(d.ball);
+          game.ball.x = hb.x; game.ball.y = hb.y; game.ball.z = hb.z;
+          game.ball.vx = hb.vx; game.ball.vy = hb.vy; game.ball.vz = hb.vz;
+          game.lastHitBy = 2; game.bounced = false;
+          Sound.pock(Math.min(1, Math.abs(hb.vy) / 7.5), hb.x / 0.76);
+        }
+        else if (d.k === 'ball') {
+          if (!iAmAuthority()) { // only correct while I'm the mirror
+            var cb = mirrorBall(d.ball);
+            game.ball.x = cb.x; game.ball.y = cb.y; game.ball.z = cb.z;
+            game.ball.vx = cb.vx; game.ball.vy = cb.vy; game.ball.vz = cb.vz;
+          }
+        }
+        else if (d.k === 'pt') {
+          // authority scored: map into my frame (their self = my p2)
+          game.scores[1] = d.os; game.scores[2] = d.as;
+          game.pointTo = d.authWon ? 2 : 1;
+          onNetPoint(d);
+        }
+        else if (d.k === 'rematch') { oppRematch = true; maybeOnlineRematch(); }
+      }
+    }
+
+    function onNetPoint(d) {
+      Sound.point(game.pointTo === 1);
+      var over = (d.as >= 11 || d.os >= 11) && Math.abs(d.as - d.os) >= 2;
+      updateHud();
+      if (over) {
+        game.winner = game.pointTo; game.phase = 'over';
+        Sound.end(game.winner === 1);
+        showBanner(game.winner === 1 ? 'GAME — YOU!' : 'GAME — RIVAL', 1400);
+        endOnlineMatch();
+      } else {
+        game.phase = 'point';
+        addLabel(game.pointTo === 1 ? 'POINT!' : 'RIVAL POINT', W / 2, H * 0.42,
+          game.pointTo === 1 ? '#7dffb0' : '#ff8aa8', 46, 1150);
+        onlineMatchPointFx();
+        pointTimer = 66;
+      }
+    }
+
+    function onlineMatchPointFx() {
+      var hi = Math.max(game.scores[1], game.scores[2]);
+      if (hi >= 10 && Math.abs(game.scores[1] - game.scores[2]) >= 1) {
+        var mine = game.scores[1] > game.scores[2];
+        Sound.matchpoint();
+        setTimeout(function () {
+          addLabel('MATCH POINT!', W / 2, H * 0.24, '#ffd166', 44, 1500);
+          addLabel(mine ? playerName() : 'RIVAL', W / 2, H * 0.24 + 34, mine ? '#7dffb0' : '#ff8aa8', 26, 1500);
+        }, 380);
+      }
+    }
+
     function onOppLeft() {
+      if (online) {
+        online = false; Sound.crowdStop();
+        if (ui === 'playing') {
+          ui = 'over';
+          el.endTitle.textContent = 'RIVAL LEFT';
+          el.endTitle.className = 'modal-title lose';
+          document.getElementById('end-report').classList.add('hidden');
+          el.endSub.textContent = 'Your opponent disconnected.';
+          document.getElementById('end-cheese').textContent = '';
+          document.getElementById('again-btn').textContent = 'MENU';
+          el.end.classList.remove('hidden');
+          return;
+        }
+      }
       oppChar = null;
-      if (ui === 'playing' || ui === 'over') { toMenu(); }
       document.getElementById('charselect').classList.add('hidden');
       document.getElementById('vs').classList.add('hidden');
-      onlineEl.classList.remove('hidden');
-      setOnlineStatus('OPPONENT LEFT THE ROOM.');
+      if (ui !== 'playing') { onlineEl.classList.remove('hidden'); setOnlineStatus('OPPONENT LEFT THE ROOM.'); }
     }
 
     document.getElementById('ol-create').addEventListener('click', function () {
@@ -1915,11 +2161,14 @@
         }, 500);
       });
       SBNet.on('input', function (d) {
-        // opponent's character pick
-        if (d && d.k === 'char' && typeof d.id === 'string') {
-          oppChar = d.id;
-          markOppChar();
-          updateCharStatus();
+        if (!d || !d.k) return;
+        if (d.k === 'char' && typeof d.id === 'string') {
+          oppChar = d.id; markOppChar(); updateCharStatus();
+        } else if (d.k === 'rematch') {
+          // handled immediately — the netQ only drains while a rally is live
+          oppRematch = true; maybeOnlineRematch();
+        } else if (online) {
+          netQ.push(d); // match traffic — drained in onlineTick / processNetQ
         }
       });
       SBNet.on('left', function () { onOppLeft(); });
