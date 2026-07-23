@@ -73,6 +73,7 @@ Last verified by auditing the code on 2026-07-09.
 | 19 | Livewire | ✅ Live | ✅ Full (endless leaderboard added 2026-07-09) |
 | 20 | Vector Hexagon | ✅ Live | ✅ Full (two-tab climb/endless leaderboards) |
 | 21 | Gridburn | ✅ Live | ✅ Full (31 trophies, solo leaderboard, online lockstep multiplayer) |
+| 22 | Spinburn | ✅ Live | ✅ Full (31 trophies, career-points leaderboard, online mirror-per-client multiplayer) |
 
 **Remaining work:** migrate the Solitaire leaderboard from legacy Firebase to the Supabase SDK path.
 
