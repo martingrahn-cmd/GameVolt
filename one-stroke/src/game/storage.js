@@ -190,6 +190,17 @@ function sanitizeChallengeRunEntry(entry) {
   return {
     id: String(entry.id ?? ""),
     seed: String(entry.seed ?? ""),
+    mode: ["daily", "weekly", "bonus", "friend", "challenge"].includes(entry.mode)
+      ? entry.mode
+      : String(entry.seed ?? "").startsWith("daily-")
+        ? "daily"
+        : String(entry.seed ?? "").startsWith("weekly-")
+          ? "weekly"
+          : String(entry.seed ?? "").startsWith("bonus-")
+            ? "bonus"
+            : String(entry.seed ?? "").startsWith("friend-")
+              ? "friend"
+              : "challenge",
     startedAt: String(entry.startedAt ?? ""),
     finishedAt: String(entry.finishedAt ?? ""),
     completedCount: Number(entry.completedCount) || 0,

@@ -3,7 +3,7 @@
 **Datum:** 2026-07-22  
 **Omfattning:** kampanj (200 nivåer), tutorial, Daily Challenge, challenges, mobil/touch, progression, GameVolt-SDK, PWA/offline, achievements, delning och marknadsassets.
 
-**Status 2026-07-23:** P0–P4 är genomförda. P4 låser Daily till en rankad run följd av practice, exponerar friend challenges i UI:t och lägger till seed-/nivåbaserad campaign mastery med brons-, silver- och guldmedaljer.
+**Status 2026-07-23:** P0–P5 är genomförda. P5 lägger till sjudagars Daily-översikt, mode-aware runhistorik med filter och uppdaterad publik information/FAQ för Weekly, Bonus, friend challenges och mastery.
 
 ## Sammanfattning
 
@@ -36,6 +36,9 @@ Min rekommendation är en **One Stroke 1.1 — Clean Line Update** i tre tydliga
 | P4 | En rankad Daily-run, därefter tydligt practice-läge — **P4A åtgärdad** | Feature/integritet | Medel | Hög |
 | P4 | Exponera friend challenge och join-by-code — **P4B åtgärdad** | Feature | Medel | Hög |
 | P4 | Kampanjmedaljer och mastery-översikt — **P4C åtgärdad** | Feature/polish | Medel | Hög |
+| P5 | Sjudagars Daily-översikt — **P5A åtgärdad** | Feature/retention | Liten–medel | Medel–hög |
+| P5 | Mode-aware historik och filter — **P5B åtgärdad** | Feature/polish | Medel | Medel |
+| P5 | Releasecopy och FAQ för nya spellägen — **P5C åtgärdad** | Polish/SEO | Liten | Medel |
 
 ## Buggar
 
@@ -185,5 +188,6 @@ Kodbasen har redan mycket av infrastrukturen för matchkoder och cloud challenge
 - Browser-QA av P3A: veckovyn visar rätt UTC-intervall, veckoseed `weekly-2026-W30`, 10 nivåer och veckospecifika labels; ISO-årsgränser verifierades separat.
 - Browser-QA av P3C: fem bonusnivåer, synlig målnod och regelbadge verifierades; tredje undo blockerades korrekt efter en budget på två.
 - Browser-QA av P4: en komplett femnivåers Daily-run växlade replay till `Daily Practice` med dold delning; friend create/join och 200 mastery-badges verifierades utan konsolfel.
+- Browser-QA av P5: exakt sju UTC-dagar renderades med dagens markering, modefiltret gav korrekt tomläge och publik copy/FAQ exponerade Weekly, mastery och friend challenge utan konsolfel.
 
 Verkliga inloggade GameVolt/Supabase-anrop bör fortfarande smoke-testas mot produktion före release.
