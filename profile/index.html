@@ -702,6 +702,111 @@
             from { opacity: 0; transform: translateY(24px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Avatar builder */
+        .profile-avatar { cursor: pointer; transition: box-shadow 0.2s; }
+        .profile-avatar:hover { box-shadow: 0 0 0 3px var(--primary), var(--glow-primary); }
+        .avatar-edit-link {
+            margin-top: 10px;
+            background: none;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-medium);
+            border-radius: var(--radius-sm);
+            padding: 5px 12px;
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .avatar-edit-link:hover { border-color: var(--primary); color: var(--primary-light); }
+
+        .avatar-builder {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            margin-bottom: 40px;
+            display: grid;
+            grid-template-columns: 190px 1fr;
+            gap: 26px;
+            box-shadow: var(--shadow-card);
+            animation: fadeInUp 0.4s ease-out both;
+        }
+        @media (max-width: 620px) { .avatar-builder { grid-template-columns: 1fr; } }
+        .ab-stage { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+        .ab-preview { width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; }
+        .ab-preview .gv-avatar { filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35)); }
+        .ab-stage-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .ab-btn {
+            padding: 9px 14px;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-glass);
+            color: var(--text-bright);
+            transition: all 0.15s;
+        }
+        .ab-btn:hover { border-color: var(--primary); }
+        .ab-btn.primary { background: var(--bg-gradient); border: none; color: #fff; }
+        .ab-btn.primary:hover { opacity: 0.9; }
+        .ab-btn.primary:disabled { opacity: 0.6; cursor: default; }
+        .ab-btn.ghost { background: none; color: var(--text-medium); }
+        .ab-status { font-size: 0.8rem; color: var(--accent); text-align: center; min-height: 1.1em; }
+        .ab-controls { display: grid; gap: 16px; align-content: start; }
+        .ab-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .ab-models { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; }
+        .ab-model {
+            background: var(--bg-glass);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            padding: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.15s, transform 0.1s;
+        }
+        .ab-model:hover { transform: translateY(-1px); }
+        .ab-model.active { border-color: var(--primary); background: rgba(124, 92, 252, 0.12); }
+        .ab-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+        .ab-swatch {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            border: 2px solid var(--bg-surface);
+            box-shadow: 0 0 0 1px var(--border-subtle);
+            transition: transform 0.12s, box-shadow 0.12s;
+        }
+        .ab-swatch:hover { transform: scale(1.1); }
+        .ab-swatch.active { box-shadow: 0 0 0 2px var(--primary); transform: scale(1.1); }
+        .ab-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+        .ab-pill {
+            padding: 7px 13px;
+            border-radius: 999px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-glass);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-medium);
+            cursor: pointer;
+            transition: all 0.15s;
+            text-transform: capitalize;
+        }
+        .ab-pill:hover { border-color: var(--primary); color: var(--text-bright); }
+        .ab-pill.active { background: rgba(124, 92, 252, 0.15); border-color: var(--primary); color: var(--primary-light); }
     </style>
 </head>
 <body>
@@ -751,6 +856,46 @@
                     <div class="profile-meta">
                         <span id="profile-email"></span>
                         <span id="profile-joined"></span>
+                    </div>
+                    <button type="button" class="avatar-edit-link" id="avatar-edit-link">✎ Change avatar</button>
+                </div>
+            </div>
+
+            <!-- Avatar builder -->
+            <div class="avatar-builder" id="avatar-builder" style="display:none">
+                <div class="ab-stage">
+                    <div class="ab-preview" id="ab-preview"></div>
+                    <div class="ab-stage-actions">
+                        <button type="button" class="ab-btn" id="ab-random">🎲 Randomize</button>
+                        <button type="button" class="ab-btn primary" id="ab-save">Save avatar</button>
+                        <button type="button" class="ab-btn ghost" id="ab-cancel">Cancel</button>
+                        <span class="ab-status" id="ab-status"></span>
+                    </div>
+                </div>
+                <div class="ab-controls">
+                    <div class="ab-group">
+                        <div class="ab-label">Base</div>
+                        <div class="ab-models" id="ab-models"></div>
+                    </div>
+                    <div class="ab-group">
+                        <div class="ab-label">Skin</div>
+                        <div class="ab-swatches" id="ab-skins"></div>
+                    </div>
+                    <div class="ab-group">
+                        <div class="ab-label">Hair color</div>
+                        <div class="ab-swatches" id="ab-hairs"></div>
+                    </div>
+                    <div class="ab-group">
+                        <div class="ab-label">Hair style</div>
+                        <div class="ab-pills" id="ab-styles"></div>
+                    </div>
+                    <div class="ab-group">
+                        <div class="ab-label">Expression</div>
+                        <div class="ab-pills" id="ab-vibes"></div>
+                    </div>
+                    <div class="ab-group">
+                        <div class="ab-label">Accessory</div>
+                        <div class="ab-pills" id="ab-accs"></div>
                     </div>
                 </div>
             </div>
@@ -1610,12 +1755,7 @@
             var contentEl = document.getElementById('profile-content');
 
             // Avatar
-            var avatarEl = document.getElementById('profile-avatar');
-            if (user.avatar_url) {
-                avatarEl.innerHTML = '<img src="' + user.avatar_url + '" alt="Avatar">';
-            } else {
-                avatarEl.textContent = (user.username || user.email || '?').charAt(0).toUpperCase();
-            }
+            renderProfileAvatar(user);
 
             // Username
             document.getElementById('username-text').textContent = user.username || 'Player';
@@ -1909,6 +2049,156 @@
             saveBtn.textContent = 'Save';
             saveBtn.disabled = false;
         };
+
+        // ---- Avatar rendering + builder ----
+        function renderProfileAvatar(user) {
+            var el = document.getElementById('profile-avatar');
+            if (!el) return;
+            var name = user.username || user.email || '?';
+            el.textContent = '';
+            el.innerHTML = '';
+            var spec = (window.GameVolt && GameVolt.avatar) ? GameVolt.avatar.parse(user.avatar_url) : null;
+            if (spec) {
+                el.style.background = 'transparent';
+                el.style.boxShadow = 'none';
+                el.appendChild(GameVolt.avatar.render(spec, { size: 88, name: name }));
+            } else if (user.avatar_url) {
+                el.style.background = '';
+                el.style.boxShadow = '';
+                el.innerHTML = '<img src="' + user.avatar_url + '" alt="Avatar">';
+            } else {
+                el.style.background = '';
+                el.style.boxShadow = '';
+                el.textContent = name.charAt(0).toUpperCase();
+            }
+        }
+
+        var A = (window.GameVolt && GameVolt.avatar) ? GameVolt.avatar : null;
+        var abSpec = null;
+        var abBuilt = false;
+
+        function abSpecClone(o) { var d = {}; for (var k in o) d[k] = o[k]; return d; }
+        function abPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        function abBuild() {
+            if (abBuilt || !A) return;
+            abBuilt = true;
+            A.models.forEach(function (m) {
+                var b = document.createElement('div');
+                b.className = 'ab-model';
+                b.setAttribute('data-model', m);
+                b.title = m;
+                b.addEventListener('click', function () { abSet({ model: m }); });
+                document.getElementById('ab-models').appendChild(b);
+            });
+            abBuildSwatches('ab-skins', A.skins, 'skin');
+            abBuildSwatches('ab-hairs', A.hairs, 'hair');
+            abBuildPills('ab-styles', A.hairStyles, 'hairStyle');
+            abBuildPills('ab-vibes', A.vibes, 'vibe');
+            abBuildPills('ab-accs', A.accessories, 'acc');
+            document.getElementById('ab-random').addEventListener('click', function () {
+                abSpec = { model: abPick(A.models), skin: abPick(A.skins), hair: abPick(A.hairs), hairStyle: abPick(A.hairStyles), vibe: abPick(A.vibes), acc: abPick(A.accessories) };
+                abRender();
+            });
+            document.getElementById('ab-save').addEventListener('click', abSave);
+            document.getElementById('ab-cancel').addEventListener('click', closeBuilder);
+        }
+        function abBuildSwatches(id, list, key) {
+            var c = document.getElementById(id);
+            list.forEach(function (col) {
+                var s = document.createElement('button');
+                s.type = 'button';
+                s.className = 'ab-swatch';
+                s.style.background = col;
+                s.title = col;
+                s.setAttribute('data-key', key);
+                s.setAttribute('data-val', col);
+                s.addEventListener('click', function () { var p = {}; p[key] = col; abSet(p); });
+                c.appendChild(s);
+            });
+        }
+        function abBuildPills(id, list, key) {
+            var c = document.getElementById(id);
+            list.forEach(function (v) {
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'ab-pill';
+                b.textContent = v;
+                b.setAttribute('data-key', key);
+                b.setAttribute('data-val', v);
+                b.addEventListener('click', function () { var p = {}; p[key] = v; abSet(p); });
+                c.appendChild(b);
+            });
+        }
+        function abSet(partial) {
+            for (var k in partial) abSpec[k] = partial[k];
+            abRender();
+        }
+        function abRender() {
+            if (!A || !abSpec) return;
+            var pv = document.getElementById('ab-preview');
+            pv.innerHTML = '';
+            pv.appendChild(A.render(abSpec, { size: 120 }));
+            var models = document.querySelectorAll('#ab-models .ab-model');
+            for (var i = 0; i < models.length; i++) {
+                var m = models[i].getAttribute('data-model');
+                var s = abSpecClone(abSpec); s.model = m;
+                models[i].innerHTML = A.svg(s, 40);
+                models[i].classList.toggle('active', m === abSpec.model);
+            }
+            var sw = document.querySelectorAll('.ab-swatch');
+            for (var j = 0; j < sw.length; j++) {
+                var k1 = sw[j].getAttribute('data-key');
+                sw[j].classList.toggle('active', (abSpec[k1] || '').toLowerCase() === sw[j].getAttribute('data-val').toLowerCase());
+            }
+            var pl = document.querySelectorAll('.ab-pill');
+            for (var n = 0; n < pl.length; n++) {
+                var k2 = pl[n].getAttribute('data-key');
+                pl[n].classList.toggle('active', abSpec[k2] === pl[n].getAttribute('data-val'));
+            }
+            var st = document.getElementById('ab-status');
+            if (st) { st.textContent = ''; st.style.color = ''; }
+        }
+        function openBuilder() {
+            if (!A) return;
+            var u = GameVolt.auth.getUser();
+            if (!u) return;
+            abBuild();
+            abSpec = A.parse(u.avatar_url) || abSpecClone(A.DEFAULT);
+            abRender();
+            var b = document.getElementById('avatar-builder');
+            b.style.display = 'grid';
+            b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        function closeBuilder() {
+            document.getElementById('avatar-builder').style.display = 'none';
+        }
+        function abSave() {
+            if (!A || !abSpec) return;
+            var saveBtn = document.getElementById('ab-save');
+            var st = document.getElementById('ab-status');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving…';
+            GameVolt.auth.updateProfile({ avatar_url: A.encode(abSpec) }).then(function () {
+                renderProfileAvatar(GameVolt.auth.getUser());
+                st.style.color = 'var(--accent)';
+                st.textContent = 'Saved!';
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save avatar';
+                setTimeout(closeBuilder, 800);
+            }).catch(function (err) {
+                st.style.color = 'var(--hot)';
+                st.textContent = (err && err.message) ? err.message : 'Failed to save.';
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save avatar';
+            });
+        }
+        (function wireAvatarTriggers() {
+            var av = document.getElementById('profile-avatar');
+            if (av) av.addEventListener('click', openBuilder);
+            var link = document.getElementById('avatar-edit-link');
+            if (link) link.addEventListener('click', openBuilder);
+        })();
     })();
     </script>
 </body>
