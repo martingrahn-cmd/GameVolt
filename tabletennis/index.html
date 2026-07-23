@@ -276,11 +276,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.30.0"></script>
-  <script src="tt-ai.js?v=0.30.0"></script>
+  <script src="tt-core.js?v=0.31.0"></script>
+  <script src="tt-ai.js?v=0.31.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.30.0';
+    var VERSION = '0.31.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -329,10 +329,10 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.30.0', bounce: 'assets/bounce.mp3?v=0.30.0',
-        cheer: 'assets/cheer.mp3?v=0.30.0', net: 'assets/net.mp3?v=0.30.0',
-        crowd: 'assets/crowd.mp3?v=0.30.0', winfare: 'assets/winfare.mp3?v=0.30.0',
-        lose: 'assets/lose.mp3?v=0.30.0', matchpoint: 'assets/matchpoint.mp3?v=0.30.0'
+        hit: 'assets/hit.mp3?v=0.31.0', bounce: 'assets/bounce.mp3?v=0.31.0',
+        cheer: 'assets/cheer.mp3?v=0.31.0', net: 'assets/net.mp3?v=0.31.0',
+        crowd: 'assets/crowd.mp3?v=0.31.0', winfare: 'assets/winfare.mp3?v=0.31.0',
+        lose: 'assets/lose.mp3?v=0.31.0', matchpoint: 'assets/matchpoint.mp3?v=0.31.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -1183,7 +1183,7 @@
       {
         id: 'hans', name: 'HANS GRUBER', short: 'GRUBER', flag: '🇩🇪', country: 'GERMANY',
         stage: 'QUARTERFINAL', style: 'Ice-cold precision', taunt: '“Nothing personal. Strictly business.”',
-        params: { speed: 1.9, react: 16, err: 0.24, outP: 0.08, tMin: 0.58, depth: 0.62, serveWait: 60, leaveP: 0.7 },
+        params: { speed: 1.75, react: 19, err: 0.30, outP: 0.10, tMin: 0.60, depth: 0.56, serveWait: 62, leaveP: 0.66 },
         pal: { H: '#3a2a1a', S: '#e6b48e', D: '#1c1410', B: '#4a3826', K: '#16161f', W: '#e8e8ee', R: '#7a1420', N: '#c98f6a' },
         px: [
           '..HHHHHHHHHH..',
@@ -1207,7 +1207,7 @@
       {
         id: 'hummel', name: 'GENERAL HUMMEL', short: 'HUMMEL', flag: '🇺🇸', country: 'USA',
         stage: 'SEMIFINAL', style: 'Heavy artillery drives', taunt: '“I don’t lose, son.”',
-        params: { speed: 2.6, react: 11, err: 0.18, outP: 0.05, tMin: 0.50, depth: 0.78, serveWait: 52, leaveP: 0.85 },
+        params: { speed: 2.05, react: 15, err: 0.25, outP: 0.08, tMin: 0.55, depth: 0.66, serveWait: 56, leaveP: 0.76 },
         pal: { U: '#3f4f2a', G: '#b9b9b9', S: '#e0a882', D: '#181410', Y: '#d9b23a', M: '#8a2020', L: '#2e3a20', N: '#c08a60' },
         px: [
           '..UUUUUUUUUU..',
@@ -1231,7 +1231,7 @@
       {
         id: 'chongli', name: 'CHONG LI', short: 'CHONG LI', flag: '🇨🇳', country: 'CHINA',
         stage: 'THE FINAL', style: 'The reigning champion', taunt: '“You are next!”',
-        params: { speed: 4.0, react: 4, err: 0.09, outP: 0.02, tMin: 0.44, depth: 0.9, serveWait: 42, leaveP: 0.96 },
+        params: { speed: 3.0, react: 7, err: 0.14, outP: 0.035, tMin: 0.48, depth: 0.82, serveWait: 46, leaveP: 0.92 },
         pal: { H: '#0e0e12', R: '#c8281e', S: '#d9a06a', D: '#141008', N: '#b07b48', X: '#8a1410' },
         px: [
           '..H..HHHH..H..',
