@@ -3,7 +3,7 @@
 **Datum:** 2026-07-22  
 **Omfattning:** kampanj (200 nivåer), tutorial, Daily Challenge, challenges, mobil/touch, progression, GameVolt-SDK, PWA/offline, achievements, delning och marknadsassets.
 
-**Status 2026-07-23:** P0–P9 är genomförda. P9 inför serverägda UTC-event, first-write-wins för rankade Daily/Weekly-runs och server-side grundvalidering.
+**Status 2026-07-23:** P0–P9 är genomförda. P10:s produktions-smoketest hittade och åtgärdade en stale `renderLevelList()`-referens i cloud sync samt uppdaterar competition-UI efter auth.
 
 ## Sammanfattning
 
@@ -45,6 +45,7 @@ Min rekommendation är en **One Stroke 1.1 — Clean Line Update** i tre tydliga
 | P7 | Personlig Daily/Weekly-rank i lobby, resultat och delningskort — **P7 åtgärdad** | Feature/retention | Liten–medel | Medel–hög |
 | P8 | En rankad Weekly-run per UTC-vecka, därefter Practice — **P8 åtgärdad** | Feature/integritet | Liten–medel | Hög |
 | P9 | Serverstyrda event-ID:n, engångslås och validerad Daily/Weekly-submit — **P9 åtgärdad** | Bugg/backend/integritet | Medel | Mycket hög |
+| P10 | Inloggat produktions-smoketest — **pågår; cloud sync-regression åtgärdad lokalt** | QA/bugg | Medel | Mycket hög |
 
 ## Buggar
 

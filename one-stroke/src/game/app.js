@@ -590,6 +590,13 @@ export class OneStrokeApp {
     return this.competitionEventPromise;
   }
 
+  async refreshSignedInCompetitionUI() {
+    await this.syncCompetitionEvents();
+    if (this.hubView === "multiplayer" && this.matchPhase === "setup") {
+      this.setMatchPhase("setup");
+    }
+  }
+
   hasDailyBeenPlayed() {
     const key = `daily-played-${this.getDailyDayId()}`;
     try { return localStorage.getItem(key) !== null; } catch { return false; }
@@ -5239,7 +5246,7 @@ export class OneStrokeApp {
       saveDailyProgress(this.dailyProgress);
       await GameVolt.save.set(mergedSave);
       this.renderHubPanels();
-      this.renderLevelList();
+      this.renderState();
       return mergedSave;
     })().catch((error) => {
       console.warn("[gamevolt] cloud progress sync failed:", error);
