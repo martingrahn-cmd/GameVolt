@@ -180,6 +180,20 @@
     .modal-title.win { color: #7dffb0; text-shadow: 0 0 30px rgba(70,230,150,0.6); }
     .modal-title.lose { color: #ff8aa8; text-shadow: 0 0 30px rgba(255,80,120,0.55); }
     .modal-sub { font-size: 0.85rem; color: #9fb4cc; letter-spacing: 1px; }
+    #end-report.hidden { display: none; }
+    .er-faces { display: flex; align-items: center; gap: 12px; margin: 10px 0 4px; }
+    .er-side { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    #er-face-p, #er-face-o {
+      width: min(112px, 30vw); height: auto; image-rendering: pixelated;
+      border: 2px solid rgba(0,234,255,0.3); border-radius: 10px; background: #0a0918;
+    }
+    #er-face-p { border-color: rgba(255,80,120,0.45); }
+    .er-nm { font-size: 0.64rem; font-weight: 800; letter-spacing: 2px; color: #bff4ff; }
+    #er-score { font-weight: 900; font-size: 1.5rem; letter-spacing: 1px; color: #fff; font-variant-numeric: tabular-nums; }
+    .er-cheese {
+      font-style: italic; font-size: 0.9rem; color: #d7c9a8; max-width: 320px;
+      text-align: center; line-height: 1.45; margin-top: 4px;
+    }
 
     #version {
       position: fixed; bottom: 6px; right: 10px; z-index: 4; font-size: 0.58rem;
@@ -267,7 +281,15 @@
 
   <div class="overlay hidden" id="end">
     <div class="modal-title" id="end-title"></div>
+    <div id="end-report" class="hidden">
+      <div class="er-faces">
+        <div class="er-side"><canvas id="er-face-p" width="120" height="136"></canvas><div class="er-nm" id="er-pname"></div></div>
+        <div id="er-score">0–0</div>
+        <div class="er-side"><canvas id="er-face-o" width="120" height="136"></canvas><div class="er-nm" id="er-oname"></div></div>
+      </div>
+    </div>
     <div class="modal-sub" id="end-sub"></div>
+    <div class="er-cheese" id="end-cheese"></div>
     <div style="height:8px"></div>
     <button class="btn" id="again-btn">PLAY AGAIN</button>
     <button class="btn ghost" id="menu-btn">MENU</button>
@@ -276,11 +298,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.31.0"></script>
-  <script src="tt-ai.js?v=0.31.0"></script>
+  <script src="tt-core.js?v=0.32.0"></script>
+  <script src="tt-ai.js?v=0.32.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.31.0';
+    var VERSION = '0.32.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -329,10 +351,10 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.31.0', bounce: 'assets/bounce.mp3?v=0.31.0',
-        cheer: 'assets/cheer.mp3?v=0.31.0', net: 'assets/net.mp3?v=0.31.0',
-        crowd: 'assets/crowd.mp3?v=0.31.0', winfare: 'assets/winfare.mp3?v=0.31.0',
-        lose: 'assets/lose.mp3?v=0.31.0', matchpoint: 'assets/matchpoint.mp3?v=0.31.0'
+        hit: 'assets/hit.mp3?v=0.32.0', bounce: 'assets/bounce.mp3?v=0.32.0',
+        cheer: 'assets/cheer.mp3?v=0.32.0', net: 'assets/net.mp3?v=0.32.0',
+        crowd: 'assets/crowd.mp3?v=0.32.0', winfare: 'assets/winfare.mp3?v=0.32.0',
+        lose: 'assets/lose.mp3?v=0.32.0', matchpoint: 'assets/matchpoint.mp3?v=0.32.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -1183,6 +1205,8 @@
       {
         id: 'hans', name: 'HANS GRUBER', short: 'GRUBER', flag: '🇩🇪', country: 'GERMANY',
         stage: 'QUARTERFINAL', style: 'Ice-cold precision', taunt: '“Nothing personal. Strictly business.”',
+        beatLine: 'The ice cracks. Gruber adjusts his tie and exits without a word.',
+        lossLine: '“You wanted spin? I gave you spin.” Gruber smirks.',
         params: { speed: 1.75, react: 19, err: 0.30, outP: 0.10, tMin: 0.60, depth: 0.56, serveWait: 62, leaveP: 0.66 },
         pal: { H: '#3a2a1a', S: '#e6b48e', D: '#1c1410', B: '#4a3826', K: '#16161f', W: '#e8e8ee', R: '#7a1420', N: '#c98f6a' },
         px: [
@@ -1207,6 +1231,8 @@
       {
         id: 'hummel', name: 'GENERAL HUMMEL', short: 'HUMMEL', flag: '🇺🇸', country: 'USA',
         stage: 'SEMIFINAL', style: 'Heavy artillery drives', taunt: '“I don’t lose, son.”',
+        beatLine: 'The General snaps a crisp salute. “Outstanding, soldier. Respect earned.”',
+        lossLine: '“Back to boot camp, rookie. Drop and give me twenty.”',
         params: { speed: 2.05, react: 15, err: 0.25, outP: 0.08, tMin: 0.55, depth: 0.66, serveWait: 56, leaveP: 0.76 },
         pal: { U: '#3f4f2a', G: '#b9b9b9', S: '#e0a882', D: '#181410', Y: '#d9b23a', M: '#8a2020', L: '#2e3a20', N: '#c08a60' },
         px: [
@@ -1231,6 +1257,8 @@
       {
         id: 'chongli', name: 'CHONG LI', short: 'CHONG LI', flag: '🇨🇳', country: 'CHINA',
         stage: 'THE FINAL', style: 'The reigning champion', taunt: '“You are next!”',
+        beatLine: 'The champion falls! The arena erupts — a new king is crowned tonight.',
+        lossLine: '“You were NOT next.” Chong Li laughs and points at the exit.',
         params: { speed: 3.0, react: 7, err: 0.14, outP: 0.035, tMin: 0.48, depth: 0.82, serveWait: 46, leaveP: 0.92 },
         pal: { H: '#0e0e12', R: '#c8281e', S: '#d9a06a', D: '#141008', N: '#b07b48', X: '#8a1410' },
         px: [
@@ -1420,7 +1448,7 @@
           campStage = campIdx + 1;
           localStorage.setItem('ttCampaign', String(campStage));
           el.endTitle.textContent = 'VICTORY!';
-          el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · the ' + OPPONENTS[campStage].stage.toLowerCase() + ' awaits';
+          el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · next up: ' + OPPONENTS[campStage].name;
           againBtn.textContent = 'CONTINUE';
         } else {
           el.endTitle.textContent = 'DEFEAT';
@@ -1432,8 +1460,40 @@
         el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · ' + String(level).toUpperCase();
         againBtn.textContent = 'PLAY AGAIN';
       }
+      buildMatchReport(won);
       setHint('');
       setTimeout(function () { el.end.classList.remove('hidden'); }, 700);
+    }
+
+    // Cheesy quick-match one-liners (no named opponent)
+    var QUICK_WIN = [
+      'Flawless paddle work. The table never stood a chance.',
+      'GG! Somewhere, a coach is taking notes.',
+      'Spin, smash, repeat. You made it look easy.'
+    ];
+    var QUICK_LOSE = [
+      'The paddle giveth, and the paddle taketh away.',
+      'Close one. Chalk it up and run it back.',
+      'The AI would like a rematch. So would your pride.'
+    ];
+
+    function buildMatchReport(won) {
+      var report = document.getElementById('end-report');
+      var cheese = document.getElementById('end-cheese');
+      if (campaignOpp) {
+        report.classList.remove('hidden');
+        document.getElementById('er-pname').textContent = playerName();
+        document.getElementById('er-oname').textContent = campaignOpp.short;
+        document.getElementById('er-score').textContent = game.scores[1] + '–' + game.scores[2];
+        drawPortrait(document.getElementById('er-face-p'), PLAYER);
+        drawPortrait(document.getElementById('er-face-o'), campaignOpp);
+        cheese.textContent = won ? (campaignOpp.beatLine || '') : (campaignOpp.lossLine || campaignOpp.taunt || '');
+      } else {
+        report.classList.add('hidden');
+        // deterministic-ish pick from the score so it doesn't flicker
+        var pool = won ? QUICK_WIN : QUICK_LOSE;
+        cheese.textContent = pool[(game.scores[1] + game.scores[2]) % pool.length];
+      }
     }
 
     function toMenu() {
@@ -1529,8 +1589,9 @@
               var mine = game.scores[1] > game.scores[2];
               Sound.matchpoint();
               setTimeout(function () {
-                addLabel(mine ? 'MATCH POINT' : 'MATCH POINT ' + (campaignOpp ? campaignOpp.short : 'AI'),
-                  W / 2, H * 0.5, '#ffd166', 34, 1300);
+                addLabel('MATCH POINT!', W / 2, H * 0.24, '#ffd166', 44, 1500);
+                addLabel(mine ? playerName() : (campaignOpp ? campaignOpp.short : 'AI'),
+                  W / 2, H * 0.24 + 34, mine ? '#7dffb0' : '#ff8aa8', 26, 1500);
               }, 380);
             }
           }
@@ -1679,7 +1740,15 @@
     window.__TT_DEBUG = {
       get ui() { return ui; },
       get game() { return game; },
-      get level() { return level; }
+      get level() { return level; },
+      // test hook: force a finished match to inspect the match report
+      _finish: function (myScore, oppScore) {
+        if (!game) return;
+        game.scores[1] = myScore; game.scores[2] = oppScore;
+        game.winner = myScore > oppScore ? 1 : 2;
+        game.phase = 'over';
+        endMatch();
+      }
     };
 
     resize();
