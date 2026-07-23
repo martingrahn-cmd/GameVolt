@@ -102,14 +102,23 @@ export function normalizeDailyProgress(progress) {
   };
 }
 
+function isBetterDailyResult(candidate, current) {
+  if (!current) return true;
+  if (candidate.score !== current.score) return candidate.score > current.score;
+  if (candidate.timeMs !== current.timeMs) return candidate.timeMs < current.timeMs;
+  if (candidate.completedCount !== current.completedCount) {
+    return candidate.completedCount > current.completedCount;
+  }
+  return candidate.totalCount > current.totalCount;
+}
+
 export function mergeDailyProgress(localProgress, cloudProgress) {
   const local = normalizeDailyProgress(localProgress);
   const cloud = normalizeDailyProgress(cloudProgress);
   const results = { ...cloud.results };
   for (const [dayId, localResult] of Object.entries(local.results)) {
     const cloudResult = results[dayId];
-    if (!cloudResult || localResult.score > cloudResult.score
-      || (localResult.score === cloudResult.score && localResult.timeMs < cloudResult.timeMs)) {
+    if (isBetterDailyResult(localResult, cloudResult)) {
       results[dayId] = localResult;
     }
   }

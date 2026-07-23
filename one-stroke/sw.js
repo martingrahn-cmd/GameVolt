@@ -1,4 +1,4 @@
-const CACHE_NAME = "one-stroke-v12";
+const CACHE_NAME = "one-stroke-v20";
 
 const PRECACHE_URLS = [
   "./",
@@ -6,6 +6,7 @@ const PRECACHE_URLS = [
   "./styles.css",
   "./manifest.json",
   "./src/main.js",
+  "./src/data/campaign.js",
   "./src/game/app.js",
   "./src/game/challenge-pool.js",
   "./src/game/formatting.js",
@@ -20,6 +21,9 @@ const PRECACHE_URLS = [
   "./src/data/campaign-levels.js",
   "./src/data/difficulty.js",
   "./src/data/tutorial-levels.js",
+  "./assets/icon-192.png",
+  "./assets/icon-512.png",
+  "./assets/icon-maskable-512.png",
   "./assets/sprites/atlas.png",
   "./assets/sprites/atlas.json",
 ];
