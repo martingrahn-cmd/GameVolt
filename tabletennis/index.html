@@ -104,6 +104,18 @@
     }
     #ol-join-input:focus { border-color: #fff; box-shadow: 0 0 18px rgba(122,120,255,0.4); }
     #ol-status { min-height: 1.1em; font-size: 0.68rem; letter-spacing: 1.5px; text-align: center; color: #cfceff; }
+    /* online character select */
+    #cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0; }
+    .cs-card {
+      display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer;
+      background: rgba(16,13,34,0.8); border: 2px solid rgba(122,120,255,0.25);
+      border-radius: 12px; padding: 8px;
+    }
+    .cs-card canvas { width: 84px; height: 96px; image-rendering: pixelated; border-radius: 6px; background: #0a0918; }
+    .cs-card .cs-nm { font-size: 0.62rem; font-weight: 800; letter-spacing: 1px; color: #cfceff; }
+    .cs-card.picked { border-color: #7dffb0; box-shadow: 0 0 16px rgba(70,230,150,0.3); }
+    .cs-card.opppick { border-color: #ff8aa8; }
+    #cs-status { min-height: 1.1em; font-size: 0.7rem; letter-spacing: 1.5px; text-align: center; color: #cfceff; }
     .btn.camp:hover { background: rgba(255,209,102,0.16); box-shadow: 0 0 26px rgba(255,209,102,0.4); }
 
     /* VS card (Punch-Out style pre-match) */
@@ -287,6 +299,13 @@
     <button class="btn ghost" id="ol-back">◂ BACK</button>
   </div>
 
+  <div class="overlay hidden" id="charselect">
+    <div class="title" style="font-size:clamp(1.2rem,5.5vw,1.7rem)">CHOOSE YOUR FIGHTER</div>
+    <div id="cs-grid"></div>
+    <div id="cs-status">PICK A CHARACTER</div>
+    <button class="btn ghost" id="cs-back">◂ LEAVE ROOM</button>
+  </div>
+
   <div class="overlay hidden" id="ladder">
     <div class="title" style="font-size:clamp(1.3rem,6vw,1.9rem)">THE LADDER</div>
     <div class="subtitle">GameVolt Open · beat all three</div>
@@ -339,12 +358,12 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.33.0"></script>
-  <script src="tt-ai.js?v=0.33.0"></script>
-  <script src="sb-net.js?v=0.33.0"></script>
+  <script src="tt-core.js?v=0.34.0"></script>
+  <script src="tt-ai.js?v=0.34.0"></script>
+  <script src="sb-net.js?v=0.34.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.33.0';
+    var VERSION = '0.34.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -394,10 +413,10 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.33.0', bounce: 'assets/bounce.mp3?v=0.33.0',
-        cheer: 'assets/cheer.mp3?v=0.33.0', net: 'assets/net.mp3?v=0.33.0',
-        crowd: 'assets/crowd.mp3?v=0.33.0', winfare: 'assets/winfare.mp3?v=0.33.0',
-        lose: 'assets/lose.mp3?v=0.33.0', matchpoint: 'assets/matchpoint.mp3?v=0.33.0'
+        hit: 'assets/hit.mp3?v=0.34.0', bounce: 'assets/bounce.mp3?v=0.34.0',
+        cheer: 'assets/cheer.mp3?v=0.34.0', net: 'assets/net.mp3?v=0.34.0',
+        crowd: 'assets/crowd.mp3?v=0.34.0', winfare: 'assets/winfare.mp3?v=0.34.0',
+        lose: 'assets/lose.mp3?v=0.34.0', matchpoint: 'assets/matchpoint.mp3?v=0.34.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -1330,7 +1349,7 @@
     // your own Little Mac: editable name + portrait (assets/opp-player.png
     // overrides the built-in pixel kid, same as the opponents)
     var PLAYER = {
-      id: 'player',
+      id: 'player', name: 'THE KID', short: 'THE KID',
       pal: { H: '#5a3a1a', C: '#00b8d4', X: '#007e94', S: '#e8b48c', D: '#1c1410', N: '#c98f6a', W: '#ffffff', R: '#12266b', K: '#0a1226' },
       px: [
         '..HHHHHHHHHH..',
@@ -1351,6 +1370,13 @@
         '.RRRRRRRRRRRR.'
       ]
     };
+    // Online character roster: all four fighters are selectable. Lookup by id
+    // so a pick can be sent over the wire as a short string.
+    var CHARS = [PLAYER, OPPONENTS[0], OPPONENTS[1], OPPONENTS[2]];
+    function charById(id) {
+      for (var i = 0; i < CHARS.length; i++) if (CHARS[i].id === id) return CHARS[i];
+      return PLAYER;
+    }
     function playerName() {
       return (localStorage.getItem('ttName') || 'YOU').toUpperCase().slice(0, 12) || 'YOU';
     }
@@ -1423,6 +1449,8 @@
       document.getElementById('ladder').classList.add('hidden');
       vsIdx = idx;
       var o = OPPONENTS[idx];
+      var fight = document.getElementById('vs-fight'); // shared with online — reset
+      fight.textContent = 'FIGHT!'; fight.disabled = false;
       document.getElementById('vs-stage').textContent = o.stage;
       document.getElementById('vs-name').textContent = o.name;
       document.getElementById('vs-country').textContent = o.flag + ' ' + o.country;
@@ -1548,6 +1576,8 @@
       el.hud.classList.add('hidden');
       document.getElementById('vs').classList.add('hidden');
       document.getElementById('ladder').classList.add('hidden');
+      document.getElementById('charselect').classList.add('hidden');
+      document.getElementById('online').classList.add('hidden');
       el.menu.classList.remove('hidden');
       setHint('');
       draw();
@@ -1699,7 +1729,16 @@
       campPractice = vsIdx < campStage; // replaying a cleared opponent = sparring
       startMatch(OPPONENTS[vsIdx].params, OPPONENTS[vsIdx]);
     });
-    document.getElementById('vs-back').addEventListener('click', openLadder);
+    document.getElementById('vs-back').addEventListener('click', function () {
+      if (myChar) { // online VS card — back means leave the room
+        if (window.SBNet) { try { SBNet.leave(); } catch (e) {} }
+        myChar = null; oppChar = null;
+        document.getElementById('vs').classList.add('hidden');
+        el.menu.classList.remove('hidden');
+        return;
+      }
+      openLadder();
+    });
     document.getElementById('vs-pname').addEventListener('click', editPlayerName);
     document.getElementById('ladder-back').addEventListener('click', function () {
       document.getElementById('ladder').classList.add('hidden');
@@ -1734,19 +1773,87 @@
     document.getElementById('online-btn').addEventListener('click', openOnline);
     document.getElementById('ol-back').addEventListener('click', closeOnline);
 
-    // Phase A milestone: transport + handshake are live. The synced rally
-    // (streamed-authority netcode) lands in Phase B. For now, confirm the
-    // two-device connection so it can be verified on real phones.
+    // ---- online character select: both players pick from the four fighters ----
+    var myChar = null, oppChar = null, csBuilt = false;
+    function buildCharSelect() {
+      if (csBuilt) return;
+      csBuilt = true;
+      var grid = document.getElementById('cs-grid');
+      CHARS.forEach(function (c) {
+        var card = document.createElement('div');
+        card.className = 'cs-card'; card.dataset.id = c.id;
+        card.innerHTML = '<canvas width="84" height="96"></canvas><div class="cs-nm">' +
+          (c.id === 'player' ? playerName() : c.short) + '</div>';
+        drawPortrait(card.querySelector('canvas'), c);
+        card.addEventListener('click', function () { pickChar(c.id); });
+        grid.appendChild(card);
+      });
+    }
+    function openCharSelect() {
+      buildCharSelect();
+      myChar = null; oppChar = null;
+      onlineEl.classList.add('hidden');
+      el.menu.classList.add('hidden');
+      Array.prototype.forEach.call(document.querySelectorAll('.cs-card'), function (c) {
+        c.classList.remove('picked', 'opppick');
+        // refresh the player card label in case the name changed
+        if (c.dataset.id === 'player') c.querySelector('.cs-nm').textContent = playerName();
+      });
+      document.getElementById('cs-status').textContent = 'PICK A CHARACTER';
+      document.getElementById('charselect').classList.remove('hidden');
+    }
+    function pickChar(id) {
+      myChar = id;
+      Array.prototype.forEach.call(document.querySelectorAll('.cs-card'), function (c) {
+        c.classList.toggle('picked', c.dataset.id === id);
+      });
+      if (window.SBNet) SBNet.input({ k: 'char', id: id });
+      updateCharStatus();
+    }
+    function markOppChar() {
+      Array.prototype.forEach.call(document.querySelectorAll('.cs-card'), function (c) {
+        c.classList.toggle('opppick', c.dataset.id === oppChar);
+      });
+    }
+    function updateCharStatus() {
+      var st = document.getElementById('cs-status');
+      if (myChar && oppChar) {
+        st.textContent = 'BOTH READY! STARTING…';
+        setTimeout(function () {
+          document.getElementById('charselect').classList.add('hidden');
+          startOnlineMatch();
+        }, 700);
+      } else if (myChar) st.textContent = 'LOCKED IN — WAITING FOR RIVAL…';
+      else if (oppChar) st.textContent = 'RIVAL IS READY — PICK YOUR FIGHTER!';
+      else st.textContent = 'PICK A CHARACTER';
+    }
+
+    // Phase A.5: characters chosen, VS card shown. The synced rally
+    // (streamed-authority netcode) lands in Phase B.
     function startOnlineMatch() {
-      document.getElementById('ol-code-box').classList.add('hidden');
-      document.querySelector('#online .ol-join-row').style.display = 'none';
-      document.getElementById('ol-create').classList.add('hidden');
-      document.getElementById('ol-join').classList.add('hidden');
-      setOnlineStatus('🌐 CONNECTED! You are Player ' + myPid + '. ' +
-        'Live rallies arrive in the next update — your two-device link is confirmed.');
+      var me = charById(myChar), opp = charById(oppChar);
+      document.getElementById('vs-stage').textContent = 'ONLINE MATCH';
+      document.getElementById('vs-pname').textContent = playerName();
+      document.getElementById('vs-oname').textContent = opp.short;
+      document.getElementById('vs-name').textContent = 'FIRST TO 11';
+      document.getElementById('vs-country').textContent = '🌐 ONLINE · ROOM ' + (SBNet.code || '');
+      document.getElementById('vs-style').textContent = playerName() + ' vs ' + opp.short;
+      document.getElementById('vs-taunt').textContent = 'Live rallies arrive in the next update — your fighters are locked in!';
+      document.getElementById('vs-bracket').innerHTML = '';
+      drawPortrait(document.getElementById('vs-face-p'), me);
+      drawPortrait(document.getElementById('vs-face'), opp);
+      var fight = document.getElementById('vs-fight');
+      fight.textContent = 'RALLIES: NEXT UPDATE';
+      fight.disabled = true;
+      el.menu.classList.add('hidden');
+      document.getElementById('vs').classList.remove('hidden');
     }
     function onOppLeft() {
+      oppChar = null;
       if (ui === 'playing' || ui === 'over') { toMenu(); }
+      document.getElementById('charselect').classList.add('hidden');
+      document.getElementById('vs').classList.add('hidden');
+      onlineEl.classList.remove('hidden');
       setOnlineStatus('OPPONENT LEFT THE ROOM.');
     }
 
@@ -1793,14 +1900,27 @@
       if (inviteLink && navigator.share) navigator.share({ title: 'Spinburn', text: 'Match me at table tennis!', url: inviteLink }).catch(function () {});
     });
 
+    document.getElementById('cs-back').addEventListener('click', function () {
+      if (window.SBNet) { try { SBNet.leave(); } catch (e) {} }
+      document.getElementById('charselect').classList.add('hidden');
+      el.menu.classList.remove('hidden');
+    });
+
     if (window.SBNet) {
       SBNet.on('opponentJoined', function () {
-        setOnlineStatus('CONNECTED! STARTING…');
+        setOnlineStatus('CONNECTED! CHOOSE YOUR FIGHTER…');
         setTimeout(function () {
           myPid = SBNet.myPlayer || 1;
-          onlineEl.classList.add('hidden');
-          startOnlineMatch();
+          openCharSelect();
         }, 500);
+      });
+      SBNet.on('input', function (d) {
+        // opponent's character pick
+        if (d && d.k === 'char' && typeof d.id === 'string') {
+          oppChar = d.id;
+          markOppChar();
+          updateCharStatus();
+        }
       });
       SBNet.on('left', function () { onOppLeft(); });
     }
