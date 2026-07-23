@@ -276,11 +276,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.29.0"></script>
-  <script src="tt-ai.js?v=0.29.0"></script>
+  <script src="tt-core.js?v=0.30.0"></script>
+  <script src="tt-ai.js?v=0.30.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.29.0';
+    var VERSION = '0.30.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -328,7 +328,13 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.29.0', bounce: 'assets/bounce.mp3?v=0.29.0', cheer: 'assets/cheer.mp3?v=0.29.0', net: 'assets/net.mp3?v=0.29.0' };
+      var SAMPLE_SRC = {
+        hit: 'assets/hit.mp3?v=0.30.0', bounce: 'assets/bounce.mp3?v=0.30.0',
+        cheer: 'assets/cheer.mp3?v=0.30.0', net: 'assets/net.mp3?v=0.30.0',
+        crowd: 'assets/crowd.mp3?v=0.30.0', winfare: 'assets/winfare.mp3?v=0.30.0',
+        lose: 'assets/lose.mp3?v=0.30.0', matchpoint: 'assets/matchpoint.mp3?v=0.30.0'
+      };
+      var crowdSrc = null, crowdGain = null;
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
@@ -402,10 +408,35 @@
           blip(mine ? 523 : 330, 0.11, 0.16, 'sine', 0);
           blip(mine ? 784 : 262, 0.14, 0.16, 'sine', 0, 0, 0.1);
         },
+        matchpoint: function () { playSample('matchpoint', 0.5, 1, 0); },
         end: function (win) {
+          if (playSample(win ? 'winfare' : 'lose', win ? 0.55 : 0.5, 1, 0)) return;
           [0, 0.13, 0.26].forEach(function (d, i) {
             blip(win ? 392 * Math.pow(1.26, i) : 330 / Math.pow(1.19, i), 0.15, 0.15, 'triangle', 0, 0, d);
           });
+        },
+        // looping arena ambience bed, faded in/out
+        crowdStart: function () {
+          if (!enabled || !ac() || !samples.crowd || crowdSrc) return;
+          crowdSrc = ctx.createBufferSource();
+          crowdSrc.buffer = samples.crowd;
+          crowdSrc.loop = true;
+          crowdGain = ctx.createGain();
+          crowdGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+          crowdGain.gain.linearRampToValueAtTime(0.32, ctx.currentTime + 1.2);
+          crowdSrc.connect(crowdGain); crowdGain.connect(master);
+          crowdSrc.start();
+        },
+        crowdStop: function () {
+          if (!crowdSrc) return;
+          var s = crowdSrc, g = crowdGain;
+          try {
+            g.gain.cancelScheduledValues(ctx.currentTime);
+            g.gain.setValueAtTime(g.gain.value, ctx.currentTime);
+            g.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
+            s.stop(ctx.currentTime + 0.55);
+          } catch (e) {}
+          crowdSrc = null; crowdGain = null;
         }
       };
     })();
@@ -1357,12 +1388,19 @@
       el.hud.classList.remove('hidden');
       updateHud();
       setHint('TAP TO TOSS · SWIPE TO STRIKE');
+      Sound.unlock();
+      // crowd bed: start when the sample is ready (retry a couple times in
+      // case it's still loading after the first user gesture)
+      Sound.crowdStart();
+      setTimeout(function () { if (ui === 'playing') Sound.crowdStart(); }, 500);
+      setTimeout(function () { if (ui === 'playing') Sound.crowdStart(); }, 1400);
       last = 0; acc = 0;
       requestAnimationFrame(loop);
     }
 
     function endMatch() {
       ui = 'over';
+      Sound.crowdStop();
       var won = game.winner === 1;
       var againBtn = document.getElementById('again-btn');
       el.endTitle.className = 'modal-title ' + (won ? 'win' : 'lose');
@@ -1400,6 +1438,7 @@
 
     function toMenu() {
       ui = 'menu';
+      Sound.crowdStop();
       game = null;
       campaignOpp = null;
       el.end.classList.add('hidden');
@@ -1483,6 +1522,17 @@
           if (!res.events.some(function (x) { return x.type === 'over'; })) {
             addLabel(e.to === 1 ? 'POINT!' : (campaignOpp ? campaignOpp.short : 'AI') + ' POINT', W / 2, H * 0.42,
               e.to === 1 ? '#7dffb0' : '#ff8aa8', 46, 1150);
+            // match point: a player is one point from winning (>=10 and leads)
+            var hi = Math.max(game.scores[1], game.scores[2]);
+            var lead = Math.abs(game.scores[1] - game.scores[2]);
+            if (hi >= 10 && lead >= 1) {
+              var mine = game.scores[1] > game.scores[2];
+              Sound.matchpoint();
+              setTimeout(function () {
+                addLabel(mine ? 'MATCH POINT' : 'MATCH POINT ' + (campaignOpp ? campaignOpp.short : 'AI'),
+                  W / 2, H * 0.5, '#ffd166', 34, 1300);
+              }, 380);
+            }
           }
           pointTimer = 66; // ~1.1s pause, ball physics keep settling
         } else if (e.type === 'over') {
