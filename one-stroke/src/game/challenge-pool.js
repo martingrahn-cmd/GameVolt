@@ -32,6 +32,11 @@ function groupByDifficulty(levels) {
       groups[level.difficulty].push(level);
     }
   }
+  // Seeded challenges must not change when the campaign presentation order is
+  // curated. Normalize every pool by stable level ID before shuffling.
+  for (const group of Object.values(groups)) {
+    group.sort((a, b) => a.id.localeCompare(b.id));
+  }
   return groups;
 }
 

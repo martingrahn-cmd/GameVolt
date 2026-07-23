@@ -10,18 +10,9 @@
  * Run: node tools/analyze_progression.mjs
  */
 
-import fs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SOURCE_FILE = path.resolve(__dirname, "../src/data/campaign-levels.js");
-
 async function loadLevels() {
-  const content = await fs.readFile(SOURCE_FILE, "utf8");
-  const match = content.match(/export const CAMPAIGN_LEVELS = (\[[\s\S]*?\]);/);
-  if (!match) throw new Error("Could not parse CAMPAIGN_LEVELS from source file.");
-  return JSON.parse(match[1]);
+  const { CAMPAIGN_LEVELS } = await import("../src/data/campaign.js");
+  return CAMPAIGN_LEVELS;
 }
 
 function median(values) {
@@ -37,6 +28,10 @@ function mean(values) {
 function stdDev(values) {
   const avg = mean(values);
   return Math.sqrt(values.reduce((sum, v) => sum + (v - avg) ** 2, 0) / values.length);
+}
+
+function isInstructional(level) {
+  return level.pathStyle === "tutorial" || level.pathStyle === "bridge";
 }
 
 function analyzeMetricBand(levels, metricKey, label) {
@@ -118,6 +113,9 @@ function detectWithinBandSpikes(levels) {
 
     // Check for large jumps between consecutive levels
     for (let i = 1; i < bandLevels.length; i++) {
+      // Tutorial/bridge boards intentionally teach one mechanic at a time.
+      // Their internal jumps are instructional design, not campaign pacing.
+      if (isInstructional(bandLevels[i])) continue;
       const parDelta = Math.abs(parValues[i] - parValues[i - 1]);
       const branchDelta = Math.abs(branchValues[i] - branchValues[i - 1]);
 
@@ -153,7 +151,7 @@ function detectParOutliers(levels) {
   const bands = ["easy", "medium", "hard", "very-hard"];
 
   for (const band of bands) {
-    const bandLevels = levels.filter((l) => l.difficulty === band);
+    const bandLevels = levels.filter((l) => l.difficulty === band && !isInstructional(l));
     const parValues = bandLevels.map((l) => l.par);
     const avg = mean(parValues);
     const sd = stdDev(parValues);
@@ -232,7 +230,7 @@ async function run() {
   let totalOutliers = 0;
 
   for (const band of bands) {
-    const bandLevels = levels.filter((l) => l.difficulty === band);
+    const bandLevels = levels.filter((l) => l.difficulty === band && !isInstructional(l));
     printSubHeader(`${band.toUpperCase()}`);
 
     for (const [key, label] of metricsToCheck) {
@@ -250,6 +248,7 @@ async function run() {
   if (totalOutliers === 0) {
     console.log("  No metric outliers detected (z > 2).");
   }
+  console.log("  Instructional tutorial/bridge boards are excluded from statistical outlier counts.");
 
   // ── Difficulty curve transitions ──
   printSectionHeader("DIFFICULTY BAND TRANSITIONS");

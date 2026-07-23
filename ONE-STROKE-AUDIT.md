@@ -3,15 +3,15 @@
 **Datum:** 2026-07-22  
 **Omfattning:** kampanj (200 nivåer), tutorial, Daily Challenge, challenges, mobil/touch, progression, GameVolt-SDK, PWA/offline, achievements, delning och marknadsassets.
 
-**Status 2026-07-23:** P0–P9 är genomförda. P10:s produktions-smoketest hittade en stale `renderLevelList()`-referens och att nya PWA-cacheversioner kunde fyllas med gammal HTTP-cache; båda är åtgärdade.
+**Status 2026-07-23:** P0–P22 är genomförda. P10:s produktions-smoketest hittade en stale `renderLevelList()`-referens och att nya PWA-cacheversioner kunde fyllas med gammal HTTP-cache; båda är åtgärdade och omtestade i produktion. P11 kuraterade kampanjordningen utan att flytta de första 20 nivåerna eller ändra nivå-ID:n. P12 gav kampanjmenyn en tydlig Continue-yta med nästa nivå och kapitelprogress. P13 slutförde keyboard-grid och modalernas fokusflöde. P14 härdade responsive-layouten från 360 px till desktop. P15 optimerade hela svårighetsband i stället för en par-grupp i taget. P16 låste kampanjens release-invariants i ett separat verifieringsverktyg. P17 kopplade verifieringen till GitHub Actions. P18 lade till en motsvarande PWA/offline-gate. P19 låste kontraktet mellan HTML, JavaScript och ARIA. P20 kräver nu cachebump när en precachad runtimefil ändras. P21 frikopplade seedade tävlingar från kampanjens presentationsordning. P22 låste cloud-save-merge som ett testat schema.
 
 ## Sammanfattning
 
 One Stroke är innehållsmässigt ett av GameVolts mest kompletta pusselspel. Kärnloopen är ren och lättförståelig, det finns 200 kampanjnivåer, åtta handgjorda tutorial/bridge-nivåer, fyra svårighetsband, Daily Challenge, lokala high-score-data, delbara resultat, challenges och 31 trophies. Projektets egna verifieringsverktyg godkänner samtliga handgjorda bridge-nivåer, och analysen hittar inga trasiga övergångar mellan svårighetsbanden eller felaktiga par-värden.
 
-Spelet är däremot inte färdigt som en stabil cross-device-produkt. Den största risken är cloud save: kampanjprogress läses aldrig tillbaka från GameVolt, och den data som skrivs till molnet saknar själva listan över lösta nivåer. Inloggade användare kan därför förlora eller inte få med sig progression mellan enheter trots att sidan lovar synkning. Dessutom skapar spelet cloud challenges automatiskt vid sidladdning, vilket kan ge onödiga databasrader och API-anrop.
+Spelet är nu härdat som cross-device-produkt. Cloud save läser tillbaka och sammanfogar full kampanj- och Daily-progress med ett versionssatt schema, och mergekontraktet täcks av automatisk verifiering. Cloud challenges skapas endast efter spelarens uttryckliga val, medan Daily och Weekly använder sina separata eventflöden.
 
-Min rekommendation är en **One Stroke 1.1 — Clean Line Update** i tre tydliga delar: (1) laga data/synkning och challenge-livscykeln, (2) förbättra onboarding, mobilpresentation och belöningskänsla, (3) fördjupa Daily och kampanjens mastery-loop. Spelet behöver inte fler vanliga nivåer nu; det behöver få de 200 befintliga nivåerna att kännas mer varierade, pålitliga och värdefulla.
+Den genomförda **One Stroke 1.1 — Clean Line Update** omfattar tre delar: (1) stabil data/synkning och challenge-livscykel, (2) förbättrad onboarding, mobilpresentation och belöningskänsla, (3) fördjupad Daily- och kampanj-mastering. De 200 befintliga nivåerna har prioriterats framför att lägga till fler standardnivåer.
 
 ## Prioriterad åtgärdslista
 
@@ -45,7 +45,19 @@ Min rekommendation är en **One Stroke 1.1 — Clean Line Update** i tre tydliga
 | P7 | Personlig Daily/Weekly-rank i lobby, resultat och delningskort — **P7 åtgärdad** | Feature/retention | Liten–medel | Medel–hög |
 | P8 | En rankad Weekly-run per UTC-vecka, därefter Practice — **P8 åtgärdad** | Feature/integritet | Liten–medel | Hög |
 | P9 | Serverstyrda event-ID:n, engångslås och validerad Daily/Weekly-submit — **P9 åtgärdad** | Bugg/backend/integritet | Medel | Mycket hög |
-| P10 | Inloggat produktions-smoketest — **pågår; cloud sync och cache-refresh åtgärdade** | QA/bugg | Medel | Mycket hög |
+| P10 | Inloggat produktions-smoketest — **klart; cloud sync och cache-refresh verifierade** | QA/bugg | Medel | Mycket hög |
+| P11 | Kuraterad, save-säker kampanjordning — **klart; 27 ordningsflaggor reducerade till 4** | Polish/progression | Liten–medel | Hög |
+| P12 | Tydlig Continue och förenklad kampanjhierarki — **klart på desktop och mobil** | Polish/UX | Liten | Hög |
+| P13 | Accessibility-runda för keyboard-grid och modalfokus — **klart** | Polish/a11y | Liten–medel | Medel |
+| P14 | Responsive hardening vid 360/390/430/768/desktop — **klart** | Polish/mobile | Liten | Hög |
+| P15 | Helbandsoptimerad kampanjordning — **klart; Hard-hoppet eliminerat** | Polish/progression | Liten | Medel–hög |
+| P16 | Automatisk release-verifiering av kampanjdata och kurva — **klart** | QA/tooling | Liten | Hög |
+| P17 | GitHub Actions-gate för One Stroke-kampanjen — **klart** | CI/reliability | Liten | Hög |
+| P18 | PWA/offline-releaseverifiering och komplett manifest-precache — **klart** | PWA/CI | Liten | Hög |
+| P19 | Automatisk DOM-/ARIA-kontraktsverifiering — **klart** | QA/a11y/CI | Liten | Hög |
+| P20 | Obligatorisk service-worker-cachebump vid runtimeändring — **klart** | PWA/CI | Liten | Mycket hög |
+| P21 | Deterministiskt Daily/Weekly-urval oberoende av kampanjordning — **klart** | Bugg/competition/CI | Liten–medel | Mycket hög |
+| P22 | Automatiskt cloud-save- och konfliktmergekontrakt — **klart** | Bugg/data/CI | Liten–medel | Mycket hög |
 
 ## Buggar
 
@@ -56,6 +68,8 @@ Min rekommendation är en **One Stroke 1.1 — Clean Line Update** i tre tydliga
 Migrationen gör problemet mer riskabelt: första migrationen kan returnera hela det gamla lokala progressobjektet, men senare `save.set()` skriver ett annat, mycket tunnare schema. Det finns ingen versionsmarkering eller fältvis merge.
 
 **Fix:** inför exempelvis `{ version: 1, campaign: { unlockedLevel, solvedLevels }, achievements, daily, updatedAt }`. Läs molndata efter `GameVolt.onReady()`, merge:a per nivå (bästa tid/lägsta actions men högsta played count enligt tydlig regel), uppdatera lokal state och rendera om. Testa guest → login, enhet A → B och konflikt mellan två enheter.
+
+P22 lade till `verify_cloud_save_contract.mjs` för schema v2, äldre saveformat, normalisering, kampanjunion, per-fält-best, played-count, Daily-resultat och streaks. En exakt score/time-tie i Daily är nu deterministisk även mellan två enheter: högre completed count och därefter total count avgör, vilket gör mergen kommutativ.
 
 ### P0 — Cloud challenges skapas utan spelarens avsikt — ÅTGÄRDAD
 
@@ -68,6 +82,8 @@ Migrationen gör problemet mer riskabelt: första migrationen kan returnera hela
 `todaySeed()` bygger datum med `toISOString()` (UTC), medan rubriken formaterar `new Date()` i spelarens lokala tidszon. Runt lokal midnatt kan UI därför säga exempelvis 23 juli medan seed, save-key och leaderboard fortfarande gäller 22 juli. Streakberäkningen blandar också lokal `setDate()` med UTC-serialisering.
 
 **Fix:** välj en enda kontrakterad tidszon. För en global challenge är UTC enklast: skapa ett gemensamt `dailyDayId`, formatera även labeln från detta ID och använd samma ID för seed, storage, streak, share och leaderboard.
+
+P21 hittade och åtgärdade en separat determinismrisk: `createMixedChallenge()` seedade sin shuffle från kampanjarrayens befintliga ordning. En kuraterad kampanjomordning kunde därför byta dagens nivåer mitt under ett UTC-event. Svårighetspoolerna sorteras nu på stabilt nivå-ID före shuffle, och fasta Daily/Weekly-snapshots samt UTC-/ISO-gränser verifieras i CI.
 
 ### P1 — Marketing capture-scriptet tillhör Manga Match — ÅTGÄRDAD
 
@@ -87,6 +103,10 @@ Cache heter fortfarande `one-stroke-v1`. Uppdateringar hämtas i bakgrunden men 
 
 **Fix:** bumpa cacheversion per release eller inför ett litet versionsmanifest och en kontrollerad update-notis/reload.
 
+P18 kompletterade fixen med `verify_pwa_release.mjs`, som kräver en giltig cacheversion, existerande och unika precache-filer, hela den lokala ES-modulgrafen samt manifestets start- och ikonresurser. De tre PWA-ikoner som tidigare saknades i precache lades till i v18.
+
+P20 lade till `verify_cache_bump.mjs`. På PR och push jämför den ändrade filer mot bascommitens och den aktuella service workerns precache-listor. Om en runtimefil eller `sw.js` ändras utan att `one-stroke-vN` ökar stoppas workflowen.
+
 ### P3 — Döda DOM-referenser och kvarlämnad legacykod — ÅTGÄRDAD
 
 Appen söker efter `challengeGenerateBtn`, `exportMatchBtn`, `importMatchBtn` och `dailyReplayBtn`, men dessa element finns inte i HTML. Optional chaining gör att sidan inte kraschar, men det skapar osäkerhet om vilka challengefunktioner som faktiskt ska vara exponerade.
@@ -103,9 +123,11 @@ Kärnregeln är enkel, men instruktionen är främst text: `Drag from the start 
 
 ### Svårighetskurva
 
-QA-analysen laddade alla 200 nivåer och fann inga trasiga bandövergångar, men flaggade 76 granskningspunkter: 49 metric-outliers och 27 större hopp mellan intilliggande nivåer. Easy, Medium och Hard har mätbara dippar inom sina band; Hard har bland annat flera hopp mellan par 29 och 38.
+P11 flyttade analysen till den faktiska runtime-kampanjen och kuraterade nivå 21–200 efter par och strukturellt flöde. Nivå-ID:n och de första 20 kampanjplatserna är oförändrade för save- och onboardingkompatibilitet. Resultatet är 49 granskningsflaggor: 45 statistiska metric-outliers hos enskilda pussel och endast 4 hopp mellan intilliggande nivåer, ned från 27. Inga bandövergångar eller par-outliers återstår; Medium, Hard och Very Hard har helt jämn uppmätt pacing.
 
-Detta betyder inte att 76 nivåer är fel. Metrikerna är proxies, men de pekar ut en bra playtestlista. Börja med Easy 9, 17, 20, 37, 51 och 60; Medium 11, 28, 39, 59; Hard 4, 6–7, 20–21, 31–32, 40–41; Very Hard 12 och 23.
+De kvarvarande metric-outliers är inte automatiskt fel utan en fokuserad playtestlista. Efter P11 återstod fyra ordningshopp: Stigfinnaren → Easy 09, Easy 13 → Easy 14, Medium 73 → Medium 74 och Hard 168 → Hard 169. De två tidiga hoppen behölls för att inte flytta den etablerade öppningen.
+
+P15 ersatte den lokala greedy-riktningen med en deterministisk dynamisk optimering över varje helt svårighetsband. Algoritmen minimerar först stora branching-hopp och därefter total strukturell distans, samtidigt som par aldrig minskar. Hard 168 → 169 försvann; resultatet är nu 48 flaggor: 45 metric-outliers och 3 intilliggande hopp. Medium 73 → 74 är ett inneboende gap i par-23-materialet, medan de två Easy-hoppen ligger i den låsta öppningen.
 
 ### Spelkänsla
 
@@ -119,11 +141,13 @@ Den visuella identiteten är ren och konsekvent, men kärnhandlingen kan få mer
 
 ### Meny och informationshierarki
 
-Desktopvyn visar många små stats, regler och nivåkontroller samtidigt. På mobil flyttas funktioner till panel och bottom bar, men informationsmodellen är fortfarande desktop-tung. Kampanjens primära mål bör dominera: aktuell nivå, progress och `Continue`. Regler och full level select kan vara sekundära.
+P12 gör kampanjens primära mål till första ytan i menyn: `Continue campaign`, nästa upplåsta nivå, kapitelrubrik, lösta nivåer i kapitlet och en tydlig spelknapp. Samma kort anpassas till en kolumn på mobil, där Continue stänger menyn och återgår direkt till brädet. Regler och full level select ligger kvar som sekundära kontroller.
+
+P14 flyttade tablet portrait till samma direkta spelflöde som mobil upp till 820 px. Vid 768 px ligger Undo, Reset, Hint och Next nu direkt under brädet i stället för långt ned efter desktop-sidebarens innehåll. Menyknappar, feedbackinställningar, Continue och Full Level Select har minst 44 px touchhöjd i det kompakta läget.
 
 ### Accessibility
 
-Det finns bra grunder: labels, live region, pointer events, keyboard shortcuts och `prefers-reduced-motion`. Men `role="tablist"` används utan motsvarande `role="tab"`/`aria-selected`, modaler saknar tydlig fokusfälla/återställning och boardens noder är inte ett komplett keyboardnavigerbart grid.
+P13 kompletterade de befintliga tabrollerna och modalernas fokusfälla med ett komplett roving-tabindex-grid. Endast aktuell path-tail ligger i tabbordningen; varje nod rapporterar rad, kolumn, start/mål, visited-steg, aktuell tail och möjliga nästa drag. Fokus följer piltangentsdrag och gridet exponerar rad-/kolumnantal samt skärmläsarinstruktion. Level Select återställer fokus efter Escape, och Escape stänger nu även challenge-importen.
 
 ## Features
 
@@ -188,7 +212,7 @@ Kodbasen har redan mycket av infrastrukturen för matchkoder och cloud challenge
 ## Verifiering som utfördes
 
 - `node tools/verify_bridge_levels.mjs`: samtliga fem bridge-nivåer i verktygets scope godkända.
-- `node tools/analyze_progression.mjs`: 200 nivåer laddade; inga bandövergångsfel eller par-outliers; 76 review-flaggor.
+- `node tools/analyze_progression.mjs`: 200 runtime-nivåer laddade; inga bandövergångsfel eller par-outliers; 48 review-flaggor efter P15, varav 45 metric-outliers och 3 intilliggande hopp.
 - `node --check` på app-, core-, game- och relevanta datafiler: inga syntaxfel.
 - Statisk kontroll av SDK-, storage-, Daily-, challenge-, leaderboard-, PWA- och DOM-flöden.
 - Visuell kontroll av befintliga marknadsassets; mobilbilden är felaktigt Manga Match-material.
@@ -200,5 +224,18 @@ Kodbasen har redan mycket av infrastrukturen för matchkoder och cloud challenge
 - QA av P7: Daily- och Weekly-rankstatus renderades i browserns gästläge; kodgranskning verifierade separat personlig rad utanför topp 20 och valfri rank på delningskortet.
 - QA av P8: fresh-week-badgen och den rankade 10-nivåersstarten verifierades i browser; syntax, submit-gates och återläsning av befintlig cloud-rank verifierades statiskt.
 - QA av P9: server-RPC-kontrakt, first-write-wins-fråga och totalsvalidering granskades statiskt; browser-QA verifierade att Daily/Weekly och rankad Daily-start fungerar när servermigrationen ännu saknas.
+- Produktions-QA av P10: Supabase-RPC gav rätt UTC-event, inloggad cloud sync körde utan nya fel, en rankad Daily registrerades som #1 och låstes till Practice vid replay, veckostrippen uppdaterades och en cloud friend-länk skapades utan konsolfel.
+- QA av P11: exakt 200 unika nivå-ID:n och giltiga lösningar verifierades; ID-mängden och de första 20 platserna matchar tidigare runtime-ordning, alla kampanjindex är sekventiella och full level select renderar 200 nivåer med korrekta band utan browserfel.
+- QA av P12: Continue-kortet renderades med nivå, kapitel och `0 / 20`-progress på desktop; vid 390×844 öppnades det via Menu och spelknappen stängde panelen, återställde brädet och laddade rätt nivå utan browserfel.
+- QA av P13: gridet exponerade 3×5-dimensioner och exakt en tabbbar tail; `ArrowRight` flyttade både path, fokus och dynamisk nodstatus från kolumn 1 till 2. Level Select fokuserade sökfältet, stängdes med Escape och återställde fokus till öppningsknappen utan browserfel.
+- QA av P14: 360, 390, 430, 768 och 1366 px testades utan horisontell overflow. Mobil/tablet hade synlig bottom bar, direkta spelkontroller och exakt en tabbbar grid-tail; desktop växlade korrekt tillbaka till tvåpanelsläget. Vid 360 px var samtliga primära menyytor minst 44 px och Level Select rymdes inom viewporten utan browserfel.
+- QA av P15: alla 200 unika nivå-ID:n, giltiga lösningar, sekventiella kampanjindex och den tidigare öppningen 1–20 verifierades oförändrade; par är fortsatt icke-minskande inom varje band. Full Level Select renderade 200 nivåer utan browserfel.
+- QA av P16: `node tools/verify_campaign_release.mjs` verifierade 200 nivåer, unika ID:n, fulla Hamiltonian-lösningar, svårighetsfördelning, sekventiella index, låst öppning 1–20, icke-minskande par och högst tre branching-hopp. `--self-test` fångade korrekt en injicerad duplicerad nivå.
+- QA av P17: `.github/workflows/one-stroke-campaign.yml` YAML-parsades och hela workflow-kommandokedjan passerade lokalt. Workflowen kör syntax, release-invariants, bridge-verifiering och progressionsanalys på relevanta pull requests, på push till `main` och manuellt.
+- QA av P18: `verify_pwa_release.mjs` godkände cache v18 med 25 assets, 16 offline-moduler och manifestets fyra resurser; `--self-test` fångade en simulerad missad `app.js`. Browser-QA visade update-notisen för den nya service workern, Reload aktiverade versionen och spelet laddade om utan konsolfel.
+- QA av P19: `verify_dom_contract.mjs` godkände 155 unika HTML-ID:n, 151 JavaScript-ID-referenser och samtliga ARIA-/label-IDREFs. `--self-test` fångade en simulerad stale `levelName`-referens, och kontrollen lades till i release-workflowen.
+- QA av P20: `verify_cache_bump.mjs --self-test` fångade en simulerad `app.js`-ändring utan cachebump. Den riktiga arbetskopiediffen mot `HEAD` godkändes med fem ändrade runtimefiler och cacheökning v12 → v18; workflowens YAML med full git-historik parsades korrekt.
+- QA av P21: `verify_competition_determinism.mjs` godkände fyra UTC-dagsgränser, fyra ISO-veckogränser, två fasta seed-snapshots och fem bonusnivåers regelkontrakt. Omvänd kampanjarray gav identiskt Daily/Weekly-urval och självtestet fångade ett ändrat snapshot. Browser-QA startade Daily med exakt `Easy 15, Medium 81, Hard 129, Medium 107, Very Hard 176` utan konsolfel.
+- QA av P22: `verify_cloud_save_contract.mjs` godkände schema v2, tre sammanslagna kampanjnivåer, tre Daily-resultat och två legacyformat. Kampanj- och Daily-merge verifierades kommutativa; självtestet fångade ett injicerat kontraktsfel. PWA- och cachebump-gaterna godkände runtimeändringen med v20.
 
-SQL-filen `sql/one-stroke-competition-integrity.sql` måste installeras innan P9:s serverlås blir aktivt. Verkliga inloggade GameVolt/Supabase-anrop bör fortfarande smoke-testas mot produktion före release.
+SQL-filen `sql/one-stroke-competition-integrity.sql` installerades och smoke-testades mot produktion 2026-07-23.

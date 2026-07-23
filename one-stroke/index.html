@@ -86,6 +86,15 @@
         </nav>
 
         <div id="playSidebar" class="play-sidebar">
+          <section id="campaignContinueCard" class="campaign-continue-card" aria-label="Continue campaign">
+            <div>
+              <span id="campaignContinueEyebrow" class="campaign-continue-eyebrow">Continue campaign</span>
+              <strong id="campaignContinueTitle">Level 1 · First Lines</strong>
+              <span id="campaignContinueMeta">0 / 20 solved in chapter</span>
+            </div>
+            <button id="campaignContinueBtn" type="button" class="primary">Play level 1</button>
+          </section>
+
           <section class="stats" aria-label="Game status">
             <article class="stat-card">
               <span class="label">Level</span>
@@ -343,7 +352,17 @@
             <div class="stage-corners" aria-hidden="true">
               <span></span><span></span><span></span><span></span>
             </div>
-            <div id="board" class="board" role="grid" tabindex="0" aria-label="Game board. Use arrow keys to extend the path."></div>
+            <p id="boardKeyboardHelp" class="sr-only">
+              The current path end is the only board node in the tab order. Use the arrow keys to
+              extend the path. Move toward the previous node to undo one step.
+            </p>
+            <div
+              id="board"
+              class="board"
+              role="grid"
+              aria-label="Game board"
+              aria-describedby="boardKeyboardHelp"
+            ></div>
             <div id="countdownOverlay" class="countdown-overlay" hidden>
               <button id="readyBtn" type="button" class="ready-btn">Ready?</button>
               <span id="countdownNumber" class="countdown-number" hidden>3</span>
@@ -630,7 +649,7 @@
       body.gv-standalone .app-shell { min-height:calc(100vh - 52px); }
       body.gv-standalone .ambient-blur { position:fixed !important; }
       body.gv-standalone #seo-content { display:block !important; }
-      @media (max-width:760px) {
+      @media (max-width:820px) {
         body.gv-standalone .app-shell { min-height:calc(100vh - 60px); }
         body.gv-standalone #seo-content { padding-bottom:calc(60px + env(safe-area-inset-bottom,0px)); }
       }
