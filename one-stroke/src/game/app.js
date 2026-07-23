@@ -185,7 +185,6 @@ export class OneStrokeApp {
     this.achievementSummaryEl = document.getElementById("achievementSummary");
     this.achievementListEl = document.getElementById("achievementList");
     this.challengeSeedInput = document.getElementById("challengeSeedInput");
-    this.challengeGenerateBtn = document.getElementById("challengeGenerateBtn");
     this.challengeListEl = document.getElementById("challengeList");
     this.challengeScoreLabelEl = document.getElementById("challengeScoreLabel");
     this.challengeTimeLabelEl = document.getElementById("challengeTimeLabel");
@@ -199,8 +198,6 @@ export class OneStrokeApp {
     this.levelSelectChapterFilter = document.getElementById("levelSelectChapterFilter");
     this.levelSelectStatusFilter = document.getElementById("levelSelectStatusFilter");
     this.levelSelectGridEl = document.getElementById("levelSelectGrid");
-    this.matchLevelCountSelect = document.getElementById("matchLevelCountSelect");
-    this.exportMatchBtn = document.getElementById("exportMatchBtn");
     this.importMatchBtn = document.getElementById("importMatchBtn");
     this.matchStandingsViewEl = document.getElementById("matchStandingsView");
     this.matchStandingsListEl = document.getElementById("matchStandingsList");
@@ -220,12 +217,13 @@ export class OneStrokeApp {
     this.dailyTimeLabel = document.getElementById("dailyTimeLabel");
     this.dailyCompletedLabel = document.getElementById("dailyCompletedLabel");
     this.dailyShareBtn = document.getElementById("dailyShareBtn");
-    this.dailyReplayBtn = document.getElementById("dailyReplayBtn");
     this.dailyDateLabel = document.getElementById("dailyDateLabel");
+    this.dailyAttemptBadge = document.getElementById("dailyAttemptBadge");
     this.weeklyChallengeBtn = document.getElementById("weeklyChallengeBtn");
     this.weeklyDateLabel = document.getElementById("weeklyDateLabel");
     this.weeklyLeaderboardListEl = document.getElementById("weeklyLeaderboardList");
     this.bonusChallengeBtn = document.getElementById("bonusChallengeBtn");
+    this.friendChallengeBtn = document.getElementById("friendChallengeBtn");
     this.bonusDateLabel = document.getElementById("bonusDateLabel");
     this.levelRuleBadgeEl = document.getElementById("levelRuleBadge");
     this.competitionLeaderboardShareEl = document.getElementById("dailyLeaderboardShare");
@@ -306,6 +304,8 @@ export class OneStrokeApp {
     this.dailyMode = false;
     this.weeklyMode = false;
     this.bonusMode = false;
+    this.dailyPracticeMode = false;
+    this.friendMode = false;
     this.cloudSyncPromise = null;
 
     this.levelAttempt = {
@@ -418,25 +418,12 @@ export class OneStrokeApp {
       this.closeMobilePanel();
       this.setHubView("credit");
     });
-    this.challengeGenerateBtn?.addEventListener("click", () => {
-      this.dailyMode = false;
-      this.weeklyMode = false;
-      this.bonusMode = false;
-      const levelCount = Number(this.matchLevelCountSelect?.value) || 10;
-      this.createChallenge(this.challengeSeedInput.value.trim(), levelCount);
-      this.closeMobilePanel();
-      if (this.state.mode === "challenge") {
-        this.loadChallengeLevel(0, { announce: true });
-      } else {
-        this.renderChallengePanel();
-      }
-    });
     this.dailyChallengeBtn?.addEventListener("click", () => this.startDailyChallenge());
     this.weeklyChallengeBtn?.addEventListener("click", () => this.startWeeklyChallenge());
     this.bonusChallengeBtn?.addEventListener("click", () => this.startBonusChallenge());
+    this.friendChallengeBtn?.addEventListener("click", () => this.startFriendChallenge());
     this.dailyShareBtn?.addEventListener("click", () => this.shareDailyResult());
     this.dailyShareBtn2?.addEventListener("click", () => this.shareDailyResult());
-    this.exportMatchBtn?.addEventListener("click", () => this.exportMatchCode());
     this.importMatchBtn?.addEventListener("click", () => this.openMatchImport());
     this.matchAbortBtn?.addEventListener("click", () => this.abortMatch());
     this.matchNewAfterShareBtn?.addEventListener("click", () => this.abortMatch());
@@ -624,9 +611,12 @@ export class OneStrokeApp {
   }
 
   startDailyChallenge() {
+    const rankedResult = this.getDailyPlayedResult();
     this.dailyMode = true;
     this.weeklyMode = false;
     this.bonusMode = false;
+    this.dailyPracticeMode = Boolean(rankedResult);
+    this.friendMode = false;
     if (this.dailyResultCard) this.dailyResultCard.hidden = true;
     this.createChallenge(this.getDailySeed(), 5);
     this.setHubView("multiplayer", { syncMode: false });
@@ -636,7 +626,9 @@ export class OneStrokeApp {
     this.renderModeButtons();
     this.updateDailyUI();
     this.updateCompetitionLabels();
-    this.setStatus("Today's challenge! 5 levels — the same for everyone today.");
+    this.setStatus(this.dailyPracticeMode
+      ? "Practice replay — this run is saved locally but will not change today's rank."
+      : "Today's ranked challenge! This is your one leaderboard attempt.");
   }
 
   updateDailyUI() {
@@ -653,6 +645,8 @@ export class OneStrokeApp {
     this.dailyMode = false;
     this.weeklyMode = true;
     this.bonusMode = false;
+    this.dailyPracticeMode = false;
+    this.friendMode = false;
     this.createChallenge(this.getWeeklySeed(), 10);
     this.setHubView("multiplayer", { syncMode: false });
     this.state.mode = "challenge";
@@ -673,6 +667,8 @@ export class OneStrokeApp {
     this.dailyMode = false;
     this.weeklyMode = false;
     this.bonusMode = true;
+    this.dailyPracticeMode = false;
+    this.friendMode = false;
     const seed = `bonus-${utcWeekInfo().id}`;
     const challenge = createBonusChallenge(CAMPAIGN_LEVELS, seed);
     this.challenge = {
@@ -698,8 +694,29 @@ export class OneStrokeApp {
     this.setStatus("Bonus Paths: reach the marked goal with a limited undo budget.");
   }
 
+  startFriendChallenge() {
+    this.dailyMode = false;
+    this.weeklyMode = false;
+    this.bonusMode = false;
+    this.dailyPracticeMode = false;
+    this.friendMode = true;
+    const seed = `friend-${Date.now().toString(36)}`;
+    this.createChallenge(seed, 5);
+    this.setHubView("multiplayer", { syncMode: false });
+    this.state.mode = "challenge";
+    this.closeMobilePanel();
+    this.loadChallengeLevel(0, { announce: false });
+    this.renderModeButtons();
+    this.updateCompetitionLabels();
+    this.setStatus("Friend challenge created. Finish all five levels to unlock the share code.");
+  }
+
   updateCompetitionLabels() {
-    const name = this.bonusMode
+    const name = this.friendMode
+      ? "Friend Challenge"
+      : this.dailyMode && this.dailyPracticeMode
+      ? "Daily Practice"
+      : this.bonusMode
       ? "Bonus Paths"
       : (this.weeklyMode ? "Weekly Challenge" : "Daily Challenge");
     document.querySelectorAll(".competition-title").forEach((element) => {
@@ -708,9 +725,11 @@ export class OneStrokeApp {
     document.querySelectorAll(".competition-leaderboard-title").forEach((element) => {
       element.textContent = this.weeklyMode ? "This Week's Leaderboard" : "Today's Leaderboard";
     });
-    if (this.dailyShareBtn2) this.dailyShareBtn2.hidden = this.weeklyMode || this.bonusMode;
+    if (this.dailyShareBtn2) {
+      this.dailyShareBtn2.hidden = !this.dailyMode || this.dailyPracticeMode;
+    }
     if (this.competitionLeaderboardShareEl) {
-      this.competitionLeaderboardShareEl.hidden = this.bonusMode;
+      this.competitionLeaderboardShareEl.hidden = !this.dailyMode && !this.weeklyMode;
     }
   }
 
@@ -723,10 +742,18 @@ export class OneStrokeApp {
       if (this.dailyScoreLabel) this.dailyScoreLabel.textContent = toDisplayScore(played.score);
       if (this.dailyTimeLabel) this.dailyTimeLabel.textContent = toDisplayTime(played.timeMs);
       if (this.dailyCompletedLabel) this.dailyCompletedLabel.textContent = `${played.completedCount}/${played.totalCount}`;
-      if (playBtn) playBtn.textContent = "Play again";
+      if (playBtn) playBtn.textContent = "Practice replay";
+      if (this.dailyAttemptBadge) {
+        this.dailyAttemptBadge.textContent = "Ranked run complete · replays are practice only";
+        this.dailyAttemptBadge.hidden = false;
+      }
     } else {
       if (playBtn) playBtn.textContent = "Play";
       if (this.dailyResultCard) this.dailyResultCard.hidden = true;
+      if (this.dailyAttemptBadge) {
+        this.dailyAttemptBadge.textContent = "One ranked attempt available";
+        this.dailyAttemptBadge.hidden = false;
+      }
     }
 
     // Streak badge
@@ -1253,7 +1280,7 @@ export class OneStrokeApp {
       this.renderSharePhase();
       // Fetch the active public competition after our submit has landed.
       const doFetchLeaderboard = () => {
-        if (this.bonusMode) return;
+        if (!this.dailyMode && !this.weeklyMode) return;
         return this.weeklyMode
           ? this.fetchWeeklyLeaderboard(this.dailyLeaderboardShareListEl)
           : this.fetchDailyLeaderboard(this.dailyLeaderboardShareListEl);
@@ -1335,6 +1362,8 @@ export class OneStrokeApp {
     this.dailyMode = false;
     this.weeklyMode = false;
     this.bonusMode = false;
+    this.dailyPracticeMode = false;
+    this.friendMode = false;
     this.challenge = {
       seed: todaySeed(),
       levels: [],
@@ -1985,6 +2014,16 @@ export class OneStrokeApp {
     this.restoreModalFocus();
   }
 
+  getCampaignMedal(result) {
+    if (!result) return null;
+    const undos = Number(result.bestUndoCount) || 0;
+    const resets = Number(result.bestResetCount) || 0;
+    const hints = Number(result.bestHintCount) || 0;
+    if (undos === 0 && resets === 0 && hints === 0) return "gold";
+    if (undos <= 2 && resets === 0 && hints === 0) return "silver";
+    return "bronze";
+  }
+
   renderFullLevelSelect() {
     if (!this.levelSelectGridEl || !this.levelSelectSummaryEl) {
       return;
@@ -1996,6 +2035,11 @@ export class OneStrokeApp {
     const statusFilter = this.levelSelectFilters.status;
     const solvedCount = Object.keys(this.progress.solvedLevels).length;
     const unlockedCount = this.progress.unlockedLevel;
+    const medalCounts = { bronze: 0, silver: 0, gold: 0 };
+    for (const result of Object.values(this.progress.solvedLevels)) {
+      const medal = this.getCampaignMedal(result);
+      if (medal) medalCounts[medal] += 1;
+    }
 
     const visibleLevels = CAMPAIGN_LEVELS.filter((level, index) => {
       const levelNumber = index + 1;
@@ -2033,7 +2077,8 @@ export class OneStrokeApp {
       ? "All chapters"
       : `Chapter ${chapterFilter}: ${CAMPAIGN_CHAPTER_NAMES[Number(chapterFilter) - 1]}`;
     this.levelSelectSummaryEl.textContent =
-      `${activeChapter} · Showing ${visibleLevels.length}/${CAMPAIGN_TOTAL_LEVELS} · Unlocked ${unlockedCount} · Solved ${solvedCount}`;
+      `${activeChapter} · Showing ${visibleLevels.length}/${CAMPAIGN_TOTAL_LEVELS} · Unlocked ${unlockedCount} · ` +
+      `Solved ${solvedCount} · Gold ${medalCounts.gold} · Silver ${medalCounts.silver} · Bronze ${medalCounts.bronze}`;
 
     this.levelSelectGridEl.innerHTML = "";
     if (visibleLevels.length === 0) {
@@ -2066,6 +2111,13 @@ export class OneStrokeApp {
       name.className = "level-select-name";
       name.textContent = level.name;
 
+      const medal = this.getCampaignMedal(this.progress.solvedLevels[level.id]);
+      const medalBadge = document.createElement("span");
+      medalBadge.className = `level-mastery-medal ${medal ? `medal-${medal}` : "medal-empty"}`;
+      medalBadge.textContent = medal
+        ? `${medal === "gold" ? "◆" : medal === "silver" ? "◇" : "○"} ${medal}`
+        : (unlocked ? "Next: clear" : "Locked");
+
       const meta = document.createElement("span");
       meta.className = "level-select-meta";
       const chapter = Math.floor(index / CAMPAIGN_CHAPTER_SIZE) + 1;
@@ -2073,7 +2125,7 @@ export class OneStrokeApp {
         ? `Ch. ${chapter} · ${level.width}x${level.height} · ${level.par + 1} nodes${solved ? " · Solved" : ""}`
         : "Locked level";
 
-      card.append(number, name, meta);
+      card.append(number, name, medalBadge, meta);
       card.addEventListener("click", () => {
         if (!unlocked) {
           this.flashInvalid("Level is locked. Solve previous levels first.");
@@ -2539,10 +2591,12 @@ export class OneStrokeApp {
   renderLevelRuleState() {
     const remainingUndos = this.getRemainingUndos();
     const hasFixedEnd = Boolean(this.state.endKey);
+    const isPractice = this.dailyMode && this.dailyPracticeMode;
     if (this.levelRuleBadgeEl) {
-      this.levelRuleBadgeEl.hidden = !hasFixedEnd && remainingUndos == null;
+      this.levelRuleBadgeEl.hidden = !hasFixedEnd && remainingUndos == null && !isPractice;
       if (!this.levelRuleBadgeEl.hidden) {
         const rules = [];
+        if (isPractice) rules.push("Practice · unranked");
         if (hasFixedEnd) rules.push("Finish on the marked goal");
         if (remainingUndos != null) rules.push(`${remainingUndos} undo${remainingUndos === 1 ? "" : "s"} left`);
         this.levelRuleBadgeEl.textContent = rules.join(" · ");
@@ -3143,12 +3197,12 @@ export class OneStrokeApp {
           false,
           {
             title: this.dailyMode
-              ? "Daily challenge complete!"
+              ? (this.dailyPracticeMode ? "Daily practice complete!" : "Daily challenge complete!")
               : (this.weeklyMode
                   ? "Weekly challenge complete!"
                   : (this.bonusMode ? "Bonus Paths complete!" : "Match complete!")),
             splits: modalSplits,
-            showDailyShare: this.dailyMode,
+            showDailyShare: this.dailyMode && !this.dailyPracticeMode,
             showMatchExport: !this.dailyMode && !this.weeklyMode && !this.bonusMode,
           },
         );
@@ -3171,14 +3225,17 @@ export class OneStrokeApp {
     if (!previous || result.durationMs < previous.bestTimeMs) {
       this.progress.solvedLevels[level.id] = {
         bestTimeMs: result.durationMs,
-        bestUndoCount: result.undoCount,
-        bestResetCount: result.resetCount,
-        bestHintCount: result.hintCount ?? 0,
+        bestUndoCount: Math.min(previous?.bestUndoCount ?? Infinity, result.undoCount),
+        bestResetCount: Math.min(previous?.bestResetCount ?? Infinity, result.resetCount),
+        bestHintCount: Math.min(previous?.bestHintCount ?? Infinity, result.hintCount ?? 0),
         playedCount: (previous?.playedCount ?? 0) + 1,
       };
     } else {
       this.progress.solvedLevels[level.id] = {
         ...previous,
+        bestUndoCount: Math.min(previous.bestUndoCount ?? Infinity, result.undoCount),
+        bestResetCount: Math.min(previous.bestResetCount ?? Infinity, result.resetCount),
+        bestHintCount: Math.min(previous.bestHintCount ?? Infinity, result.hintCount ?? 0),
         playedCount: (previous.playedCount ?? 1) + 1,
       };
     }
@@ -3276,6 +3333,7 @@ export class OneStrokeApp {
       hintCount: totals.hintCount,
       splits: summary.splits,
       plausible: plausibility.ok,
+      ranked: plausibility.ok && !this.dailyPracticeMode,
       matchId: this.activeMatch?.matchId ?? null,
     };
 
@@ -3286,14 +3344,15 @@ export class OneStrokeApp {
 
     // Submit run to GameVolt cloud
     this._cloudSubmitPromise = null;
-    const cloudChallengeReady = plausibility.ok
+    const eligibleForCloudRank = plausibility.ok && !(this.dailyMode && this.dailyPracticeMode);
+    const cloudChallengeReady = eligibleForCloudRank
       ? (this.dailyMode
           ? this.ensureDailyCloudChallenge()
           : (this.weeklyMode
               ? this.ensureWeeklyCloudChallenge()
               : Promise.resolve(this.cloudChallengeId)))
       : Promise.resolve(null);
-    if (plausibility.ok && window.GameVolt?.challenge && GameVolt.auth.getUser()) {
+    if (eligibleForCloudRank && window.GameVolt?.challenge && GameVolt.auth.getUser()) {
       this._cloudSubmitPromise = cloudChallengeReady.then((challengeId) => {
         if (!challengeId) return false;
         return GameVolt.challenge.submit(challengeId, this.getCloudRunPayload()).then(() => true);
@@ -3329,7 +3388,7 @@ export class OneStrokeApp {
     this.syncCloudSave();
     this.submitToLeaderboard(summary.totalScore, plausibility);
     this.checkTrophies();
-    if (this.dailyMode) {
+    if (this.dailyMode && !this.dailyPracticeMode && plausibility.ok) {
       this.markDailyAsPlayed(summary);
       this.showDailyResult();
     }
@@ -4127,6 +4186,11 @@ export class OneStrokeApp {
     }
 
     // Set up the challenge with the exact same levels
+    this.dailyMode = false;
+    this.weeklyMode = false;
+    this.bonusMode = false;
+    this.dailyPracticeMode = false;
+    this.friendMode = false;
     this.challenge = {
       seed: matchData.seed,
       levels: matchLevels,
@@ -4221,6 +4285,8 @@ export class OneStrokeApp {
       this.dailyMode = false;
       this.weeklyMode = false;
       this.bonusMode = false;
+      this.dailyPracticeMode = false;
+      this.friendMode = false;
       this.challenge = {
         seed: ch.seed,
         levels: matchLevels,
@@ -4882,6 +4948,7 @@ export class OneStrokeApp {
 
   submitToLeaderboard(score, plausibility = { ok: true }) {
     if (!plausibility.ok) return Promise.resolve(false);
+    if (this.dailyMode && this.dailyPracticeMode) return Promise.resolve(false);
     if (!this.dailyMode && !this.weeklyMode) return Promise.resolve(false);
     if (!window.GameVolt?.leaderboard || !GameVolt.auth.getUser()) return;
     return GameVolt.leaderboard.submit(score, { mode: this.weeklyMode ? "weekly" : "daily" })

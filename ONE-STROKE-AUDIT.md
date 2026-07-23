@@ -3,7 +3,7 @@
 **Datum:** 2026-07-22  
 **Omfattning:** kampanj (200 nivåer), tutorial, Daily Challenge, challenges, mobil/touch, progression, GameVolt-SDK, PWA/offline, achievements, delning och marknadsassets.
 
-**Status 2026-07-22:** P0–P3 är genomförda. P3A lade till veckoutmaning, P3B seed-specifik PB ghost och P3C ett veckovis Bonus Paths-event med fast slutnod samt 1–2 tillåtna undos per nivå.
+**Status 2026-07-23:** P0–P4 är genomförda. P4 låser Daily till en rankad run följd av practice, exponerar friend challenges i UI:t och lägger till seed-/nivåbaserad campaign mastery med brons-, silver- och guldmedaljer.
 
 ## Sammanfattning
 
@@ -33,6 +33,9 @@ Min rekommendation är en **One Stroke 1.1 — Clean Line Update** i tre tydliga
 | P3 | Veckoliga curated challenges — **P3A åtgärdad** | Feature | Stor | Medel–hög |
 | P3 | Ghost/PB-jämförelse — **P3B åtgärdad** | Feature | Medel–stor | Medel–hög |
 | P3 | Bonusbanor med fast slutnod och begränsad undo — **P3C åtgärdad** | Feature | Stor | Hög |
+| P4 | En rankad Daily-run, därefter tydligt practice-läge — **P4A åtgärdad** | Feature/integritet | Medel | Hög |
+| P4 | Exponera friend challenge och join-by-code — **P4B åtgärdad** | Feature | Medel | Hög |
+| P4 | Kampanjmedaljer och mastery-översikt — **P4C åtgärdad** | Feature/polish | Medel | Hög |
 
 ## Buggar
 
@@ -74,7 +77,7 @@ Cache heter fortfarande `one-stroke-v1`. Uppdateringar hämtas i bakgrunden men 
 
 **Fix:** bumpa cacheversion per release eller inför ett litet versionsmanifest och en kontrollerad update-notis/reload.
 
-### P3 — Döda DOM-referenser och kvarlämnad legacykod
+### P3 — Döda DOM-referenser och kvarlämnad legacykod — ÅTGÄRDAD
 
 Appen söker efter `challengeGenerateBtn`, `exportMatchBtn`, `importMatchBtn` och `dailyReplayBtn`, men dessa element finns inte i HTML. Optional chaining gör att sidan inte kraschar, men det skapar osäkerhet om vilka challengefunktioner som faktiskt ska vara exponerade.
 
@@ -181,5 +184,6 @@ Kodbasen har redan mycket av infrastrukturen för matchkoder och cloud challenge
 - Visuell kontroll av befintliga marknadsassets; mobilbilden är felaktigt Manga Match-material.
 - Browser-QA av P3A: veckovyn visar rätt UTC-intervall, veckoseed `weekly-2026-W30`, 10 nivåer och veckospecifika labels; ISO-årsgränser verifierades separat.
 - Browser-QA av P3C: fem bonusnivåer, synlig målnod och regelbadge verifierades; tredje undo blockerades korrekt efter en budget på två.
+- Browser-QA av P4: en komplett femnivåers Daily-run växlade replay till `Daily Practice` med dold delning; friend create/join och 200 mastery-badges verifierades utan konsolfel.
 
 Verkliga inloggade GameVolt/Supabase-anrop bör fortfarande smoke-testas mot produktion före release.

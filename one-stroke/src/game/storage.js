@@ -200,6 +200,7 @@ function sanitizeChallengeRunEntry(entry) {
     undoCount: Number(entry.undoCount) || 0,
     resetCount: Number(entry.resetCount) || 0,
     hintCount: Number(entry.hintCount) || 0,
+    ranked: entry.ranked !== false,
     splits: safeSplits,
   };
 }

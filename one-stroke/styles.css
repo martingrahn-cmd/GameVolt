@@ -1668,6 +1668,40 @@ div.cell {
   color: #ebf8ff;
 }
 
+.level-mastery-medal {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.level-mastery-medal.medal-gold {
+  color: #ffe5a6;
+  border: 1px solid rgba(240, 184, 72, 0.5);
+  background: rgba(106, 71, 16, 0.55);
+}
+
+.level-mastery-medal.medal-silver {
+  color: #e4edf2;
+  border: 1px solid rgba(181, 201, 212, 0.45);
+  background: rgba(62, 78, 88, 0.58);
+}
+
+.level-mastery-medal.medal-bronze {
+  color: #efc19a;
+  border: 1px solid rgba(194, 124, 75, 0.45);
+  background: rgba(83, 48, 31, 0.58);
+}
+
+.level-mastery-medal.medal-empty {
+  color: #8facbb;
+  border: 1px dashed rgba(121, 159, 178, 0.35);
+}
+
 .level-select-meta {
   font-size: 0.72rem;
   color: #a9c3d1;
@@ -1920,6 +1954,21 @@ div.cell {
   border: 1px solid rgba(255, 170, 40, 0.25);
 }
 
+.daily-attempt-badge {
+  margin: 4px 0 0;
+  padding: 7px 10px;
+  border: 1px solid rgba(111, 210, 255, 0.28);
+  border-radius: 9px;
+  color: #bfe8fb;
+  background: rgba(18, 50, 67, 0.62);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.daily-attempt-badge[hidden] {
+  display: none;
+}
+
 .daily-streak-fire {
   font-size: 1rem;
 }
@@ -1981,6 +2030,33 @@ div.cell {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.friend-challenge-card {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(155, 131, 236, 0.34);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(55, 42, 93, 0.48), rgba(22, 28, 39, 0.92));
+}
+
+.friend-badge {
+  flex: none;
+  padding: 5px 9px;
+  border: 1px solid rgba(176, 151, 255, 0.42);
+  border-radius: 999px;
+  color: #d9cbff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.friend-challenge-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .level-rule-badge {
