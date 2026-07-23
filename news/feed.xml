@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Wed, 22 Jul 2026 20:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 23 Jul 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>New game: Spinburn — 2.5D arcade table tennis, online</title>
+      <link>https://gamevolt.io/news/spinburn-launch/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/spinburn-launch/</guid>
+      <pubDate>Thu, 23 Jul 2026 12:00:00 GMT</pubDate>
+      <description>Spinburn is live — 2.5D arcade table tennis with a neon tournament feel: climb a Punch-Out-style ladder against three characterful challengers, play a friend online with a room code or invite link, take on three AI difficulties, and chase 31 trophies. Free in your browser.</description>
+    </item>
 
     <item>
       <title>Golden Glyphs polished: clearer puzzles, better daily challenges</title>

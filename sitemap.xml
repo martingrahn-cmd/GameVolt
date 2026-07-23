@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://gamevolt.io/</loc>
-    <lastmod>2026-07-20</lastmod>
+    <lastmod>2026-07-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -11,9 +11,15 @@
   <!-- News -->
   <url>
     <loc>https://gamevolt.io/news/</loc>
-    <lastmod>2026-07-22</lastmod>
+    <lastmod>2026-07-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://gamevolt.io/news/spinburn-launch/</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://gamevolt.io/news/golden-glyphs-polish-update/</loc>
@@ -71,6 +77,12 @@
   </url>
 
   <!-- Game pages (canonical URLs at top level) -->
+  <url>
+    <loc>https://gamevolt.io/spinburn/</loc>
+    <lastmod>2026-07-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
   <url>
     <loc>https://gamevolt.io/gridburn/</loc>
     <lastmod>2026-07-20</lastmod>
