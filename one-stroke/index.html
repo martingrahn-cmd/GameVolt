@@ -185,12 +185,42 @@
                   <p class="daily-leaderboard-empty">No one has played yet today. Be the first!</p>
                 </div>
               </div>
+
+              <div class="weekly-challenge-card">
+                <div class="weekly-challenge-head">
+                  <div>
+                    <h2>Weekly Challenge</h2>
+                    <p id="weeklyDateLabel" class="daily-date-label"></p>
+                  </div>
+                  <span class="weekly-badge">10 levels</span>
+                </div>
+                <p class="match-description">A longer curated run shared by every player for the whole week.</p>
+                <button id="weeklyChallengeBtn" type="button" class="primary daily-play-btn">Play Weekly</button>
+                <div class="daily-leaderboard">
+                  <h3>This Week's Leaderboard</h3>
+                  <div id="weeklyLeaderboardList" class="match-standings-list" role="list">
+                    <p class="daily-leaderboard-empty">No weekly runs yet. Set the first time!</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bonus-challenge-card">
+                <div class="weekly-challenge-head">
+                  <div>
+                    <h2>Bonus Paths</h2>
+                    <p id="bonusDateLabel" class="daily-date-label"></p>
+                  </div>
+                  <span class="bonus-badge">Special rules</span>
+                </div>
+                <p class="match-description">5 weekly boards with a fixed goal node and only 1–2 undos per level.</p>
+                <button id="bonusChallengeBtn" type="button" class="primary daily-play-btn">Play Bonus</button>
+              </div>
             </section>
 
             <!-- ── Phase 2: Playing ── -->
             <section id="matchPhasePlay" class="panel-inset match-panel match-phase" hidden>
               <div class="match-phase-header">
-                <h2>Daily Challenge</h2>
+                <h2 class="competition-title">Daily Challenge</h2>
                 <p id="matchProgressLabel" class="match-progress-label">0 / 5 levels solved</p>
               </div>
               <div id="challengeList" class="challenge-list" role="list"></div>
@@ -207,6 +237,10 @@
                   <span class="label">Solved</span>
                   <strong id="challengeCompletedLabel">0 / 5</strong>
                 </article>
+              </div>
+              <div id="ghostPaceCard" class="ghost-pace-card" hidden>
+                <span class="ghost-pace-icon" aria-hidden="true">◌</span>
+                <span id="ghostPaceLabel">PB ghost ready</span>
               </div>
               <div id="challengeSplitList" class="challenge-split-list" role="list"></div>
               <button id="matchAbortBtn" type="button" class="match-abort-btn">Abort</button>
@@ -232,11 +266,12 @@
                   <strong id="shareTotalCompleted">0 / 5</strong>
                 </article>
               </div>
+              <div id="sharePbSummary" class="ghost-pace-card ghost-result-card" hidden></div>
               <button id="dailyShareBtn2" type="button" class="primary match-share-btn">Share Result</button>
               <p id="matchShareConfirm" class="match-share-confirm" hidden></p>
 
               <div id="dailyLeaderboardShare" class="daily-leaderboard">
-                <h3>Today's Leaderboard</h3>
+                <h3 class="competition-leaderboard-title">Today's Leaderboard</h3>
                 <div id="dailyLeaderboardShareList" class="match-standings-list" role="list"></div>
               </div>
 
@@ -271,6 +306,7 @@
             <div>
               <p id="boardModeLabel" class="eyebrow">Campaign</p>
               <h2 id="levelName">Level 1</h2>
+              <p id="levelRuleBadge" class="level-rule-badge" hidden></p>
             </div>
             <div class="board-live-stats">
               <span id="liveTimer" class="live-stat" aria-label="Time">0:00</span>

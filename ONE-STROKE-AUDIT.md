@@ -3,7 +3,7 @@
 **Datum:** 2026-07-22  
 **Omfattning:** kampanj (200 nivåer), tutorial, Daily Challenge, challenges, mobil/touch, progression, GameVolt-SDK, PWA/offline, achievements, delning och marknadsassets.
 
-**Status 2026-07-22:** P0, P1 och P2 är genomförda. P2 lade till plausibility-gate för rankade runs, cacheversionering, cloud-synkad Daily-historik/streak, egen rank utanför topp 20, kampanjkapitel i level select, valbart ljud/haptik samt förbättrade tab-, modal- och keyboard-gridflöden.
+**Status 2026-07-22:** P0–P3 är genomförda. P3A lade till veckoutmaning, P3B seed-specifik PB ghost och P3C ett veckovis Bonus Paths-event med fast slutnod samt 1–2 tillåtna undos per nivå.
 
 ## Sammanfattning
 
@@ -30,7 +30,9 @@ Min rekommendation är en **One Stroke 1.1 — Clean Line Update** i tre tydliga
 | P2 | Lägg ljud/haptik och tydligare feedback för giltigt steg, undo, dead end och vinst | Polish | Medel | Hög |
 | P2 | Tillgänglighet: riktiga tabroller, fokusfälla i modaler och spelbar keyboard-grid | Polish/a11y | Medel | Medel |
 | P3 | Lägg mekaniska variationer i utvalda nivåer i stället för fler standardgrids | Feature | Stor | Hög |
-| P3 | Veckoliga curated challenges, ghosts eller vänjämförelse | Feature | Stor | Medel–hög |
+| P3 | Veckoliga curated challenges — **P3A åtgärdad** | Feature | Stor | Medel–hög |
+| P3 | Ghost/PB-jämförelse — **P3B åtgärdad** | Feature | Medel–stor | Medel–hög |
+| P3 | Bonusbanor med fast slutnod och begränsad undo — **P3C åtgärdad** | Feature | Stor | Hög |
 
 ## Buggar
 
@@ -177,5 +179,7 @@ Kodbasen har redan mycket av infrastrukturen för matchkoder och cloud challenge
 - `node --check` på app-, core-, game- och relevanta datafiler: inga syntaxfel.
 - Statisk kontroll av SDK-, storage-, Daily-, challenge-, leaderboard-, PWA- och DOM-flöden.
 - Visuell kontroll av befintliga marknadsassets; mobilbilden är felaktigt Manga Match-material.
+- Browser-QA av P3A: veckovyn visar rätt UTC-intervall, veckoseed `weekly-2026-W30`, 10 nivåer och veckospecifika labels; ISO-årsgränser verifierades separat.
+- Browser-QA av P3C: fem bonusnivåer, synlig målnod och regelbadge verifierades; tredje undo blockerades korrekt efter en budget på två.
 
-Interaktiv browserautomation var inte tillgänglig i sessionen. Layout, touchkänsla och verkliga GameVolt/Supabase-anrop bör därför köras som en separat manuell/browserbaserad QA-runda innan release.
+Verkliga inloggade GameVolt/Supabase-anrop bör fortfarande smoke-testas mot produktion före release.
