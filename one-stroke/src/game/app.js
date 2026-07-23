@@ -182,6 +182,7 @@ export class OneStrokeApp {
     this.highScoreRunAverageHintEl = document.getElementById("highScoreRunAverageHint");
     this.highScoreRunListEl = document.getElementById("highScoreRunList");
     this.highScoreRunDetailEl = document.getElementById("highScoreRunDetail");
+    this.highScoreModeFilter = document.getElementById("highScoreModeFilter");
     this.achievementSummaryEl = document.getElementById("achievementSummary");
     this.achievementListEl = document.getElementById("achievementList");
     this.challengeSeedInput = document.getElementById("challengeSeedInput");
@@ -219,6 +220,7 @@ export class OneStrokeApp {
     this.dailyShareBtn = document.getElementById("dailyShareBtn");
     this.dailyDateLabel = document.getElementById("dailyDateLabel");
     this.dailyAttemptBadge = document.getElementById("dailyAttemptBadge");
+    this.dailyWeekStrip = document.getElementById("dailyWeekStrip");
     this.weeklyChallengeBtn = document.getElementById("weeklyChallengeBtn");
     this.weeklyDateLabel = document.getElementById("weeklyDateLabel");
     this.weeklyLeaderboardListEl = document.getElementById("weeklyLeaderboardList");
@@ -306,6 +308,7 @@ export class OneStrokeApp {
     this.bonusMode = false;
     this.dailyPracticeMode = false;
     this.friendMode = false;
+    this.highScoreMode = "all";
     this.cloudSyncPromise = null;
 
     this.levelAttempt = {
@@ -425,6 +428,11 @@ export class OneStrokeApp {
     this.dailyShareBtn?.addEventListener("click", () => this.shareDailyResult());
     this.dailyShareBtn2?.addEventListener("click", () => this.shareDailyResult());
     this.importMatchBtn?.addEventListener("click", () => this.openMatchImport());
+    this.highScoreModeFilter?.addEventListener("change", () => {
+      this.highScoreMode = this.highScoreModeFilter.value;
+      this.selectedHighScoreRunId = null;
+      this.renderHighScoreView();
+    });
     this.matchAbortBtn?.addEventListener("click", () => this.abortMatch());
     this.matchNewAfterShareBtn?.addEventListener("click", () => this.abortMatch());
     this.matchNewAfterResultsBtn?.addEventListener("click", () => this.abortMatch());
@@ -756,6 +764,8 @@ export class OneStrokeApp {
       }
     }
 
+    this.renderDailyWeekStrip();
+
     // Streak badge
     const streak = this.getStreak();
     const badge = document.getElementById("dailyStreakBadge");
@@ -768,6 +778,33 @@ export class OneStrokeApp {
       } else {
         badge.hidden = true;
       }
+    }
+  }
+
+  renderDailyWeekStrip() {
+    if (!this.dailyWeekStrip) return;
+    this.dailyWeekStrip.innerHTML = "";
+    const dayFormatter = new Intl.DateTimeFormat("en-US", { weekday: "narrow", timeZone: "UTC" });
+    for (let offset = 6; offset >= 0; offset -= 1) {
+      const dayId = utcDaySeed(offset);
+      const result = this.dailyProgress.results[dayId];
+      const date = new Date(`${dayId}T12:00:00.000Z`);
+      const item = document.createElement("article");
+      item.className = "daily-week-day";
+      item.classList.toggle("played", Boolean(result));
+      item.classList.toggle("today", offset === 0);
+      item.setAttribute("aria-label", result
+        ? `${dayId}: played, ${toDisplayScore(result.score)} points`
+        : `${dayId}: not played`);
+
+      const weekday = document.createElement("span");
+      weekday.textContent = dayFormatter.format(date);
+      const marker = document.createElement("strong");
+      marker.textContent = result ? "✓" : "·";
+      const dateLabel = document.createElement("small");
+      dateLabel.textContent = String(date.getUTCDate());
+      item.append(weekday, marker, dateLabel);
+      this.dailyWeekStrip.append(item);
     }
   }
 
@@ -1453,6 +1490,27 @@ export class OneStrokeApp {
     });
   }
 
+  getCurrentRunMode() {
+    if (this.dailyMode) return "daily";
+    if (this.weeklyMode) return "weekly";
+    if (this.bonusMode) return "bonus";
+    if (this.friendMode) return "friend";
+    return "challenge";
+  }
+
+  getRunModeLabel(run) {
+    const labels = {
+      daily: "Daily",
+      weekly: "Weekly",
+      bonus: "Bonus",
+      friend: "Friend",
+      challenge: "Challenge",
+    };
+    const mode = run?.mode ?? "challenge";
+    const rankLabel = mode === "daily" ? (run.ranked === false ? " · Practice" : " · Ranked") : "";
+    return `${labels[mode] ?? labels.challenge}${rankLabel}`;
+  }
+
   renderHighScoreView() {
     if (
       !this.highScoreBestChallengeScoreEl ||
@@ -1479,7 +1537,11 @@ export class OneStrokeApp {
     this.renderCampaignDifficultyStats();
     this.renderChallengeRunStats();
 
-    const sorted = this.getSortedChallengeRuns(runs);
+    if (this.highScoreModeFilter) this.highScoreModeFilter.value = this.highScoreMode;
+    const filteredRuns = this.highScoreMode === "all"
+      ? runs
+      : runs.filter((run) => run.mode === this.highScoreMode);
+    const sorted = this.getSortedChallengeRuns(filteredRuns);
     const visibleRuns = sorted.slice(0, CHALLENGE_HISTORY_LIMIT);
 
     this.highScoreRunListEl.innerHTML = "";
@@ -1488,7 +1550,9 @@ export class OneStrokeApp {
       this.renderHighScoreRunDetail(null, []);
       const empty = document.createElement("p");
       empty.className = "hub-empty";
-      empty.textContent = "No challenge history yet. Play a challenge run to fill the list.";
+      empty.textContent = this.highScoreMode === "all"
+        ? "No challenge history yet. Play a challenge run to fill the list."
+        : `No ${this.highScoreMode} runs saved yet.`;
       this.highScoreRunListEl.append(empty);
       return;
     }
@@ -1506,7 +1570,7 @@ export class OneStrokeApp {
 
       const title = document.createElement("div");
       title.className = "hub-run-title";
-      title.textContent = `${index + 1}. Seed ${run.seed || "--"} · ${toDisplayScore(run.totalScore)} p`;
+      title.textContent = `${index + 1}. ${this.getRunModeLabel(run)} · ${toDisplayScore(run.totalScore)} p`;
 
       const meta = document.createElement("div");
       meta.className = "hub-run-meta";
@@ -1600,7 +1664,8 @@ export class OneStrokeApp {
     const summary = document.createElement("p");
     summary.className = "run-detail-summary";
     summary.textContent =
-      `Run #${rank} · Seed ${selectedRun.seed || "--"} · ${completedCount}/${totalLevels} completed · ${toDisplayDateTime(selectedRun.finishedAt)}`;
+      `Run #${rank} · ${this.getRunModeLabel(selectedRun)} · Seed ${selectedRun.seed || "--"} · ` +
+      `${completedCount}/${totalLevels} completed · ${toDisplayDateTime(selectedRun.finishedAt)}`;
     this.highScoreRunDetailEl.append(summary);
 
     const metricGrid = document.createElement("div");
@@ -3321,6 +3386,7 @@ export class OneStrokeApp {
     const entry = {
       id: runId,
       seed: summary.seed,
+      mode: this.getCurrentRunMode(),
       startedAt: new Date(this.challengeRunMeta.startedAtMs).toISOString(),
       finishedAt: new Date().toISOString(),
       completedCount: summary.completedCount,

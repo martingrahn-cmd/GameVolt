@@ -153,6 +153,7 @@
               <p id="dailyDateLabel" class="daily-date-label"></p>
               <p class="match-description">5 levels — the same for everyone today. Play, compare and compete for the leaderboard!</p>
               <p id="dailyAttemptBadge" class="daily-attempt-badge" hidden></p>
+              <div id="dailyWeekStrip" class="daily-week-strip" aria-label="Last seven UTC days"></div>
               <div id="dailyStreakBadge" class="daily-streak-badge" hidden>
                 <span class="daily-streak-fire">&#x1F525;</span>
                 <span id="dailyStreakCount">0</span> day streak
@@ -422,6 +423,20 @@
               </div>
             </section>
 
+            <div class="run-history-head">
+              <h3>Run History</h3>
+              <label>
+                <span>Mode</span>
+                <select id="highScoreModeFilter">
+                  <option value="all">All</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="bonus">Bonus</option>
+                  <option value="friend">Friend</option>
+                  <option value="challenge">Other</option>
+                </select>
+              </label>
+            </div>
             <div id="highScoreRunList" class="hub-list" role="list"></div>
 
             <section class="hub-subpanel run-detail-panel">
@@ -665,16 +680,17 @@
       <p>
         Play One Stroke free in your browser — a clean, modern take on the classic one-line drawing
         puzzle. Each board is a Hamiltonian path challenge: visit every playable node exactly once in
-        a single connected stroke. With <strong>200 campaign levels</strong>, a daily challenge with
-        its own leaderboard and 31 trophies to unlock, it's easy to pick up and genuinely hard to put
-        down. No download, no signup — just draw.
+        a single connected stroke. With <strong>200 campaign levels</strong>, Daily and Weekly
+        leaderboards, Bonus Paths, friend challenges, mastery medals and 31 trophies, it's easy to
+        pick up and genuinely hard to put down. No download, no signup — just draw.
       </p>
 
       <h2>How to Play One Stroke</h2>
       <p>
         Drag from the highlighted start node to any neighbouring node to begin your path. Keep
         extending the line one step at a time — the level is solved the moment every node has been
-        visited exactly once. There is no fixed goal cell: any node can be the end of your stroke.
+        visited exactly once. Campaign levels normally have a free end; the optional Bonus Paths
+        event adds a marked goal and a limited undo budget.
       </p>
       <ul>
         <li><strong>Drag</strong> (mouse or finger) from node to node — orthogonal steps only.</li>
@@ -687,16 +703,16 @@
       <p>
         The campaign takes you from gentle warm-up grids to genuinely brain-bending boards across
         four difficulty tiers: Easy, Medium, Hard and Very Hard. A full level-select screen lets you
-        search and filter every level by difficulty and status, and your stats — best time, average
-        time and win rate per difficulty — are tracked as you go.
+        search and filter every level by difficulty and status. Bronze, silver and gold mastery
+        medals reward cleaner clears, while best time and performance stats are tracked as you go.
       </p>
 
       <h2>Daily Challenge & Streaks</h2>
       <p>
         Every day brings a fresh set of five levels that are the same for every player in the world.
-        Race through them for the best combined score and time, share your result, and see where you
-        land on today's leaderboard. Play every day to build your daily streak — and you can even
-        send a challenge code to a friend for a head-to-head comparison on the exact same boards.
+        Your first complete run is the ranked attempt; later replays are clearly marked practice.
+        Compare score and time, build a streak and review the last seven UTC days. Weekly Challenge
+        adds a longer ten-level run, while friend codes enable split-by-split head-to-head play.
       </p>
 
       <h2>Trophies & Leaderboards</h2>
@@ -735,7 +751,7 @@
       </details>
       <details>
         <summary>Do I have to finish the path on a specific node?</summary>
-        <p>No. One Stroke uses a free end node — the level is complete as soon as every node has been visited exactly once, no matter where your stroke ends.</p>
+        <p>Campaign, Daily and Weekly boards normally use a free end. Bonus Paths are the exception: they mark a specific goal node and limit how many times you can undo.</p>
       </details>
       <details>
         <summary>How many levels does the campaign have?</summary>
@@ -743,7 +759,11 @@
       </details>
       <details>
         <summary>Is the daily challenge the same for everyone?</summary>
-        <p>Yes — each day, all players get the same set of five levels. Compare your score and time on today's leaderboard, share your result, and keep your daily streak alive.</p>
+        <p>Yes — each UTC day, all players get the same five levels. Your first completed run is ranked; later runs are practice and cannot overwrite that leaderboard attempt.</p>
+      </details>
+      <details>
+        <summary>Can I challenge a friend?</summary>
+        <p>Yes. Create a five-level friend challenge, finish your run, then share its code or cloud link. Your friend plays the identical boards and gets a split-by-split comparison.</p>
       </details>
       <details>
         <summary>Does One Stroke work on phones and tablets?</summary>
