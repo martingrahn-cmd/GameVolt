@@ -79,6 +79,7 @@
     .btn.ghost { border-color: rgba(255,255,255,0.22); color: #9fb4cc; background: transparent; }
     /* slightly askew buttons — hand-slapped tournament poster, not a SaaS page */
     .btn.camp { transform: rotate(-0.7deg); }
+    .btn.online { transform: rotate(0.5deg); }
     .btn.easy { transform: rotate(0.6deg); }
     .btn.medium { transform: rotate(-0.5deg); }
     #menu .btn.hard { transform: rotate(0.8deg); }
@@ -86,6 +87,23 @@
       border-color: rgba(255,209,102,0.6); color: #ffe8ad; background: rgba(255,209,102,0.08);
       box-shadow: 0 0 18px rgba(255,209,102,0.2), 3px 3px 0 rgba(0,0,0,0.35);
     }
+    .btn.online {
+      border-color: rgba(122,120,255,0.6); color: #cfceff; background: rgba(122,120,255,0.08);
+      box-shadow: 0 0 18px rgba(122,120,255,0.2), 3px 3px 0 rgba(0,0,0,0.35);
+    }
+    .btn.online:hover { background: rgba(122,120,255,0.16); box-shadow: 0 0 26px rgba(122,120,255,0.4); }
+    /* online lobby */
+    #ol-code { font-weight: 900; font-size: 2.4rem; letter-spacing: 12px; color: #a9b6ff; text-shadow: 0 0 22px rgba(122,120,255,0.6); text-align: center; }
+    #ol-code-box.hidden { display: none; }
+    .ol-hint { font-size: 0.6rem; letter-spacing: 1.5px; color: #8299b8; text-align: center; margin: 6px 0; line-height: 1.5; }
+    .ol-join-row { display: flex; gap: 10px; align-items: center; justify-content: center; }
+    #ol-join-input {
+      width: 130px; text-align: center; font-family: inherit; font-weight: 700; font-size: 1.1rem;
+      letter-spacing: 6px; text-transform: uppercase; color: #fff; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(122,120,255,0.4); border-radius: 10px; padding: 12px 8px; outline: none;
+    }
+    #ol-join-input:focus { border-color: #fff; box-shadow: 0 0 18px rgba(122,120,255,0.4); }
+    #ol-status { min-height: 1.1em; font-size: 0.68rem; letter-spacing: 1.5px; text-align: center; color: #cfceff; }
     .btn.camp:hover { background: rgba(255,209,102,0.16); box-shadow: 0 0 26px rgba(255,209,102,0.4); }
 
     /* VS card (Punch-Out style pre-match) */
@@ -136,7 +154,8 @@
       color: #bff4ff; background: transparent; border: 1px dashed rgba(0,234,255,0.4);
       border-radius: 999px; padding: 8px 20px; cursor: pointer; margin-top: 8px;
     }
-    #install-btn.hidden, #ios-hint.hidden, #update-chip.hidden, #ladder-reset.hidden { display: none; }
+    #install-btn.hidden, #ios-hint.hidden, #update-chip.hidden, #ladder-reset.hidden,
+    #ol-share.hidden, #ol-code-box.hidden { display: none; }
     #ios-hint { font-size: 0.64rem; color: #8fa8c8; letter-spacing: 1px; margin-top: 8px; text-align: center; }
     #update-chip {
       font-family: inherit; font-weight: 800; letter-spacing: 2px; font-size: 0.78rem;
@@ -236,6 +255,7 @@
     <div class="proto-tag">Prototype · Phase 0</div>
     <div style="height:8px"></div>
     <button class="btn camp" id="campaign-btn">🏆 CAMPAIGN</button>
+    <button class="btn online" id="online-btn">🌐 PLAY ONLINE</button>
     <div class="menu-note" style="margin:2px 0 -6px">QUICK MATCH</div>
     <button class="btn easy" data-level="easy">EASY</button>
     <button class="btn medium" data-level="medium">MEDIUM</button>
@@ -244,6 +264,27 @@
     <button id="update-chip" class="hidden">◆ NEW VERSION — TAP TO UPDATE</button>
     <button id="install-btn" class="hidden">⬇ INSTALL APP</button>
     <div id="ios-hint" class="hidden">On iPhone: Share <span style="font-size:0.8rem">⎋</span> → “Add to Home Screen”</div>
+  </div>
+
+  <div class="overlay hidden" id="online">
+    <div class="title" style="font-size:clamp(1.3rem,6vw,1.9rem)">PLAY ONLINE</div>
+    <div class="subtitle">First to 11 · one friend, one room code</div>
+    <div style="height:6px"></div>
+    <button class="btn online" id="ol-create">CREATE ROOM</button>
+    <div id="ol-code-box" class="hidden">
+      <div id="ol-code">----</div>
+      <div class="ol-hint">SHARE THE CODE — OR SEND THE LINK<br>KEEP THIS PAGE OPEN — THE ROOM LIVES IN THIS TAB</div>
+      <button class="btn ghost" id="ol-copy-link">🔗 COPY INVITE LINK</button>
+      <button class="btn ghost hidden" id="ol-share">📤 SHARE</button>
+    </div>
+    <div class="ol-hint" style="margin-top:12px">— OR JOIN A FRIEND'S ROOM —</div>
+    <div class="ol-join-row">
+      <input id="ol-join-input" type="text" maxlength="4" autocomplete="off" spellcheck="false" placeholder="CODE">
+      <button class="btn online" id="ol-join">JOIN</button>
+    </div>
+    <div id="ol-status"></div>
+    <div style="height:6px"></div>
+    <button class="btn ghost" id="ol-back">◂ BACK</button>
   </div>
 
   <div class="overlay hidden" id="ladder">
@@ -298,11 +339,12 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.32.0"></script>
-  <script src="tt-ai.js?v=0.32.0"></script>
+  <script src="tt-core.js?v=0.33.0"></script>
+  <script src="tt-ai.js?v=0.33.0"></script>
+  <script src="sb-net.js?v=0.33.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.32.0';
+    var VERSION = '0.33.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -313,6 +355,7 @@
     var ui = 'menu';           // menu | playing | over
     var game = null;
     var level = 'medium';
+    var myPid = 1;             // online role: 1 = host (near), 2 = guest
     var aiMem = {};
     var acc = 0, last = 0;
     var pointTimer = 0;
@@ -351,10 +394,10 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.32.0', bounce: 'assets/bounce.mp3?v=0.32.0',
-        cheer: 'assets/cheer.mp3?v=0.32.0', net: 'assets/net.mp3?v=0.32.0',
-        crowd: 'assets/crowd.mp3?v=0.32.0', winfare: 'assets/winfare.mp3?v=0.32.0',
-        lose: 'assets/lose.mp3?v=0.32.0', matchpoint: 'assets/matchpoint.mp3?v=0.32.0'
+        hit: 'assets/hit.mp3?v=0.33.0', bounce: 'assets/bounce.mp3?v=0.33.0',
+        cheer: 'assets/cheer.mp3?v=0.33.0', net: 'assets/net.mp3?v=0.33.0',
+        crowd: 'assets/crowd.mp3?v=0.33.0', winfare: 'assets/winfare.mp3?v=0.33.0',
+        lose: 'assets/lose.mp3?v=0.33.0', matchpoint: 'assets/matchpoint.mp3?v=0.33.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -1667,6 +1710,111 @@
       localStorage.setItem('ttCampaign', '0');
       openLadder();
     });
+
+    // ---------- online lobby (Phase A: transport + handshake) ----------
+    var onlineEl = document.getElementById('online');
+    var inviteLink = '';
+    function setOnlineStatus(t) { document.getElementById('ol-status').textContent = t || ''; }
+    function openOnline() {
+      el.menu.classList.add('hidden');
+      onlineEl.classList.remove('hidden');
+      document.getElementById('ol-code-box').classList.add('hidden');
+      document.querySelector('#online .ol-join-row').style.display = '';
+      var cb = document.getElementById('ol-create'), jb = document.getElementById('ol-join');
+      cb.classList.remove('hidden'); jb.classList.remove('hidden');
+      cb.disabled = false; jb.disabled = false;
+      setOnlineStatus('');
+      if (window.SBNet) SBNet.preload(); // warm the supabase CDN while they read
+    }
+    function closeOnline() {
+      if (window.SBNet) { try { SBNet.leave(); } catch (e) {} }
+      onlineEl.classList.add('hidden');
+      el.menu.classList.remove('hidden');
+    }
+    document.getElementById('online-btn').addEventListener('click', openOnline);
+    document.getElementById('ol-back').addEventListener('click', closeOnline);
+
+    // Phase A milestone: transport + handshake are live. The synced rally
+    // (streamed-authority netcode) lands in Phase B. For now, confirm the
+    // two-device connection so it can be verified on real phones.
+    function startOnlineMatch() {
+      document.getElementById('ol-code-box').classList.add('hidden');
+      document.querySelector('#online .ol-join-row').style.display = 'none';
+      document.getElementById('ol-create').classList.add('hidden');
+      document.getElementById('ol-join').classList.add('hidden');
+      setOnlineStatus('🌐 CONNECTED! You are Player ' + myPid + '. ' +
+        'Live rallies arrive in the next update — your two-device link is confirmed.');
+    }
+    function onOppLeft() {
+      if (ui === 'playing' || ui === 'over') { toMenu(); }
+      setOnlineStatus('OPPONENT LEFT THE ROOM.');
+    }
+
+    document.getElementById('ol-create').addEventListener('click', function () {
+      if (!window.SBNet) { setOnlineStatus('OFFLINE — NET UNAVAILABLE'); return; }
+      Sound.unlock();
+      this.disabled = true;
+      setOnlineStatus('CREATING ROOM…');
+      SBNet.host().then(function (code) {
+        document.getElementById('ol-code').textContent = code;
+        document.getElementById('ol-code-box').classList.remove('hidden');
+        inviteLink = location.origin + location.pathname + '?join=' + code;
+        document.getElementById('ol-share').classList.toggle('hidden', !navigator.share);
+        setOnlineStatus('WAITING FOR OPPONENT…');
+      }).catch(function () {
+        setOnlineStatus('COULD NOT CREATE ROOM — TRY AGAIN');
+        document.getElementById('ol-create').disabled = false;
+      });
+    });
+    function olJoin() {
+      if (!window.SBNet) { setOnlineStatus('OFFLINE — NET UNAVAILABLE'); return; }
+      var code = document.getElementById('ol-join-input').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (code.length !== 4) { setOnlineStatus('ENTER THE 4-CHARACTER CODE'); return; }
+      Sound.unlock();
+      document.getElementById('ol-join').disabled = true;
+      setOnlineStatus('CONNECTING…');
+      SBNet.join(code).catch(function () {
+        setOnlineStatus('COULD NOT JOIN — CHECK THE CODE');
+        document.getElementById('ol-join').disabled = false;
+      });
+    }
+    document.getElementById('ol-join').addEventListener('click', olJoin);
+    document.getElementById('ol-join-input').addEventListener('input', function () {
+      this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    });
+    document.getElementById('ol-copy-link').addEventListener('click', function () {
+      if (!inviteLink) return;
+      if (navigator.clipboard) navigator.clipboard.writeText(inviteLink).then(function () {
+        setOnlineStatus('LINK COPIED!');
+      }).catch(function () { window.prompt('Copy this link:', inviteLink); });
+      else window.prompt('Copy this link:', inviteLink);
+    });
+    document.getElementById('ol-share').addEventListener('click', function () {
+      if (inviteLink && navigator.share) navigator.share({ title: 'Spinburn', text: 'Match me at table tennis!', url: inviteLink }).catch(function () {});
+    });
+
+    if (window.SBNet) {
+      SBNet.on('opponentJoined', function () {
+        setOnlineStatus('CONNECTED! STARTING…');
+        setTimeout(function () {
+          myPid = SBNet.myPlayer || 1;
+          onlineEl.classList.add('hidden');
+          startOnlineMatch();
+        }, 500);
+      });
+      SBNet.on('left', function () { onOppLeft(); });
+    }
+    // Invite links: /tabletennis/?join=CODE drops straight into the room.
+    try {
+      var joinCode = (new URLSearchParams(location.search).get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (joinCode.length === 4) {
+        history.replaceState(null, '', location.pathname);
+        openOnline();
+        document.getElementById('ol-join-input').value = joinCode;
+        olJoin();
+      }
+    } catch (e) {}
+
     document.getElementById('menu-btn').addEventListener('click', toMenu);
     window.addEventListener('keydown', function (e) {
       if (e.code === 'Escape' && ui === 'playing') toMenu();
