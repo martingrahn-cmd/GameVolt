@@ -2916,7 +2916,7 @@
                 if (p.bronze) tiers.push(p.bronze + 'B');
                 return '<div class="top-player-row">' +
                     '<div class="tp-rank ' + rankClass + '">' + (i + 1) + '</div>' +
-                    '<div class="tp-avatar">' + initial(p.username) + '</div>' +
+                    '<div class="tp-avatar" data-i="' + i + '">' + initial(p.username) + '</div>' +
                     '<div class="tp-info">' +
                         '<div class="tp-name">' + esc(p.username) + '</div>' +
                         '<div class="tp-trophies">' + tiers.join(' · ') + '</div>' +
@@ -2924,6 +2924,19 @@
                     '<div class="tp-count">' + p.trophy_count + '</div>' +
                 '</div>';
             }).join('');
+
+            // Progressive enhancement: swap the initial for a procedural face
+            // when the avatar SDK is present. Non-gv1 avatar_url values render
+            // as <img>; missing ones keep an initial badge.
+            if (window.GameVolt && GameVolt.avatar) {
+                rows.forEach(function(p, i) {
+                    var slot = container.querySelector('.tp-avatar[data-i="' + i + '"]');
+                    if (!slot) return;
+                    slot.textContent = '';
+                    slot.style.background = 'transparent';
+                    slot.appendChild(GameVolt.avatar.render(p.avatar_url, { size: 32, name: p.username }));
+                });
+            }
         });
 
         // ── Recent Activity ──
