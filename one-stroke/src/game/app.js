@@ -1,32 +1,9 @@
 import {
-  CAMPAIGN_LEVELS as GENERATED_LEVELS,
-  CAMPAIGN_TOTAL_LEVELS as GENERATED_TOTAL,
-} from "../data/campaign-levels.js";
+  CAMPAIGN_LEVELS,
+  CAMPAIGN_TOTAL_LEVELS,
+} from "../data/campaign.js";
 import { DIFFICULTY_META, DIFFICULTY_ORDER } from "../data/difficulty.js";
 import { TUTORIAL_LEVELS } from "../data/tutorial-levels.js";
-
-// Replace the opening with hand-crafted tutorials, then smooth the first
-// generated chapter so the jump from training to full boards is gradual.
-const EARLY_RAMP_END = 20;
-const generatedOpening = GENERATED_LEVELS
-  .slice(TUTORIAL_LEVELS.length, EARLY_RAMP_END)
-  .sort((a, b) => {
-    const complexity = (level) =>
-      (level.par + 1) + level.branchingRatio * 5 + level.turnRatio * 2;
-    return complexity(a) - complexity(b);
-  });
-const CAMPAIGN_LEVELS = [
-  ...TUTORIAL_LEVELS,
-  ...generatedOpening,
-  ...GENERATED_LEVELS.slice(EARLY_RAMP_END),
-].map((level, index) => ({
-  ...level,
-  campaignIndex: index + 1,
-  name: level.pathStyle === "tutorial" || level.pathStyle === "bridge"
-    ? level.name
-    : `${DIFFICULTY_META[level.difficulty].label} ${String(index + 1).padStart(2, "0")}`,
-}));
-const CAMPAIGN_TOTAL_LEVELS = CAMPAIGN_LEVELS.length;
 
 import {
   coordKey,
@@ -130,6 +107,11 @@ export class OneStrokeApp {
     this.levelLabelEl = document.getElementById("levelLabel");
     this.difficultyLabelEl = document.getElementById("difficultyLabel");
     this.campaignProgressLabelEl = document.getElementById("campaignProgressLabel");
+    this.campaignContinueCardEl = document.getElementById("campaignContinueCard");
+    this.campaignContinueEyebrowEl = document.getElementById("campaignContinueEyebrow");
+    this.campaignContinueTitleEl = document.getElementById("campaignContinueTitle");
+    this.campaignContinueMetaEl = document.getElementById("campaignContinueMeta");
+    this.campaignContinueBtn = document.getElementById("campaignContinueBtn");
     this.visitedLabelEl = document.getElementById("visitedLabel");
     this.remainingLabelEl = document.getElementById("remainingLabel");
     this.phaseLabelEl = document.getElementById("phaseLabel");
@@ -418,6 +400,15 @@ export class OneStrokeApp {
     this.campaignModeBtn.addEventListener("click", () => {
       this.closeMobilePanel();
       this.setHubView("single-player");
+    });
+    this.campaignContinueBtn?.addEventListener("click", () => {
+      const continueIndex = clamp(this.progress.unlockedLevel - 1, 0, CAMPAIGN_TOTAL_LEVELS - 1);
+      this.loadCampaignLevel(continueIndex, { bypassLock: true });
+      if (this.isMobileLayout()) {
+        this.onMobileTab("play");
+      } else {
+        this.closeMobilePanel();
+      }
     });
     this.challengeModeBtn.addEventListener("click", () => {
       this.setHubView("multiplayer");
@@ -1593,7 +1584,7 @@ export class OneStrokeApp {
   // ── Mobile panel ──────────────────────────────────────────
 
   isMobileLayout() {
-    return window.matchMedia("(max-width: 760px)").matches;
+    return window.matchMedia("(max-width: 820px)").matches;
   }
 
   onMobileTab(tab) {
@@ -2403,6 +2394,10 @@ export class OneStrokeApp {
       // SDK pause menu handles its own ESC-to-close internally
       if (window.GameVolt?.ui?.isPaused()) return;
 
+      if (this.matchImportModalEl && !this.matchImportModalEl.classList.contains("hidden")) {
+        this.closeMatchImport();
+        return;
+      }
       if (this.isLevelSelectOpen()) {
         this.closeLevelSelect();
         return;
@@ -2655,6 +2650,8 @@ export class OneStrokeApp {
     this.boardEl.innerHTML = "";
     this.boardEl.style.setProperty("--cols", String(this.state.level.width));
     this.boardEl.style.setProperty("--rows", String(this.state.level.height));
+    this.boardEl.setAttribute("aria-rowcount", String(this.state.level.height));
+    this.boardEl.setAttribute("aria-colcount", String(this.state.level.width));
 
     for (let y = 0; y < this.state.level.height; y += 1) {
       for (let x = 0; x < this.state.level.width; x += 1) {
@@ -2666,7 +2663,10 @@ export class OneStrokeApp {
           node.type = "button";
           node.setAttribute("role", "gridcell");
           node.dataset.key = key;
-          node.setAttribute("aria-label", `Node ${x + 1},${y + 1}`);
+          node.tabIndex = -1;
+          node.setAttribute("aria-rowindex", String(y + 1));
+          node.setAttribute("aria-colindex", String(x + 1));
+          node.setAttribute("aria-label", `Row ${y + 1}, column ${x + 1}`);
           node.append(this.createTraceNode());
           this.cells.set(key, node);
         } else {
@@ -2692,6 +2692,8 @@ export class OneStrokeApp {
 
   renderState() {
     const { level, status, playableCount, visited, path } = this.state;
+    const keepKeyboardFocusOnTail =
+      document.activeElement === this.boardEl || this.boardEl.contains(document.activeElement);
     const stepByKey = new Map();
     path.forEach((key, idx) => {
       stepByKey.set(key, idx + 1);
@@ -2721,7 +2723,24 @@ export class OneStrokeApp {
       cell.classList.toggle("conn-down", connections?.has("down") === true);
       cell.classList.toggle("conn-left", connections?.has("left") === true);
       cell.dataset.step = isVisited ? String(step) : "";
+      cell.tabIndex = key === tailKey ? 0 : -1;
+      cell.setAttribute("aria-selected", String(isVisited));
+      if (key === tailKey) {
+        cell.setAttribute("aria-current", "step");
+      } else {
+        cell.removeAttribute("aria-current");
+      }
+      const [x, y] = parseKey(key);
+      const nodeState = [
+        key === startKey ? "start node" : null,
+        key === this.state.endKey ? "goal node" : null,
+        isVisited ? `visited, step ${step} of ${playableCount}` : "unvisited",
+        key === tailKey ? "current path end" : null,
+        nextOptions.has(key) ? "available next move" : null,
+      ].filter(Boolean).join(", ");
+      cell.setAttribute("aria-label", `Row ${y + 1}, column ${x + 1}, ${nodeState}`);
     }
+    if (keepKeyboardFocusOnTail) this.cells.get(tailKey)?.focus();
 
     const difficulty = DIFFICULTY_META[level.difficulty];
     this.levelNameEl.textContent = level.name;
@@ -2749,6 +2768,33 @@ export class OneStrokeApp {
   renderCampaignMeta() {
     const solvedCount = Object.keys(this.progress.solvedLevels).length;
     this.campaignProgressLabelEl.textContent = `${solvedCount} solved`;
+
+    if (!this.campaignContinueCardEl) return;
+    const isCampaign = this.state.mode === "campaign";
+    this.campaignContinueCardEl.hidden = !isCampaign;
+    if (!isCampaign) return;
+
+    const continueIndex = clamp(this.progress.unlockedLevel - 1, 0, CAMPAIGN_TOTAL_LEVELS - 1);
+    const continueLevel = CAMPAIGN_LEVELS[continueIndex];
+    const chapterIndex = Math.floor(continueIndex / CAMPAIGN_CHAPTER_SIZE);
+    const chapterStart = chapterIndex * CAMPAIGN_CHAPTER_SIZE;
+    const chapterEnd = Math.min(chapterStart + CAMPAIGN_CHAPTER_SIZE, CAMPAIGN_TOTAL_LEVELS);
+    const chapterSolved = CAMPAIGN_LEVELS
+      .slice(chapterStart, chapterEnd)
+      .filter((level) => Boolean(this.progress.solvedLevels[level.id]))
+      .length;
+    const campaignComplete = solvedCount >= CAMPAIGN_TOTAL_LEVELS;
+
+    this.campaignContinueEyebrowEl.textContent = campaignComplete
+      ? "Campaign complete"
+      : "Continue campaign";
+    this.campaignContinueTitleEl.textContent =
+      `Level ${continueLevel.campaignIndex} · ${CAMPAIGN_CHAPTER_NAMES[chapterIndex]}`;
+    this.campaignContinueMetaEl.textContent =
+      `${chapterSolved} / ${chapterEnd - chapterStart} solved in chapter`;
+    this.campaignContinueBtn.textContent = campaignComplete
+      ? "Replay final level"
+      : `Play level ${continueLevel.campaignIndex}`;
   }
 
   updateNextButton() {
