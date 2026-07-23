@@ -276,11 +276,11 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.27.0"></script>
-  <script src="tt-ai.js?v=0.27.0"></script>
+  <script src="tt-core.js?v=0.28.0"></script>
+  <script src="tt-ai.js?v=0.28.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.27.0';
+    var VERSION = '0.28.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -328,7 +328,7 @@
       // Real recorded samples (ElevenLabs-generated, picked by ear); the
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
-      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.27.0', bounce: 'assets/bounce.mp3?v=0.27.0', cheer: 'assets/cheer.mp3?v=0.27.0', net: 'assets/net.mp3?v=0.27.0' };
+      var SAMPLE_SRC = { hit: 'assets/hit.mp3?v=0.28.0', bounce: 'assets/bounce.mp3?v=0.28.0', cheer: 'assets/cheer.mp3?v=0.28.0', net: 'assets/net.mp3?v=0.28.0' };
       function loadSamples() {
         if (!ac()) return;
         Object.keys(SAMPLE_SRC).forEach(function (k) {
