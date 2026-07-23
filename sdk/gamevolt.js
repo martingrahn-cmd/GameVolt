@@ -16,7 +16,7 @@
   // footer so you can tell at a glance whether a browser has the latest SDK
   // (Cloudflare caches this file, so an old copy can linger). Also on
   // GameVolt.version and logged to the console on init.
-  var SDK_VERSION = '2026.07.16-1';
+  var SDK_VERSION = '2026.07.23-1';
 
   var sb = null; // Supabase client
   var currentUser = null;
@@ -1647,6 +1647,183 @@
   }
 
   // --------------------------------------------------------
+  // AVATAR engine — procedural SVG faces
+  //
+  // A face is fully described by 6 short fields and encoded as a compact
+  // string stored in the existing profiles.avatar_url column:
+  //   gv1:<model>.<skin>.<hair>.<hairStyle>.<vibe>.<acc>
+  //   e.g. gv1:chibi.f5d0c5.6d28d9.bangs.happy.none
+  // skin/hair are 6-digit hex without '#'. Any avatar_url that does NOT
+  // start with "gv1:" is treated as a plain image URL (backward compatible).
+  // Geometry ported from the design-preview face art (SVG so it can be
+  // inlined in any leaderboard row and rasterised for share/OG cards).
+  // --------------------------------------------------------
+
+  var AVATAR_PREFIX = 'gv1';
+  var AVATAR_MODELS = ['round', 'soft', 'oval', 'square', 'heart', 'bean', 'chibi', 'bot', 'cat', 'pixel', 'alien'];
+  var AVATAR_HAIR_STYLES = ['normal', 'side', 'spiky', 'bangs', 'curl', 'mohawk', 'long', 'cap', 'bald'];
+  var AVATAR_VIBES = ['happy', 'cool', 'focus', 'grin', 'smirk'];
+  var AVATAR_ACCS = ['none', 'glasses', 'shade', 'mono', 'star', 'mask'];
+  // Palettes for the builder UI (phase 3)
+  var AVATAR_SKINS = ['#f2c7a4', '#f5d0c5', '#e0a888', '#c68642', '#8d5524', '#94a3b8', '#86efac', '#c4b5fd'];
+  var AVATAR_HAIRS = ['#3f2a1d', '#1a1a1a', '#b45309', '#6d28d9', '#0f766e', '#dc2626', '#2563eb', '#f472b6'];
+  var AVATAR_DEFAULT = { model: 'round', skin: '#f2c7a4', hair: '#3f2a1d', hairStyle: 'normal', vibe: 'happy', acc: 'none' };
+
+  function _hex6(s) {
+    if (typeof s !== 'string') return null;
+    s = s.charAt(0) === '#' ? s.slice(1) : s;
+    return /^[0-9a-fA-F]{6}$/.test(s) ? s.toLowerCase() : null;
+  }
+  function _oneOf(v, list, fallback) {
+    return list.indexOf(v) !== -1 ? v : fallback;
+  }
+  function _normSpec(o) {
+    o = o || {};
+    return {
+      model: _oneOf(o.model, AVATAR_MODELS, AVATAR_DEFAULT.model),
+      skin: '#' + (_hex6(o.skin) || _hex6(AVATAR_DEFAULT.skin)),
+      hair: '#' + (_hex6(o.hair) || _hex6(AVATAR_DEFAULT.hair)),
+      hairStyle: _oneOf(o.hairStyle, AVATAR_HAIR_STYLES, AVATAR_DEFAULT.hairStyle),
+      vibe: _oneOf(o.vibe, AVATAR_VIBES, AVATAR_DEFAULT.vibe),
+      acc: _oneOf(o.acc, AVATAR_ACCS, AVATAR_DEFAULT.acc)
+    };
+  }
+
+  // string|object -> normalized spec, or null when it isn't a gv avatar
+  // (e.g. a real image URL, so callers can fall back to <img>).
+  function parseAvatar(value) {
+    if (value && typeof value === 'object') return _normSpec(value);
+    if (typeof value !== 'string') return null;
+    var s = value.trim();
+    var i = s.indexOf(':');
+    if (i < 0 || s.slice(0, i) !== AVATAR_PREFIX) return null;
+    var p = s.slice(i + 1).split('.');
+    return _normSpec({ model: p[0], skin: p[1], hair: p[2], hairStyle: p[3], vibe: p[4], acc: p[5] });
+  }
+
+  function encodeAvatar(spec) {
+    var s = _normSpec(spec);
+    return AVATAR_PREFIX + ':' + [s.model, s.skin.slice(1), s.hair.slice(1), s.hairStyle, s.vibe, s.acc].join('.');
+  }
+
+  // ---- SVG part builders (viewBox 0 0 100 100) ----
+  function _headSVG(m, skin) {
+    var f = ' fill="' + skin + '"';
+    switch (m) {
+      case 'square': return '<rect x="10" y="14" width="80" height="80" rx="22"' + f + '/>';
+      case 'pixel':  return '<rect x="12" y="16" width="76" height="76" rx="6"' + f + '/>';
+      case 'bot':    return '<rect x="11" y="15" width="78" height="78" rx="18"' + f + '/><rect x="11" y="15" width="78" height="34" rx="18" fill="#ffffff" opacity="0.14"/>';
+      case 'oval':   return '<ellipse cx="50" cy="54" rx="36" ry="45"' + f + '/>';
+      case 'chibi':  return '<ellipse cx="50" cy="55" rx="45" ry="42"' + f + '/>';
+      case 'alien':  return '<ellipse cx="50" cy="55" rx="35" ry="46"' + f + '/>';
+      case 'soft':   return '<ellipse cx="50" cy="55" rx="41" ry="42"' + f + '/>';
+      case 'bean':   return '<ellipse cx="50" cy="55" rx="43" ry="40"' + f + '/>';
+      case 'cat':    return '<path d="M22,30 L28,8 L45,25 Z"' + f + '/><path d="M78,30 L72,8 L55,25 Z"' + f + '/><ellipse cx="50" cy="56" rx="40" ry="39"' + f + '/>';
+      case 'heart':  return '<path d="M50,94 C24,82 12,62 12,42 C12,26 27,20 39,29 Q50,38 50,38 Q50,38 61,29 C73,20 88,26 88,42 C88,62 76,82 50,94 Z"' + f + '/>';
+      default:       return '<circle cx="50" cy="54" r="42"' + f + '/>';
+    }
+  }
+  // returns [behind, front]
+  function _hairSVG(style, hair, model) {
+    var f = ' fill="' + hair + '"';
+    var dome = '<path d="M13,50 C13,26 30,14 50,14 C70,14 87,26 87,50 C68,41 32,41 13,50 Z"' + f + '/>';
+    if (model === 'bot') {
+      return ['', style === 'bald'
+        ? '<rect x="40" y="4" width="20" height="8" rx="3"' + f + ' opacity="0.5"/>'
+        : '<circle cx="50" cy="4" r="3.5"' + f + '/><rect x="47" y="4" width="6" height="10"' + f + '/>'];
+    }
+    switch (style) {
+      case 'bald':   return ['', ''];
+      case 'spiky':  return ['', '<path d="M13,52 L21,20 L30,44 L40,16 L50,42 L60,16 L70,44 L79,20 L87,52 C66,44 34,44 13,52 Z"' + f + '/>'];
+      case 'bangs':  return ['', '<path d="M12,50 C12,25 30,13 50,13 C70,13 88,25 88,50 L88,45 L76,56 L64,45 L52,56 L40,45 L28,56 L12,45 Z"' + f + '/>'];
+      case 'curl':   return ['', '<circle cx="16" cy="50" r="10"' + f + '/><circle cx="84" cy="50" r="10"' + f + '/>' + dome];
+      case 'mohawk': return ['', '<path d="M43,44 L43,14 Q50,2 57,14 L57,44 Z"' + f + '/>'];
+      case 'side':   return ['', '<path d="M11,54 C11,26 30,13 53,14 C76,15 89,30 88,50 C80,42 70,41 60,43 C52,45 45,40 38,40 C28,40 18,45 11,54 Z"' + f + '/>'];
+      case 'long':   return [
+        '<path d="M12,46 C12,22 30,14 50,14 C70,14 88,22 88,46 L88,84 Q80,90 73,86 L73,52 Q62,46 50,46 Q38,46 27,52 L27,86 Q20,90 12,84 Z"' + f + '/>',
+        dome
+      ];
+      case 'cap':    return ['', '<path d="M13,48 C13,24 30,14 50,14 C70,14 87,24 87,48 C68,40 32,40 13,48 Z"' + f + '/><path d="M50,45 L95,51 Q99,55 93,57 L50,53 Z"' + f + '/>'];
+      default:       return ['', dome];
+    }
+  }
+  function _eyesSVG(model) {
+    if (model === 'alien') return '<ellipse cx="34" cy="52" rx="5" ry="8" fill="#0f172a"/><ellipse cx="66" cy="52" rx="5" ry="8" fill="#0f172a"/>';
+    if (model === 'pixel') return '<rect x="31" y="49" width="7" height="7" fill="#1f1830"/><rect x="62" y="49" width="7" height="7" fill="#1f1830"/>';
+    if (model === 'chibi') return '<ellipse cx="35" cy="53" rx="5" ry="6.2" fill="#1f1830"/><ellipse cx="65" cy="53" rx="5" ry="6.2" fill="#1f1830"/><circle cx="36.7" cy="51" r="1.5" fill="#fff"/><circle cx="66.7" cy="51" r="1.5" fill="#fff"/>';
+    return '<ellipse cx="35" cy="53" rx="3.8" ry="4.8" fill="#1f1830"/><ellipse cx="65" cy="53" rx="3.8" ry="4.8" fill="#1f1830"/>';
+  }
+  function _browsSVG(hair, model) {
+    if (model === 'alien') return '';
+    return '<rect x="26" y="41" width="13" height="2.6" rx="1.3" fill="' + hair + '" transform="rotate(-7 32.5 42.3)"/>' +
+           '<rect x="61" y="41" width="13" height="2.6" rx="1.3" fill="' + hair + '" transform="rotate(7 67.5 42.3)"/>';
+  }
+  function _mouthSVG(vibe) {
+    switch (vibe) {
+      case 'cool':  return '<line x1="43" y1="70" x2="57" y2="70" stroke="#1f1830" stroke-width="2.6" stroke-linecap="round"/>';
+      case 'focus': return '<path d="M42,67 Q50,72 58,67" fill="none" stroke="#b45309" stroke-width="2.6" stroke-linecap="round"/>';
+      case 'grin':  return '<path d="M37,65 Q50,80 63,65" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>';
+      case 'smirk': return '<path d="M43,69 Q52,73 60,66" fill="none" stroke="#b45309" stroke-width="2.6" stroke-linecap="round"/>';
+      default:      return '<path d="M40,66 Q50,74 60,66" fill="none" stroke="#b45309" stroke-width="2.6" stroke-linecap="round"/>';
+    }
+  }
+  function _blushSVG(model) {
+    if (model === 'bot' || model === 'alien') return '';
+    return '<ellipse cx="24" cy="63" rx="5" ry="3" fill="#ec4899" opacity="0.28"/><ellipse cx="76" cy="63" rx="5" ry="3" fill="#ec4899" opacity="0.28"/>';
+  }
+  function _accSVG(acc) {
+    switch (acc) {
+      case 'glasses': return '<g fill="rgba(255,255,255,0.10)" stroke="#1f1830" stroke-width="2"><rect x="24" y="47" width="18" height="13" rx="4"/><rect x="58" y="47" width="18" height="13" rx="4"/></g><line x1="42" y1="53" x2="58" y2="53" stroke="#1f1830" stroke-width="2"/>';
+      case 'shade':   return '<g fill="#0f172a"><rect x="22" y="47" width="20" height="12" rx="4"/><rect x="58" y="47" width="20" height="12" rx="4"/><rect x="40" y="51" width="20" height="3"/></g>';
+      case 'mono':    return '<circle cx="65" cy="54" r="11" fill="rgba(148,163,184,0.22)" stroke="#334155" stroke-width="2"/><line x1="65" y1="65" x2="68" y2="80" stroke="#334155" stroke-width="1.4"/>';
+      case 'star':    return '<path d="M50,4 L53.2,11 L60.8,12 L55.2,17.2 L56.6,24.6 L50,21 L43.4,24.6 L44.8,17.2 L39.2,12 L46.8,11 Z" fill="#fbbf24"/>';
+      case 'mask':    return '<path d="M28,58 Q50,51 72,58 Q73,75 50,81 Q27,75 28,58 Z" fill="#6d28d9" opacity="0.9"/>';
+      default:        return '';
+    }
+  }
+
+  // spec|string -> SVG markup string
+  function avatarSVG(value, size) {
+    var s = (value && typeof value === 'object') ? _normSpec(value) : (parseAvatar(value) || _normSpec(null));
+    size = size || 64;
+    var hair = _hairSVG(s.hairStyle, s.hair, s.model);
+    var body = hair[0] + _headSVG(s.model, s.skin) + hair[1] +
+               _eyesSVG(s.model) + _browsSVG(s.hair, s.model) +
+               _blushSVG(s.model) + _mouthSVG(s.vibe) + _accSVG(s.acc);
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="' + size + '" height="' + size + '" style="display:block">' + body + '</svg>';
+  }
+
+  // value -> ready-to-insert HTMLElement. Renders a procedural face for a
+  // gv1: string / spec object, an <img> for a real URL, or an initial badge
+  // as a last resort. opts: { size, name, alt }.
+  function renderAvatar(value, opts) {
+    opts = opts || {};
+    var size = opts.size || 40;
+    var el = document.createElement('span');
+    el.className = 'gv-avatar';
+    el.setAttribute('role', 'img');
+    el.setAttribute('aria-label', opts.alt || (opts.name ? opts.name + "'s avatar" : 'Player avatar'));
+    var base = 'display:inline-flex;align-items:center;justify-content:center;width:' + size + 'px;height:' + size + 'px;flex-shrink:0;vertical-align:middle;line-height:0;';
+    var spec = parseAvatar(value);
+    if (spec) {
+      el.style.cssText = base;
+      el.innerHTML = avatarSVG(spec, size);
+    } else if (typeof value === 'string' && /^\s*(https?:\/\/|\/|data:)/.test(value)) {
+      el.style.cssText = base + 'border-radius:50%;overflow:hidden;';
+      var img = document.createElement('img');
+      img.src = value.trim();
+      img.alt = opts.alt || opts.name || '';
+      img.loading = 'lazy';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      el.appendChild(img);
+    } else {
+      el.style.cssText = base + 'border-radius:50%;background:linear-gradient(135deg,#6d4dff,#f472b6);color:#fff;font-weight:700;font-family:inherit;line-height:1;font-size:' + Math.round(size * 0.42) + 'px;';
+      el.textContent = ((opts.name || '?').trim().charAt(0) || '?').toUpperCase();
+    }
+    return el;
+  }
+
+  // --------------------------------------------------------
   // Public API
   // --------------------------------------------------------
 
@@ -1661,6 +1838,19 @@
     favorites: favorites,
     rating: rating,
     challenge: challenge,
-    ui: ui
+    ui: ui,
+    avatar: {
+      render: renderAvatar,
+      svg: avatarSVG,
+      parse: parseAvatar,
+      encode: encodeAvatar,
+      DEFAULT: AVATAR_DEFAULT,
+      models: AVATAR_MODELS,
+      hairStyles: AVATAR_HAIR_STYLES,
+      vibes: AVATAR_VIBES,
+      accessories: AVATAR_ACCS,
+      skins: AVATAR_SKINS,
+      hairs: AVATAR_HAIRS
+    }
   };
 })();
