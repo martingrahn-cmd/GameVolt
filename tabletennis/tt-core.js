@@ -96,11 +96,13 @@
     var ty = typeof aim.ty === 'number' ? aim.ty : NET_Y + fwd * 0.85;
     tx = Math.max(-TABLE_W / 2 - 0.4, Math.min(TABLE_W / 2 + 0.4, tx));
     // Depth floor: neither side can move in depth, so a serve dropped just
-    // past the net double-bounces before the receiver's paddle plane and is
-    // physically untakeable — a free point, not a risk shot. Minimum depth
-    // guarantees the post-bounce carry reaches the receiver.
-    if (s.server === 1) ty = Math.max(NET_Y + 0.55, Math.min(TABLE_L + 0.6, ty));
-    else ty = Math.min(NET_Y - 0.55, Math.max(-0.6, ty));
+    // past the net lands short and arrives at the receiver below the table
+    // edge — physically untakeable, a free point rather than a risk shot
+    // (the "hold the paddle still on serve" exploit). A deep minimum
+    // guarantees the ball carries to the receiver's paddle at a hittable
+    // height. ~0.9m past the net lands around 2.3 of the 2.74 table.
+    if (s.server === 1) ty = Math.max(NET_Y + 0.9, Math.min(TABLE_L + 0.6, ty));
+    else ty = Math.min(NET_Y - 0.9, Math.max(-0.6, ty));
     // pace 0..1: harder serves bounce earlier on the own half and drive
     // flatter/faster out of the bounce (smaller first-flight share)
     var pace = typeof aim.pace === 'number' ? Math.max(0, Math.min(1, aim.pace)) : 0;
