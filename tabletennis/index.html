@@ -358,12 +358,12 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.35.0"></script>
-  <script src="tt-ai.js?v=0.35.0"></script>
-  <script src="sb-net.js?v=0.35.0"></script>
+  <script src="tt-core.js?v=0.36.0"></script>
+  <script src="tt-ai.js?v=0.36.0"></script>
+  <script src="sb-net.js?v=0.36.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.35.0';
+    var VERSION = '0.36.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -413,10 +413,10 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.35.0', bounce: 'assets/bounce.mp3?v=0.35.0',
-        cheer: 'assets/cheer.mp3?v=0.35.0', net: 'assets/net.mp3?v=0.35.0',
-        crowd: 'assets/crowd.mp3?v=0.35.0', winfare: 'assets/winfare.mp3?v=0.35.0',
-        lose: 'assets/lose.mp3?v=0.35.0', matchpoint: 'assets/matchpoint.mp3?v=0.35.0'
+        hit: 'assets/hit.mp3?v=0.36.0', bounce: 'assets/bounce.mp3?v=0.36.0',
+        cheer: 'assets/cheer.mp3?v=0.36.0', net: 'assets/net.mp3?v=0.36.0',
+        crowd: 'assets/crowd.mp3?v=0.36.0', winfare: 'assets/winfare.mp3?v=0.36.0',
+        lose: 'assets/lose.mp3?v=0.36.0', matchpoint: 'assets/matchpoint.mp3?v=0.36.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -1609,8 +1609,10 @@
           var power = Math.min(1, Math.max(0, eff - 0.9) / 2.4);
           aim = {
             tx: Math.max(-0.65, Math.min(0.65, game.paddles[1].x * 0.3 + pointerVX * 0.5)),
-            ty: K.NET_Y + 0.55 + 0.85 * power,
-            pace: power,
+            // even a no-swipe serve lands deep and carries to the receiver at
+            // a hittable height (no more "hold still on serve = free point")
+            ty: K.NET_Y + 0.95 + 0.6 * power,
+            pace: Math.max(0.4, power),
             lift: toss.strikeAt !== undefined ? tossHeight() : 0
           };
         }
@@ -1783,7 +1785,7 @@
       document.getElementById('er-oname').textContent = charById(oppChar).short;
       document.getElementById('er-score').textContent = game.scores[1] + '–' + game.scores[2];
       drawPortrait(document.getElementById('er-face-p'), charById(myChar));
-      drawPortrait(document.getElementById('er-face'), charById(oppChar));
+      drawPortrait(document.getElementById('er-face-o'), charById(oppChar));
       document.getElementById('end-cheese').textContent = won ? 'Match won! Play again or head back.' : 'So close — run it back!';
       el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · online';
       document.getElementById('again-btn').textContent = 'REMATCH';
