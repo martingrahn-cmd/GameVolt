@@ -211,6 +211,9 @@ export class OneStrokeApp {
     // Daily challenge
     this.dailyLeaderboardListEl = document.getElementById("dailyLeaderboardList");
     this.dailyLeaderboardShareListEl = document.getElementById("dailyLeaderboardShareList");
+    this.dailyRankSummaryEl = document.getElementById("dailyRankSummary");
+    this.weeklyRankSummaryEl = document.getElementById("weeklyRankSummary");
+    this.shareRankSummaryEl = document.getElementById("shareRankSummary");
     this.dailyShareBtn2 = document.getElementById("dailyShareBtn2");
     this.dailyChallengeBtn = document.getElementById("dailyChallengeBtn");
     this.dailyResultCard = document.getElementById("dailyResultCard");
@@ -223,6 +226,7 @@ export class OneStrokeApp {
     this.dailyAttemptBadge = document.getElementById("dailyAttemptBadge");
     this.dailyWeekStrip = document.getElementById("dailyWeekStrip");
     this.weeklyChallengeBtn = document.getElementById("weeklyChallengeBtn");
+    this.weeklyAttemptBadge = document.getElementById("weeklyAttemptBadge");
     this.weeklyDateLabel = document.getElementById("weeklyDateLabel");
     this.weeklyResetLabel = document.getElementById("weeklyResetLabel");
     this.weeklyLeaderboardListEl = document.getElementById("weeklyLeaderboardList");
@@ -312,6 +316,9 @@ export class OneStrokeApp {
     this.friendMode = false;
     this.highScoreMode = "all";
     this.cloudSyncPromise = null;
+    this.competitionRanks = new Map();
+    this.competitionEvents = {};
+    this.competitionEventPromise = null;
 
     this.levelAttempt = {
       startedAtMs: Date.now(),
@@ -550,16 +557,46 @@ export class OneStrokeApp {
   // ── Daily Challenge ──────────────────────────────────────────
 
   getDailySeed() {
-    return `daily-${todaySeed()}`;
+    return this.competitionEvents.daily?.seed || `daily-${todaySeed()}`;
+  }
+
+  getDailyDayId() {
+    return this.competitionEvents.daily?.event_id || todaySeed();
+  }
+
+  async syncCompetitionEvents() {
+    if (!window.GameVolt?.challenge?.getCompetitionEvent) return null;
+    if (this.competitionEventPromise) return this.competitionEventPromise;
+    this.competitionEventPromise = Promise.all([
+      GameVolt.challenge.getCompetitionEvent("daily"),
+      GameVolt.challenge.getCompetitionEvent("weekly"),
+    ]).then(([daily, weekly]) => {
+      if (daily?.seed?.startsWith("daily-") && daily.event_id) {
+        this.competitionEvents.daily = daily;
+      }
+      if (weekly?.seed?.startsWith("weekly-") && weekly.event_id) {
+        this.competitionEvents.weekly = weekly;
+      }
+      this.updateDailyUI();
+      this.updateWeeklyUI();
+      this.updateEventCountdowns();
+      return this.competitionEvents;
+    }).catch((error) => {
+      console.warn("[gamevolt] server competition clock unavailable:", error);
+      return null;
+    }).finally(() => {
+      this.competitionEventPromise = null;
+    });
+    return this.competitionEventPromise;
   }
 
   hasDailyBeenPlayed() {
-    const key = `daily-played-${todaySeed()}`;
+    const key = `daily-played-${this.getDailyDayId()}`;
     try { return localStorage.getItem(key) !== null; } catch { return false; }
   }
 
   markDailyAsPlayed(summary) {
-    const dayId = todaySeed();
+    const dayId = this.getDailyDayId();
     const key = `daily-played-${dayId}`;
     const result = {
       score: summary.totalScore,
@@ -587,7 +624,7 @@ export class OneStrokeApp {
   updateStreak() {
     // Preserve a live streak through today or yesterday, using UTC day IDs.
     let streak = 0;
-    const todayPlayed = Boolean(this.dailyProgress.results[todaySeed()]);
+    const todayPlayed = Boolean(this.dailyProgress.results[this.getDailyDayId()]);
     const startOffset = todayPlayed ? 0 : 1;
     for (let i = 0; i < 365; i++) {
       const dayId = this.getDateString(i + startOffset);
@@ -610,7 +647,7 @@ export class OneStrokeApp {
   }
 
   getDailyPlayedResult() {
-    const dayId = todaySeed();
+    const dayId = this.getDailyDayId();
     if (this.dailyProgress.results[dayId]) return this.dailyProgress.results[dayId];
     const key = `daily-played-${dayId}`;
     try {
@@ -624,7 +661,8 @@ export class OneStrokeApp {
     } catch { return null; }
   }
 
-  startDailyChallenge() {
+  async startDailyChallenge() {
+    await this.syncCompetitionEvents();
     const rankedResult = this.getDailyPlayedResult();
     this.dailyMode = true;
     this.weeklyMode = false;
@@ -647,7 +685,7 @@ export class OneStrokeApp {
 
   updateDailyUI() {
     if (this.dailyDateLabel) {
-      this.dailyDateLabel.textContent = `${formatUtcDay(todaySeed())} · UTC`;
+      this.dailyDateLabel.textContent = `${formatUtcDay(this.getDailyDayId())} · UTC`;
     }
   }
 
@@ -667,10 +705,16 @@ export class OneStrokeApp {
     const week = utcWeekInfo(now);
     const nextWeekMs = Date.parse(`${week.endDay}T00:00:00.000Z`) + 86_400_000;
     if (this.dailyResetLabel) {
-      this.dailyResetLabel.textContent = `Next Daily in ${this.formatResetCountdown(nextDayMs)}`;
+      const serverClose = Date.parse(this.competitionEvents.daily?.closes_at);
+      this.dailyResetLabel.textContent = `Next Daily in ${this.formatResetCountdown(
+        Number.isFinite(serverClose) ? serverClose : nextDayMs,
+      )}`;
     }
     if (this.weeklyResetLabel) {
-      this.weeklyResetLabel.textContent = `Next Weekly in ${this.formatResetCountdown(nextWeekMs)}`;
+      const serverClose = Date.parse(this.competitionEvents.weekly?.closes_at);
+      this.weeklyResetLabel.textContent = `Next Weekly in ${this.formatResetCountdown(
+        Number.isFinite(serverClose) ? serverClose : nextWeekMs,
+      )}`;
     }
 
     if (this.eventClockDayId && this.eventClockDayId !== todaySeed()) {
@@ -684,14 +728,46 @@ export class OneStrokeApp {
   }
 
   getWeeklySeed() {
-    return utcWeekInfo().seed;
+    return this.competitionEvents.weekly?.seed || utcWeekInfo().seed;
   }
 
-  startWeeklyChallenge() {
+  getWeeklyEventId() {
+    return this.competitionEvents.weekly?.event_id || utcWeekInfo().id;
+  }
+
+  getWeeklyPlayedResult() {
+    const weekId = this.getWeeklyEventId();
+    try {
+      const raw = localStorage.getItem(`weekly-played-${weekId}`);
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // Cloud rank below remains a cross-device fallback.
+    }
+    const cloudRank = this.competitionRanks.get(this.getWeeklySeed());
+    return cloudRank ? { score: cloudRank.score, fromCloud: true } : null;
+  }
+
+  markWeeklyAsPlayed(summary) {
+    const weekId = this.getWeeklyEventId();
+    const result = {
+      score: summary.totalScore,
+      timeMs: summary.totalTimeMs,
+      completedCount: summary.completedCount,
+      totalCount: summary.totalLevels,
+    };
+    try {
+      localStorage.setItem(`weekly-played-${weekId}`, JSON.stringify(result));
+    } catch {}
+    this.updateWeeklyUI();
+  }
+
+  async startWeeklyChallenge() {
+    await this.syncCompetitionEvents();
+    const rankedResult = this.getWeeklyPlayedResult();
     this.dailyMode = false;
     this.weeklyMode = true;
     this.bonusMode = false;
-    this.dailyPracticeMode = false;
+    this.dailyPracticeMode = Boolean(rankedResult);
     this.friendMode = false;
     this.createChallenge(this.getWeeklySeed(), 10);
     this.setHubView("multiplayer", { syncMode: false });
@@ -700,13 +776,25 @@ export class OneStrokeApp {
     this.loadChallengeLevel(0, { announce: false });
     this.renderModeButtons();
     this.updateCompetitionLabels();
-    this.setStatus("Weekly challenge! 10 levels — one curated run for the whole week.");
+    this.setStatus(this.dailyPracticeMode
+      ? "Weekly Practice — this replay is saved locally but will not change your rank."
+      : "Weekly ranked challenge! This is your one leaderboard attempt for the week.");
   }
 
   updateWeeklyUI() {
     const week = utcWeekInfo();
     if (this.weeklyDateLabel) this.weeklyDateLabel.textContent = week.label;
     if (this.bonusDateLabel) this.bonusDateLabel.textContent = week.label;
+    const played = this.getWeeklyPlayedResult();
+    if (this.weeklyChallengeBtn) {
+      this.weeklyChallengeBtn.textContent = played ? "Practice Weekly" : "Play Weekly";
+    }
+    if (this.weeklyAttemptBadge) {
+      this.weeklyAttemptBadge.textContent = played
+        ? `Ranked run complete · ${toDisplayScore(played.score)} points · replays are practice`
+        : "One ranked attempt available this UTC week";
+      this.weeklyAttemptBadge.hidden = false;
+    }
   }
 
   startBonusChallenge() {
@@ -895,14 +983,14 @@ export class OneStrokeApp {
         : "Daily Challenge";
     const eventLabel = this.weeklyMode || this.bonusMode
       ? week.id
-      : formatUtcDay(todaySeed());
+      : formatUtcDay(this.getDailyDayId());
     const slug = this.weeklyMode
       ? week.seed
       : this.bonusMode
         ? `bonus-${week.id}`
-        : `daily-${todaySeed()}`;
+        : `daily-${this.getDailyDayId()}`;
     const canvas = generateShareImage({
-      date: todaySeed(),
+      date: this.getDailyDayId(),
       eventLabel,
       modeLabel,
       cta: this.bonusMode
@@ -915,6 +1003,7 @@ export class OneStrokeApp {
       undoCount: totals.undoCount,
       resetCount: totals.resetCount,
       hintCount: totals.hintCount,
+      rank: this.competitionRanks.get(this.challenge.seed)?.rank ?? null,
     });
 
     const result = await shareResult(canvas, {
@@ -1449,6 +1538,23 @@ export class OneStrokeApp {
         this.sharePbSummaryEl.classList.add(isNewPb ? "ahead" : "behind");
       }
     }
+    this.renderShareRankSummary();
+  }
+
+  renderShareRankSummary() {
+    if (!this.shareRankSummaryEl) return;
+    const isRankedCompetition = (this.dailyMode || this.weeklyMode) && !this.dailyPracticeMode;
+    const rank = this.competitionRanks.get(this.challenge.seed);
+    this.shareRankSummaryEl.hidden = !isRankedCompetition;
+    if (!isRankedCompetition) return;
+
+    if (!window.GameVolt?.auth?.getUser?.()) {
+      this.shareRankSummaryEl.textContent = "Saved locally · sign in before playing to earn a public rank.";
+      return;
+    }
+    this.shareRankSummaryEl.textContent = rank
+      ? `Public rank #${rank.rank} · ${toDisplayScore(rank.score)} points`
+      : "Rank is updating…";
   }
 
   renderResultsPhaseStatus() {
@@ -2722,7 +2828,7 @@ export class OneStrokeApp {
   renderLevelRuleState() {
     const remainingUndos = this.getRemainingUndos();
     const hasFixedEnd = Boolean(this.state.endKey);
-    const isPractice = this.dailyMode && this.dailyPracticeMode;
+    const isPractice = (this.dailyMode || this.weeklyMode) && this.dailyPracticeMode;
     if (this.levelRuleBadgeEl) {
       this.levelRuleBadgeEl.hidden = !hasFixedEnd && remainingUndos == null && !isPractice;
       if (!this.levelRuleBadgeEl.hidden) {
@@ -3330,7 +3436,7 @@ export class OneStrokeApp {
             title: this.dailyMode
               ? (this.dailyPracticeMode ? "Daily practice complete!" : "Daily challenge complete!")
               : (this.weeklyMode
-                  ? "Weekly challenge complete!"
+                  ? (this.dailyPracticeMode ? "Weekly practice complete!" : "Weekly challenge complete!")
                   : (this.bonusMode ? "Bonus Paths complete!" : "Match complete!")),
             splits: modalSplits,
             showDailyShare: (this.dailyMode || this.weeklyMode || this.bonusMode) && !this.dailyPracticeMode,
@@ -3476,8 +3582,11 @@ export class OneStrokeApp {
 
     // Submit run to GameVolt cloud
     this._cloudSubmitPromise = null;
-    const eligibleForCloudRank = plausibility.ok && !(this.dailyMode && this.dailyPracticeMode);
-    const cloudChallengeReady = eligibleForCloudRank
+    const eligibleForCloudRank = plausibility.ok && !this.dailyPracticeMode;
+    const isPublicCompetition = this.dailyMode || this.weeklyMode;
+    const hasServerCompetitionSubmit = isPublicCompetition
+      && typeof window.GameVolt?.challenge?.submitCompetition === "function";
+    const cloudChallengeReady = eligibleForCloudRank && !hasServerCompetitionSubmit
       ? (this.dailyMode
           ? this.ensureDailyCloudChallenge()
           : (this.weeklyMode
@@ -3485,9 +3594,39 @@ export class OneStrokeApp {
               : Promise.resolve(this.cloudChallengeId)))
       : Promise.resolve(null);
     if (eligibleForCloudRank && window.GameVolt?.challenge && GameVolt.auth.getUser()) {
-      this._cloudSubmitPromise = cloudChallengeReady.then((challengeId) => {
-        if (!challengeId) return false;
-        return GameVolt.challenge.submit(challengeId, this.getCloudRunPayload()).then(() => true);
+      const payload = this.getCloudRunPayload();
+      this._cloudSubmitPromise = (hasServerCompetitionSubmit
+        ? GameVolt.challenge.submitCompetition(this.weeklyMode ? "weekly" : "daily", payload)
+            .then((result) => {
+              if (result?.challenge_id) this.cloudChallengeId = result.challenge_id;
+              if (!result?.accepted) {
+                this.dailyPracticeMode = true;
+                this.setStatus(result?.reason === "already_submitted"
+                  ? "Your ranked attempt was already recorded. This run remains local Practice."
+                  : "The server could not validate this run, so it remains unranked.", "loss");
+              }
+              return Boolean(result?.accepted);
+            }).catch((error) => {
+              const message = String(error?.message || error?.code || error);
+              const migrationMissing = /PGRST202|42883|get_one_stroke_competition|submit_one_stroke_competition/i
+                .test(message);
+              if (!migrationMissing) throw error;
+              console.warn("[gamevolt] competition integrity migration missing; using legacy submit");
+              const legacyReady = this.dailyMode
+                ? this.ensureDailyCloudChallenge()
+                : this.ensureWeeklyCloudChallenge();
+              return legacyReady.then((challengeId) => {
+                if (!challengeId) return false;
+                return GameVolt.challenge.submit(challengeId, payload).then(() => true);
+              });
+            })
+        : cloudChallengeReady.then((challengeId) => {
+            if (!challengeId) return false;
+            return GameVolt.challenge.submit(challengeId, payload).then(() => true);
+          })
+      ).then((submitted) => {
+        if (!submitted) return false;
+        return true;
       }).then((submitted) => {
         if (!submitted) return;
         console.log("[gamevolt] challenge run submitted");
@@ -3523,6 +3662,9 @@ export class OneStrokeApp {
     if (this.dailyMode && !this.dailyPracticeMode && plausibility.ok) {
       this.markDailyAsPlayed(summary);
       this.showDailyResult();
+    }
+    if (this.weeklyMode && !this.dailyPracticeMode && plausibility.ok) {
+      this.markWeeklyAsPlayed(summary);
     }
     if (!plausibility.ok) {
       this.setStatus("Run saved locally, but not ranked because its timing data was invalid.", "loss");
@@ -4475,6 +4617,8 @@ export class OneStrokeApp {
       targetEl,
       this.getDailySeed(),
       "No one has played yet today. Be first!",
+      this.dailyRankSummaryEl,
+      "Daily",
     );
   }
 
@@ -4483,15 +4627,47 @@ export class OneStrokeApp {
       targetEl,
       this.getWeeklySeed(),
       "No weekly runs yet. Set the first time!",
+      this.weeklyRankSummaryEl,
+      "Weekly",
     );
   }
 
-  async fetchCompetitionLeaderboard(targetEl, seed, emptyText) {
+  async fetchCompetitionLeaderboard(targetEl, seed, emptyText, rankSummaryEl, modeLabel) {
     if (!targetEl || !window.GameVolt?.challenge) return;
 
     try {
       const rows = await GameVolt.challenge.getDailyLeaderboard(seed, { limit: 1000 });
       const user = GameVolt.auth.getUser();
+      const myRow = user ? rows.find((row) => row.user_id === user.id) : null;
+      if (myRow) {
+        this.competitionRanks.set(seed, {
+          rank: Number(myRow.rank),
+          score: Number(myRow.score),
+        });
+        if (seed === this.getWeeklySeed()) {
+          try {
+            localStorage.setItem(`weekly-played-${this.getWeeklyEventId()}`, JSON.stringify({
+              score: Number(myRow.score),
+              timeMs: Number(myRow.time_ms) || 0,
+              completedCount: Number(myRow.completed_count) || 0,
+              totalCount: Number(myRow.total_count) || 10,
+              fromCloud: true,
+            }));
+          } catch {}
+          this.updateWeeklyUI();
+        }
+      } else {
+        this.competitionRanks.delete(seed);
+      }
+      if (rankSummaryEl) {
+        rankSummaryEl.classList.toggle("has-rank", Boolean(myRow));
+        rankSummaryEl.textContent = !user
+          ? `Sign in to track your ${modeLabel} rank.`
+          : myRow
+            ? `Your ${modeLabel} rank: #${myRow.rank} · ${toDisplayScore(myRow.score)} points`
+            : `No ranked ${modeLabel} result yet.`;
+      }
+      if (seed === this.challenge.seed) this.renderShareRankSummary();
 
       targetEl.innerHTML = "";
       if (rows.length === 0) {
@@ -4503,7 +4679,6 @@ export class OneStrokeApp {
       }
 
       const topRows = rows.slice(0, 20);
-      const myRow = user ? rows.find((row) => row.user_id === user.id) : null;
       const rowsToRender = myRow && !topRows.includes(myRow)
         ? [...topRows, { separator: true }, myRow]
         : topRows;
@@ -5080,8 +5255,11 @@ export class OneStrokeApp {
 
   submitToLeaderboard(score, plausibility = { ok: true }) {
     if (!plausibility.ok) return Promise.resolve(false);
-    if (this.dailyMode && this.dailyPracticeMode) return Promise.resolve(false);
+    if (this.dailyPracticeMode) return Promise.resolve(false);
     if (!this.dailyMode && !this.weeklyMode) return Promise.resolve(false);
+    // Ranked event boards use the first-write-wins server RPC. Do not also
+    // write a client-trusted score into the generic leaderboard.
+    if (window.GameVolt?.challenge?.submitCompetition) return Promise.resolve(false);
     if (!window.GameVolt?.leaderboard || !GameVolt.auth.getUser()) return;
     return GameVolt.leaderboard.submit(score, { mode: this.weeklyMode ? "weekly" : "daily" })
       .then(() => true)

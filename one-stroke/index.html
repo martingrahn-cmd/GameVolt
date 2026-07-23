@@ -184,6 +184,9 @@
 
               <div id="dailyLeaderboard" class="daily-leaderboard">
                 <h3>Today's Leaderboard</h3>
+                <p id="dailyRankSummary" class="competition-rank-summary" aria-live="polite">
+                  Sign in to track your Daily rank.
+                </p>
                 <div id="dailyLeaderboardList" class="match-standings-list" role="list">
                   <p class="daily-leaderboard-empty">No one has played yet today. Be the first!</p>
                 </div>
@@ -199,9 +202,13 @@
                   <span class="weekly-badge">10 levels</span>
                 </div>
                 <p class="match-description">A longer curated run shared by every player for the whole week.</p>
+                <p id="weeklyAttemptBadge" class="daily-attempt-badge" hidden></p>
                 <button id="weeklyChallengeBtn" type="button" class="primary daily-play-btn">Play Weekly</button>
                 <div class="daily-leaderboard">
                   <h3>This Week's Leaderboard</h3>
+                  <p id="weeklyRankSummary" class="competition-rank-summary" aria-live="polite">
+                    Sign in to track your Weekly rank.
+                  </p>
                   <div id="weeklyLeaderboardList" class="match-standings-list" role="list">
                     <p class="daily-leaderboard-empty">No weekly runs yet. Set the first time!</p>
                   </div>
@@ -286,6 +293,7 @@
                 </article>
               </div>
               <div id="sharePbSummary" class="ghost-pace-card ghost-result-card" hidden></div>
+              <div id="shareRankSummary" class="competition-rank-summary share-rank-summary" hidden aria-live="polite"></div>
               <button id="dailyShareBtn2" type="button" class="primary match-share-btn">Share Result</button>
               <p id="matchShareConfirm" class="match-share-confirm" hidden></p>
 

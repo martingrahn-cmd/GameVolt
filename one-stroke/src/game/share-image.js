@@ -54,6 +54,7 @@ export function generateShareImage({
   undoCount,
   resetCount,
   hintCount,
+  rank = null,
 }) {
   const canvas = document.createElement("canvas");
   canvas.width = CARD_WIDTH;
@@ -121,7 +122,7 @@ export function generateShareImage({
 
   ctx.fillStyle = "#5a6a7a";
   ctx.font = "20px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("POÄNG", CARD_WIDTH / 2, 300);
+  ctx.fillText(rank ? `POÄNG · RANK #${rank}` : "POÄNG", CARD_WIDTH / 2, 300);
 
   // ── Stats row ──
   const stats = [

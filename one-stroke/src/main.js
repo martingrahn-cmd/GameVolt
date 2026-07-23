@@ -55,6 +55,7 @@ if (window.GameVolt) {
     if (!user) return;
     backfillTrophies(user);
     app.syncCloudProgress();
+    app.syncCompetitionEvents();
   };
   GameVolt.auth.onStateChange(syncSignedInData);
   GameVolt.onReady(function() {
