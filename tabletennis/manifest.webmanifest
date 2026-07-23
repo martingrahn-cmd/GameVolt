@@ -1,8 +1,8 @@
 {
   "id": "tabletennis",
-  "name": "Table Tennis",
-  "short_name": "TableTennis",
-  "description": "2.5D arcade table tennis — drag to move, swipe through the ball to aim.",
+  "name": "Spinburn",
+  "short_name": "Spinburn",
+  "description": "Spinburn — 2.5D arcade table tennis. Climb the ladder from quarterfinal to champion. Drag to move, swipe through the ball to smash.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
