@@ -3,7 +3,7 @@
 **Datum:** 2026-07-22  
 **Omfattning:** kampanj (200 nivåer), tutorial, Daily Challenge, challenges, mobil/touch, progression, GameVolt-SDK, PWA/offline, achievements, delning och marknadsassets.
 
-**Status 2026-07-23:** P0–P5 är genomförda. P5 lägger till sjudagars Daily-översikt, mode-aware runhistorik med filter och uppdaterad publik information/FAQ för Weekly, Bonus, friend challenges och mastery.
+**Status 2026-07-23:** P0–P6 är genomförda. P6 lägger till levande UTC-resetnedräkning, mode-aware delningskort för Daily/Weekly/Bonus och en synlig reload-notis när PWA-cachen byter version.
 
 ## Sammanfattning
 
@@ -39,6 +39,9 @@ Min rekommendation är en **One Stroke 1.1 — Clean Line Update** i tre tydliga
 | P5 | Sjudagars Daily-översikt — **P5A åtgärdad** | Feature/retention | Liten–medel | Medel–hög |
 | P5 | Mode-aware historik och filter — **P5B åtgärdad** | Feature/polish | Medel | Medel |
 | P5 | Releasecopy och FAQ för nya spellägen — **P5C åtgärdad** | Polish/SEO | Liten | Medel |
+| P6 | UTC-resetnedräkning för Daily och Weekly — **P6A åtgärdad** | Feature/live ops | Liten | Medel–hög |
+| P6 | Mode-aware delningskort — **P6B åtgärdad** | Feature/growth | Medel | Medel–hög |
+| P6 | PWA update-notis med kontrollerad reload — **P6C åtgärdad** | Polish/reliability | Liten | Medel |
 
 ## Buggar
 
@@ -189,5 +192,6 @@ Kodbasen har redan mycket av infrastrukturen för matchkoder och cloud challenge
 - Browser-QA av P3C: fem bonusnivåer, synlig målnod och regelbadge verifierades; tredje undo blockerades korrekt efter en budget på två.
 - Browser-QA av P4: en komplett femnivåers Daily-run växlade replay till `Daily Practice` med dold delning; friend create/join och 200 mastery-badges verifierades utan konsolfel.
 - Browser-QA av P5: exakt sju UTC-dagar renderades med dagens markering, modefiltret gav korrekt tomläge och publik copy/FAQ exponerade Weekly, mastery och friend challenge utan konsolfel.
+- Browser-QA av P6: Daily/Weekly-resetlabels, mode-anpassade shareknappar och dold PWA-notis i normalt läge verifierades; update-notisen visas först vid verkligt controllerbyte.
 
 Verkliga inloggade GameVolt/Supabase-anrop bör fortfarande smoke-testas mot produktion före release.

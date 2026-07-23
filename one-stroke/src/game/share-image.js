@@ -42,7 +42,19 @@ function formatDate(dateStr) {
   }).format(d);
 }
 
-export function generateShareImage({ date, score, timeMs, levelCount, completedCount, undoCount, resetCount, hintCount }) {
+export function generateShareImage({
+  date,
+  eventLabel,
+  modeLabel = "Daily Challenge",
+  cta = "Can you beat me? Play One Stroke!",
+  score,
+  timeMs,
+  levelCount,
+  completedCount,
+  undoCount,
+  resetCount,
+  hintCount,
+}) {
   const canvas = document.createElement("canvas");
   canvas.width = CARD_WIDTH;
   canvas.height = CARD_HEIGHT;
@@ -89,16 +101,17 @@ export function generateShareImage({ date, score, timeMs, levelCount, completedC
 
   // ── Date badge ──
   ctx.fillStyle = "#1a2633";
-  roundRect(ctx, 60, 115, 320, 44, 10);
+  roundRect(ctx, 60, 115, 470, 44, 10);
   ctx.fill();
   ctx.strokeStyle = "#253545";
   ctx.lineWidth = 1;
-  roundRect(ctx, 60, 115, 320, 44, 10);
+  roundRect(ctx, 60, 115, 470, 44, 10);
   ctx.stroke();
   ctx.fillStyle = "#8aafcc";
   ctx.font = "bold 18px 'Oxanium', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(`Daily Challenge — ${formatDate(date)}`, 220, 143);
+  const displayEvent = eventLabel || formatDate(date);
+  ctx.fillText(`${modeLabel} — ${displayEvent}`, 295, 143);
 
   // ── Main score ──
   ctx.textAlign = "center";
@@ -155,7 +168,7 @@ export function generateShareImage({ date, score, timeMs, levelCount, completedC
   ctx.fillStyle = "#d0e8f8";
   ctx.font = "bold 22px 'Oxanium', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("Can you beat me? Try today's challenge!", CARD_WIDTH / 2, 515);
+  ctx.fillText(cta, CARD_WIDTH / 2, 515);
 
   // ── Footer ──
   ctx.fillStyle = "#2a3a4a";
@@ -166,16 +179,21 @@ export function generateShareImage({ date, score, timeMs, levelCount, completedC
   return canvas;
 }
 
-export async function shareResult(canvas, { date }) {
+export async function shareResult(canvas, {
+  slug = "daily",
+  title = "One Stroke — Daily Challenge",
+  text = "I played today's One Stroke challenge! Can you beat me?",
+} = {}) {
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-  const file = new File([blob], `one-stroke-daily-${date}.png`, { type: "image/png" });
+  const safeSlug = String(slug).replace(/[^a-z0-9-]+/gi, "-").toLowerCase();
+  const file = new File([blob], `one-stroke-${safeSlug}.png`, { type: "image/png" });
 
   // Try Web Share API (mobile + desktop where supported)
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({
-        title: "One Stroke — Daily Challenge",
-        text: "I scored today's challenge in One Stroke! Can you beat me?\nhttps://gamevolt.io/one-stroke/",
+        title,
+        text: `${text}\nhttps://gamevolt.io/one-stroke/`,
         files: [file],
       });
       return "shared";
@@ -188,8 +206,8 @@ export async function shareResult(canvas, { date }) {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: "One Stroke — Daily Challenge",
-        text: `I scored today's challenge in One Stroke! Can you beat me?`,
+        title,
+        text,
         url: "https://gamevolt.io/one-stroke/",
       });
       return "shared";
