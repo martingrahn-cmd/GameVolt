@@ -473,13 +473,13 @@
        game runs. All SDK use is optional (if (window.GameVolt)) — Spinburn
        plays fine standalone / on other portals with no SDK present. -->
   <script src="/sdk/gamevolt.js" data-game="spinburn"></script>
-  <script src="tt-core.js?v=0.37.0"></script>
-  <script src="tt-ai.js?v=0.37.0"></script>
-  <script src="sb-net.js?v=0.37.0"></script>
-  <script src="tt-achievements.js?v=0.37.0"></script>
+  <script src="tt-core.js?v=0.38.0"></script>
+  <script src="tt-ai.js?v=0.38.0"></script>
+  <script src="sb-net.js?v=0.38.0"></script>
+  <script src="tt-achievements.js?v=0.38.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.37.0';
+    var VERSION = '0.38.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -529,10 +529,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.37.0', bounce: 'assets/bounce.mp3?v=0.37.0',
-        cheer: 'assets/cheer.mp3?v=0.37.0', net: 'assets/net.mp3?v=0.37.0',
-        crowd: 'assets/crowd.mp3?v=0.37.0', winfare: 'assets/winfare.mp3?v=0.37.0',
-        lose: 'assets/lose.mp3?v=0.37.0', matchpoint: 'assets/matchpoint.mp3?v=0.37.0'
+        hit: 'assets/hit.mp3?v=0.38.0', bounce: 'assets/bounce.mp3?v=0.38.0',
+        cheer: 'assets/cheer.mp3?v=0.38.0', net: 'assets/net.mp3?v=0.38.0',
+        crowd: 'assets/crowd.mp3?v=0.38.0', winfare: 'assets/winfare.mp3?v=0.38.0',
+        lose: 'assets/lose.mp3?v=0.38.0', matchpoint: 'assets/matchpoint.mp3?v=0.38.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.38.0', voIntro: 'assets/vo-intro.mp3?v=0.38.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -608,7 +609,12 @@
           blip(mine ? 523 : 330, 0.11, 0.16, 'sine', 0);
           blip(mine ? 784 : 262, 0.14, 0.16, 'sine', 0, 0, 0.1);
         },
-        matchpoint: function () { playSample('matchpoint', 0.5, 1, 0); },
+        matchpoint: function () {
+          playSample('matchpoint', 0.4, 1, 0);   // musical sting
+          playSample('voMatch', 0.92, 1, 0);      // arcade announcer: "Match point!"
+        },
+        // arena announcer intro before a match ("Let's get ready to spin!" etc.)
+        intro: function () { playSample('voIntro', 0.95, 1, 0); },
         end: function (win) {
           if (playSample(win ? 'winfare' : 'lose', win ? 0.55 : 0.5, 1, 0)) return;
           [0, 0.13, 0.26].forEach(function (d, i) {
@@ -637,6 +643,24 @@
             s.stop(ctx.currentTime + 0.55);
           } catch (e) {}
           crowdSrc = null; crowdGain = null;
+        },
+        // momentarily surge the arena crowd bed (tension on match point, roar on a win)
+        crowdSwell: function (peak, hold) {
+          if (!enabled || !ac() || !crowdGain) return;
+          var t = ctx.currentTime;
+          crowdGain.gain.cancelScheduledValues(t);
+          crowdGain.gain.setValueAtTime(crowdGain.gain.value, t);
+          crowdGain.gain.linearRampToValueAtTime(peak || 0.6, t + 0.18);
+          crowdGain.gain.linearRampToValueAtTime(0.32, t + 0.18 + (hold || 2.4));
+        },
+        // a fuller applause roar for the match-winning ball: the cheer sample
+        // layered + panned + a big crowd-bed surge under it
+        bigCheer: function () {
+          this.crowdSwell(0.8, 3.4);
+          if (!playSample('cheer', 0.85, 1.0, 0)) { this.point(true); return; }
+          playSample('cheer', 0.6, 0.93, -0.5);
+          setTimeout(function () { playSample('cheer', 0.5, 1.07, 0.5); }, 130);
+          setTimeout(function () { playSample('cheer', 0.42, 1.0, 0); }, 320);
         }
       };
     })();
@@ -783,17 +807,21 @@
         { t: 'TOPSPIN PRO', bg: '#c8281e', fg: '#ffffff' },
         { t: 'PING&CO', bg: '#101c3a', fg: '#ffd166' }
       ];
+      // Lay the panels across the VISIBLE width of the back wall (bl/br sit far
+      // off-screen at x=±6), so every sponsor is centred and fully readable
+      // instead of the edge ones being clipped by the screen.
       var n = ADS.length;
+      var L = Math.max(0, bl.x), R = Math.min(W, br.x);
       for (var i = 0; i < n; i++) {
-        var x0 = bl.x + (br.x - bl.x) * (i / n), x1 = bl.x + (br.x - bl.x) * ((i + 1) / n);
+        var x0 = L + (R - L) * (i / n), x1 = L + (R - L) * ((i + 1) / n);
         a.fillStyle = ADS[i].bg;
         a.fillRect(x0, tl.y, x1 - x0, bl.y - tl.y);
         a.fillStyle = 'rgba(0,0,0,0.25)';
         a.fillRect(x1 - 1.5, tl.y, 1.5, bl.y - tl.y); // panel seam
         a.fillStyle = ADS[i].fg;
-        a.font = '800 ' + (bl.y - tl.y) * 0.56 + 'px "Segoe UI", system-ui, sans-serif';
+        a.font = '800 ' + (bl.y - tl.y) * 0.5 + 'px "Segoe UI", system-ui, sans-serif';
         a.textAlign = 'center'; a.textBaseline = 'middle';
-        a.fillText(ADS[i].t, (x0 + x1) / 2, (tl.y + bl.y) / 2 + 1, (x1 - x0) * 0.9);
+        a.fillText(ADS[i].t, (x0 + x1) / 2, (tl.y + bl.y) / 2 + 1, (x1 - x0) * 0.86);
       }
       // glass-like gloss across the board panels
       var gloss = a.createLinearGradient(0, tl.y, 0, bl.y);
@@ -804,7 +832,7 @@
       a.fillRect(Math.max(0, bl.x), tl.y, Math.min(W, br.x) - Math.max(0, bl.x), bl.y - tl.y);
       // panel colors reflected faintly on the floor
       for (var ri = 0; ri < n; ri++) {
-        var rx0 = bl.x + (br.x - bl.x) * (ri / n), rx1 = bl.x + (br.x - bl.x) * ((ri + 1) / n);
+        var rx0 = L + (R - L) * (ri / n), rx1 = L + (R - L) * ((ri + 1) / n);
         var rgd = a.createLinearGradient(0, bl.y, 0, bl.y + 16);
         rgd.addColorStop(0, ADS[ri].bg + '2e');
         rgd.addColorStop(1, ADS[ri].bg + '00');
@@ -1081,28 +1109,58 @@
       var hw = K.TABLE_W / 2 + 0.12;
       var bl = proj(-hw, K.NET_Y, 0), br = proj(hw, K.NET_Y, 0);
       var tl = proj(-hw, K.NET_Y, K.NET_H), tr = proj(hw, K.NET_Y, K.NET_H);
-      // mesh
-      ctx.fillStyle = 'rgba(20,26,50,0.55)';
+      var pm = ppm(K.NET_Y);
+      // helper: point on the net plane at lateral fraction f (0..1) and height fraction hf (0..1)
+      function np(f, hf) {
+        var bx = bl.x + (br.x - bl.x) * f, by = bl.y + (br.y - bl.y) * f;
+        var tx = tl.x + (tr.x - tl.x) * f, ty = tl.y + (tr.y - tl.y) * f;
+        return { x: bx + (tx - bx) * hf, y: by + (ty - by) * hf };
+      }
+      // mesh backing
+      ctx.fillStyle = 'rgba(16,22,44,0.5)';
       ctx.beginPath();
       ctx.moveTo(bl.x, bl.y); ctx.lineTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(tl.x, tl.y);
       ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = 'rgba(190,210,255,0.28)';
+      // vertical strings
+      ctx.strokeStyle = 'rgba(198,214,255,0.22)';
       ctx.lineWidth = 1;
-      var n = 22;
-      for (var i = 0; i <= n; i++) {
-        var f = i / n;
-        var bx = bl.x + (br.x - bl.x) * f, by = bl.y + (br.y - bl.y) * f;
-        var tx = tl.x + (tr.x - tl.x) * f, ty = tl.y + (tr.y - tl.y) * f;
-        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(tx, ty); ctx.stroke();
+      var nV = 26;
+      for (var i = 0; i <= nV; i++) {
+        var a0 = np(i / nV, 0), a1 = np(i / nV, 0.92);
+        ctx.beginPath(); ctx.moveTo(a0.x, a0.y); ctx.lineTo(a1.x, a1.y); ctx.stroke();
       }
-      // tape + posts
-      ctx.strokeStyle = 'rgba(255,255,255,0.95)';
-      ctx.lineWidth = Math.max(1.5, 0.014 * ppm(K.NET_Y));
-      ctx.beginPath(); ctx.moveTo(tl.x, tl.y); ctx.lineTo(tr.x, tr.y); ctx.stroke();
-      ctx.lineWidth = Math.max(2, 0.02 * ppm(K.NET_Y));
-      ctx.strokeStyle = '#3b4368';
-      ctx.beginPath(); ctx.moveTo(bl.x, bl.y); ctx.lineTo(tl.x, tl.y); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.stroke();
+      // horizontal strings — this is what reads as a real net
+      ctx.strokeStyle = 'rgba(198,214,255,0.18)';
+      var nH = 6;
+      for (var h = 1; h <= nH; h++) {
+        var hf = (h / (nH + 1)) * 0.92;
+        var l = np(0, hf), rr = np(1, hf);
+        ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(rr.x, rr.y); ctx.stroke();
+      }
+      // white top tape (a solid band, not a hairline)
+      var tapeLo = np(0, 0.9), tapeLoR = np(1, 0.9);
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.beginPath();
+      ctx.moveTo(tapeLo.x, tapeLo.y); ctx.lineTo(tapeLoR.x, tapeLoR.y);
+      ctx.lineTo(tr.x, tr.y); ctx.lineTo(tl.x, tl.y);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(0,120,200,0.5)'; // thin accent stripe on the tape
+      var acc = np(0, 0.905), accR = np(1, 0.905);
+      ctx.beginPath(); ctx.moveTo(acc.x, acc.y); ctx.lineTo(accR.x, accR.y);
+      ctx.lineTo(np(1, 0.93).x, np(1, 0.93).y); ctx.lineTo(np(0, 0.93).x, np(0, 0.93).y);
+      ctx.closePath(); ctx.fill();
+      // posts + clamps at each end
+      [{ b: bl, t: tl, i: 1 }, { b: br, t: tr, i: -1 }].forEach(function (P) {
+        ctx.strokeStyle = '#20263e';
+        ctx.lineWidth = Math.max(2.5, 0.03 * pm);
+        ctx.beginPath(); ctx.moveTo(P.b.x, P.b.y); ctx.lineTo(P.t.x, P.t.y); ctx.stroke();
+        ctx.strokeStyle = 'rgba(150,170,210,0.55)'; // metallic edge highlight
+        ctx.lineWidth = Math.max(1, 0.012 * pm);
+        ctx.beginPath(); ctx.moveTo(P.b.x + P.i * 1.2, P.b.y); ctx.lineTo(P.t.x + P.i * 1.2, P.t.y); ctx.stroke();
+        // clamp block at the base
+        ctx.fillStyle = '#2b3350';
+        ctx.fillRect(P.b.x - 0.03 * pm, P.b.y - 0.02 * pm, 0.06 * pm, 0.05 * pm);
+      });
     }
 
     function drawBall() {
@@ -1236,25 +1294,51 @@
       if (landMark.a <= 0) landMark = null;
     }
 
+    // roundRect shim for older engines (Chromium/Safari 16+ have it natively)
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, rad) {
+        var rr = Math.min(rad, Math.abs(w) / 2, Math.abs(h) / 2);
+        this.beginPath();
+        this.moveTo(x + rr, y);
+        this.arcTo(x + w, y, x + w, y + h, rr);
+        this.arcTo(x + w, y + h, x, y + h, rr);
+        this.arcTo(x, y + h, x, y, rr);
+        this.arcTo(x, y, x + w, y, rr);
+        this.closePath();
+        return this;
+      };
+    }
     function paddleShape(px, py, pz, scale, color, dark, tilt) {
       var p = proj(px, py, pz);
       var r = scale * p.s;
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(tilt);
-      // handle
-      ctx.fillStyle = '#c9913f';
-      ctx.fillRect(-r * 0.13, r * 0.55, r * 0.26, r * 0.95);
-      ctx.fillStyle = '#a9752c';
-      ctx.fillRect(-r * 0.13, r * 0.55, r * 0.26, r * 0.18);
-      // blade
-      var bg = ctx.createRadialGradient(-r * 0.25, -r * 0.25, r * 0.2, 0, 0, r);
-      bg.addColorStop(0, color); bg.addColorStop(1, dark);
+      // --- flared grip handle (wood core + lighter wrap + shade bands) ---
+      ctx.fillStyle = '#5e3f1d';
+      ctx.beginPath(); ctx.roundRect(-r * 0.17, r * 0.5, r * 0.34, r * 1.02, r * 0.12); ctx.fill();
+      ctx.fillStyle = '#8a5f2c';
+      ctx.beginPath(); ctx.roundRect(-r * 0.145, r * 0.6, r * 0.29, r * 0.82, r * 0.1); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.16)';
+      for (var gb = 0; gb < 3; gb++) { ctx.beginPath(); ctx.roundRect(-r * 0.145, r * 0.72 + gb * r * 0.22, r * 0.29, r * 0.055, r * 0.03); ctx.fill(); }
+      ctx.fillStyle = 'rgba(255,255,255,0.10)';
+      ctx.beginPath(); ctx.roundRect(-r * 0.145, r * 0.6, r * 0.07, r * 0.82, r * 0.05); ctx.fill(); // grip highlight
+      // --- blade: pale wood/tape edge, then the rubber face ---
+      ctx.fillStyle = '#efe6d2';
+      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.9, r * 1.0, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.18)'; // thin shade line inside the edge
+      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.83, r * 0.93, 0, 0, Math.PI * 2); ctx.fill();
+      var bg = ctx.createRadialGradient(-r * 0.26, -r * 0.3, r * 0.15, 0, 0, r);
+      bg.addColorStop(0, color); bg.addColorStop(0.72, color); bg.addColorStop(1, dark);
       ctx.fillStyle = bg;
-      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.78, r * 0.88, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.8, r * 0.9, 0, 0, Math.PI * 2); ctx.fill();
+      // sheen highlight on the rubber
+      ctx.fillStyle = 'rgba(255,255,255,0.16)';
+      ctx.beginPath(); ctx.ellipse(-r * 0.27, -r * 0.34, r * 0.34, r * 0.2, -0.5, 0, Math.PI * 2); ctx.fill();
+      // rim shade
+      ctx.strokeStyle = 'rgba(0,0,0,0.32)';
       ctx.lineWidth = Math.max(1, r * 0.05);
-      ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.8, r * 0.9, 0, 0, Math.PI * 2); ctx.stroke();
       ctx.restore();
     }
     var padTilt = 0, padKick = 0;
@@ -1649,14 +1733,15 @@
       Sound.crowdStart();
       setTimeout(function () { if (ui === 'playing') Sound.crowdStart(); }, 500);
       setTimeout(function () { if (ui === 'playing') Sound.crowdStart(); }, 1400);
+      setTimeout(function () { if (ui === 'playing') Sound.intro(); }, 350); // arena announcer
       last = 0; acc = 0;
       requestAnimationFrame(loop);
     }
 
     function endMatch() {
       ui = 'over';
-      Sound.crowdStop();
       var won = game.winner === 1;
+      if (!won) Sound.crowdStop(); // on a win the crowd keeps roaring under the win screen
       var againBtn = document.getElementById('again-btn');
       el.endTitle.className = 'modal-title ' + (won ? 'win' : 'lose');
       if (campaignOpp) {
@@ -1852,6 +1937,7 @@
             if (hi >= 10 && lead >= 1) {
               var mine = game.scores[1] > game.scores[2];
               Sound.matchpoint();
+              Sound.crowdSwell(); // the arena leans in on match point
               setTimeout(function () {
                 addLabel('MATCH POINT!', W / 2, H * 0.24, '#ffd166', 44, 1500);
                 addLabel(mine ? playerName() : (campaignOpp ? campaignOpp.short : 'AI'),
@@ -1862,6 +1948,7 @@
           pointTimer = 66; // ~1.1s pause, ball physics keep settling
         } else if (e.type === 'over') {
           Sound.end(e.winner === 1);
+          if (e.winner === 1) Sound.bigCheer(); // fuller applause roar on the winning ball
           showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — ' + (campaignOpp ? campaignOpp.short : 'AI'), 1400);
           endMatch();
         }
@@ -1934,6 +2021,7 @@
         }
         if (e.type === 'over') {
           Sound.end(e.winner === 1);
+          if (e.winner === 1) Sound.bigCheer(); // fuller applause roar on the winning ball
           showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — RIVAL', 1400);
           endOnlineMatch();
         }
@@ -1966,8 +2054,8 @@
 
     function endOnlineMatch() {
       ui = 'over';
-      Sound.crowdStop();
       var won = game.winner === 1;
+      if (!won) Sound.crowdStop(); // on a win the crowd keeps roaring under the win screen
       el.endTitle.textContent = won ? 'YOU WIN!' : 'RIVAL WINS';
       el.endTitle.className = 'modal-title ' + (won ? 'win' : 'lose');
       document.getElementById('end-report').classList.remove('hidden');
@@ -2224,6 +2312,7 @@
       setHint(game.server === 1 ? 'TAP TO TOSS · SWIPE TO STRIKE' : 'RIVAL SERVES…');
       Sound.unlock(); Sound.crowdStart();
       setTimeout(function () { if (ui === 'playing') Sound.crowdStart(); }, 600);
+      setTimeout(function () { if (ui === 'playing') Sound.intro(); }, 350); // arena announcer
       last = 0; acc = 0;
       requestAnimationFrame(loop);
     }
@@ -2293,6 +2382,7 @@
       if (hi >= 10 && Math.abs(game.scores[1] - game.scores[2]) >= 1) {
         var mine = game.scores[1] > game.scores[2];
         Sound.matchpoint();
+        Sound.crowdSwell(); // the arena leans in on match point
         setTimeout(function () {
           addLabel('MATCH POINT!', W / 2, H * 0.24, '#ffd166', 44, 1500);
           addLabel(mine ? playerName() : 'RIVAL', W / 2, H * 0.24 + 34, mine ? '#7dffb0' : '#ff8aa8', 26, 1500);
