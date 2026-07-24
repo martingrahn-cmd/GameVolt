@@ -397,13 +397,13 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.40.0"></script>
-  <script src="tt-ai.js?v=0.40.0"></script>
-  <script src="sb-net.js?v=0.40.0"></script>
-  <script src="tt-achievements.js?v=0.40.0"></script>
+  <script src="tt-core.js?v=0.41.0"></script>
+  <script src="tt-ai.js?v=0.41.0"></script>
+  <script src="sb-net.js?v=0.41.0"></script>
+  <script src="tt-achievements.js?v=0.41.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.40.0';
+    var VERSION = '0.41.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -453,11 +453,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.40.0', bounce: 'assets/bounce.mp3?v=0.40.0',
-        cheer: 'assets/cheer.mp3?v=0.40.0', net: 'assets/net.mp3?v=0.40.0',
-        crowd: 'assets/crowd.mp3?v=0.40.0', winfare: 'assets/winfare.mp3?v=0.40.0',
-        lose: 'assets/lose.mp3?v=0.40.0', matchpoint: 'assets/matchpoint.mp3?v=0.40.0',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.40.0', voIntro: 'assets/vo-intro.mp3?v=0.40.0'
+        hit: 'assets/hit.mp3?v=0.41.0', bounce: 'assets/bounce.mp3?v=0.41.0',
+        cheer: 'assets/cheer.mp3?v=0.41.0', net: 'assets/net.mp3?v=0.41.0',
+        crowd: 'assets/crowd.mp3?v=0.41.0', winfare: 'assets/winfare.mp3?v=0.41.0',
+        lose: 'assets/lose.mp3?v=0.41.0', matchpoint: 'assets/matchpoint.mp3?v=0.41.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.41.0', voIntro: 'assets/vo-intro.mp3?v=0.41.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -643,20 +643,26 @@
       var crowdTop = Math.max(0, tl.y - H * 0.17);
       arenaMeta.crowdTop = crowdTop; arenaMeta.crowdBot = tl.y;
       var cg = a.createLinearGradient(0, crowdTop, 0, tl.y);
-      cg.addColorStop(0, '#0a0816'); cg.addColorStop(1, '#191430');
+      cg.addColorStop(0, '#0a0816'); cg.addColorStop(1, '#20193a');
       a.fillStyle = cg; a.fillRect(0, crowdTop, W, tl.y - crowdTop);
-      for (var row = 3; row >= 0; row--) {
-        var ry = tl.y - 5 - row * H * 0.03;
-        a.fillStyle = 'rgba(7,5,16,' + (0.92 - row * 0.16) + ')';
-        for (var hx = -12; hx < W + 12; hx += 12 + row * 3) {
-          var jx = hx + arnd() * 9, jr = 4.5 + arnd() * 3 + row * 1.4;
-          a.beginPath(); a.arc(jx, ry, jr, Math.PI, 0); a.fill();
+      // tiered stands: rows of head-and-shoulder silhouettes receding upward,
+      // most in shadow with a few catching the arena light (a fuller crowd)
+      for (var row = 6; row >= 0; row--) {
+        var ry = tl.y - 4 - row * (H * 0.023);
+        var shade = 0.95 - row * 0.1;
+        for (var hx = -14; hx < W + 14; hx += 10 + row * 2) {
+          var jx = hx + arnd() * 7, jr = 3.6 + arnd() * 2.4 + row * 1.0;
+          var lit = arnd();
+          a.fillStyle = lit > 0.88 ? 'rgba(74,66,98,' + shade + ')' : (lit > 0.72 ? 'rgba(40,34,60,' + shade + ')' : 'rgba(8,6,18,' + shade + ')');
+          a.beginPath(); a.arc(jx, ry, jr, Math.PI, 0); a.fill();          // head
+          a.fillRect(jx - jr * 1.15, ry, jr * 2.3, jr * 0.85);              // shoulders
         }
       }
-      for (var clx = 0; clx < 14; clx++) {
+      // static phone lights / camera dots twinkling in the stands
+      for (var clx = 0; clx < 22; clx++) {
         var lr = arnd();
-        a.fillStyle = lr > 0.7 ? 'rgba(255,90,90,0.8)' : (lr > 0.35 ? 'rgba(215,232,255,0.65)' : 'rgba(140,190,255,0.5)');
-        a.beginPath(); a.arc(arnd() * W, crowdTop + arnd() * (tl.y - crowdTop) * 0.7, 1.2 + arnd(), 0, Math.PI * 2); a.fill();
+        a.fillStyle = lr > 0.7 ? 'rgba(255,120,120,0.8)' : (lr > 0.35 ? 'rgba(225,238,255,0.7)' : 'rgba(150,195,255,0.55)');
+        a.beginPath(); a.arc(arnd() * W, crowdTop + arnd() * (tl.y - crowdTop) * 0.82, 1.1 + arnd() * 1.2, 0, Math.PI * 2); a.fill();
       }
 
       // lighting truss with spotlights above the crowd
@@ -779,7 +785,10 @@
       // the near table edge and receding to the back corner — so they frame the
       // court instead of looming as tall slanted stripes floating above the mat.
       var SIDE_Y0 = 0.25, SIDE_Y1 = BARRIER_Y;        // near table edge -> back wall
-      var SIDE_BASE = K.FLOOR_Z, SIDE_TOP = K.FLOOR_Z + 0.6; // ~0.6m board on the floor
+      // board stands on the floor and tops out at table height (z=0) — its far
+      // corner meets the back wall's base at (±2.6, BARRIER_Y, 0) so the barrier
+      // reads as one connected ring, not disjoint side + back pieces.
+      var SIDE_BASE = K.FLOOR_Z, SIDE_TOP = 0;
       function sidePanels(sx, panels) {
         var span = SIDE_Y1 - SIDE_Y0, nP = panels.length;
         for (var p2 = 0; p2 < nP; p2++) {
@@ -914,6 +923,31 @@
       }
     }
 
+    // Live crowd: ambient twinkling that ERUPTS into camera-flash applause when
+    // the player wins a ball. crowdFx is the excitement level (0 = idle).
+    var crowdFx = 0;
+    function crowdReact(strength) { crowdFx = Math.min(1.6, crowdFx + (strength || 1)); }
+    function drawCrowd() {
+      var top = arenaMeta.crowdTop, bot = arenaMeta.crowdBot;
+      if (!bot) return;
+      var band = bot - top;
+      var n = 5 + Math.round(crowdFx * 70); // idle shimmer -> full applause
+      for (var i = 0; i < n; i++) {
+        var x = Math.random() * W, y = top + Math.random() * band * 0.92;
+        var bright = 0.25 + Math.random() * 0.55;
+        var r = 0.8 + Math.random() * (1.2 + crowdFx * 1.8);
+        ctx.fillStyle = Math.random() > 0.86 ? 'rgba(255,185,120,' + bright + ')' : 'rgba(240,248,255,' + bright + ')';
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      }
+      if (crowdFx > 0.05) { // warm glow washes the stands as the crowd erupts
+        var glow = ctx.createLinearGradient(0, top, 0, bot);
+        glow.addColorStop(0, 'rgba(255,214,150,' + (0.09 * crowdFx).toFixed(3) + ')');
+        glow.addColorStop(1, 'rgba(255,214,150,0)');
+        ctx.fillStyle = glow; ctx.fillRect(0, top, W, band);
+      }
+      if (crowdFx > 0) crowdFx *= 0.975; // ~1.5s to settle
+    }
+
     var shook = false;
     function draw() {
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -925,6 +959,7 @@
       }
       if (!arenaCv) buildArena();
       ctx.drawImage(arenaCv, 0, 0, W, H);
+      drawCrowd(); // live twinkles / applause over the static stands
       // gentle breathing of the under-table light
       var gp2 = proj(0, 1.35, K.FLOOR_Z);
       var pulse = 0.09 + 0.045 * Math.sin(performance.now() / 900);
@@ -1870,6 +1905,7 @@
           if (game.scores[2] - game.scores[1] > mMaxDeficit) mMaxDeficit = game.scores[2] - game.scores[1];
           if (window.SBTrophies) SBTrophies.event('point', { mine: mine, ace: ace, rally: rHits, lead: game.scores[1] - game.scores[2] });
           Sound.point(e.to === 1);
+          if (e.to === 1) crowdReact(1); // the crowd applauds a won ball
           updateHud();
           if (!res.events.some(function (x) { return x.type === 'over'; })) {
             addLabel(e.to === 1 ? 'POINT!' : (campaignOpp ? campaignOpp.short : 'AI') + ' POINT', W / 2, H * 0.42,
@@ -1891,7 +1927,7 @@
           pointTimer = 66; // ~1.1s pause, ball physics keep settling
         } else if (e.type === 'over') {
           Sound.end(e.winner === 1);
-          if (e.winner === 1) Sound.bigCheer(); // fuller applause roar on the winning ball
+          if (e.winner === 1) { Sound.bigCheer(); crowdReact(1.6); } // fuller roar + crowd eruption on the winning ball
           showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — ' + (campaignOpp ? campaignOpp.short : 'AI'), 1400);
           endMatch();
         }
@@ -1955,6 +1991,7 @@
           // I'm the authority (mirror never scores): tell the opponent
           netSend('pt', { as: game.scores[1], os: game.scores[2], authWon: e.to === 1 });
           Sound.point(e.to === 1);
+          if (e.to === 1) crowdReact(1); // the crowd applauds a won ball
           updateHud();
           if (!res.events.some(function (x) { return x.type === 'over'; })) {
             addLabel(e.to === 1 ? 'POINT!' : 'RIVAL POINT', W / 2, H * 0.42, e.to === 1 ? '#7dffb0' : '#ff8aa8', 46, 1150);
@@ -1964,7 +2001,7 @@
         }
         if (e.type === 'over') {
           Sound.end(e.winner === 1);
-          if (e.winner === 1) Sound.bigCheer(); // fuller applause roar on the winning ball
+          if (e.winner === 1) { Sound.bigCheer(); crowdReact(1.6); } // fuller roar + crowd eruption on the winning ball
           showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — RIVAL', 1400);
           endOnlineMatch();
         }
@@ -2451,6 +2488,7 @@
       get ui() { return ui; },
       get game() { return game; },
       get level() { return level; },
+      crowdReact: crowdReact,
       // test hook: force a finished match to inspect the match report
       _finish: function (myScore, oppScore) {
         if (!game) return;
