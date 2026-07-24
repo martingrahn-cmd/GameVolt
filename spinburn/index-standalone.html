@@ -397,13 +397,13 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.41.0"></script>
-  <script src="tt-ai.js?v=0.41.0"></script>
-  <script src="sb-net.js?v=0.41.0"></script>
-  <script src="tt-achievements.js?v=0.41.0"></script>
+  <script src="tt-core.js?v=0.42.0"></script>
+  <script src="tt-ai.js?v=0.42.0"></script>
+  <script src="sb-net.js?v=0.42.0"></script>
+  <script src="tt-achievements.js?v=0.42.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.41.0';
+    var VERSION = '0.42.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -453,11 +453,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.41.0', bounce: 'assets/bounce.mp3?v=0.41.0',
-        cheer: 'assets/cheer.mp3?v=0.41.0', net: 'assets/net.mp3?v=0.41.0',
-        crowd: 'assets/crowd.mp3?v=0.41.0', winfare: 'assets/winfare.mp3?v=0.41.0',
-        lose: 'assets/lose.mp3?v=0.41.0', matchpoint: 'assets/matchpoint.mp3?v=0.41.0',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.41.0', voIntro: 'assets/vo-intro.mp3?v=0.41.0'
+        hit: 'assets/hit.mp3?v=0.42.0', bounce: 'assets/bounce.mp3?v=0.42.0',
+        cheer: 'assets/cheer.mp3?v=0.42.0', net: 'assets/net.mp3?v=0.42.0',
+        crowd: 'assets/crowd.mp3?v=0.42.0', winfare: 'assets/winfare.mp3?v=0.42.0',
+        lose: 'assets/lose.mp3?v=0.42.0', matchpoint: 'assets/matchpoint.mp3?v=0.42.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.42.0', voIntro: 'assets/vo-intro.mp3?v=0.42.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -785,39 +785,66 @@
       // the near table edge and receding to the back corner — so they frame the
       // court instead of looming as tall slanted stripes floating above the mat.
       var SIDE_Y0 = 0.25, SIDE_Y1 = BARRIER_Y;        // near table edge -> back wall
-      // board stands on the floor and tops out at table height (z=0) — its far
-      // corner meets the back wall's base at (±2.6, BARRIER_Y, 0) so the barrier
-      // reads as one connected ring, not disjoint side + back pieces.
-      var SIDE_BASE = K.FLOOR_Z, SIDE_TOP = 0;
+      // Board stands on the floor and rises to the back wall's TOP edge
+      // (BARRIER_H), so its far corner closes the gap against the back barrier
+      // instead of meeting only its base — the ring seals at the corners.
+      var SIDE_BASE = K.FLOOR_Z;
+      // The board's top RAMPS from table height near the camera up to the back
+      // wall's top edge at the far end, so it seals the corner gap without
+      // looming over the foreground.
+      function sideTop(y) {
+        var f = (y - SIDE_Y0) / (SIDE_Y1 - SIDE_Y0);
+        return 0 + (BARRIER_H - 0) * Math.max(0, Math.min(1, f));
+      }
       function sidePanels(sx, panels) {
         var span = SIDE_Y1 - SIDE_Y0, nP = panels.length;
         for (var p2 = 0; p2 < nP; p2++) {
           var y0 = SIDE_Y0 + span * (p2 / nP), y1 = SIDE_Y0 + span * ((p2 + 1) / nP);
           var b0 = proj(sx, y0, SIDE_BASE), b1 = proj(sx, y1, SIDE_BASE);
-          var t0 = proj(sx, y0, SIDE_TOP), t1 = proj(sx, y1, SIDE_TOP);
-          a.fillStyle = panels[p2].bg;
+          var t0 = proj(sx, y0, sideTop(y0)), t1 = proj(sx, y1, sideTop(y1));
+          a.save();
           a.beginPath();
           a.moveTo(b0.x, b0.y); a.lineTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.lineTo(t0.x, t0.y);
-          a.closePath(); a.fill();
+          a.closePath();
+          a.fillStyle = panels[p2].bg;
+          a.fill();
+          a.clip(); // keep the label strictly inside its own ad panel
           a.strokeStyle = 'rgba(0,0,0,0.28)'; a.lineWidth = 1.5;
           a.beginPath(); a.moveTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.stroke();
-          // depth-scaled text along the board
-          var ym = (y0 + y1) / 2;
-          var bm = proj(sx, ym, SIDE_BASE), tm = proj(sx, ym, SIDE_TOP);
-          var panelLen = Math.hypot(b1.x - b0.x, b1.y - b0.y);
-          a.save();
-          a.translate((bm.x + tm.x) / 2, (bm.y + tm.y) / 2);
-          var ang = Math.atan2(b1.y - b0.y, b1.x - b0.x);
-          if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI; // keep text upright
-          a.rotate(ang);
-          a.fillStyle = panels[p2].fg;
-          a.font = '800 ' + Math.abs(bm.y - tm.y) * 0.52 + 'px "Segoe UI", system-ui, sans-serif';
-          a.textAlign = 'center'; a.textBaseline = 'middle';
-          a.fillText(panels[p2].t, 0, 0, panelLen * 0.84);
+          // Centre the label on the VISIBLE part of the panel: the nearest
+          // panels run off the screen edge, and centring on the full panel
+          // pushed their text off-screen (clipped start/end).
+          var pminX = Math.min(b0.x, b1.x, t0.x, t1.x), pmaxX = Math.max(b0.x, b1.x, t0.x, t1.x);
+          var visL = Math.max(0, pminX), visR = Math.min(W, pmaxX);
+          if (visR - visL > 26) {
+            var cxv = (visL + visR) / 2;
+            var frac = Math.abs(b1.x - b0.x) < 0.001 ? 0.5 : (cxv - b0.x) / (b1.x - b0.x);
+            frac = Math.max(0, Math.min(1, frac));
+            var ym = y0 + (y1 - y0) * frac;
+            var bm = proj(sx, ym, SIDE_BASE), tm = proj(sx, ym, sideTop(ym));
+            a.translate((bm.x + tm.x) / 2, (bm.y + tm.y) / 2);
+            var ang = Math.atan2(b1.y - b0.y, b1.x - b0.x);
+            if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI; // keep text upright
+            a.rotate(ang);
+            a.fillStyle = panels[p2].fg;
+            a.textAlign = 'center'; a.textBaseline = 'middle';
+            var panelLen = Math.hypot(b1.x - b0.x, b1.y - b0.y);
+            var avail = Math.min(panelLen * 0.84, (visR - visL) * 0.92);
+            // Scale the FONT to fit the panel — maxWidth only condenses, which
+            // turns a squeezed label into an unreadable blob.
+            var fs = Math.abs(bm.y - tm.y) * 0.46;
+            a.font = '800 ' + fs + 'px "Segoe UI", system-ui, sans-serif';
+            var natural = a.measureText(panels[p2].t).width;
+            if (natural > avail) {
+              fs = fs * (avail / natural);
+              a.font = '800 ' + fs + 'px "Segoe UI", system-ui, sans-serif';
+            }
+            if (fs >= 9) a.fillText(panels[p2].t, 0, 0); // skip illegibly small labels
+          }
           a.restore();
         }
         // white top rail + floor shadow along the board base
-        var st0 = proj(sx, SIDE_Y0, SIDE_TOP), st1 = proj(sx, SIDE_Y1, SIDE_TOP);
+        var st0 = proj(sx, SIDE_Y0, sideTop(SIDE_Y0)), st1 = proj(sx, SIDE_Y1, sideTop(SIDE_Y1));
         a.strokeStyle = 'rgba(255,255,255,0.85)'; a.lineWidth = 2;
         a.beginPath(); a.moveTo(st0.x, st0.y); a.lineTo(st1.x, st1.y); a.stroke();
         var sb0 = proj(sx, SIDE_Y0, SIDE_BASE), sb1 = proj(sx, SIDE_Y1, SIDE_BASE);
