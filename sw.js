@@ -1,9 +1,10 @@
-const CACHE_NAME = "gamevolt-v1";
+const CACHE_NAME = "gamevolt-v2";
 
 const PRECACHE_URLS = [
   "/",
   "/index.html",
   "/js/gv-tracker.js",
+  "/js/gv-theme.js",
   "/js/gv-search.js",
   "/sdk/gamevolt.js",
   "/assets/favicon.png",
