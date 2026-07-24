@@ -473,13 +473,13 @@
        game runs. All SDK use is optional (if (window.GameVolt)) — Spinburn
        plays fine standalone / on other portals with no SDK present. -->
   <script src="/sdk/gamevolt.js" data-game="spinburn"></script>
-  <script src="tt-core.js?v=0.37.0"></script>
-  <script src="tt-ai.js?v=0.37.0"></script>
-  <script src="sb-net.js?v=0.37.0"></script>
-  <script src="tt-achievements.js?v=0.37.0"></script>
+  <script src="tt-core.js?v=0.38.0"></script>
+  <script src="tt-ai.js?v=0.38.0"></script>
+  <script src="sb-net.js?v=0.38.0"></script>
+  <script src="tt-achievements.js?v=0.38.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.37.0';
+    var VERSION = '0.38.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -529,11 +529,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.37.0', bounce: 'assets/bounce.mp3?v=0.37.0',
-        cheer: 'assets/cheer.mp3?v=0.37.0', net: 'assets/net.mp3?v=0.37.0',
-        crowd: 'assets/crowd.mp3?v=0.37.0', winfare: 'assets/winfare.mp3?v=0.37.0',
-        lose: 'assets/lose.mp3?v=0.37.0', matchpoint: 'assets/matchpoint.mp3?v=0.37.0',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.37.0', voIntro: 'assets/vo-intro.mp3?v=0.37.0'
+        hit: 'assets/hit.mp3?v=0.38.0', bounce: 'assets/bounce.mp3?v=0.38.0',
+        cheer: 'assets/cheer.mp3?v=0.38.0', net: 'assets/net.mp3?v=0.38.0',
+        crowd: 'assets/crowd.mp3?v=0.38.0', winfare: 'assets/winfare.mp3?v=0.38.0',
+        lose: 'assets/lose.mp3?v=0.38.0', matchpoint: 'assets/matchpoint.mp3?v=0.38.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.38.0', voIntro: 'assets/vo-intro.mp3?v=0.38.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
