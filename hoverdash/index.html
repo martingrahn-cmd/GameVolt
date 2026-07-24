@@ -697,17 +697,12 @@ function renderLocalScores(){
   list.innerHTML=html;
 }
 function renderGlobalScores(){
-  const list=document.getElementById('scores-list');
   const empty=document.getElementById('scores-empty');
-  empty.style.display='none';
-  if(_lbCache!==null){renderGlobalRows(_lbCache);return;}
-  list.innerHTML='<div class="lb-loading">LOADING...</div>';
-  GameVolt.leaderboard.get({mode:'vx9',limit:50}).then(function(rows){
-    _lbCache=rows;
-    renderGlobalRows(rows);
-  }).catch(function(){
-    list.innerHTML='<div class="lb-empty">Could not load scores.</div>';
-  });
+  if(empty)empty.style.display='none';
+  // Standardized GameVolt leaderboard, mounted inline into the SCORES tab.
+  if(window.GameVolt&&GameVolt.ui&&GameVolt.ui.leaderboard){
+    GameVolt.ui.leaderboard({container:'#scores-list',mode:'vx9',accent:'#00e5ff',scoreLabel:'pts'});
+  }
 }
 function renderGlobalRows(rows){
   const list=document.getElementById('scores-list');
