@@ -397,13 +397,13 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.39.0"></script>
-  <script src="tt-ai.js?v=0.39.0"></script>
-  <script src="sb-net.js?v=0.39.0"></script>
-  <script src="tt-achievements.js?v=0.39.0"></script>
+  <script src="tt-core.js?v=0.40.0"></script>
+  <script src="tt-ai.js?v=0.40.0"></script>
+  <script src="sb-net.js?v=0.40.0"></script>
+  <script src="tt-achievements.js?v=0.40.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.39.0';
+    var VERSION = '0.40.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -453,11 +453,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.39.0', bounce: 'assets/bounce.mp3?v=0.39.0',
-        cheer: 'assets/cheer.mp3?v=0.39.0', net: 'assets/net.mp3?v=0.39.0',
-        crowd: 'assets/crowd.mp3?v=0.39.0', winfare: 'assets/winfare.mp3?v=0.39.0',
-        lose: 'assets/lose.mp3?v=0.39.0', matchpoint: 'assets/matchpoint.mp3?v=0.39.0',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.39.0', voIntro: 'assets/vo-intro.mp3?v=0.39.0'
+        hit: 'assets/hit.mp3?v=0.40.0', bounce: 'assets/bounce.mp3?v=0.40.0',
+        cheer: 'assets/cheer.mp3?v=0.40.0', net: 'assets/net.mp3?v=0.40.0',
+        crowd: 'assets/crowd.mp3?v=0.40.0', winfare: 'assets/winfare.mp3?v=0.40.0',
+        lose: 'assets/lose.mp3?v=0.40.0', matchpoint: 'assets/matchpoint.mp3?v=0.40.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.40.0', voIntro: 'assets/vo-intro.mp3?v=0.40.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -775,13 +775,17 @@
       a.fillStyle = fsh;
       a.fillRect(0, bl.y, W, 12);
 
-      // SIDE BARRIERS: perspective ad panels filling the full board height
+      // SIDE BARRIERS: low courtside boards standing ON THE FLOOR, starting at
+      // the near table edge and receding to the back corner — so they frame the
+      // court instead of looming as tall slanted stripes floating above the mat.
+      var SIDE_Y0 = 0.25, SIDE_Y1 = BARRIER_Y;        // near table edge -> back wall
+      var SIDE_BASE = K.FLOOR_Z, SIDE_TOP = K.FLOOR_Z + 0.6; // ~0.6m board on the floor
       function sidePanels(sx, panels) {
-        var yStops = [-0.55, 1.05, 2.45, BARRIER_Y];
-        for (var p2 = 0; p2 < panels.length; p2++) {
-          var y0 = yStops[p2], y1 = yStops[p2 + 1];
-          var b0 = proj(sx, y0, 0), b1 = proj(sx, y1, 0);
-          var t0 = proj(sx, y0, BARRIER_H), t1 = proj(sx, y1, BARRIER_H);
+        var span = SIDE_Y1 - SIDE_Y0, nP = panels.length;
+        for (var p2 = 0; p2 < nP; p2++) {
+          var y0 = SIDE_Y0 + span * (p2 / nP), y1 = SIDE_Y0 + span * ((p2 + 1) / nP);
+          var b0 = proj(sx, y0, SIDE_BASE), b1 = proj(sx, y1, SIDE_BASE);
+          var t0 = proj(sx, y0, SIDE_TOP), t1 = proj(sx, y1, SIDE_TOP);
           a.fillStyle = panels[p2].bg;
           a.beginPath();
           a.moveTo(b0.x, b0.y); a.lineTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.lineTo(t0.x, t0.y);
@@ -790,7 +794,7 @@
           a.beginPath(); a.moveTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.stroke();
           // depth-scaled text along the board
           var ym = (y0 + y1) / 2;
-          var bm = proj(sx, ym, 0), tm = proj(sx, ym, BARRIER_H);
+          var bm = proj(sx, ym, SIDE_BASE), tm = proj(sx, ym, SIDE_TOP);
           var panelLen = Math.hypot(b1.x - b0.x, b1.y - b0.y);
           a.save();
           a.translate((bm.x + tm.x) / 2, (bm.y + tm.y) / 2);
@@ -798,18 +802,18 @@
           if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI; // keep text upright
           a.rotate(ang);
           a.fillStyle = panels[p2].fg;
-          a.font = '800 ' + Math.abs(bm.y - tm.y) * 0.5 + 'px "Segoe UI", system-ui, sans-serif';
+          a.font = '800 ' + Math.abs(bm.y - tm.y) * 0.52 + 'px "Segoe UI", system-ui, sans-serif';
           a.textAlign = 'center'; a.textBaseline = 'middle';
-          a.fillText(panels[p2].t, 0, 0, panelLen * 0.86);
+          a.fillText(panels[p2].t, 0, 0, panelLen * 0.84);
           a.restore();
         }
-        // top tape + floor shadow along the board
-        var st0 = proj(sx, -0.55, BARRIER_H), st1 = proj(sx, BARRIER_Y, BARRIER_H);
+        // white top rail + floor shadow along the board base
+        var st0 = proj(sx, SIDE_Y0, SIDE_TOP), st1 = proj(sx, SIDE_Y1, SIDE_TOP);
         a.strokeStyle = 'rgba(255,255,255,0.85)'; a.lineWidth = 2;
         a.beginPath(); a.moveTo(st0.x, st0.y); a.lineTo(st1.x, st1.y); a.stroke();
-        var sb0 = proj(sx, -0.55, 0), sb1 = proj(sx, BARRIER_Y, 0);
+        var sb0 = proj(sx, SIDE_Y0, SIDE_BASE), sb1 = proj(sx, SIDE_Y1, SIDE_BASE);
         var inward = sx < 0 ? 9 : -9;
-        a.fillStyle = 'rgba(0,0,0,0.22)';
+        a.fillStyle = 'rgba(0,0,0,0.28)';
         a.beginPath();
         a.moveTo(sb0.x, sb0.y); a.lineTo(sb1.x, sb1.y);
         a.lineTo(sb1.x + inward * 0.4, sb1.y + 3); a.lineTo(sb0.x + inward, sb0.y + 6);
@@ -1032,7 +1036,8 @@
     }
 
     function drawNet() {
-      var hw = K.TABLE_W / 2; // posts clamp to the table's side edges, like a real net
+      var hwT = K.TABLE_W / 2;      // table edge (the white sideline)
+      var hw = hwT + 0.09;          // the net overhangs the table slightly, like a real net
       var bl = proj(-hw, K.NET_Y, 0), br = proj(hw, K.NET_Y, 0);
       var tl = proj(-hw, K.NET_Y, K.NET_H), tr = proj(hw, K.NET_Y, K.NET_H);
       var pm = ppm(K.NET_Y);
@@ -1075,15 +1080,22 @@
       ctx.beginPath(); ctx.moveTo(acc.x, acc.y); ctx.lineTo(accR.x, accR.y);
       ctx.lineTo(np(1, 0.93).x, np(1, 0.93).y); ctx.lineTo(np(0, 0.93).x, np(0, 0.93).y);
       ctx.closePath(); ctx.fill();
-      // posts clamped onto the table edge, like a real net assembly
-      [{ b: bl, t: tl, i: 1 }, { b: br, t: tr, i: -1 }].forEach(function (P) {
+      // Posts sit at the net's outer edge (past the table), each joined to the
+      // table's side edge by a clamp arm that grips the white sideline — the
+      // real net-post assembly, so it reads as fixed to the table, not floating.
+      [{ b: bl, t: tl, edgeX: -hwT, i: 1 }, { b: br, t: tr, edgeX: hwT, i: -1 }].forEach(function (P) {
+        var e = proj(P.edgeX, K.NET_Y, 0); // table-edge clamp point
+        // clamp arm from the table edge out to the post base
+        ctx.strokeStyle = '#20263e';
+        ctx.lineWidth = Math.max(2, 0.03 * pm);
+        ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(P.b.x, P.b.y); ctx.stroke();
         // clamp bracket gripping over the table lip
         ctx.fillStyle = '#12172a';
-        ctx.fillRect(P.b.x - 0.03 * pm, P.b.y - 0.008 * pm, 0.06 * pm, 0.085 * pm);
+        ctx.fillRect(e.x - 0.028 * pm, e.y - 0.008 * pm, 0.056 * pm, 0.085 * pm);
         ctx.fillStyle = '#2b3350';
-        ctx.fillRect(P.b.x - 0.022 * pm, P.b.y - 0.022 * pm, 0.044 * pm, 0.055 * pm);
+        ctx.fillRect(e.x - 0.02 * pm, e.y - 0.022 * pm, 0.04 * pm, 0.05 * pm);
         ctx.fillStyle = 'rgba(180,196,226,0.75)'; // clamp screw
-        ctx.beginPath(); ctx.arc(P.b.x, P.b.y + 0.022 * pm, Math.max(1, 0.009 * pm), 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(e.x, e.y + 0.02 * pm, Math.max(1, 0.009 * pm), 0, Math.PI * 2); ctx.fill();
         // post
         ctx.strokeStyle = '#242a44';
         ctx.lineWidth = Math.max(2.5, 0.028 * pm);
