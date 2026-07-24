@@ -297,6 +297,11 @@
             color: #fff;
             flex-shrink: 0;
         }
+        /* Procedural avatar face fills the box at any size */
+        .lb-avatar.has-face { background: transparent; }
+        .lb-avatar .gv-avatar,
+        .lb-avatar .gv-avatar svg,
+        .lb-avatar .gv-avatar img { width: 100%; height: 100%; }
 
         .lb-name {
             flex: 1;
@@ -641,7 +646,7 @@
 
                 html += '<div class="lb-row' + (isMe ? ' me' : '') + '">';
                 html += '<span class="lb-rank">#' + r.rank + '</span>';
-                html += '<div class="lb-avatar">' + initial + '</div>';
+                html += '<div class="lb-avatar" data-i="' + i + '">' + initial + '</div>';
                 html += '<span class="lb-name">' + name + '</span>';
 
                 if (_activeTab === 'trophies') {
@@ -654,6 +659,19 @@
             }
 
             container.innerHTML = html;
+
+            // Progressive enhancement: swap each initial for a procedural face
+            // when the avatar SDK is present (gv1 avatar_url -> face, real URL ->
+            // <img>, missing -> initial badge).
+            if (window.GameVolt && GameVolt.avatar) {
+                for (var j = 0; j < rows.length; j++) {
+                    var slot = container.querySelector('.lb-avatar[data-i="' + j + '"]');
+                    if (!slot) continue;
+                    slot.textContent = '';
+                    slot.classList.add('has-face');
+                    slot.appendChild(GameVolt.avatar.render(rows[j].avatar_url, { size: 36, name: rows[j].username }));
+                }
+            }
         }
 
         function showLoading() {
