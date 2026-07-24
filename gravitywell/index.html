@@ -3453,41 +3453,14 @@ showMenu(false);
     var globalDiv = document.createElement('div');
     globalDiv.style.cssText = 'margin-top:20px;';
     globalDiv.innerHTML = '<div style="font-family:Orbitron,monospace;font-size:12px;color:#7850ff;letter-spacing:3px;text-align:center;margin-bottom:10px;border-top:1px solid #7850ff33;padding-top:14px;">GLOBAL LEADERBOARD</div>' +
-      '<div id="global-scores-loading" style="text-align:center;color:#556;font-size:12px;letter-spacing:2px;">Loading...</div>' +
       '<div id="global-scores-list"></div>';
     list.parentNode.insertBefore(globalDiv, list.nextSibling);
     empty.style.display = 'none';
 
-    GameVolt.leaderboard.get({ mode: 'default', limit: 10 }).then(function(rows) {
-      var loadingEl = document.getElementById('global-scores-loading');
-      var globalList = document.getElementById('global-scores-list');
-      if (!loadingEl || !globalList) return;
-
-      if (!rows || rows.length === 0) {
-        loadingEl.textContent = 'No scores yet';
-        return;
-      }
-      loadingEl.style.display = 'none';
-
-      var user = GameVolt.auth.getUser();
-      var userId = user ? user.id : null;
-
-      globalList.innerHTML = rows.map(function(r, i) {
-        var isMe = r.user_id === userId;
-        var highlight = isMe ? 'background:#7850ff15;' : '';
-        return '<div class="score-row" style="' + highlight + '">' +
-          '<div class="score-rank">#' + (r.rank || (i + 1)) + '</div>' +
-          '<div class="score-info"><div class="score-val">' + (r.score || 0).toLocaleString() + '</div>' +
-          '<div class="score-meta">' + (r.username || 'Player') + '</div></div></div>';
-      }).join('');
-
-      if (!user) {
-        globalList.innerHTML += '<div style="text-align:center;color:#7850ff88;font-size:11px;letter-spacing:2px;padding:12px 0;">Log in to appear on the leaderboard</div>';
-      }
-    }).catch(function() {
-      var loadingEl = document.getElementById('global-scores-loading');
-      if (loadingEl) loadingEl.textContent = 'Could not load';
-    });
+    // Standardized GameVolt leaderboard, mounted inline.
+    if (GameVolt.ui && GameVolt.ui.leaderboard) {
+      GameVolt.ui.leaderboard({ container: '#global-scores-list', mode: 'default', limit: 10, accent: '#7850ff', scoreLabel: 'pts' });
+    }
   };
 })();
 

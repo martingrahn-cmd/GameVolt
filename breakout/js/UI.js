@@ -793,16 +793,11 @@ export default class UIManager {
   }
 
   _renderGlobal() {
-    this.scoresEmpty.style.display = 'none';
-    if (this._lbCache !== null) { this._renderGlobalRows(this._lbCache); return; }
-    this.scoresList.innerHTML = '<div class="lb-loading">LOADING...</div>';
-    var self = this;
-    GameVolt.leaderboard.get({ mode: LEADERBOARD_MODE, limit: 50 }).then(function(rows) {
-      self._lbCache = rows;
-      self._renderGlobalRows(rows);
-    }).catch(function() {
-      self.scoresList.innerHTML = '<div class="lb-empty">Could not load scores.</div>';
-    });
+    if (this.scoresEmpty) this.scoresEmpty.style.display = 'none';
+    // Standardized GameVolt leaderboard, mounted inline into the SCORES panel.
+    if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
+      GameVolt.ui.leaderboard({ container: this.scoresList, mode: LEADERBOARD_MODE, accent: '#00eaff', scoreLabel: 'pts' });
+    }
   }
 
   _renderGlobalRows(rows) {

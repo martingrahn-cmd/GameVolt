@@ -3024,18 +3024,12 @@
 
         function loadLeaderboard() {
             var listEl = document.getElementById('leaderboard-list');
-            if (!window.GameVolt) {
-                listEl.innerHTML = '<div class="lb-login">Log in to see the leaderboard.<br><button onclick="GameVolt.auth.login()">LOG IN</button></div>';
-                return;
+            // Standardized GameVolt leaderboard, mounted inline into the panel.
+            if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
+                GameVolt.ui.leaderboard({ container: listEl, mode: 'default', accent: '#06d6a0', scoreLabel: 'pts' });
+            } else if (listEl) {
+                listEl.innerHTML = '<div class="lb-login">Log in to see the leaderboard.<br><button onclick="if(window.GameVolt)GameVolt.auth.login()">LOG IN</button></div>';
             }
-            if (_c4LbCache !== null) { renderLeaderboardRows(_c4LbCache); return; }
-            listEl.innerHTML = '<div class="lb-loading">LOADING...</div>';
-            GameVolt.leaderboard.get({ mode: 'default', limit: 50 }).then(function(rows) {
-                _c4LbCache = rows;
-                renderLeaderboardRows(rows);
-            }).catch(function() {
-                listEl.innerHTML = '<div class="lb-empty">Could not load scores.</div>';
-            });
         }
 
         function renderLeaderboardRows(rows) {
