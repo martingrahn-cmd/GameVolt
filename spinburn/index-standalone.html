@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<!-- GENERATED FILE — do not edit by hand.
+     Portal build of Spinburn, produced from index.html by
+     spinburn/build-standalone.py. Re-run that script after editing index.html. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Play Spinburn free — 2.5D arcade table tennis with a neon tournament-broadcast feel. Spin, smash and ace your way up a Punch-Out-style ladder against three challengers, or play a friend online with a room code or invite link. First to 11, win by 2, 31 trophies. No download.">
+  <meta name="keywords" content="spinburn, table tennis game, ping pong game online, play ping pong with a friend, table tennis multiplayer, 2.5d sports game, arcade table tennis, browser game, free sports game">
+  <meta name="author" content="GameVolt">
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://gamevolt.io/spinburn/">
+  <meta name="theme-color" content="#0d0b1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <title>Spinburn — 2.5D Arcade Table Tennis</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; background: #0d0b1a; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: #eaf6ff; -webkit-user-select: none; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #cv { position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; }
+
+    .overlay {
+      position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 14px;
+      background: radial-gradient(ellipse at 50% 30%, rgba(20,16,40,0.88), rgba(8,6,18,0.96));
+    }
+    .overlay.hidden { display: none; }
+    /* faint diagonal grain so screens don't look sterile */
+    .overlay::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(-35deg, rgba(255,255,255,0.016) 0 2px, transparent 2px 7px);
+    }
+    .title {
+      font-size: clamp(2rem, 8vw, 3.4rem); font-weight: 900; letter-spacing: 6px;
+      background: linear-gradient(180deg, #7fd8ff, #00eaff 55%, #0790b8);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      text-shadow: 0 0 34px rgba(0,234,255,0.35); text-align: center;
+      transform: rotate(-1.4deg);
+      filter: drop-shadow(4px 4px 0 rgba(200,40,30,0.3));
+    }
+    .sticker {
+      position: absolute; font-weight: 900; letter-spacing: 1px; font-size: 0.64rem;
+      padding: 6px 12px; border-radius: 4px; pointer-events: none; white-space: nowrap;
+    }
+    .sticker.s1 { top: 9%; left: 6%; transform: rotate(-7deg); background: #ffd166; color: #1a1206; box-shadow: 3px 3px 0 rgba(0,0,0,0.45); }
+    .sticker.s2 { top: 16%; right: 5%; transform: rotate(5deg); background: #c8281e; color: #fff; box-shadow: 3px 3px 0 rgba(0,0,0,0.45); }
+    .sticker.s3 { bottom: 14%; left: 7%; transform: rotate(-4deg); background: #12266b; color: #bff4ff; border: 1px dashed rgba(255,255,255,0.5); }
+    .sticker.s4 { bottom: 20%; right: 6%; transform: rotate(6deg); background: transparent; color: #ffd166; border: 2px solid rgba(255,209,102,0.6); border-radius: 999px; font-size: 0.6rem; }
+    #ticker {
+      position: absolute; bottom: 0; left: 0; right: 0; overflow: hidden;
+      padding: 8px 0; border-top: 1px solid rgba(0,234,255,0.2); background: rgba(5,4,12,0.6);
+    }
+    .tick-in {
+      white-space: nowrap; font-size: 0.6rem; letter-spacing: 3px; color: #5d7595;
+      display: inline-block; animation: tickmove 26s linear infinite;
+    }
+    @keyframes tickmove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    @media (prefers-reduced-motion: reduce) { .tick-in { animation: none; } }
+    .subtitle { font-size: 0.72rem; letter-spacing: 3px; color: #8fa8c8; text-transform: uppercase; }
+    .proto-tag {
+      font-size: 0.6rem; letter-spacing: 2px; color: #ffd166; border: 1px solid rgba(255,209,102,0.4);
+      border-radius: 999px; padding: 3px 12px; text-transform: uppercase;
+    }
+    .btn {
+      font-family: inherit; font-weight: 800; letter-spacing: 3px; font-size: 0.95rem;
+      color: #bff4ff; background: rgba(0,234,255,0.07); border: 1px solid rgba(0,234,255,0.45);
+      border-radius: 12px; padding: 14px 44px; cursor: pointer; min-width: 240px;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .btn:hover { background: rgba(0,234,255,0.16); box-shadow: 0 0 22px rgba(0,234,255,0.35); }
+    .btn.easy { border-color: rgba(70,230,150,0.5); color: #a9f5cd; background: rgba(70,230,150,0.06); }
+    .btn.easy:hover { background: rgba(70,230,150,0.15); box-shadow: 0 0 22px rgba(70,230,150,0.35); }
+    .btn.medium { border-color: rgba(255,214,60,0.5); color: #ffe58a; background: rgba(255,214,60,0.06); }
+    .btn.medium:hover { background: rgba(255,214,60,0.14); box-shadow: 0 0 22px rgba(255,214,60,0.35); }
+    .btn.hard { border-color: rgba(255,80,120,0.5); color: #ff9ab5; background: rgba(255,80,120,0.06); }
+    .btn.hard:hover { background: rgba(255,80,120,0.14); box-shadow: 0 0 22px rgba(255,80,120,0.35); }
+    .btn.ghost { border-color: rgba(255,255,255,0.22); color: #9fb4cc; background: transparent; }
+    /* slightly askew buttons — hand-slapped tournament poster, not a SaaS page */
+    .btn.camp { transform: rotate(-0.7deg); }
+    .btn.online { transform: rotate(0.5deg); }
+    .btn.easy { transform: rotate(0.6deg); }
+    .btn.medium { transform: rotate(-0.5deg); }
+    #menu .btn.hard { transform: rotate(0.8deg); }
+    .btn.camp {
+      border-color: rgba(255,209,102,0.6); color: #ffe8ad; background: rgba(255,209,102,0.08);
+      box-shadow: 0 0 18px rgba(255,209,102,0.2), 3px 3px 0 rgba(0,0,0,0.35);
+    }
+    .btn.online {
+      border-color: rgba(122,120,255,0.6); color: #cfceff; background: rgba(122,120,255,0.08);
+      box-shadow: 0 0 18px rgba(122,120,255,0.2), 3px 3px 0 rgba(0,0,0,0.35);
+    }
+    .btn.online:hover { background: rgba(122,120,255,0.16); box-shadow: 0 0 26px rgba(122,120,255,0.4); }
+    /* online lobby */
+    #ol-code { font-weight: 900; font-size: 2.4rem; letter-spacing: 12px; color: #a9b6ff; text-shadow: 0 0 22px rgba(122,120,255,0.6); text-align: center; }
+    #ol-code-box.hidden { display: none; }
+    .ol-hint { font-size: 0.6rem; letter-spacing: 1.5px; color: #8299b8; text-align: center; margin: 6px 0; line-height: 1.5; }
+    .ol-join-row { display: flex; gap: 10px; align-items: center; justify-content: center; }
+    #ol-join-input {
+      width: 130px; text-align: center; font-family: inherit; font-weight: 700; font-size: 1.1rem;
+      letter-spacing: 6px; text-transform: uppercase; color: #fff; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(122,120,255,0.4); border-radius: 10px; padding: 12px 8px; outline: none;
+    }
+    #ol-join-input:focus { border-color: #fff; box-shadow: 0 0 18px rgba(122,120,255,0.4); }
+    #ol-status { min-height: 1.1em; font-size: 0.68rem; letter-spacing: 1.5px; text-align: center; color: #cfceff; }
+    /* trophy cabinet */
+    #trophies .tr-panel {
+      width: min(560px, 92vw); max-height: 74vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 4px 10px 10px; border-radius: 14px;
+    }
+    #tr-count { display: block; font-size: 0.72rem; letter-spacing: 2px; color: #ffd166; margin-top: 4px; }
+    .tr-tier {
+      grid-column: 1 / -1; font-weight: 900; letter-spacing: 2px; font-size: 0.7rem;
+      text-transform: uppercase; margin: 12px 0 2px; padding-bottom: 3px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+    .tr-tier.bronze { color: #cd7f32; } .tr-tier.silver { color: #cfd6dc; }
+    .tr-tier.gold { color: #ffd700; } .tr-tier.platinum { color: #b4ffff; }
+    #tr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .tr-card {
+      display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px;
+      background: rgba(16,13,34,0.75); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; padding: 9px 7px;
+    }
+    .tr-card.locked { opacity: 0.4; filter: grayscale(1); }
+    .tr-card.unlocked.bronze { border-color: rgba(205,127,50,0.6); background: rgba(205,127,50,0.09); }
+    .tr-card.unlocked.silver { border-color: rgba(192,192,192,0.55); background: rgba(192,192,192,0.09); }
+    .tr-card.unlocked.gold { border-color: rgba(255,215,0,0.6); background: rgba(255,215,0,0.09); }
+    .tr-card.unlocked.platinum { border-color: rgba(180,255,255,0.7); background: rgba(180,255,255,0.1); }
+    .tr-ico { font-size: 1.5rem; line-height: 1; }
+    .tr-name { font-weight: 800; font-size: 0.7rem; letter-spacing: 0.5px; color: #eaf6ff; }
+    .tr-desc { font-size: 0.58rem; line-height: 1.35; color: #9fb2c8; }
+    /* online character select */
+    #cs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0; }
+    .cs-card {
+      display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer;
+      background: rgba(16,13,34,0.8); border: 2px solid rgba(122,120,255,0.25);
+      border-radius: 12px; padding: 8px;
+    }
+    .cs-card canvas { width: 84px; height: 96px; image-rendering: pixelated; border-radius: 6px; background: #0a0918; }
+    .cs-card .cs-nm { font-size: 0.62rem; font-weight: 800; letter-spacing: 1px; color: #cfceff; }
+    .cs-card.picked { border-color: #7dffb0; box-shadow: 0 0 16px rgba(70,230,150,0.3); }
+    .cs-card.opppick { border-color: #ff8aa8; }
+    #cs-status { min-height: 1.1em; font-size: 0.7rem; letter-spacing: 1.5px; text-align: center; color: #cfceff; }
+    .btn.camp:hover { background: rgba(255,209,102,0.16); box-shadow: 0 0 26px rgba(255,209,102,0.4); }
+
+    /* VS card (Punch-Out style pre-match) */
+    #vs-stage { font-size: 0.72rem; letter-spacing: 5px; color: #ffd166; text-transform: uppercase; }
+    #vs-duel { display: flex; align-items: center; gap: 12px; }
+    .vs-side { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    #vs-face, #vs-face-p {
+      width: min(122px, 32vw); height: auto; image-rendering: pixelated;
+      border: 2px solid rgba(0,234,255,0.35); border-radius: 10px;
+      background: #0a0918; box-shadow: 0 0 30px rgba(0,234,255,0.2);
+    }
+    #vs-face-p { border-color: rgba(255,80,120,0.45); transform: rotate(-2deg); }
+    #vs-face { transform: rotate(2deg); }
+    .vs-side-name { font-size: 0.68rem; font-weight: 800; letter-spacing: 2px; color: #bff4ff; }
+    #vs-pname { cursor: pointer; border-bottom: 1px dashed rgba(191,244,255,0.4); }
+    #vs-vs {
+      font-style: italic; font-weight: 900; font-size: 1.7rem; color: #ffd166;
+      transform: rotate(-8deg); text-shadow: 3px 3px 0 rgba(200,40,30,0.5);
+    }
+    #vs-name { font-size: clamp(1.4rem, 6vw, 2rem); font-weight: 900; letter-spacing: 3px; color: #fff; }
+    #vs-country { font-size: 0.85rem; letter-spacing: 2px; color: #9fb4cc; }
+    #vs-style { font-size: 0.72rem; letter-spacing: 2px; color: #00eaff; text-transform: uppercase; }
+    #vs-taunt { font-size: 0.9rem; font-style: italic; color: #d7c9a8; max-width: 300px; text-align: center; line-height: 1.4; }
+    #vs-bracket { display: flex; gap: 14px; font-size: 0.68rem; letter-spacing: 1px; color: #6d84a3; }
+    #vs-bracket .done { color: #7dffb0; }
+    #vs-bracket .cur { color: #ffd166; }
+
+    /* the ladder (campaign overview, top -> down) */
+    #ladder-rows { display: flex; flex-direction: column; align-items: center; }
+    .lrow {
+      display: flex; align-items: center; gap: 14px; width: min(340px, 86vw);
+      background: rgba(16,13,34,0.8); border: 1px solid rgba(0,234,255,0.2);
+      border-radius: 12px; padding: 10px 14px; cursor: pointer;
+    }
+    .lrow canvas { width: 48px; height: 54px; image-rendering: pixelated; border-radius: 6px; background: #0a0918; flex: none; }
+    .lrow .lstage { font-size: 0.6rem; letter-spacing: 2px; color: #ffd166; }
+    .lrow .lname { font-weight: 800; letter-spacing: 1px; font-size: 0.95rem; color: #fff; }
+    .lrow .lstatus { font-size: 0.62rem; letter-spacing: 1px; color: #6d84a3; margin-top: 2px; }
+    .lrow.cleared { border-color: rgba(70,230,150,0.4); }
+    .lrow.cleared .lstatus { color: #7dffb0; }
+    .lrow.next { border-color: rgba(255,209,102,0.65); box-shadow: 0 0 18px rgba(255,209,102,0.25); }
+    .lrow.next .lstatus { color: #ffd166; }
+    .lrow.locked { opacity: 0.45; cursor: default; }
+    .lconn { width: 2px; height: 14px; background: rgba(0,234,255,0.3); }
+    .menu-note { font-size: 0.68rem; color: #6d84a3; letter-spacing: 1px; margin-top: 6px; }
+    #install-btn {
+      font-family: inherit; font-weight: 800; letter-spacing: 2px; font-size: 0.72rem;
+      color: #bff4ff; background: transparent; border: 1px dashed rgba(0,234,255,0.4);
+      border-radius: 999px; padding: 8px 20px; cursor: pointer; margin-top: 8px;
+    }
+    #install-btn.hidden, #ios-hint.hidden, #update-chip.hidden, #ladder-reset.hidden,
+    #ol-share.hidden, #ol-code-box.hidden { display: none; }
+    #ios-hint { font-size: 0.64rem; color: #8fa8c8; letter-spacing: 1px; margin-top: 8px; text-align: center; }
+    #update-chip {
+      font-family: inherit; font-weight: 800; letter-spacing: 2px; font-size: 0.78rem;
+      color: #0d0b1a; background: #ffd166; border: 0; border-radius: 10px;
+      padding: 10px 20px; cursor: pointer; margin-top: 10px;
+      box-shadow: 0 0 22px rgba(255,209,102,0.5); animation: chipPulse 1.5s infinite;
+    }
+    @keyframes chipPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+    #hud {
+      position: fixed; top: max(10px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+      z-index: 5; display: flex; align-items: center; gap: 14px;
+      background: rgba(10,8,24,0.55); border: 1px solid rgba(0,234,255,0.25);
+      border-radius: 12px; padding: 7px 18px; backdrop-filter: blur(4px);
+      font-weight: 800; letter-spacing: 2px; font-size: 1.0rem; white-space: nowrap;
+    }
+    #hud.hidden { display: none; }
+    #hud .who { font-size: 0.62rem; color: #7f98b8; letter-spacing: 2px; }
+    #hud .sc { color: #fff; min-width: 1.2em; text-align: center; }
+    #hud .serve-dot { color: #ffd166; font-size: 0.7rem; width: 0.8em; text-align: center; }
+    #hud .lvl { font-size: 0.6rem; color: #ffd166; letter-spacing: 2px; }
+
+    #banner {
+      position: fixed; top: 34%; left: 50%; transform: translate(-50%, -50%); z-index: 6;
+      font-size: clamp(1.6rem, 6vw, 2.6rem); font-weight: 900; letter-spacing: 6px;
+      color: #fff; text-shadow: 0 0 26px rgba(0,234,255,0.7); pointer-events: none;
+      opacity: 0; transition: opacity 0.12s;
+    }
+    #banner.on { opacity: 1; }
+
+    #hint {
+      position: fixed; bottom: max(16px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+      z-index: 5; font-size: 0.7rem; letter-spacing: 3px; color: #8fd8ff; text-transform: uppercase;
+      text-shadow: 0 0 12px rgba(0,234,255,0.5); pointer-events: none;
+      opacity: 0; transition: opacity 0.2s; white-space: nowrap;
+    }
+    #hint.on { opacity: 1; animation: hintPulse 1.4s ease-in-out infinite; }
+    @keyframes hintPulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
+    .modal-title { font-size: clamp(1.6rem, 7vw, 2.6rem); font-weight: 900; letter-spacing: 4px; }
+    .modal-title.win { color: #7dffb0; text-shadow: 0 0 30px rgba(70,230,150,0.6); }
+    .modal-title.lose { color: #ff8aa8; text-shadow: 0 0 30px rgba(255,80,120,0.55); }
+    .modal-sub { font-size: 0.85rem; color: #9fb4cc; letter-spacing: 1px; }
+    #end-report.hidden { display: none; }
+    .er-faces { display: flex; align-items: center; gap: 12px; margin: 10px 0 4px; }
+    .er-side { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    #er-face-p, #er-face-o {
+      width: min(112px, 30vw); height: auto; image-rendering: pixelated;
+      border: 2px solid rgba(0,234,255,0.3); border-radius: 10px; background: #0a0918;
+    }
+    #er-face-p { border-color: rgba(255,80,120,0.45); }
+    .er-nm { font-size: 0.64rem; font-weight: 800; letter-spacing: 2px; color: #bff4ff; }
+    #er-score { font-weight: 900; font-size: 1.5rem; letter-spacing: 1px; color: #fff; font-variant-numeric: tabular-nums; }
+    .er-cheese {
+      font-style: italic; font-size: 0.9rem; color: #d7c9a8; max-width: 320px;
+      text-align: center; line-height: 1.45; margin-top: 4px;
+    }
+
+    #version {
+      position: fixed; bottom: 6px; right: 10px; z-index: 4; font-size: 0.58rem;
+      color: rgba(143,168,200,0.5); letter-spacing: 1px; pointer-events: none;
+    }
+    #snd-btn {
+      position: fixed; top: max(10px, env(safe-area-inset-top)); right: 12px; z-index: 7;
+      width: 40px; height: 38px; font-size: 1.05rem; cursor: pointer;
+      color: #bff4ff; background: rgba(10,8,24,0.55); border: 1px solid rgba(0,234,255,0.25);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="cv"></canvas>
+
+  <div id="hud" class="hidden">
+    <span class="who" id="who1">YOU</span>
+    <span class="serve-dot" id="dot1"></span>
+    <span class="sc" id="sc1">0</span>
+    <span style="color:#54708f">·</span>
+    <span class="sc" id="sc2">0</span>
+    <span class="serve-dot" id="dot2"></span>
+    <span class="who" id="who2">AI</span>
+    <span class="lvl" id="lvl"></span>
+  </div>
+  <div id="banner"></div>
+  <div id="hint"></div>
+  <div id="version"></div>
+  <button id="snd-btn"></button>
+
+  <div class="overlay" id="menu">
+    <div class="sticker s1">🏓 SPINBURN OPEN</div>
+    <div class="sticker s2">3 CHALLENGERS!</div>
+    <div class="sticker s3">FREE · NO ADS · NO MERCY</div>
+    <div class="sticker s4">★ EST. 2026 ★</div>
+    <div id="ticker"><div class="tick-in">SPINTEC · AEROPONG · VOLT+ · TOPSPIN PRO · RALLYX · PING&amp;CO · SMASH ENERGY · VOLTARENA · PADDLE KING · SPIN LAB ·&nbsp;&nbsp;SPINTEC · AEROPONG · VOLT+ · TOPSPIN PRO · RALLYX · PING&amp;CO · SMASH ENERGY · VOLTARENA · PADDLE KING · SPIN LAB ·&nbsp;&nbsp;</div></div>
+    <div class="title">SPINBURN</div>
+    <div class="subtitle">2.5D arcade table tennis</div>
+    <div class="proto-tag">Spinburn Open · online &amp; vs AI</div>
+    <div style="height:8px"></div>
+    <button class="btn camp" id="campaign-btn">🏆 CAMPAIGN</button>
+    <button class="btn online" id="online-btn">🌐 PLAY ONLINE</button>
+    <div class="menu-note" style="margin:2px 0 -6px">QUICK MATCH</div>
+    <button class="btn easy" data-level="easy">EASY</button>
+    <button class="btn medium" data-level="medium">MEDIUM</button>
+    <button class="btn hard" data-level="hard">HARD</button>
+    <button class="btn ghost" id="trophies-btn">🏆 TROPHIES</button>
+    <div class="menu-note">Drag to move your paddle — swipe through the ball to aim.<br>First to 11, win by 2. Tap to toss, then swipe through the ball to strike the serve.</div>
+  </div>
+
+  <div class="overlay hidden" id="online">
+    <div class="title" style="font-size:clamp(1.3rem,6vw,1.9rem)">PLAY ONLINE</div>
+    <div class="subtitle">First to 11 · one friend, one room code</div>
+    <div style="height:6px"></div>
+    <button class="btn online" id="ol-create">CREATE ROOM</button>
+    <div id="ol-code-box" class="hidden">
+      <div id="ol-code">----</div>
+      <div class="ol-hint">SHARE THE CODE — OR SEND THE LINK<br>KEEP THIS PAGE OPEN — THE ROOM LIVES IN THIS TAB</div>
+      <button class="btn ghost" id="ol-copy-link">🔗 COPY INVITE LINK</button>
+      <button class="btn ghost hidden" id="ol-share">📤 SHARE</button>
+    </div>
+    <div class="ol-hint" style="margin-top:12px">— OR JOIN A FRIEND'S ROOM —</div>
+    <div class="ol-join-row">
+      <input id="ol-join-input" type="text" maxlength="4" autocomplete="off" spellcheck="false" placeholder="CODE">
+      <button class="btn online" id="ol-join">JOIN</button>
+    </div>
+    <div id="ol-status"></div>
+    <div style="height:6px"></div>
+    <button class="btn ghost" id="ol-back">◂ BACK</button>
+  </div>
+
+  <div class="overlay hidden" id="charselect">
+    <div class="title" style="font-size:clamp(1.2rem,5.5vw,1.7rem)">CHOOSE YOUR FIGHTER</div>
+    <div id="cs-grid"></div>
+    <div id="cs-status">PICK A CHARACTER</div>
+    <button class="btn ghost" id="cs-back">◂ LEAVE ROOM</button>
+  </div>
+
+  <div class="overlay hidden" id="ladder">
+    <div class="title" style="font-size:clamp(1.3rem,6vw,1.9rem)">THE LADDER</div>
+    <div class="subtitle">Spinburn Open · beat all three</div>
+    <div style="height:4px"></div>
+    <div id="ladder-rows"></div>
+    <div style="height:4px"></div>
+    <button class="btn ghost" id="ladder-back">BACK</button>
+    <button class="btn ghost hidden" id="ladder-reset">RESET CAMPAIGN</button>
+  </div>
+
+  <div class="overlay hidden" id="trophies">
+    <div class="title" style="font-size:clamp(1.3rem,6vw,1.9rem)">TROPHIES<span id="tr-count">0 / 31</span></div>
+    <div class="tr-panel"><div id="tr-grid"></div></div>
+    <button class="btn ghost" id="trophies-back">BACK</button>
+  </div>
+
+  <div class="overlay hidden" id="vs">
+    <div id="vs-stage"></div>
+    <div id="vs-duel">
+      <div class="vs-side">
+        <canvas id="vs-face-p" width="120" height="136"></canvas>
+        <div class="vs-side-name" id="vs-pname" title="Tap to change your name"></div>
+      </div>
+      <div id="vs-vs">VS</div>
+      <div class="vs-side">
+        <canvas id="vs-face" width="120" height="136"></canvas>
+        <div class="vs-side-name" id="vs-oname"></div>
+      </div>
+    </div>
+    <div id="vs-name"></div>
+    <div id="vs-country"></div>
+    <div id="vs-style"></div>
+    <div id="vs-taunt"></div>
+    <div id="vs-bracket"></div>
+    <div style="height:6px"></div>
+    <button class="btn hard" id="vs-fight">FIGHT!</button>
+    <button class="btn ghost" id="vs-back">BACK</button>
+  </div>
+
+  <div class="overlay hidden" id="end">
+    <div class="modal-title" id="end-title"></div>
+    <div id="end-report" class="hidden">
+      <div class="er-faces">
+        <div class="er-side"><canvas id="er-face-p" width="120" height="136"></canvas><div class="er-nm" id="er-pname"></div></div>
+        <div id="er-score">0–0</div>
+        <div class="er-side"><canvas id="er-face-o" width="120" height="136"></canvas><div class="er-nm" id="er-oname"></div></div>
+      </div>
+    </div>
+    <div class="modal-sub" id="end-sub"></div>
+    <div class="er-cheese" id="end-cheese"></div>
+    <div style="height:8px"></div>
+    <button class="btn" id="again-btn">PLAY AGAIN</button>
+    <button class="btn ghost" id="menu-btn">MENU</button>
+  </div>
+
+  <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
+       files separately from index.html, and a stale physics file with a
+       fresh shell is exactly the bug you can't reproduce locally -->
+  <script src="tt-core.js?v=0.37.0"></script>
+  <script src="tt-ai.js?v=0.37.0"></script>
+  <script src="sb-net.js?v=0.37.0"></script>
+  <script src="tt-achievements.js?v=0.37.0"></script>
+  <script>
+    'use strict';
+    var VERSION = '0.37.0';
+    var K = TTCore.constants;
+    var TICK_MS = 1000 * K.DT;
+
+    var cv = document.getElementById('cv');
+    var ctx = cv.getContext('2d');
+    var W = 0, H = 0, DPR = 1;
+
+    var ui = 'menu';           // menu | playing | over
+    var game = null;
+    var level = 'medium';
+    var myPid = 1;             // online role: 1 = host (near), 2 = guest
+    var aiMem = {};
+    var acc = 0, last = 0;
+    var pointTimer = 0;
+    var trail = [];
+    var seedCtr = 1;
+    function rng() { seedCtr = (seedCtr * 1664525 + 1013904223) >>> 0; return seedCtr / 4294967296; }
+
+    // ---------- sound (synthesized, no assets) ----------
+    var Sound = (function () {
+      var ctx = null, master = null;
+      var enabled = localStorage.getItem('ttSnd') !== '0';
+      function ac() {
+        if (!ctx) {
+          try {
+            ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var comp = ctx.createDynamicsCompressor();
+            master = ctx.createGain();
+            master.gain.value = 0.5;
+            master.connect(comp);
+            comp.connect(ctx.destination);
+          } catch (e) { ctx = null; return null; }
+        }
+        if (ctx.state === 'suspended') ctx.resume();
+        return ctx;
+      }
+      function out(pan) {
+        if (ctx.createStereoPanner) {
+          var p = ctx.createStereoPanner();
+          p.pan.value = Math.max(-1, Math.min(1, pan || 0));
+          p.connect(master);
+          return p;
+        }
+        return master;
+      }
+      // Real recorded samples (ElevenLabs-generated, picked by ear); the
+      // synth versions below stay as fallback if a sample fails to load.
+      var samples = {};
+      var SAMPLE_SRC = {
+        hit: 'assets/hit.mp3?v=0.37.0', bounce: 'assets/bounce.mp3?v=0.37.0',
+        cheer: 'assets/cheer.mp3?v=0.37.0', net: 'assets/net.mp3?v=0.37.0',
+        crowd: 'assets/crowd.mp3?v=0.37.0', winfare: 'assets/winfare.mp3?v=0.37.0',
+        lose: 'assets/lose.mp3?v=0.37.0', matchpoint: 'assets/matchpoint.mp3?v=0.37.0'
+      };
+      var crowdSrc = null, crowdGain = null;
+      function loadSamples() {
+        if (!ac()) return;
+        Object.keys(SAMPLE_SRC).forEach(function (k) {
+          if (samples[k] !== undefined) return;
+          samples[k] = null; // loading
+          fetch(SAMPLE_SRC[k])
+            .then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
+            .then(function (ab) { return ctx.decodeAudioData(ab); })
+            .then(function (b) { samples[k] = b; })
+            .catch(function () { samples[k] = false; });
+        });
+      }
+      function playSample(k, vol, rate, pan) {
+        if (!enabled || !ac() || !samples[k]) return false;
+        var src = ctx.createBufferSource();
+        src.buffer = samples[k];
+        src.playbackRate.value = rate || 1;
+        var g = ctx.createGain();
+        g.gain.value = vol;
+        src.connect(g); g.connect(out(pan));
+        src.start(ctx.currentTime);
+        return true;
+      }
+      function blip(freq, dur, vol, type, pan, slide, delay) {
+        if (!enabled || !ac()) return;
+        var t0 = ctx.currentTime + (delay || 0);
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = type || 'triangle';
+        o.frequency.setValueAtTime(freq, t0);
+        if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t0 + dur);
+        g.gain.setValueAtTime(vol, t0);
+        g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+        o.connect(g); g.connect(out(pan));
+        o.start(t0); o.stop(t0 + dur + 0.02);
+      }
+      function thwack(dur, vol, freq, pan) {
+        if (!enabled || !ac()) return;
+        var n = Math.floor(ctx.sampleRate * dur);
+        var buf = ctx.createBuffer(1, n, ctx.sampleRate);
+        var d = buf.getChannelData(0);
+        for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+        var src = ctx.createBufferSource(); src.buffer = buf;
+        var f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 1.1;
+        var g = ctx.createGain(); g.gain.value = vol;
+        src.connect(f); f.connect(g); g.connect(out(pan));
+        src.start(ctx.currentTime);
+      }
+      return {
+        get enabled() { return enabled; },
+        toggle: function () { enabled = !enabled; localStorage.setItem('ttSnd', enabled ? '1' : '0'); return enabled; },
+        unlock: function () { ac(); loadSamples(); },
+        // Real recorded pock; pitch + volume scale with shot power, small
+        // random rate jitter so repeats never sound identical
+        pock: function (power, pan) {
+          if (playSample('hit', 0.55 + power * 0.45, 0.92 + power * 0.3 + (Math.random() - 0.5) * 0.08, pan)) return;
+          thwack(0.016 + power * 0.012, 0.5 + power * 0.3, 1900 + power * 1600, pan);
+          blip(130 + power * 60, 0.04, 0.35 + power * 0.2, 'sine', pan, -70);
+        },
+        bounce: function (pan) {
+          if (playSample('bounce', 0.4, 0.95 + Math.random() * 0.1, pan)) return;
+          thwack(0.012, 0.2, 900, pan);
+          blip(95, 0.035, 0.18, 'sine', pan, -30);
+        },
+        net: function () {
+          if (playSample('net', 0.75, 0.97 + Math.random() * 0.06, 0)) return;
+          thwack(0.07, 0.35, 300, 0); blip(65, 0.08, 0.22, 'sine', 0, -20);
+        },
+        toss: function () { blip(500, 0.035, 0.07, 'sine', 0, 120); },
+        point: function (mine) {
+          if (mine && playSample('cheer', 0.55, 1 + (Math.random() - 0.5) * 0.06, 0)) return;
+          blip(mine ? 523 : 330, 0.11, 0.16, 'sine', 0);
+          blip(mine ? 784 : 262, 0.14, 0.16, 'sine', 0, 0, 0.1);
+        },
+        matchpoint: function () { playSample('matchpoint', 0.5, 1, 0); },
+        end: function (win) {
+          if (playSample(win ? 'winfare' : 'lose', win ? 0.55 : 0.5, 1, 0)) return;
+          [0, 0.13, 0.26].forEach(function (d, i) {
+            blip(win ? 392 * Math.pow(1.26, i) : 330 / Math.pow(1.19, i), 0.15, 0.15, 'triangle', 0, 0, d);
+          });
+        },
+        // looping arena ambience bed, faded in/out
+        crowdStart: function () {
+          if (!enabled || !ac() || !samples.crowd || crowdSrc) return;
+          crowdSrc = ctx.createBufferSource();
+          crowdSrc.buffer = samples.crowd;
+          crowdSrc.loop = true;
+          crowdGain = ctx.createGain();
+          crowdGain.gain.setValueAtTime(0.0001, ctx.currentTime);
+          crowdGain.gain.linearRampToValueAtTime(0.32, ctx.currentTime + 1.2);
+          crowdSrc.connect(crowdGain); crowdGain.connect(master);
+          crowdSrc.start();
+        },
+        crowdStop: function () {
+          if (!crowdSrc) return;
+          var s = crowdSrc, g = crowdGain;
+          try {
+            g.gain.cancelScheduledValues(ctx.currentTime);
+            g.gain.setValueAtTime(g.gain.value, ctx.currentTime);
+            g.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
+            s.stop(ctx.currentTime + 0.55);
+          } catch (e) {}
+          crowdSrc = null; crowdGain = null;
+        }
+      };
+    })();
+
+    // ---------- projection (2.5D) ----------
+    var CAM = { d0: 1.1, depth: 1.9, hor: 0, A: 0, S: 0 };
+    function resize() {
+      DPR = Math.min(2, window.devicePixelRatio || 1);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = W * DPR; cv.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      arenaCv = null; // rebuild the pre-rendered arena for the new size
+      // Portrait squeezes the table long and thin — widen it and compress
+      // the depth there; landscape keeps the deeper view.
+      var portrait = H > W * 1.15;
+      CAM.hor = H * (portrait ? 0.22 : 0.16);
+      CAM.A = H * (portrait ? 0.52 : 0.68);
+      CAM.S = portrait ? Math.min(W * 0.62, H * 0.46) : Math.min(W * 0.5, H * 0.64);
+    }
+    window.addEventListener('resize', resize);
+
+    // Online uses a mirror-per-client model: each player is always player 1
+    // (near, red) in their own frame, so no view flip is needed here — the
+    // ball is mirrored on the wire instead (see mirrorBall).
+    function dist(y) { return Math.max(0.2, CAM.d0 + (y / K.TABLE_L) * CAM.depth); }
+    function ppm(y) { return CAM.S / dist(y); }        // pixels per meter at depth y
+    function proj(x, y, z) {
+      var d = dist(y);
+      var s = CAM.S / d;
+      return { x: W / 2 + x * s, y: CAM.hor + CAM.A / d - z * s * 0.75, s: s };
+    }
+
+    // ---------- rendering ----------
+    // Pro-arena backdrop (red tournament floor, sponsor barriers, crowd
+    // darkness, under-table LED glow) pre-rendered once per resize.
+    var arenaCv = null;
+    var arenaMeta = { crowdTop: 0, crowdBot: 0 };
+    function buildArena() {
+      arenaCv = document.createElement('canvas');
+      arenaCv.width = W * DPR; arenaCv.height = H * DPR;
+      var a = arenaCv.getContext('2d');
+      a.setTransform(DPR, 0, 0, DPR, 0, 0);
+      var s77 = 77;
+      function arnd() { s77 = (s77 * 1664525 + 1013904223) >>> 0; return s77 / 4294967296; }
+
+      // arena void above
+      var sky = a.createLinearGradient(0, 0, 0, H * 0.45);
+      sky.addColorStop(0, '#06050d'); sky.addColorStop(1, '#131024');
+      a.fillStyle = sky; a.fillRect(0, 0, W, H * 0.5);
+
+      var BARRIER_Y = K.TABLE_L + 1.25, BARRIER_H = 0.78;
+      var bl = proj(-6, BARRIER_Y, 0), br = proj(6, BARRIER_Y, 0);
+      var tl = proj(-6, BARRIER_Y, BARRIER_H), tr = proj(6, BARRIER_Y, BARRIER_H);
+
+      // crowd darkness with silhouette heads, phone lights + camera dots
+      var crowdTop = Math.max(0, tl.y - H * 0.17);
+      arenaMeta.crowdTop = crowdTop; arenaMeta.crowdBot = tl.y;
+      var cg = a.createLinearGradient(0, crowdTop, 0, tl.y);
+      cg.addColorStop(0, '#0a0816'); cg.addColorStop(1, '#191430');
+      a.fillStyle = cg; a.fillRect(0, crowdTop, W, tl.y - crowdTop);
+      for (var row = 3; row >= 0; row--) {
+        var ry = tl.y - 5 - row * H * 0.03;
+        a.fillStyle = 'rgba(7,5,16,' + (0.92 - row * 0.16) + ')';
+        for (var hx = -12; hx < W + 12; hx += 12 + row * 3) {
+          var jx = hx + arnd() * 9, jr = 4.5 + arnd() * 3 + row * 1.4;
+          a.beginPath(); a.arc(jx, ry, jr, Math.PI, 0); a.fill();
+        }
+      }
+      for (var clx = 0; clx < 14; clx++) {
+        var lr = arnd();
+        a.fillStyle = lr > 0.7 ? 'rgba(255,90,90,0.8)' : (lr > 0.35 ? 'rgba(215,232,255,0.65)' : 'rgba(140,190,255,0.5)');
+        a.beginPath(); a.arc(arnd() * W, crowdTop + arnd() * (tl.y - crowdTop) * 0.7, 1.2 + arnd(), 0, Math.PI * 2); a.fill();
+      }
+
+      // lighting truss with spotlights above the crowd
+      var trussY = Math.max(8, crowdTop * 0.45);
+      a.fillStyle = '#0c0a18';
+      a.fillRect(0, trussY, W, 5);
+      for (var sp = 0; sp < 5; sp++) {
+        var sx2 = W * (0.12 + sp * 0.19);
+        a.fillStyle = '#1a1730';
+        a.fillRect(sx2 - 5, trussY + 5, 10, 8);
+        var lg = a.createRadialGradient(sx2, trussY + 14, 1, sx2, trussY + 14, 9);
+        lg.addColorStop(0, 'rgba(255,250,220,0.95)'); lg.addColorStop(1, 'rgba(255,250,220,0)');
+        a.fillStyle = lg;
+        a.beginPath(); a.arc(sx2, trussY + 14, 9, 0, Math.PI * 2); a.fill();
+      }
+      // two volumetric light cones onto the table area
+      [-0.24, 0.24].forEach(function (fx) {
+        var cxTop = W / 2 + W * fx, cyTop = trussY + 16;
+        var mid = proj(fx * 3, K.NET_Y, 0);
+        var cone = a.createLinearGradient(0, cyTop, 0, mid.y);
+        cone.addColorStop(0, 'rgba(190,220,255,0.10)');
+        cone.addColorStop(1, 'rgba(190,220,255,0.0)');
+        a.fillStyle = cone;
+        a.beginPath();
+        a.moveTo(cxTop - 8, cyTop);
+        a.lineTo(cxTop + 8, cyTop);
+        a.lineTo(mid.x + ppm(K.NET_Y) * 1.5, mid.y);
+        a.lineTo(mid.x - ppm(K.NET_Y) * 1.5, mid.y);
+        a.closePath(); a.fill();
+      });
+
+      // tournament floor
+      var fg = a.createLinearGradient(0, bl.y, 0, H);
+      fg.addColorStop(0, '#8e2a1e'); fg.addColorStop(0.45, '#a63526'); fg.addColorStop(1, '#5a1911');
+      a.fillStyle = fg; a.fillRect(0, bl.y - 1, W, H - bl.y + 1);
+      // rubber-mat speckle texture
+      for (var spk = 0; spk < 260; spk++) {
+        var sy = bl.y + Math.pow(arnd(), 0.6) * (H - bl.y);
+        a.fillStyle = arnd() > 0.5 ? 'rgba(0,0,0,0.07)' : 'rgba(255,160,120,0.05)';
+        var sr2 = 0.6 + arnd() * 1.6 * ((sy - bl.y) / (H - bl.y) + 0.3);
+        a.beginPath(); a.arc(arnd() * W, sy, sr2, 0, Math.PI * 2); a.fill();
+      }
+      // mat seam lines in perspective
+      [0.6, 2.1, 3.6].forEach(function (sy2) {
+        var s1 = proj(-6, sy2, 0), s2 = proj(6, sy2, 0);
+        a.strokeStyle = 'rgba(0,0,0,0.10)'; a.lineWidth = 1;
+        a.beginPath(); a.moveTo(s1.x, s1.y); a.lineTo(s2.x, s2.y); a.stroke();
+      });
+      // court zone marking
+      var c1 = proj(-2.2, -0.9, 0), c2 = proj(2.2, -0.9, 0), c3 = proj(2.2, BARRIER_Y - 0.06, 0), c4 = proj(-2.2, BARRIER_Y - 0.06, 0);
+      a.fillStyle = 'rgba(255,120,70,0.10)';
+      a.beginPath(); a.moveTo(c1.x, c1.y); a.lineTo(c2.x, c2.y); a.lineTo(c3.x, c3.y); a.lineTo(c4.x, c4.y); a.closePath(); a.fill();
+      a.strokeStyle = 'rgba(255,255,255,0.13)'; a.lineWidth = 2; a.stroke();
+
+      // event branding painted flat on the floor behind the table
+      a.save();
+      var fb2 = proj(0, 3.45, 0);
+      a.translate(fb2.x, fb2.y);
+      a.scale(1, 0.4);
+      a.fillStyle = 'rgba(255,255,255,0.16)';
+      a.font = '800 ' + ppm(3.45) * 0.34 + 'px "Segoe UI", system-ui, sans-serif';
+      a.textAlign = 'center'; a.textBaseline = 'middle';
+      a.fillText('SPINBURN OPEN', 0, 0);
+      a.restore();
+
+      // FAR BARRIER: full-bleed sponsor panels, rink-style
+      var ADS = [
+        { t: 'RALLYX', bg: '#101c3a', fg: '#00eaff' },
+        { t: 'VOLT+', bg: '#ece9e2', fg: '#c8281e' },
+        { t: 'SPINTEC', bg: '#12266b', fg: '#ffffff' },
+        { t: 'AEROPONG', bg: '#ece9e2', fg: '#12266b' },
+        { t: 'TOPSPIN PRO', bg: '#c8281e', fg: '#ffffff' },
+        { t: 'PING&CO', bg: '#101c3a', fg: '#ffd166' }
+      ];
+      var n = ADS.length;
+      for (var i = 0; i < n; i++) {
+        var x0 = bl.x + (br.x - bl.x) * (i / n), x1 = bl.x + (br.x - bl.x) * ((i + 1) / n);
+        a.fillStyle = ADS[i].bg;
+        a.fillRect(x0, tl.y, x1 - x0, bl.y - tl.y);
+        a.fillStyle = 'rgba(0,0,0,0.25)';
+        a.fillRect(x1 - 1.5, tl.y, 1.5, bl.y - tl.y); // panel seam
+        a.fillStyle = ADS[i].fg;
+        a.font = '800 ' + (bl.y - tl.y) * 0.56 + 'px "Segoe UI", system-ui, sans-serif';
+        a.textAlign = 'center'; a.textBaseline = 'middle';
+        a.fillText(ADS[i].t, (x0 + x1) / 2, (tl.y + bl.y) / 2 + 1, (x1 - x0) * 0.9);
+      }
+      // glass-like gloss across the board panels
+      var gloss = a.createLinearGradient(0, tl.y, 0, bl.y);
+      gloss.addColorStop(0, 'rgba(255,255,255,0.16)');
+      gloss.addColorStop(0.35, 'rgba(255,255,255,0.03)');
+      gloss.addColorStop(1, 'rgba(0,0,0,0.10)');
+      a.fillStyle = gloss;
+      a.fillRect(Math.max(0, bl.x), tl.y, Math.min(W, br.x) - Math.max(0, bl.x), bl.y - tl.y);
+      // panel colors reflected faintly on the floor
+      for (var ri = 0; ri < n; ri++) {
+        var rx0 = bl.x + (br.x - bl.x) * (ri / n), rx1 = bl.x + (br.x - bl.x) * ((ri + 1) / n);
+        var rgd = a.createLinearGradient(0, bl.y, 0, bl.y + 16);
+        rgd.addColorStop(0, ADS[ri].bg + '2e');
+        rgd.addColorStop(1, ADS[ri].bg + '00');
+        a.fillStyle = rgd;
+        a.fillRect(rx0, bl.y, rx1 - rx0, 16);
+      }
+      // white top tape + cyan LED accent + soft floor shadow
+      a.fillStyle = 'rgba(255,255,255,0.9)';
+      a.fillRect(Math.max(0, bl.x), tl.y - 2.5, Math.min(W, br.x) - Math.max(0, bl.x), 2.5);
+      a.fillStyle = 'rgba(0,220,255,0.35)';
+      a.fillRect(Math.max(0, bl.x), tl.y - 4, Math.min(W, br.x) - Math.max(0, bl.x), 1.5);
+      var fsh = a.createLinearGradient(0, bl.y, 0, bl.y + 12);
+      fsh.addColorStop(0, 'rgba(0,0,0,0.35)'); fsh.addColorStop(1, 'rgba(0,0,0,0)');
+      a.fillStyle = fsh;
+      a.fillRect(0, bl.y, W, 12);
+
+      // SIDE BARRIERS: perspective ad panels filling the full board height
+      function sidePanels(sx, panels) {
+        var yStops = [-0.55, 1.05, 2.45, BARRIER_Y];
+        for (var p2 = 0; p2 < panels.length; p2++) {
+          var y0 = yStops[p2], y1 = yStops[p2 + 1];
+          var b0 = proj(sx, y0, 0), b1 = proj(sx, y1, 0);
+          var t0 = proj(sx, y0, BARRIER_H), t1 = proj(sx, y1, BARRIER_H);
+          a.fillStyle = panels[p2].bg;
+          a.beginPath();
+          a.moveTo(b0.x, b0.y); a.lineTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.lineTo(t0.x, t0.y);
+          a.closePath(); a.fill();
+          a.strokeStyle = 'rgba(0,0,0,0.28)'; a.lineWidth = 1.5;
+          a.beginPath(); a.moveTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.stroke();
+          // depth-scaled text along the board
+          var ym = (y0 + y1) / 2;
+          var bm = proj(sx, ym, 0), tm = proj(sx, ym, BARRIER_H);
+          var panelLen = Math.hypot(b1.x - b0.x, b1.y - b0.y);
+          a.save();
+          a.translate((bm.x + tm.x) / 2, (bm.y + tm.y) / 2);
+          var ang = Math.atan2(b1.y - b0.y, b1.x - b0.x);
+          if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI; // keep text upright
+          a.rotate(ang);
+          a.fillStyle = panels[p2].fg;
+          a.font = '800 ' + Math.abs(bm.y - tm.y) * 0.5 + 'px "Segoe UI", system-ui, sans-serif';
+          a.textAlign = 'center'; a.textBaseline = 'middle';
+          a.fillText(panels[p2].t, 0, 0, panelLen * 0.86);
+          a.restore();
+        }
+        // top tape + floor shadow along the board
+        var st0 = proj(sx, -0.55, BARRIER_H), st1 = proj(sx, BARRIER_Y, BARRIER_H);
+        a.strokeStyle = 'rgba(255,255,255,0.85)'; a.lineWidth = 2;
+        a.beginPath(); a.moveTo(st0.x, st0.y); a.lineTo(st1.x, st1.y); a.stroke();
+        var sb0 = proj(sx, -0.55, 0), sb1 = proj(sx, BARRIER_Y, 0);
+        var inward = sx < 0 ? 9 : -9;
+        a.fillStyle = 'rgba(0,0,0,0.22)';
+        a.beginPath();
+        a.moveTo(sb0.x, sb0.y); a.lineTo(sb1.x, sb1.y);
+        a.lineTo(sb1.x + inward * 0.4, sb1.y + 3); a.lineTo(sb0.x + inward, sb0.y + 6);
+        a.closePath(); a.fill();
+      }
+      sidePanels(-2.6, [
+        { t: 'SMASH ENERGY', bg: '#c8281e', fg: '#ffffff' },
+        { t: 'PADDLE KING', bg: '#0b1226', fg: '#00eaff' },
+        { t: 'VOLT+', bg: '#ece9e2', fg: '#c8281e' }
+      ]);
+      sidePanels(2.6, [
+        { t: 'VOLTARENA', bg: '#12266b', fg: '#ffffff' },
+        { t: 'SPIN LAB', bg: '#1a0b22', fg: '#ff4dd2' },
+        { t: 'SPINTEC', bg: '#ece9e2', fg: '#12266b' }
+      ]);
+
+      // floor reflection of the table below its near edge
+      var hw2 = K.TABLE_W / 2;
+      var rn = proj(-hw2, 0, 0), rr = proj(hw2, 0, 0);
+      var reflH = H * 0.13;
+      var refl = a.createLinearGradient(0, rn.y, 0, rn.y + reflH);
+      refl.addColorStop(0, 'rgba(26,116,232,0.16)');
+      refl.addColorStop(1, 'rgba(26,116,232,0)');
+      a.fillStyle = refl;
+      a.beginPath();
+      a.moveTo(rn.x, rn.y); a.lineTo(rr.x, rr.y);
+      a.lineTo(rr.x - (rr.x - rn.x) * 0.06, rn.y + reflH);
+      a.lineTo(rn.x + (rr.x - rn.x) * 0.06, rn.y + reflH);
+      a.closePath(); a.fill();
+
+      // under-table LED glow, static base (pulse layered per frame)
+      var gp = proj(0, 1.35, K.FLOOR_Z);
+      var glow = a.createRadialGradient(gp.x, gp.y, 8, gp.x, gp.y, ppm(1.35) * 1.9);
+      glow.addColorStop(0, 'rgba(0,200,255,0.28)');
+      glow.addColorStop(0.5, 'rgba(0,130,255,0.10)');
+      glow.addColorStop(1, 'rgba(0,0,0,0)');
+      a.fillStyle = glow;
+      a.fillRect(0, H * 0.32, W, H * 0.68);
+
+      // broadcast vignette
+      var vin = a.createRadialGradient(W / 2, H * 0.55, Math.min(W, H) * 0.45, W / 2, H * 0.55, Math.max(W, H) * 0.85);
+      vin.addColorStop(0, 'rgba(0,0,0,0)'); vin.addColorStop(1, 'rgba(0,0,0,0.32)');
+      a.fillStyle = vin;
+      a.fillRect(0, 0, W, H);
+    }
+
+    // hanging arena screen with the live score (when there's headroom)
+    function drawJumbotron() {
+      if (!game) return;
+      var jw = Math.min(W * 0.34, 250), jh = jw * 0.30;
+      var jx = W / 2 - jw / 2, jy = arenaMeta.crowdTop - jh - 10;
+      // the hanging screen replaces the DOM score pill whenever there's
+      // headroom for it; tight (landscape) layouts keep the pill instead
+      var ok = arenaMeta.crowdTop >= 92 && jy >= 46;
+      el.hud.style.display = ok ? 'none' : '';
+      if (!ok) return;
+      // hanger wires
+      ctx.strokeStyle = 'rgba(60,60,90,0.8)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(jx + jw * 0.2, 0); ctx.lineTo(jx + jw * 0.2, jy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(jx + jw * 0.8, 0); ctx.lineTo(jx + jw * 0.8, jy); ctx.stroke();
+      ctx.fillStyle = '#0a0918';
+      ctx.fillRect(jx - 3, jy - 3, jw + 6, jh + 6);
+      var scr = ctx.createLinearGradient(0, jy, 0, jy + jh);
+      scr.addColorStop(0, '#101b34'); scr.addColorStop(1, '#0a1226');
+      ctx.fillStyle = scr;
+      ctx.fillRect(jx, jy, jw, jh);
+      ctx.strokeStyle = 'rgba(0,220,255,0.45)'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(jx, jy, jw, jh);
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '800 ' + jh * 0.46 + 'px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = '#eaf6ff';
+      ctx.shadowColor = 'rgba(0,220,255,0.6)'; ctx.shadowBlur = 8;
+      ctx.fillText(game.scores[1] + '  –  ' + game.scores[2], W / 2, jy + jh * 0.42);
+      ctx.shadowBlur = 0;
+      ctx.font = '700 ' + jh * 0.2 + 'px "Segoe UI", system-ui, sans-serif';
+      ctx.fillStyle = '#7f98b8';
+      var oppLbl = online ? charById(oppChar).short : (campaignOpp ? campaignOpp.short : 'AI');
+      var meLbl = playerName();
+      ctx.fillText((game.server === 1 ? '● ' + meLbl : meLbl) + '        ' + (game.server === 2 ? oppLbl + ' ●' : oppLbl), W / 2, jy + jh * 0.78);
+    }
+
+    // live camera flashes popping in the crowd
+    var flashes = [];
+    function drawFlashes() {
+      if (Math.random() < 0.016 && flashes.length < 3 && arenaMeta.crowdBot > 0) {
+        flashes.push({ x: Math.random() * W, y: arenaMeta.crowdTop + Math.random() * (arenaMeta.crowdBot - arenaMeta.crowdTop) * 0.7, life: 1 });
+      }
+      for (var i = flashes.length - 1; i >= 0; i--) {
+        var f = flashes[i];
+        var fr = 5 + (1 - f.life) * 8;
+        var fgl = ctx.createRadialGradient(f.x, f.y, 0.5, f.x, f.y, fr);
+        fgl.addColorStop(0, 'rgba(255,255,255,' + (0.85 * f.life) + ')');
+        fgl.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = fgl;
+        ctx.beginPath(); ctx.arc(f.x, f.y, fr, 0, Math.PI * 2); ctx.fill();
+        f.life -= 0.09;
+        if (f.life <= 0) flashes.splice(i, 1);
+      }
+    }
+
+    var shook = false;
+    function draw() {
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      shook = shakeT > 0;
+      if (shook) {
+        var amp = shakeAmp * (shakeT / 190);
+        ctx.translate((Math.random() - 0.5) * amp * 2, (Math.random() - 0.5) * amp * 2);
+      }
+      if (!arenaCv) buildArena();
+      ctx.drawImage(arenaCv, 0, 0, W, H);
+      // gentle breathing of the under-table light
+      var gp2 = proj(0, 1.35, K.FLOOR_Z);
+      var pulse = 0.09 + 0.045 * Math.sin(performance.now() / 900);
+      var pg = ctx.createRadialGradient(gp2.x, gp2.y, 6, gp2.x, gp2.y, ppm(1.35) * 1.35);
+      pg.addColorStop(0, 'rgba(0,220,255,' + pulse.toFixed(3) + ')');
+      pg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = pg;
+      ctx.fillRect(0, H * 0.3, W, H * 0.7);
+
+      drawFlashes();
+      drawJumbotron();
+
+      if (!game) return;
+      var b = game.ball;
+      var hw = K.TABLE_W / 2;
+
+      // table drop shadow on the floor
+      var shNear = proj(0, 0.15, K.FLOOR_Z), shFar = proj(0, K.TABLE_L - 0.15, K.FLOOR_Z);
+      ctx.fillStyle = 'rgba(0,0,0,0.42)';
+      trapezoid(-hw * 1.06, 0.1, hw * 1.06, K.TABLE_L - 0.1, K.FLOOR_Z);
+      ctx.fill();
+
+      drawFarPaddle();
+
+      // sculptural golden pedestal base (pro-table style) with LED rim
+      [0.62, K.TABLE_L - 0.62].forEach(function (yy) {
+        var top = proj(0, yy, -0.06);
+        var bot = proj(0, yy, K.FLOOR_Z);
+        var wTop = 0.5 * ppm(yy), wBot = 1.05 * ppm(yy);
+        var gold = ctx.createLinearGradient(top.x - wBot / 2, 0, top.x + wBot / 2, 0);
+        gold.addColorStop(0, '#6b4d0e'); gold.addColorStop(0.42, '#e8b83a');
+        gold.addColorStop(0.58, '#c2922a'); gold.addColorStop(1, '#5c420c');
+        ctx.fillStyle = gold;
+        ctx.beginPath();
+        ctx.moveTo(top.x - wTop / 2, top.y);
+        ctx.bezierCurveTo(top.x - wBot * 0.72, top.y + (bot.y - top.y) * 0.45, top.x - wBot / 2, bot.y - 6, top.x - wBot / 2, bot.y);
+        ctx.lineTo(top.x + wBot / 2, bot.y);
+        ctx.bezierCurveTo(top.x + wBot / 2, bot.y - 6, top.x + wBot * 0.72, top.y + (bot.y - top.y) * 0.45, top.x + wTop / 2, top.y);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = 'rgba(0,220,255,0.5)';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(top.x - wBot / 2, bot.y - 1); ctx.lineTo(top.x + wBot / 2, bot.y - 1); ctx.stroke();
+      });
+
+      // table top slab side (front face) with LED strip underneath
+      var nl = proj(-hw, 0, 0), nr = proj(hw, 0, 0);
+      var slabH = 0.055 * ppm(0);
+      ctx.fillStyle = '#0a2d66';
+      ctx.beginPath();
+      ctx.moveTo(nl.x, nl.y); ctx.lineTo(nr.x, nr.y);
+      ctx.lineTo(nr.x, nr.y + slabH); ctx.lineTo(nl.x, nl.y + slabH);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(0,220,255,0.55)';
+      ctx.fillRect(nl.x, nl.y + slabH, nr.x - nl.x, 2);
+
+      // table surface with a subtle broadcast-light sheen
+      var g2 = ctx.createLinearGradient(0, proj(0, K.TABLE_L, 0).y, 0, nl.y);
+      g2.addColorStop(0, '#0f56b8'); g2.addColorStop(1, '#1a74e8');
+      ctx.fillStyle = g2;
+      trapezoid(-hw, 0, hw, K.TABLE_L, 0);
+      ctx.fill();
+      var sheen = ctx.createLinearGradient(0, proj(0, K.TABLE_L, 0).y, 0, nl.y);
+      sheen.addColorStop(0, 'rgba(255,255,255,0.10)');
+      sheen.addColorStop(0.4, 'rgba(255,255,255,0.02)');
+      sheen.addColorStop(1, 'rgba(255,255,255,0.06)');
+      ctx.fillStyle = sheen;
+      trapezoid(-hw, 0, hw, K.TABLE_L, 0);
+      ctx.fill();
+
+      // lines
+      ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+      ctx.lineWidth = Math.max(1.5, 0.02 * ppm(K.NET_Y));
+      trapezoid(-hw, 0, hw, K.TABLE_L, 0); ctx.stroke();
+      line3(0, 0.02, 0, 0, K.TABLE_L - 0.02, 0); // center line
+
+      drawLandMark();
+
+      // ball shadow
+      var overTable = Math.abs(b.x) <= hw && b.y >= 0 && b.y <= K.TABLE_L;
+      var shz = overTable ? 0 : K.FLOOR_Z;
+      if (b.z > shz - 0.02) {
+        var sp2 = proj(b.x, b.y, shz);
+        var sr = Math.max(0.5, 0.05 * sp2.s * (1 - Math.min(0.65, (b.z - shz) * 0.55)));
+        ctx.fillStyle = 'rgba(0,0,0,' + (0.34 - Math.min(0.24, (b.z - shz) * 0.18)) + ')';
+        ctx.beginPath(); ctx.ellipse(sp2.x, sp2.y, sr * 1.5, sr * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+      }
+
+      var ballBehindNet = b.y > K.NET_Y;
+      // during the player's serve phase the ball renders ON TOP of the near
+      // paddle (it rests/tosses above it) instead of hiding behind it
+      var ballOnTop = game.phase === 'serve' && game.server === 1;
+      if (ballBehindNet) drawBall();
+      drawNet();
+      if (!ballBehindNet && !ballOnTop) drawBall();
+
+      drawNearPaddle();
+      if (ballOnTop && !ballBehindNet) drawBall();
+    }
+
+    function trapezoid(x0, y0, x1, y1, z) {
+      var a = proj(x0, y0, z), b2 = proj(x1, y0, z), c = proj(x1, y1, z), d = proj(x0, y1, z);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y); ctx.lineTo(b2.x, b2.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y);
+      ctx.closePath();
+    }
+    function line3(x0, y0, z0, x1, y1, z1) {
+      var a = proj(x0, y0, z0), b2 = proj(x1, y1, z1);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b2.x, b2.y); ctx.stroke();
+    }
+
+    function drawNet() {
+      var hw = K.TABLE_W / 2 + 0.12;
+      var bl = proj(-hw, K.NET_Y, 0), br = proj(hw, K.NET_Y, 0);
+      var tl = proj(-hw, K.NET_Y, K.NET_H), tr = proj(hw, K.NET_Y, K.NET_H);
+      // mesh
+      ctx.fillStyle = 'rgba(20,26,50,0.55)';
+      ctx.beginPath();
+      ctx.moveTo(bl.x, bl.y); ctx.lineTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.lineTo(tl.x, tl.y);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(190,210,255,0.28)';
+      ctx.lineWidth = 1;
+      var n = 22;
+      for (var i = 0; i <= n; i++) {
+        var f = i / n;
+        var bx = bl.x + (br.x - bl.x) * f, by = bl.y + (br.y - bl.y) * f;
+        var tx = tl.x + (tr.x - tl.x) * f, ty = tl.y + (tr.y - tl.y) * f;
+        ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(tx, ty); ctx.stroke();
+      }
+      // tape + posts
+      ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+      ctx.lineWidth = Math.max(1.5, 0.014 * ppm(K.NET_Y));
+      ctx.beginPath(); ctx.moveTo(tl.x, tl.y); ctx.lineTo(tr.x, tr.y); ctx.stroke();
+      ctx.lineWidth = Math.max(2, 0.02 * ppm(K.NET_Y));
+      ctx.strokeStyle = '#3b4368';
+      ctx.beginPath(); ctx.moveTo(bl.x, bl.y); ctx.lineTo(tl.x, tl.y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(br.x, br.y); ctx.lineTo(tr.x, tr.y); ctx.stroke();
+    }
+
+    function drawBall() {
+      var b = game.ball;
+      var tz = 0;
+      if (game.phase === 'serve') {
+        // during your serve the ball hovers visibly ABOVE the paddle (with a
+        // gentle bob + glow) instead of hiding behind it; tossing lifts it
+        tz = toss ? tossHeight()
+          : (game.server === 1 ? 0.17 + 0.02 * Math.sin(performance.now() / 280) : 0.08);
+      }
+      if (tz) {
+        var tp2 = proj(b.x, b.y, b.z + tz);
+        var tr2 = Math.max(3, 0.045 * tp2.s);
+        if (!toss && game.server === 1) {
+          var rg2 = ctx.createRadialGradient(tp2.x, tp2.y, tr2 * 0.4, tp2.x, tp2.y, tr2 * 3.2);
+          rg2.addColorStop(0, 'rgba(255,220,140,0.35)');
+          rg2.addColorStop(1, 'rgba(255,220,140,0)');
+          ctx.fillStyle = rg2;
+          ctx.beginPath(); ctx.arc(tp2.x, tp2.y, tr2 * 3.2, 0, Math.PI * 2); ctx.fill();
+        }
+        var tg = ctx.createRadialGradient(tp2.x - tr2 * 0.35, tp2.y - tr2 * 0.4, tr2 * 0.15, tp2.x, tp2.y, tr2);
+        tg.addColorStop(0, '#fff6e0'); tg.addColorStop(0.45, '#ffb020'); tg.addColorStop(1, '#b35c00');
+        ctx.fillStyle = tg;
+        ctx.beginPath(); ctx.arc(tp2.x, tp2.y, tr2, 0, Math.PI * 2); ctx.fill();
+        return;
+      }
+      // motion trail — turns into a fire streak on hard shots
+      var spd = Math.hypot(b.vx, b.vy);
+      var heat = Math.max(0, Math.min(1, (spd - 3.4) / 3.2));
+      for (var i = 0; i < trail.length; i++) {
+        var t = trail[i];
+        var tp = proj(t.x, t.y, t.z);
+        var f2 = (i + 1) / trail.length;
+        var aTr = (0.04 + 0.08 * f2) + heat * 0.34 * f2;
+        ctx.fillStyle = heat > 0.55 && f2 > 0.6
+          ? 'rgba(255,240,200,' + aTr.toFixed(3) + ')'
+          : 'rgba(255,' + Math.round(150 + heat * 70) + ',32,' + aTr.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(tp.x, tp.y, 0.045 * tp.s * (0.35 + 0.55 * f2) * (1 + heat * 0.7), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      var p = proj(b.x, b.y, b.z);
+      var r = Math.max(3, 0.045 * p.s);
+      if (heat > 0.3) {
+        ctx.shadowColor = 'rgba(255,150,40,' + (heat * 0.9).toFixed(3) + ')';
+        ctx.shadowBlur = 20 * heat;
+      }
+      var g3 = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.4, r * 0.15, p.x, p.y, r);
+      g3.addColorStop(0, '#fff6e0'); g3.addColorStop(0.45, '#ffb020'); g3.addColorStop(1, '#b35c00');
+      ctx.fillStyle = g3;
+      ctx.beginPath();
+      // squash on bounce (set in tickGame, decays in the loop)
+      ctx.ellipse(p.x, p.y, r * (1 + 0.32 * ballSquash), r * (1 - 0.38 * ballSquash), 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    var ballSquash = 0;
+    // ---------- impact juice (Mario Tennis-style hard-shot feedback) ----------
+    var hitStop = 0;      // sim freeze frames on big impacts
+    var shakeT = 0, shakeAmp = 0;
+    var parts = [];       // sparks {x,y,vx,vy,life,col,r} (screen space)
+    var rings = [];       // shockwaves {x,y,r,a}
+    var labels = [];      // floating text {text,x,y,t,col}
+    function spawnSparks(x, y, power, dir) {
+      var n = 8 + Math.round(power * 8);
+      for (var i = 0; i < n; i++) {
+        var ang = Math.random() * Math.PI * 2;
+        var sp = (1.5 + Math.random() * 3.5) * (0.6 + power);
+        parts.push({
+          x: x, y: y,
+          vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 1.5 * power,
+          life: 1, col: Math.random() > 0.4 ? '#ffd166' : (Math.random() > 0.5 ? '#ffffff' : '#ff7a1a'),
+          r: 1.2 + Math.random() * 2.2
+        });
+      }
+    }
+    function addLabel(text, x, y, col, size, dur) {
+      labels.push({ text: text, x: x, y: y, t: 0, col: col, size: size || 26, dur: dur || 850 });
+    }
+    function drawJuice(dt) {
+      for (var i = parts.length - 1; i >= 0; i--) {
+        var p = parts[i];
+        p.x += p.vx; p.y += p.vy; p.vy += 0.12;
+        p.life -= dt / 380;
+        if (p.life <= 0) { parts.splice(i, 1); continue; }
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.col;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      for (var j = rings.length - 1; j >= 0; j--) {
+        var rg = rings[j];
+        rg.r += 4.5; rg.a -= 0.07;
+        if (rg.a <= 0) { rings.splice(j, 1); continue; }
+        ctx.strokeStyle = 'rgba(255,230,160,' + rg.a.toFixed(3) + ')';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(rg.x, rg.y, rg.r, 0, Math.PI * 2); ctx.stroke();
+      }
+      for (var k = labels.length - 1; k >= 0; k--) {
+        var L = labels[k];
+        L.t += dt / L.dur;
+        if (L.t >= 1) { labels.splice(k, 1); continue; }
+        var pop = L.t < 0.18 ? (L.t / 0.18) * 1.25 : 1.25 - (L.t - 0.18) * 0.3;
+        var alpha = L.t > 0.6 ? 1 - (L.t - 0.6) / 0.4 : 1;
+        ctx.save();
+        ctx.translate(L.x, L.y - L.t * 44);
+        ctx.scale(pop, pop);
+        ctx.rotate(-0.06);
+        ctx.font = 'italic 900 ' + L.size + 'px "Segoe UI", system-ui, sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = 'rgba(20,10,0,0.85)';
+        ctx.lineWidth = 5;
+        ctx.strokeText(L.text, 0, 0);
+        ctx.fillStyle = L.col;
+        ctx.fillText(L.text, 0, 0);
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+    }
+    var landMark = null; // { x, y, a } — fading ring where an OUT ball landed
+    function drawLandMark() {
+      if (!landMark) return;
+      var p = proj(landMark.x, landMark.y, K.FLOOR_Z);
+      ctx.strokeStyle = 'rgba(255,70,70,' + (0.85 * landMark.a).toFixed(3) + ')';
+      ctx.lineWidth = 2.5;
+      var r = 0.09 * p.s * (1.6 - 0.6 * landMark.a);
+      ctx.beginPath(); ctx.ellipse(p.x, p.y, r * 1.5, r * 0.5, 0, 0, Math.PI * 2); ctx.stroke();
+      landMark.a -= 0.012;
+      if (landMark.a <= 0) landMark = null;
+    }
+
+    function paddleShape(px, py, pz, scale, color, dark, tilt) {
+      var p = proj(px, py, pz);
+      var r = scale * p.s;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(tilt);
+      // handle
+      ctx.fillStyle = '#c9913f';
+      ctx.fillRect(-r * 0.13, r * 0.55, r * 0.26, r * 0.95);
+      ctx.fillStyle = '#a9752c';
+      ctx.fillRect(-r * 0.13, r * 0.55, r * 0.26, r * 0.18);
+      // blade
+      var bg = ctx.createRadialGradient(-r * 0.25, -r * 0.25, r * 0.2, 0, 0, r);
+      bg.addColorStop(0, color); bg.addColorStop(1, dark);
+      ctx.fillStyle = bg;
+      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.78, r * 0.88, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      ctx.lineWidth = Math.max(1, r * 0.05);
+      ctx.stroke();
+      ctx.restore();
+    }
+    var padTilt = 0, padKick = 0;
+    function drawNearPaddle() {
+      var pad = game.paddles[1];
+      // lean into the reach — near-HORIZONTAL at full stretch — plus swing
+      var xm = Math.min(1.5, (W / 2 - 52) / ppm(0));
+      var target = Math.max(-1.55, Math.min(1.55, (pad.x / xm) * 1.5 + pointerVX * 0.05));
+      padTilt += (target - padTilt) * 0.18;
+      padKick *= 0.85;
+      paddleShape(pad.x, K.PADDLE_Y[1], pad.z, 0.18, '#ff4d4d', '#a3122a', padTilt + padKick);
+    }
+    function drawFarPaddle() {
+      var pad = game.paddles[2];
+      paddleShape(pad.x, K.PADDLE_Y[2], pad.z, 0.17, '#3aa0ff', '#134a91',
+        Math.max(-1.2, Math.min(1.2, -pad.x * 0.9)));
+    }
+
+    // ---------- input ----------
+    var pointer = { x: 0, z: 0.25, down: false };
+    var pointerVX = 0, pointerVZ = 0;
+    var lastPX = null, lastPT = 0;
+
+    function toWorld(clientX, clientY) {
+      // 1.4x lateral gain: side balls are reachable without dragging the
+      // finger across the whole screen
+      return {
+        x: (clientX - W / 2) / ppm(0) * 1.4,
+        z: Math.max(0.02, Math.min(0.8, (H * 0.9 - clientY) / (H * 0.5) * 0.8))
+      };
+    }
+    function onMove(clientX, clientY, ts) {
+      var w = toWorld(clientX, clientY);
+      if (lastPX !== null && ts > lastPT) {
+        var dt = Math.min(0.1, (ts - lastPT) / 1000);
+        if (dt > 0.001) {
+          pointerVX = pointerVX * 0.65 + ((w.x - pointer.x) / dt) * 0.35;
+          pointerVZ = pointerVZ * 0.65 + ((w.z - pointer.z) / dt) * 0.35;
+        }
+      }
+      var xMax = Math.min(1.5, (W / 2 - 52) / ppm(0)); // keep the paddle on screen
+      pointer.x = Math.max(-xMax, Math.min(xMax, w.x));
+      pointer.z = w.z;
+      lastPX = clientX; lastPT = ts;
+    }
+    cv.addEventListener('pointermove', function (e) { onMove(e.clientX, e.clientY, performance.now()); });
+    cv.addEventListener('pointerdown', function (e) {
+      Sound.unlock();
+      onMove(e.clientX, e.clientY, performance.now());
+      if (ui === 'playing' && game && game.phase === 'serve' && game.server === 1) humanServe();
+    });
+    cv.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
+
+    function humanAim() {
+      // Physical return model: the swing IS the shot. Direction from the
+      // swipe (plus where the ball meets the blade — the core adds that
+      // deflection); pace from swipe speed AND the incoming ball's speed,
+      // so blocking a rocket pops it back fast. Overcooking a LOW ball
+      // flies long — full power is safe on high balls, risky on low ones.
+      var raw = Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6;
+      var power = Math.min(1, Math.pow(Math.max(0, raw - 0.45) / 3.2, 0.9));
+      var inSpeed = game && game.ball ? Math.min(1, Math.abs(game.ball.vy) / 7) : 0;
+      var bz = game && game.ball ? game.ball.z : 0.25;
+      var lowRisk = Math.max(0, Math.min(1, 1 - bz / 0.45));
+      return {
+        // full power on a HIGH ball lands deep but safely IN (~2.57 of
+        // 2.74); only overcooking a LOW ball flies long
+        tx: Math.max(-0.68, Math.min(0.68, game.paddles[1].x * 0.2 + pointerVX * 0.55)),
+        ty: K.NET_Y + 0.30 + 0.82 * power + 0.08 * inSpeed + 0.30 * lowRisk * power,
+        t: (0.70 - 0.30 * power) * (1 - 0.2 * inSpeed)
+      };
+    }
+    function humanServe() {
+      beginToss(null); // aim is read from the swipe at the STRIKE, not the tap
+    }
+
+    // Serve toss: the ball is thrown up from the paddle and struck on the
+    // way down (cosmetic — the core fires the actual serve at the strike).
+    var toss = null; // { t, dur, aim }
+    function beginToss(aim) {
+      if (toss) return;
+      toss = { t: 0, dur: 46, aim: aim };
+      Sound.toss();
+      setHint('');
+    }
+    function tossHeight() {
+      if (!toss) return 0;
+      var f = toss.t / toss.dur;
+      return 4 * 0.85 * f * (1 - f); // parabola: up 0.85m and back down
+    }
+
+    // ---------- ui helpers ----------
+    var el = {
+      menu: document.getElementById('menu'), end: document.getElementById('end'),
+      hud: document.getElementById('hud'), banner: document.getElementById('banner'),
+      hint: document.getElementById('hint'),
+      sc1: document.getElementById('sc1'), sc2: document.getElementById('sc2'),
+      dot1: document.getElementById('dot1'), dot2: document.getElementById('dot2'),
+      lvl: document.getElementById('lvl'),
+      endTitle: document.getElementById('end-title'), endSub: document.getElementById('end-sub')
+    };
+    function updateHud() {
+      el.sc1.textContent = game.scores[1];
+      el.sc2.textContent = game.scores[2];
+      el.dot1.textContent = game.server === 1 ? '●' : '';
+      el.dot2.textContent = game.server === 2 ? '●' : '';
+      // names on both sides of the score
+      document.getElementById('who1').textContent = playerName();
+      document.getElementById('who2').textContent = online ? (charById(oppChar).short) : (campaignOpp ? campaignOpp.short : 'AI');
+      el.lvl.textContent = (online || campaignOpp) ? '' : String(level).toUpperCase();
+    }
+    var bannerTimer = 0;
+    function showBanner(txt, ms) {
+      el.banner.textContent = txt;
+      el.banner.classList.add('on');
+      clearTimeout(bannerTimer);
+      bannerTimer = setTimeout(function () { el.banner.classList.remove('on'); }, ms || 800);
+    }
+    function setHint(txt) {
+      el.hint.textContent = txt;
+      el.hint.classList.toggle('on', !!txt);
+    }
+
+    // ---------- campaign (Punch-Out style ladder) ----------
+    // Portraits: built-in pixel-art placeholders; drop assets/opp-<id>.png
+    // (e.g. Grok-generated art) into the repo and it replaces the placeholder
+    // automatically.
+    var OPPONENTS = [
+      {
+        id: 'hans', name: 'HANS GRUBER', short: 'GRUBER', flag: '🇩🇪', country: 'GERMANY',
+        stage: 'QUARTERFINAL', style: 'Ice-cold precision', taunt: '“Nothing personal. Strictly business.”',
+        beatLine: 'The ice cracks. Gruber adjusts his tie and exits without a word.',
+        lossLine: '“You wanted spin? I gave you spin.” Gruber smirks.',
+        params: { speed: 1.75, react: 19, err: 0.30, outP: 0.10, tMin: 0.60, depth: 0.56, serveWait: 62, leaveP: 0.66 },
+        pal: { H: '#3a2a1a', S: '#e6b48e', D: '#1c1410', B: '#4a3826', K: '#16161f', W: '#e8e8ee', R: '#7a1420', N: '#c98f6a' },
+        px: [
+          '..HHHHHHHHHH..',
+          '.HHHHHHHHHHHH.',
+          '.HHHHHHHHHHHH.',
+          '.HSSSSSSSSSSH.',
+          '.HSSSSSSSSSSH.',
+          '.HSDDSSSSDDSH.',
+          '.HSSDSSSSDSSH.',
+          '..SSSSNNSSSS..',
+          '..SSSSNNSSSS..',
+          '..BSSSSSSSSB..',
+          '..BBSDDDDSBB..',
+          '..BBBBBBBBBB..',
+          '...BBBBBBBB...',
+          '..KKKWWWWKKK..',
+          '.KKKKWRRWKKKK.',
+          '.KKKKWRRWKKKK.'
+        ]
+      },
+      {
+        id: 'hummel', name: 'GENERAL HUMMEL', short: 'HUMMEL', flag: '🇺🇸', country: 'USA',
+        stage: 'SEMIFINAL', style: 'Heavy artillery drives', taunt: '“I don’t lose, son.”',
+        beatLine: 'The General snaps a crisp salute. “Outstanding, soldier. Respect earned.”',
+        lossLine: '“Back to boot camp, rookie. Drop and give me twenty.”',
+        params: { speed: 2.05, react: 15, err: 0.25, outP: 0.08, tMin: 0.55, depth: 0.66, serveWait: 56, leaveP: 0.76 },
+        pal: { U: '#3f4f2a', G: '#b9b9b9', S: '#e0a882', D: '#181410', Y: '#d9b23a', M: '#8a2020', L: '#2e3a20', N: '#c08a60' },
+        px: [
+          '..UUUUUUUUUU..',
+          '.UUUUUUUUUUUU.',
+          '.UUUUUYYUUUUU.',
+          '.UUUUUUUUUUUU.',
+          '..GSSSSSSSSG..',
+          '..GSDDSSDDSG..',
+          '..SSSDSSDSSS..',
+          '..SSSSNNSSSS..',
+          '..SSSSSSSSSS..',
+          '..SSDDDDDDSS..',
+          '...SSSSSSSS...',
+          '..UUUUUUUUUU..',
+          '.UUYMUUUUMYUU.',
+          '.UUUUUUUUUUUU.',
+          '.LLUUUUUUUULL.',
+          '.LLUUUUUUUULL.'
+        ]
+      },
+      {
+        id: 'chongli', name: 'CHONG LI', short: 'CHONG LI', flag: '🇨🇳', country: 'CHINA',
+        stage: 'THE FINAL', style: 'The reigning champion', taunt: '“You are next!”',
+        beatLine: 'The champion falls! The arena erupts — a new king is crowned tonight.',
+        lossLine: '“You were NOT next.” Chong Li laughs and points at the exit.',
+        params: { speed: 3.0, react: 7, err: 0.14, outP: 0.035, tMin: 0.48, depth: 0.82, serveWait: 46, leaveP: 0.92 },
+        pal: { H: '#0e0e12', R: '#c8281e', S: '#d9a06a', D: '#141008', N: '#b07b48', X: '#8a1410' },
+        px: [
+          '..H..HHHH..H..',
+          '.HHHHHHHHHHHH.',
+          '.HHHHHHHHHHHH.',
+          '.RRRRRRRRRRRR.',
+          '.RXRRRRRRRRXR.',
+          '..SSSSSSSSSS..',
+          '..SDDSSSSDDS..',
+          '..SSDSSSSDSS..',
+          '..SSSSNNSSSS..',
+          '..SSSSSSSSSS..',
+          '..SSDDDDDDSS..',
+          '...SSSSSSSS...',
+          '....SSSSSS....',
+          '..SSSSSSSSSS..',
+          '.SSSSSSSSSSSS.',
+          '.SSSSSSSSSSSS.'
+        ]
+      }
+    ];
+    var campStage = Math.min(3, parseInt(localStorage.getItem('ttCampaign') || '0', 10) || 0);
+    var campaignOpp = null, campIdx = -1, vsIdx = 0, campPractice = false;
+
+    // your own Little Mac: editable name + portrait (assets/opp-player.png
+    // overrides the built-in pixel kid, same as the opponents)
+    var PLAYER = {
+      id: 'player', name: 'THE KID', short: 'THE KID',
+      pal: { H: '#5a3a1a', C: '#00b8d4', X: '#007e94', S: '#e8b48c', D: '#1c1410', N: '#c98f6a', W: '#ffffff', R: '#12266b', K: '#0a1226' },
+      px: [
+        '..HHHHHHHHHH..',
+        '.HHHHHHHHHHHH.',
+        '.CCCCCCCCCCCC.',
+        '.CXCCCCCCCCXC.',
+        '..SSSSSSSSSS..',
+        '..SDDSSSSDDS..',
+        '..SSDSSSSDSS..',
+        '..SSSSNNSSSS..',
+        '..SSSSSSSSSS..',
+        '..SSDWWWWDSS..',
+        '...SSSSSSSS...',
+        '....SSSSSS....',
+        '..RRRRRRRRRR..',
+        '.RRRRKKKKRRRR.',
+        '.RRRRKKKKRRRR.',
+        '.RRRRRRRRRRRR.'
+      ]
+    };
+    // Online character roster: all four fighters are selectable. Lookup by id
+    // so a pick can be sent over the wire as a short string.
+    var CHARS = [PLAYER, OPPONENTS[0], OPPONENTS[1], OPPONENTS[2]];
+    function charById(id) {
+      for (var i = 0; i < CHARS.length; i++) if (CHARS[i].id === id) return CHARS[i];
+      return PLAYER;
+    }
+    function playerName() {
+      return (localStorage.getItem('ttName') || 'YOU').toUpperCase().slice(0, 12) || 'YOU';
+    }
+    function editPlayerName() {
+      var cur = playerName();
+      var n = window.prompt('Your fighter name:', cur === 'YOU' ? '' : cur);
+      if (n === null) return;
+      n = n.trim().toUpperCase().slice(0, 12);
+      localStorage.setItem('ttName', n || 'YOU');
+      document.getElementById('vs-pname').textContent = playerName() + ' ✎';
+      document.getElementById('who1').textContent = playerName();
+    }
+
+    function drawPortrait(cvEl, opp) {
+      var c = cvEl.getContext('2d');
+      c.imageSmoothingEnabled = false;
+      function bg() { c.fillStyle = '#0a0918'; c.fillRect(0, 0, cvEl.width, cvEl.height); }
+      function grid() {
+        bg();
+        var rows = opp.px;
+        var cell = Math.floor(Math.min(cvEl.width / rows[0].length, cvEl.height / rows.length));
+        var ox = (cvEl.width - cell * rows[0].length) / 2, oy = (cvEl.height - cell * rows.length) / 2;
+        for (var y = 0; y < rows.length; y++) {
+          for (var x = 0; x < rows[y].length; x++) {
+            var ch = rows[y][x];
+            if (ch === '.') continue;
+            c.fillStyle = opp.pal[ch] || '#fff';
+            c.fillRect(ox + x * cell, oy + y * cell, cell, cell);
+          }
+        }
+      }
+      grid(); // placeholder now; real art (if the file exists) replaces it
+      var img = new Image();
+      img.onload = function () { bg(); c.drawImage(img, 0, 0, cvEl.width, cvEl.height); };
+      img.src = 'assets/opp-' + opp.id + '.png?v=' + VERSION;
+    }
+
+    // the ladder: top -> down, cleared opponents replayable as practice
+    function openLadder() {
+      var rowsEl = document.getElementById('ladder-rows');
+      rowsEl.innerHTML = '';
+      OPPONENTS.forEach(function (o, i) {
+        if (i > 0) {
+          var conn = document.createElement('div');
+          conn.className = 'lconn';
+          rowsEl.appendChild(conn);
+        }
+        var st = i < campStage ? 'cleared' : (i === campStage ? 'next' : 'locked');
+        var row = document.createElement('div');
+        row.className = 'lrow ' + st;
+        row.innerHTML =
+          '<canvas width="56" height="64"></canvas>' +
+          '<div><div class="lstage">' + o.stage + '</div>' +
+          '<div class="lname">' + o.flag + ' ' + o.name + '</div>' +
+          '<div class="lstatus">' +
+            (st === 'cleared' ? '✓ CLEARED — TAP TO PRACTICE' : st === 'next' ? '▶ NEXT MATCH' : '🔒 LOCKED') +
+          '</div></div>';
+        drawPortrait(row.querySelector('canvas'), o);
+        if (st !== 'locked') row.addEventListener('click', function () { openVs(i); });
+        rowsEl.appendChild(row);
+      });
+      document.getElementById('ladder-reset').classList.toggle('hidden', campStage < 3);
+      el.menu.classList.add('hidden');
+      el.end.classList.add('hidden');
+      document.getElementById('vs').classList.add('hidden');
+      document.getElementById('ladder').classList.remove('hidden');
+    }
+
+    // ---------- trophy cabinet ----------
+    var TIER_NAMES = { bronze: '🥉 Bronze', silver: '🥈 Silver', gold: '🥇 Gold', platinum: '💎 Platinum' };
+    function renderTrophies() {
+      if (!window.SBTrophies) return;
+      var unlocked = {};
+      SBTrophies.getUnlocked().forEach(function (id) { unlocked[id] = true; });
+      var html = '', total = 0;
+      ['bronze', 'silver', 'gold', 'platinum'].forEach(function (tier) {
+        var items = SBTrophies.LIST.filter(function (a) { return a.tier === tier; });
+        var got = items.filter(function (a) { return unlocked[a.id]; }).length;
+        html += '<div class="tr-tier ' + tier + '">' + TIER_NAMES[tier] + ' · ' + got + '/' + items.length + '</div>';
+        items.forEach(function (a) {
+          var un = !!unlocked[a.id];
+          if (un) total++;
+          html += '<div class="tr-card ' + (un ? 'unlocked ' + tier : 'locked') + '">' +
+            '<div class="tr-ico">' + (un ? a.icon : '🔒') + '</div>' +
+            '<div class="tr-name">' + a.name + '</div>' +
+            '<div class="tr-desc">' + a.desc + '</div>' +
+            '</div>';
+        });
+      });
+      document.getElementById('tr-grid').innerHTML = html;
+      document.getElementById('tr-count').textContent = total + ' / ' + SBTrophies.LIST.length;
+    }
+    function openTrophies() {
+      renderTrophies();
+      el.menu.classList.add('hidden');
+      document.getElementById('trophies').classList.remove('hidden');
+    }
+    function closeTrophies() {
+      document.getElementById('trophies').classList.add('hidden');
+      el.menu.classList.remove('hidden');
+    }
+
+    function openVs(idx) {
+      document.getElementById('ladder').classList.add('hidden');
+      vsIdx = idx;
+      var o = OPPONENTS[idx];
+      var fight = document.getElementById('vs-fight'); // shared with online — reset
+      fight.textContent = 'FIGHT!'; fight.disabled = false;
+      document.getElementById('vs-stage').textContent = o.stage;
+      document.getElementById('vs-name').textContent = o.name;
+      document.getElementById('vs-country').textContent = o.flag + ' ' + o.country;
+      document.getElementById('vs-style').textContent = o.style;
+      document.getElementById('vs-taunt').textContent = o.taunt;
+      document.getElementById('vs-pname').textContent = playerName() + ' ✎';
+      document.getElementById('vs-oname').textContent = o.short;
+      drawPortrait(document.getElementById('vs-face-p'), PLAYER);
+      document.getElementById('vs-bracket').innerHTML = OPPONENTS.map(function (op, i) {
+        var cls = i < idx ? 'done' : (i === idx ? 'cur' : '');
+        var mark = i < idx ? '✓ ' : (i === idx ? '▶ ' : '🔒 ');
+        return '<span class="' + cls + '">' + mark + op.short + '</span>';
+      }).join('');
+      drawPortrait(document.getElementById('vs-face'), o);
+      el.menu.classList.add('hidden');
+      el.end.classList.add('hidden');
+      document.getElementById('vs').classList.remove('hidden');
+    }
+
+    // ---------- game flow ----------
+    function startMatch(lvl, opp) {
+      online = false; // single-player path clears any online state
+      level = lvl;
+      campaignOpp = opp || null;
+      mAces = 0; mMaxDeficit = 0; rServer = 0; rHits = 0; rOppHits = 0;
+      if (window.SBTrophies) SBTrophies.event('start', { campaign: !!opp });
+      document.getElementById('vs').classList.add('hidden');
+      game = TTCore.createGame(1);
+      aiMem = {};
+      trail = [];
+      toss = null;
+      landMark = null;
+      pointTimer = 0;
+      ui = 'playing';
+      el.menu.classList.add('hidden');
+      el.end.classList.add('hidden');
+      el.hud.classList.remove('hidden');
+      updateHud();
+      setHint('TAP TO TOSS · SWIPE TO STRIKE');
+      Sound.unlock();
+      // crowd bed: start when the sample is ready (retry a couple times in
+      // case it's still loading after the first user gesture)
+      Sound.crowdStart();
+      setTimeout(function () { if (ui === 'playing') Sound.crowdStart(); }, 500);
+      setTimeout(function () { if (ui === 'playing') Sound.crowdStart(); }, 1400);
+      last = 0; acc = 0;
+      requestAnimationFrame(loop);
+    }
+
+    function endMatch() {
+      ui = 'over';
+      Sound.crowdStop();
+      var won = game.winner === 1;
+      var againBtn = document.getElementById('again-btn');
+      el.endTitle.className = 'modal-title ' + (won ? 'win' : 'lose');
+      if (campaignOpp) {
+        if (campPractice) {
+          // sparring against a cleared opponent — progression untouched
+          el.endTitle.textContent = won ? 'PRACTICE WIN!' : 'DEFEAT';
+          el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' vs ' + campaignOpp.name + ' · sparring, no stakes';
+          againBtn.textContent = won ? 'PLAY AGAIN' : 'REMATCH';
+        } else if (won && campIdx >= 2) {
+          campStage = 3;
+          localStorage.setItem('ttCampaign', '3');
+          el.endTitle.textContent = '🏆 CHAMPION!';
+          el.endSub.textContent = 'You conquered the Spinburn Open! ' + game.scores[1] + ' — ' + game.scores[2] + ' in the final.';
+          againBtn.textContent = 'MENU';
+        } else if (won) {
+          campStage = campIdx + 1;
+          localStorage.setItem('ttCampaign', String(campStage));
+          el.endTitle.textContent = 'VICTORY!';
+          el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · next up: ' + OPPONENTS[campStage].name;
+          againBtn.textContent = 'CONTINUE';
+        } else {
+          el.endTitle.textContent = 'DEFEAT';
+          el.endSub.textContent = campaignOpp.name + ' wins ' + game.scores[2] + ' — ' + game.scores[1] + '.  ' + campaignOpp.taunt;
+          againBtn.textContent = 'REMATCH';
+        }
+      } else {
+        el.endTitle.textContent = won ? 'YOU WIN!' : 'AI WINS';
+        el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · ' + String(level).toUpperCase();
+        againBtn.textContent = 'PLAY AGAIN';
+      }
+      buildMatchReport(won);
+      // ---- trophies + leaderboard ----
+      if (window.SBTrophies) {
+        var sc = game.scores, minS = Math.min(sc[1], sc[2]);
+        var camp = (campaignOpp && !campPractice && won) ? ['q', 's', 'f'][campIdx] : null;
+        var st = SBTrophies.event('match', {
+          myWin: won,
+          mode: campaignOpp ? 'campaign' : 'ai',
+          aiLevel: (typeof level === 'string') ? level : null,
+          camp: camp,
+          champion: !!(won && !campPractice && campaignOpp && campIdx >= 2),
+          love: won && sc[2] === 0,
+          deuce: won && minS >= 10,
+          comeback: won && mMaxDeficit >= 3,
+          comeback5: won && mMaxDeficit >= 5,
+          online: false,
+          asKid: true, // the single-player avatar is always THE KID
+          acesThisMatch: mAces
+        });
+        if (window.GameVolt && st) { try { GameVolt.leaderboard.submit(st.points, { mode: 'default' }); } catch (e) {} }
+      }
+      setHint('');
+      setTimeout(function () { el.end.classList.remove('hidden'); }, 700);
+    }
+
+    // Cheesy quick-match one-liners (no named opponent)
+    var QUICK_WIN = [
+      'Flawless paddle work. The table never stood a chance.',
+      'GG! Somewhere, a coach is taking notes.',
+      'Spin, smash, repeat. You made it look easy.'
+    ];
+    var QUICK_LOSE = [
+      'The paddle giveth, and the paddle taketh away.',
+      'Close one. Chalk it up and run it back.',
+      'The AI would like a rematch. So would your pride.'
+    ];
+
+    function buildMatchReport(won) {
+      var report = document.getElementById('end-report');
+      var cheese = document.getElementById('end-cheese');
+      if (campaignOpp) {
+        report.classList.remove('hidden');
+        document.getElementById('er-pname').textContent = playerName();
+        document.getElementById('er-oname').textContent = campaignOpp.short;
+        document.getElementById('er-score').textContent = game.scores[1] + '–' + game.scores[2];
+        drawPortrait(document.getElementById('er-face-p'), PLAYER);
+        drawPortrait(document.getElementById('er-face-o'), campaignOpp);
+        cheese.textContent = won ? (campaignOpp.beatLine || '') : (campaignOpp.lossLine || campaignOpp.taunt || '');
+      } else {
+        report.classList.add('hidden');
+        // deterministic-ish pick from the score so it doesn't flicker
+        var pool = won ? QUICK_WIN : QUICK_LOSE;
+        cheese.textContent = pool[(game.scores[1] + game.scores[2]) % pool.length];
+      }
+    }
+
+    function toMenu() {
+      ui = 'menu';
+      Sound.crowdStop();
+      if (online && window.SBNet) { try { SBNet.leave(); } catch (e) {} }
+      online = false; myChar = null; oppChar = null;
+      document.getElementById('again-btn').disabled = false;
+      game = null;
+      campaignOpp = null;
+      el.end.classList.add('hidden');
+      el.hud.classList.add('hidden');
+      document.getElementById('vs').classList.add('hidden');
+      document.getElementById('ladder').classList.add('hidden');
+      document.getElementById('charselect').classList.add('hidden');
+      document.getElementById('online').classList.add('hidden');
+      el.menu.classList.remove('hidden');
+      setHint('');
+      draw();
+    }
+
+    // Advance the serve toss; returns true the tick the serve is struck.
+    // Same for single-player and online (I'm always player 1 = the server).
+    function advanceToss() {
+      if (!toss) return false;
+      toss.t++;
+      var f = toss.t / toss.dur;
+      var wasHuman = game.server === 1;
+      var raw = Math.abs(pointerVX) + Math.abs(pointerVZ) * 1.6;
+      if (wasHuman && !toss.aim) {
+        if (toss.strikeAt === undefined && f >= 0.62 && raw > 1.1) { toss.strikeAt = toss.t + 4; toss.peak = raw; }
+        if (toss.strikeAt !== undefined && raw > toss.peak) toss.peak = raw;
+      }
+      if ((toss.strikeAt !== undefined && toss.t >= toss.strikeAt) || toss.t >= toss.dur) {
+        var aim = toss.aim;
+        if (!aim) {
+          var eff = toss.peak !== undefined ? toss.peak : raw;
+          var power = Math.min(1, Math.max(0, eff - 0.9) / 2.4);
+          aim = {
+            tx: Math.max(-0.65, Math.min(0.65, game.paddles[1].x * 0.3 + pointerVX * 0.5)),
+            // even a no-swipe serve lands deep and carries to the receiver at
+            // a hittable height (no more "hold still on serve = free point")
+            ty: K.NET_Y + 0.95 + 0.6 * power,
+            pace: Math.max(0.4, power),
+            lift: toss.strikeAt !== undefined ? tossHeight() : 0
+          };
+        }
+        TTCore.serve(game, aim);
+        Sound.pock(Math.min(1, (aim.pace || 0.2) + 0.15), game.ball.x / 0.76);
+        if (wasHuman && (aim.pace || 0) > 0.65) {
+          var sp3 = proj(game.ball.x, K.PADDLE_Y[1], game.ball.z);
+          spawnSparks(sp3.x, sp3.y, aim.pace, 1);
+          addLabel('POWER SERVE!', sp3.x, sp3.y - 26, '#7fd8ff');
+        }
+        toss = null;
+        if (wasHuman) padKick = 0.55;
+        return true;
+      }
+      return false;
+    }
+
+    function tickGame() {
+      // a struck serve opens a new rally: record who served, count it as shot 1
+      if (advanceToss()) { rServer = game.server; rHits = 1; rOppHits = 0; }
+      var inputs = { 1: { x: pointer.x, z: pointer.z, aim: humanAim() } };
+      var ai = TTAi.decide(game, 2, level, rng, aiMem);
+      if (game.phase === 'serve' && game.server === 2 && ai.serve) beginToss(ai.serve);
+      inputs[2] = ai;
+      var res = TTCore.step(game, inputs);
+      for (var i = 0; i < res.events.length; i++) {
+        var e = res.events[i];
+        if (e.type === 'hit') {
+          rHits++; if (e.by === 2) rOppHits++;
+          var shotP = Math.min(1, Math.abs(game.ball.vy) / 7.5);
+          Sound.pock(shotP, e.x / 0.76);
+          if (e.by === 1) padKick = Math.max(-0.6, Math.min(0.6, pointerVX * 0.14));
+          var cp = proj(e.x, K.PADDLE_Y[e.by], Math.max(0.05, e.z));
+          if (shotP > 0.5) spawnSparks(cp.x, cp.y, shotP, e.by);
+          if (shotP > 0.7) {
+            // a big hit should FEEL big: freeze, shockwave, shake, callout
+            rings.push({ x: cp.x, y: cp.y, r: 6, a: 0.9 });
+            hitStop = 3;
+            shakeT = 190; shakeAmp = 3 + shotP * 4.5;
+            if (e.by === 1) addLabel(shotP > 0.88 ? 'SMASH!!' : 'SMASH!', cp.x, cp.y - 26, '#ffd166');
+          }
+        }
+        if (e.type === 'bounce') { Sound.bounce(e.x / 0.76); ballSquash = 1; }
+        if (e.type === 'floor' && e.out) {
+          // line call: show WHERE it landed so outs never feel like robbery
+          addLabel('OUT!', W / 2, H * 0.32, '#ff5a5a', 44, 1100);
+          landMark = { x: e.x, y: e.y, a: 1 };
+        }
+        if (e.type === 'net') { Sound.net(); addLabel('NET!', W / 2, H * 0.32, '#ffae42', 40, 1000); }
+        else if (e.type === 'point') {
+          // trophy tracking: an ace = I served and my opponent never touched it
+          var mine = e.to === 1;
+          var ace = rServer === 1 && rOppHits === 0 && mine;
+          if (ace) mAces++;
+          if (game.scores[2] - game.scores[1] > mMaxDeficit) mMaxDeficit = game.scores[2] - game.scores[1];
+          if (window.SBTrophies) SBTrophies.event('point', { mine: mine, ace: ace, rally: rHits, lead: game.scores[1] - game.scores[2] });
+          Sound.point(e.to === 1);
+          updateHud();
+          if (!res.events.some(function (x) { return x.type === 'over'; })) {
+            addLabel(e.to === 1 ? 'POINT!' : (campaignOpp ? campaignOpp.short : 'AI') + ' POINT', W / 2, H * 0.42,
+              e.to === 1 ? '#7dffb0' : '#ff8aa8', 46, 1150);
+            // match point: a player is one point from winning (>=10 and leads)
+            var hi = Math.max(game.scores[1], game.scores[2]);
+            var lead = Math.abs(game.scores[1] - game.scores[2]);
+            if (hi >= 10 && lead >= 1) {
+              var mine = game.scores[1] > game.scores[2];
+              Sound.matchpoint();
+              setTimeout(function () {
+                addLabel('MATCH POINT!', W / 2, H * 0.24, '#ffd166', 44, 1500);
+                addLabel(mine ? playerName() : (campaignOpp ? campaignOpp.short : 'AI'),
+                  W / 2, H * 0.24 + 34, mine ? '#7dffb0' : '#ff8aa8', 26, 1500);
+              }, 380);
+            }
+          }
+          pointTimer = 66; // ~1.1s pause, ball physics keep settling
+        } else if (e.type === 'over') {
+          Sound.end(e.winner === 1);
+          showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — ' + (campaignOpp ? campaignOpp.short : 'AI'), 1400);
+          endMatch();
+        }
+      }
+      if (game.phase === 'point' && pointTimer > 0 && --pointTimer === 0) {
+        TTCore.nextRally(game);
+        aiMem = {};
+        updateHud();
+        if (game.server === 1) setHint('TAP TO TOSS · SWIPE TO STRIKE');
+      }
+      // ball trail bookkeeping (denser samples so fast streaks read smoothly)
+      if (game.phase === 'rally') {
+        trail.push({ x: game.ball.x, y: game.ball.y, z: game.ball.z });
+        if (trail.length > 8) trail.shift();
+      } else if (trail.length) trail = [];
+    }
+
+    function ballState() {
+      var b = game.ball;
+      return { x: b.x, y: b.y, z: b.z, vx: b.vx, vy: b.vy, vz: b.vz };
+    }
+
+    // Online step: mirror-per-client. I'm player 1; the authority (whoever's
+    // half the ball is on) simulates & scores, the mirror follows via the wire.
+    function onlineTick() {
+      processNetQ();
+      if (ui !== 'playing') return;
+      // serve toss only runs when I'm the server (server === 1 in my frame)
+      var served = false;
+      if (game.server === 1 && game.phase === 'serve') served = advanceToss();
+
+      var inputs = {
+        1: { x: pointer.x, z: pointer.z, aim: humanAim() },
+        2: { x: oppPaddle.x, z: oppPaddle.z }
+      };
+      var auth = iAmAuthority();
+      var opts = auth ? { hitPid: 1 } : { hitPid: -1, noScore: true };
+      var res = TTCore.step(game, inputs, opts);
+
+      if (served) netSend('serve', { ball: ballState(), tick: game.tick });
+
+      for (var i = 0; i < res.events.length; i++) {
+        var e = res.events[i];
+        if (e.type === 'hit' && e.by === 1) {
+          netSend('hit', { ball: ballState(), tick: game.tick });
+          var shotP = Math.min(1, Math.abs(game.ball.vy) / 7.5);
+          Sound.pock(shotP, e.x / 0.76);
+          padKick = Math.max(-0.6, Math.min(0.6, pointerVX * 0.14));
+          var cp = proj(e.x, K.PADDLE_Y[1], Math.max(0.05, e.z));
+          if (shotP > 0.5) spawnSparks(cp.x, cp.y, shotP, 1);
+          if (shotP > 0.7) {
+            rings.push({ x: cp.x, y: cp.y, r: 6, a: 0.9 });
+            hitStop = 3; shakeT = 190; shakeAmp = 3 + shotP * 4.5;
+            addLabel(shotP > 0.88 ? 'SMASH!!' : 'SMASH!', cp.x, cp.y - 26, '#ffd166');
+          }
+        }
+        if (e.type === 'bounce') { Sound.bounce(e.x / 0.76); ballSquash = 1; }
+        if (e.type === 'floor' && e.out) { addLabel('OUT!', W / 2, H * 0.32, '#ff5a5a', 44, 1100); landMark = { x: e.x, y: e.y, a: 1 }; }
+        if (e.type === 'net') { Sound.net(); addLabel('NET!', W / 2, H * 0.32, '#ffae42', 40, 1000); }
+        if (e.type === 'point') {
+          // I'm the authority (mirror never scores): tell the opponent
+          netSend('pt', { as: game.scores[1], os: game.scores[2], authWon: e.to === 1 });
+          Sound.point(e.to === 1);
+          updateHud();
+          if (!res.events.some(function (x) { return x.type === 'over'; })) {
+            addLabel(e.to === 1 ? 'POINT!' : 'RIVAL POINT', W / 2, H * 0.42, e.to === 1 ? '#7dffb0' : '#ff8aa8', 46, 1150);
+            onlineMatchPointFx();
+            pointTimer = 66;
+          }
+        }
+        if (e.type === 'over') {
+          Sound.end(e.winner === 1);
+          showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — RIVAL', 1400);
+          endOnlineMatch();
+        }
+      }
+
+      // Trophy tracking online: both clients agree on the score every tick
+      // (authority scores locally, mirror via onNetPoint), so watch it change.
+      // Rally length + aces can't be measured from the wire — points can.
+      if (window.SBTrophies && (game.scores[1] > oLastMy || game.scores[2] > oLastOpp)) {
+        if (game.scores[1] > oLastMy) SBTrophies.event('point', { mine: true, lead: game.scores[1] - game.scores[2] });
+        if (game.scores[2] > oLastOpp) SBTrophies.event('point', { mine: false, lead: game.scores[1] - game.scores[2] });
+        oLastMy = game.scores[1]; oLastOpp = game.scores[2];
+        if (game.scores[2] - game.scores[1] > oMaxDeficit) oMaxDeficit = game.scores[2] - game.scores[1];
+      }
+
+      var now = performance.now();
+      if (auth && game.phase === 'rally' && now - lastBallSend > 60) { lastBallSend = now; netSend('ball', { ball: ballState() }); }
+      if (now - lastPadSend > 55) { lastPadSend = now; netSend('pad', { x: pointer.x, z: pointer.z }); }
+
+      if (game.phase === 'point' && pointTimer > 0 && --pointTimer === 0) {
+        TTCore.nextRally(game);
+        updateHud();
+        setHint(game.server === 1 ? 'TAP TO TOSS · SWIPE TO STRIKE' : 'RIVAL SERVES…');
+      }
+      if (game.phase === 'rally') {
+        trail.push({ x: game.ball.x, y: game.ball.y, z: game.ball.z });
+        if (trail.length > 8) trail.shift();
+      } else if (trail.length) trail = [];
+    }
+
+    function endOnlineMatch() {
+      ui = 'over';
+      Sound.crowdStop();
+      var won = game.winner === 1;
+      el.endTitle.textContent = won ? 'YOU WIN!' : 'RIVAL WINS';
+      el.endTitle.className = 'modal-title ' + (won ? 'win' : 'lose');
+      document.getElementById('end-report').classList.remove('hidden');
+      document.getElementById('er-pname').textContent = playerName();
+      document.getElementById('er-oname').textContent = charById(oppChar).short;
+      document.getElementById('er-score').textContent = game.scores[1] + '–' + game.scores[2];
+      drawPortrait(document.getElementById('er-face-p'), charById(myChar));
+      drawPortrait(document.getElementById('er-face-o'), charById(oppChar));
+      document.getElementById('end-cheese').textContent = won ? 'Match won! Play again or head back.' : 'So close — run it back!';
+      el.endSub.textContent = game.scores[1] + ' — ' + game.scores[2] + ' · online';
+      document.getElementById('again-btn').textContent = 'REMATCH';
+      // ---- trophies + leaderboard ----
+      if (window.SBTrophies) {
+        var sc = game.scores, minS = Math.min(sc[1], sc[2]);
+        var st = SBTrophies.event('match', {
+          myWin: won,
+          mode: 'online',
+          online: true,
+          love: won && sc[2] === 0,
+          deuce: won && minS >= 10,
+          comeback: won && oMaxDeficit >= 3,
+          comeback5: won && oMaxDeficit >= 5,
+          asKid: myChar === 'player',
+          acesThisMatch: 0
+        });
+        if (window.GameVolt && st) { try { GameVolt.leaderboard.submit(st.points, { mode: 'default' }); } catch (e) {} }
+      }
+      setHint('');
+      setTimeout(function () { el.end.classList.remove('hidden'); }, 700);
+    }
+
+    function requestOnlineRematch() {
+      iRematch = true;
+      netSend('rematch', {});
+      document.getElementById('again-btn').textContent = 'WAITING…';
+      document.getElementById('again-btn').disabled = true;
+      maybeOnlineRematch();
+    }
+    function maybeOnlineRematch() {
+      if (iRematch && oppRematch) {
+        iRematch = oppRematch = false;
+        document.getElementById('again-btn').disabled = false;
+        el.end.classList.add('hidden');
+        startOnlineGame();
+      } else if (oppRematch && ui === 'over') {
+        document.getElementById('again-btn').textContent = 'REMATCH (RIVAL READY!)';
+      }
+    }
+
+    function loop(ts) {
+      if (ui !== 'playing' && ui !== 'over') return;
+      if (!last) last = ts;
+      var dt = ts - last; last = ts;
+      acc += dt;
+      var steps = 0;
+      while (acc >= TICK_MS && ui === 'playing') {
+        if (++steps > 10) { acc = 0; break; }
+        if (hitStop > 0) { hitStop--; acc = 0; break; } // impact freeze-frame
+        acc -= TICK_MS;
+        if (online) onlineTick(); else tickGame();
+      }
+      // pointer velocity decays when the finger rests
+      pointerVX *= 0.92; pointerVZ *= 0.92;
+      ballSquash *= 0.8;
+      if (shakeT > 0) shakeT = Math.max(0, shakeT - dt);
+      draw();
+      drawJuice(dt);
+      requestAnimationFrame(loop);
+    }
+
+    // ---------- wiring ----------
+    Array.prototype.forEach.call(document.querySelectorAll('[data-level]'), function (b) {
+      b.addEventListener('click', function () { startMatch(b.getAttribute('data-level')); });
+    });
+    document.getElementById('again-btn').addEventListener('click', function () {
+      if (online) {
+        if (document.getElementById('again-btn').textContent === 'MENU') { toMenu(); return; }
+        requestOnlineRematch();
+        return;
+      }
+      if (campaignOpp) {
+        var won = game && game.winner === 1;
+        if (!campPractice && won && campIdx >= 2) { toMenu(); return; }
+        if (!campPractice && won) { el.end.classList.add('hidden'); openLadder(); return; }
+        startMatch(campaignOpp.params, campaignOpp); // rematch / spar again
+        return;
+      }
+      startMatch(level);
+    });
+    document.getElementById('campaign-btn').addEventListener('click', openLadder);
+    document.getElementById('trophies-btn').addEventListener('click', openTrophies);
+    document.getElementById('trophies-back').addEventListener('click', closeTrophies);
+    document.getElementById('vs-fight').addEventListener('click', function () {
+      campIdx = vsIdx;
+      campPractice = vsIdx < campStage; // replaying a cleared opponent = sparring
+      startMatch(OPPONENTS[vsIdx].params, OPPONENTS[vsIdx]);
+    });
+    document.getElementById('vs-back').addEventListener('click', function () {
+      if (myChar) { // online VS card — back means leave the room
+        if (window.SBNet) { try { SBNet.leave(); } catch (e) {} }
+        myChar = null; oppChar = null;
+        document.getElementById('vs').classList.add('hidden');
+        el.menu.classList.remove('hidden');
+        return;
+      }
+      openLadder();
+    });
+    document.getElementById('vs-pname').addEventListener('click', editPlayerName);
+    document.getElementById('ladder-back').addEventListener('click', function () {
+      document.getElementById('ladder').classList.add('hidden');
+      el.menu.classList.remove('hidden');
+    });
+    document.getElementById('ladder-reset').addEventListener('click', function () {
+      campStage = 0;
+      localStorage.setItem('ttCampaign', '0');
+      openLadder();
+    });
+
+    // ---------- online lobby (Phase A: transport + handshake) ----------
+    var onlineEl = document.getElementById('online');
+    var inviteLink = '';
+    function setOnlineStatus(t) { document.getElementById('ol-status').textContent = t || ''; }
+    function openOnline() {
+      el.menu.classList.add('hidden');
+      onlineEl.classList.remove('hidden');
+      document.getElementById('ol-code-box').classList.add('hidden');
+      document.querySelector('#online .ol-join-row').style.display = '';
+      var cb = document.getElementById('ol-create'), jb = document.getElementById('ol-join');
+      cb.classList.remove('hidden'); jb.classList.remove('hidden');
+      cb.disabled = false; jb.disabled = false;
+      setOnlineStatus('');
+      if (window.SBNet) SBNet.preload(); // warm the supabase CDN while they read
+    }
+    function closeOnline() {
+      if (window.SBNet) { try { SBNet.leave(); } catch (e) {} }
+      onlineEl.classList.add('hidden');
+      el.menu.classList.remove('hidden');
+    }
+    document.getElementById('online-btn').addEventListener('click', openOnline);
+    document.getElementById('ol-back').addEventListener('click', closeOnline);
+
+    // ---- online character select: both players pick from the four fighters ----
+    var myChar = null, oppChar = null, csBuilt = false;
+    function buildCharSelect() {
+      if (csBuilt) return;
+      csBuilt = true;
+      var grid = document.getElementById('cs-grid');
+      CHARS.forEach(function (c) {
+        var card = document.createElement('div');
+        card.className = 'cs-card'; card.dataset.id = c.id;
+        card.innerHTML = '<canvas width="84" height="96"></canvas><div class="cs-nm">' +
+          (c.id === 'player' ? playerName() : c.short) + '</div>';
+        drawPortrait(card.querySelector('canvas'), c);
+        card.addEventListener('click', function () { pickChar(c.id); });
+        grid.appendChild(card);
+      });
+    }
+    function openCharSelect() {
+      buildCharSelect();
+      myChar = null; oppChar = null;
+      onlineEl.classList.add('hidden');
+      el.menu.classList.add('hidden');
+      Array.prototype.forEach.call(document.querySelectorAll('.cs-card'), function (c) {
+        c.classList.remove('picked', 'opppick');
+        // refresh the player card label in case the name changed
+        if (c.dataset.id === 'player') c.querySelector('.cs-nm').textContent = playerName();
+      });
+      document.getElementById('cs-status').textContent = 'PICK A CHARACTER';
+      document.getElementById('charselect').classList.remove('hidden');
+    }
+    function pickChar(id) {
+      myChar = id;
+      Array.prototype.forEach.call(document.querySelectorAll('.cs-card'), function (c) {
+        c.classList.toggle('picked', c.dataset.id === id);
+      });
+      if (window.SBNet) SBNet.input({ k: 'char', id: id });
+      updateCharStatus();
+    }
+    function markOppChar() {
+      Array.prototype.forEach.call(document.querySelectorAll('.cs-card'), function (c) {
+        c.classList.toggle('opppick', c.dataset.id === oppChar);
+      });
+    }
+    function updateCharStatus() {
+      var st = document.getElementById('cs-status');
+      if (myChar && oppChar) {
+        st.textContent = 'BOTH READY! STARTING…';
+        setTimeout(function () {
+          document.getElementById('charselect').classList.add('hidden');
+          startOnlineMatch();
+        }, 700);
+      } else if (myChar) st.textContent = 'LOCKED IN — WAITING FOR RIVAL…';
+      else if (oppChar) st.textContent = 'RIVAL IS READY — PICK YOUR FIGHTER!';
+      else st.textContent = 'PICK A CHARACTER';
+    }
+
+    // ---------- online match (Phase B: mirror-per-client netcode) ----------
+    // Both players are player 1 (near) in their own frame; the ball is mirrored
+    // on the wire. Authority = whoever's half the ball is on simulates it and
+    // streams; the mirror integrates for smooth rendering but never scores.
+    var online = false, netRole = 'host', oppPaddle = { x: 0, z: 0.25 };
+    var netQ = [], lastBallSend = 0, lastPadSend = 0, oppRematch = false, iRematch = false;
+    // ---- trophy tracking (per match / per rally) ----
+    // Single-player measures rally length + aces from the local sim; online
+    // can only see score changes on the wire, so it tracks points + deficit.
+    var mAces = 0, mMaxDeficit = 0;              // per-match: aces I served, worst deficit I trailed
+    var rServer = 0, rHits = 0, rOppHits = 0;    // per-rally: who served, total shots, opponent returns
+    var oLastMy = 0, oLastOpp = 0, oMaxDeficit = 0; // online: last-seen scores + worst deficit
+
+    function mirrorBall(b) { // transform a ball state between the two frames
+      return { x: -b.x, y: K.TABLE_L - b.y, z: b.z, vx: -b.vx, vy: -b.vy, vz: b.vz };
+    }
+    function netSend(k, extra) {
+      if (!window.SBNet) return;
+      var m = { k: k }; if (extra) for (var p in extra) m[p] = extra[p];
+      SBNet.input(m);
+    }
+
+    function startOnlineMatch() {
+      // show the online VS card briefly, then start the synced match
+      var me = charById(myChar), opp = charById(oppChar);
+      document.getElementById('vs-stage').textContent = 'ONLINE MATCH';
+      document.getElementById('vs-pname').textContent = playerName();
+      document.getElementById('vs-oname').textContent = opp.short;
+      document.getElementById('vs-name').textContent = 'FIRST TO 11';
+      document.getElementById('vs-country').textContent = '🌐 ONLINE · ROOM ' + (SBNet.code || '');
+      document.getElementById('vs-style').textContent = playerName() + ' vs ' + opp.short;
+      document.getElementById('vs-taunt').textContent = 'First to 11, win by 2 — good luck!';
+      document.getElementById('vs-bracket').innerHTML = '';
+      drawPortrait(document.getElementById('vs-face-p'), me);
+      drawPortrait(document.getElementById('vs-face'), opp);
+      var fight = document.getElementById('vs-fight');
+      fight.textContent = 'GET READY…'; fight.disabled = true;
+      el.menu.classList.add('hidden');
+      document.getElementById('vs').classList.remove('hidden');
+      setTimeout(startOnlineGame, 2200);
+    }
+
+    function startOnlineGame() {
+      document.getElementById('vs').classList.add('hidden');
+      online = true;
+      netRole = (SBNet.myPlayer === 1) ? 'host' : 'guest';
+      // I am always player 1 in my own frame; the host serves the first rally,
+      // so in the host frame server=1, in the guest frame server=2 (the host).
+      game = TTCore.createGame(netRole === 'host' ? 1 : 2);
+      oppChar_disp = charById(oppChar);
+      aiMem = {}; trail = []; toss = null; landMark = null; pointTimer = 0;
+      netQ = []; oppPaddle = { x: 0, z: 0.25 }; oppRematch = iRematch = false;
+      oLastMy = 0; oLastOpp = 0; oMaxDeficit = 0;
+      if (window.SBTrophies) SBTrophies.event('start', { online: true });
+      ui = 'playing';
+      el.hud.classList.remove('hidden');
+      updateHud();
+      setHint(game.server === 1 ? 'TAP TO TOSS · SWIPE TO STRIKE' : 'RIVAL SERVES…');
+      Sound.unlock(); Sound.crowdStart();
+      setTimeout(function () { if (ui === 'playing') Sound.crowdStart(); }, 600);
+      last = 0; acc = 0;
+      requestAnimationFrame(loop);
+    }
+    var oppChar_disp = null;
+
+    function iAmAuthority() {
+      if (!game) return false;
+      if (game.phase === 'serve') return game.server === 1;
+      return game.ball.y < K.NET_Y; // ball on my (near) half
+    }
+
+    function processNetQ() {
+      while (netQ.length) {
+        var d = netQ.shift();
+        if (d.k === 'pad') { oppPaddle.x = -d.x; oppPaddle.z = d.z; }
+        else if (d.k === 'serve') {
+          var mb = mirrorBall(d.ball);
+          game.ball.x = mb.x; game.ball.y = mb.y; game.ball.z = mb.z;
+          game.ball.vx = mb.vx; game.ball.vy = mb.vy; game.ball.vz = mb.vz;
+          game.phase = 'rally'; game.lastHitBy = 2; game.bounced = false; game.serveBounce = true;
+          setHint('');
+        }
+        else if (d.k === 'hit') {
+          var hb = mirrorBall(d.ball);
+          game.ball.x = hb.x; game.ball.y = hb.y; game.ball.z = hb.z;
+          game.ball.vx = hb.vx; game.ball.vy = hb.vy; game.ball.vz = hb.vz;
+          game.lastHitBy = 2; game.bounced = false;
+          Sound.pock(Math.min(1, Math.abs(hb.vy) / 7.5), hb.x / 0.76);
+        }
+        else if (d.k === 'ball') {
+          if (!iAmAuthority()) { // only correct while I'm the mirror
+            var cb = mirrorBall(d.ball);
+            game.ball.x = cb.x; game.ball.y = cb.y; game.ball.z = cb.z;
+            game.ball.vx = cb.vx; game.ball.vy = cb.vy; game.ball.vz = cb.vz;
+          }
+        }
+        else if (d.k === 'pt') {
+          // authority scored: map into my frame (their self = my p2)
+          game.scores[1] = d.os; game.scores[2] = d.as;
+          game.pointTo = d.authWon ? 2 : 1;
+          onNetPoint(d);
+        }
+        else if (d.k === 'rematch') { oppRematch = true; maybeOnlineRematch(); }
+      }
+    }
+
+    function onNetPoint(d) {
+      Sound.point(game.pointTo === 1);
+      var over = (d.as >= 11 || d.os >= 11) && Math.abs(d.as - d.os) >= 2;
+      updateHud();
+      if (over) {
+        game.winner = game.pointTo; game.phase = 'over';
+        Sound.end(game.winner === 1);
+        showBanner(game.winner === 1 ? 'GAME — YOU!' : 'GAME — RIVAL', 1400);
+        endOnlineMatch();
+      } else {
+        game.phase = 'point';
+        addLabel(game.pointTo === 1 ? 'POINT!' : 'RIVAL POINT', W / 2, H * 0.42,
+          game.pointTo === 1 ? '#7dffb0' : '#ff8aa8', 46, 1150);
+        onlineMatchPointFx();
+        pointTimer = 66;
+      }
+    }
+
+    function onlineMatchPointFx() {
+      var hi = Math.max(game.scores[1], game.scores[2]);
+      if (hi >= 10 && Math.abs(game.scores[1] - game.scores[2]) >= 1) {
+        var mine = game.scores[1] > game.scores[2];
+        Sound.matchpoint();
+        setTimeout(function () {
+          addLabel('MATCH POINT!', W / 2, H * 0.24, '#ffd166', 44, 1500);
+          addLabel(mine ? playerName() : 'RIVAL', W / 2, H * 0.24 + 34, mine ? '#7dffb0' : '#ff8aa8', 26, 1500);
+        }, 380);
+      }
+    }
+
+    function onOppLeft() {
+      if (online) {
+        online = false; Sound.crowdStop();
+        if (ui === 'playing') {
+          ui = 'over';
+          el.endTitle.textContent = 'RIVAL LEFT';
+          el.endTitle.className = 'modal-title lose';
+          document.getElementById('end-report').classList.add('hidden');
+          el.endSub.textContent = 'Your opponent disconnected.';
+          document.getElementById('end-cheese').textContent = '';
+          document.getElementById('again-btn').textContent = 'MENU';
+          el.end.classList.remove('hidden');
+          return;
+        }
+      }
+      oppChar = null;
+      document.getElementById('charselect').classList.add('hidden');
+      document.getElementById('vs').classList.add('hidden');
+      if (ui !== 'playing') { onlineEl.classList.remove('hidden'); setOnlineStatus('OPPONENT LEFT THE ROOM.'); }
+    }
+
+    document.getElementById('ol-create').addEventListener('click', function () {
+      if (!window.SBNet) { setOnlineStatus('OFFLINE — NET UNAVAILABLE'); return; }
+      Sound.unlock();
+      this.disabled = true;
+      setOnlineStatus('CREATING ROOM…');
+      SBNet.host().then(function (code) {
+        document.getElementById('ol-code').textContent = code;
+        document.getElementById('ol-code-box').classList.remove('hidden');
+        inviteLink = location.origin + location.pathname + '?join=' + code;
+        document.getElementById('ol-share').classList.toggle('hidden', !navigator.share);
+        setOnlineStatus('WAITING FOR OPPONENT…');
+      }).catch(function () {
+        setOnlineStatus('COULD NOT CREATE ROOM — TRY AGAIN');
+        document.getElementById('ol-create').disabled = false;
+      });
+    });
+    function olJoin() {
+      if (!window.SBNet) { setOnlineStatus('OFFLINE — NET UNAVAILABLE'); return; }
+      var code = document.getElementById('ol-join-input').value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (code.length !== 4) { setOnlineStatus('ENTER THE 4-CHARACTER CODE'); return; }
+      Sound.unlock();
+      document.getElementById('ol-join').disabled = true;
+      setOnlineStatus('CONNECTING…');
+      SBNet.join(code).catch(function () {
+        setOnlineStatus('COULD NOT JOIN — CHECK THE CODE');
+        document.getElementById('ol-join').disabled = false;
+      });
+    }
+    document.getElementById('ol-join').addEventListener('click', olJoin);
+    document.getElementById('ol-join-input').addEventListener('input', function () {
+      this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    });
+    document.getElementById('ol-copy-link').addEventListener('click', function () {
+      if (!inviteLink) return;
+      if (navigator.clipboard) navigator.clipboard.writeText(inviteLink).then(function () {
+        setOnlineStatus('LINK COPIED!');
+      }).catch(function () { window.prompt('Copy this link:', inviteLink); });
+      else window.prompt('Copy this link:', inviteLink);
+    });
+    document.getElementById('ol-share').addEventListener('click', function () {
+      if (inviteLink && navigator.share) navigator.share({ title: 'Spinburn', text: 'Match me at table tennis!', url: inviteLink }).catch(function () {});
+    });
+
+    document.getElementById('cs-back').addEventListener('click', function () {
+      if (window.SBNet) { try { SBNet.leave(); } catch (e) {} }
+      document.getElementById('charselect').classList.add('hidden');
+      el.menu.classList.remove('hidden');
+    });
+
+    if (window.SBNet) {
+      SBNet.on('opponentJoined', function () {
+        setOnlineStatus('CONNECTED! CHOOSE YOUR FIGHTER…');
+        setTimeout(function () {
+          myPid = SBNet.myPlayer || 1;
+          openCharSelect();
+        }, 500);
+      });
+      SBNet.on('input', function (d) {
+        if (!d || !d.k) return;
+        if (d.k === 'char' && typeof d.id === 'string') {
+          oppChar = d.id; markOppChar(); updateCharStatus();
+        } else if (d.k === 'rematch') {
+          // handled immediately — the netQ only drains while a rally is live
+          oppRematch = true; maybeOnlineRematch();
+        } else if (online) {
+          netQ.push(d); // match traffic — drained in onlineTick / processNetQ
+        }
+      });
+      SBNet.on('left', function () { onOppLeft(); });
+    }
+    // Invite links: /spinburn/?join=CODE drops straight into the room.
+    try {
+      var joinCode = (new URLSearchParams(location.search).get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (joinCode.length === 4) {
+        history.replaceState(null, '', location.pathname);
+        openOnline();
+        document.getElementById('ol-join-input').value = joinCode;
+        olJoin();
+      }
+    } catch (e) {}
+
+    document.getElementById('menu-btn').addEventListener('click', toMenu);
+    window.addEventListener('keydown', function (e) {
+      if (e.code === 'Escape' && ui === 'playing') toMenu();
+    });
+
+    document.getElementById('version').textContent = 'v' + VERSION;
+    var sndBtn = document.getElementById('snd-btn');
+    function updSnd() { sndBtn.textContent = Sound.enabled ? '🔊' : '🔇'; }
+    sndBtn.addEventListener('click', function () { Sound.unlock(); Sound.toggle(); updSnd(); });
+    updSnd();
+
+    // Dev/debug handle
+    window.__TT_DEBUG = {
+      get ui() { return ui; },
+      get game() { return game; },
+      get level() { return level; },
+      // test hook: force a finished match to inspect the match report
+      _finish: function (myScore, oppScore) {
+        if (!game) return;
+        game.scores[1] = myScore; game.scores[2] = oppScore;
+        game.winner = myScore > oppScore ? 1 : 2;
+        game.phase = 'over';
+        endMatch();
+      }
+    };
+
+    // ---------- GameVolt SDK (optional) ----------
+    // Guarded so Spinburn runs identically standalone / on other portals.
+    if (window.GameVolt) {
+      try { GameVolt.init('spinburn'); } catch (e) {}
+      if (window.SBTrophies) {
+        SBTrophies.initSDK();  // register localStorage -> cloud migration + login backfill
+        SBTrophies.backfill();  // pull already-earned trophies into local state now
+      }
+    }
+
+    resize();
+    draw();
+  </script>
+
+</body>
+</html>
