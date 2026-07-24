@@ -5770,19 +5770,22 @@ export class Game {
     }
 
     // ─── HTML scores overlay (same pattern as achievements) ───
-    _scoresGlobalHtml() {
-        const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
-        if (!window.GameVolt) return '<div class="ax-sc-empty">Log in on GameVolt.io<br>to see the global leaderboard.</div>';
-        if (this._scLoading) return '<div class="ax-sc-empty">Loading…</div>';
-        const rows = this._scGlobal;
-        if (!rows || !rows.length) return '<div class="ax-sc-empty">No entries yet.<br>Log in to compete!</div>';
-        return '<div class="ax-sc-list">' + rows.map((e, i) =>
-            '<div class="ax-sc-row' + (i < 3 ? ' top' : '') + '">' +
-            '<span class="ax-sc-rank">#' + (e.rank || i + 1) + '</span>' +
-            '<span class="ax-sc-name">' + esc(e.username || 'Player') + '</span>' +
-            '<span class="ax-sc-score">' + Number(e.score).toLocaleString() + '</span>' +
-            '</div>'
-        ).join('') + '</div>';
+    // GLOBAL pane = the shared GameVolt leaderboard component (it fetches and
+    // renders rows, avatars, own-row highlight and all loading/empty states).
+    _mountScoresGlobal() {
+        const host = document.getElementById('ax-sc-global');
+        if (!host) return;
+        if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
+            GameVolt.ui.leaderboard({
+                container: host,
+                mode: 'default',
+                limit: 20,
+                accent: '#0ff',
+                scoreLabel: 'pts'
+            });
+            return;
+        }
+        host.innerHTML = '<div class="ax-sc-empty">Log in on GameVolt.io<br>to see the global leaderboard.</div>';
     }
 
     _scoresLocalHtml() {
@@ -5811,10 +5814,11 @@ export class Game {
               '<button class="ax-sc-tab' + (g ? ' sel' : '') + '" data-tab="global" tabindex="-1">GLOBAL</button>' +
             '</div>' +
             '<div id="ax-sc-local"' + (g ? ' class="ax-sc-hidden"' : '') + '>' + this._scoresLocalHtml() + '</div>' +
-            '<div id="ax-sc-global"' + (g ? '' : ' class="ax-sc-hidden"') + '>' + this._scoresGlobalHtml() + '</div>';
+            '<div id="ax-sc-global"' + (g ? '' : ' class="ax-sc-hidden"') + '></div>';
         body.querySelectorAll('.ax-sc-tab').forEach((btn) => {
             btn.onclick = () => this.setScoresTab(btn.dataset.tab);
         });
+        this._mountScoresGlobal();
     }
 
     setScoresTab(tab) {
@@ -5831,8 +5835,6 @@ export class Game {
     }
 
     openScoresOverlay() {
-        this._scLoading = !!window.GameVolt;
-        this._scGlobal = null;
         this._scTab = 'local';
         this.buildScoresOverlay();
         const ov = document.getElementById('ax-scores');
@@ -5846,18 +5848,8 @@ export class Game {
         if (this.audio) this.audio.menuClick();
         this._escPrev = true; this._kConfirmPrev = true; this._gpTapPrev = true;
         this._touchConfirm = false;
-        // Fetch the global leaderboard, then refresh just that section.
-        if (window.GameVolt && GameVolt.leaderboard && GameVolt.leaderboard.get) {
-            const done = (rows) => {
-                this._scGlobal = rows || [];
-                this._scLoading = false;
-                if (this._scoresOverlayOpen) {
-                    const g = document.getElementById('ax-sc-global');
-                    if (g) g.innerHTML = this._scoresGlobalHtml();
-                }
-            };
-            GameVolt.leaderboard.get({ mode: 'default', limit: 20 }).then(done).catch(() => done([]));
-        }
+        // The GLOBAL pane is the shared component, mounted (and fetched) by
+        // buildScoresOverlay() above — nothing to fetch here.
     }
 
     closeScoresOverlay() {

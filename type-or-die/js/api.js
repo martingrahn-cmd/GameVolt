@@ -83,7 +83,7 @@ export async function board(mode, bucket = "all", limit = 10) {
       p_bucket: bucket,
       p_limit: limit,
     });
-    return error ? null : data; // [{ rank, username, score, wpm, accuracy }]
+    return error ? null : data; // [{ rank, username, avatar_url, score, wpm, accuracy }]
   } catch {
     return null;
   }

@@ -4722,8 +4722,8 @@ export class OneStrokeApp {
       }
       if (seed === this.challenge.seed) this.renderShareRankSummary();
 
-      targetEl.innerHTML = "";
       if (rows.length === 0) {
+        targetEl.innerHTML = "";
         const empty = document.createElement("p");
         empty.className = "daily-leaderboard-empty";
         empty.textContent = emptyText;
@@ -4731,48 +4731,21 @@ export class OneStrokeApp {
         return;
       }
 
+      // Shared standardized board. Without the SDK component we leave whatever
+      // markup is already in the container (the static empty-state paragraph).
+      if (!(window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard)) return;
+
       const topRows = rows.slice(0, 20);
-      const rowsToRender = myRow && !topRows.includes(myRow)
-        ? [...topRows, { separator: true }, myRow]
-        : topRows;
+      const boardRows = myRow && !topRows.includes(myRow) ? [...topRows, myRow] : topRows;
 
-      for (const row of rowsToRender) {
-        if (row.separator) {
-          const separator = document.createElement("div");
-          separator.className = "leaderboard-separator";
-          separator.textContent = "Your rank";
-          targetEl.append(separator);
-          continue;
-        }
-        const el = document.createElement("article");
-        el.className = "match-standing-row";
-        const isYou = user && row.user_id === user.id;
-        if (isYou) el.classList.add("is-you");
-
-        const rank = document.createElement("span");
-        rank.className = "match-standing-rank";
-        rank.textContent = `#${row.rank}`;
-
-        const info = document.createElement("div");
-        info.className = "match-standing-info";
-
-        const name = document.createElement("div");
-        name.className = "match-standing-name";
-        name.textContent = row.username || "Player";
-
-        const details = document.createElement("div");
-        details.className = "match-standing-details";
-        details.textContent = `${toDisplayTime(row.time_ms)} · ${row.completed_count}/${row.total_count} completed`;
-
-        info.append(name, details);
-
-        const score = document.createElement("span");
-        score.className = "match-standing-score";
-        score.textContent = `${toDisplayScore(row.score)} p`;
-
-        el.append(rank, info, score);
-        targetEl.append(el);
-      }
+      GameVolt.ui.leaderboard({
+        container: targetEl,
+        accent: "#6bcbff",
+        scoreLabel: "p",
+        fetch: () => Promise.resolve(boardRows),
+        format: (score) => toDisplayScore(score),
+        meta: (row) => `${toDisplayTime(row.time_ms)} · ${row.completed_count}/${row.total_count} completed`,
+      });
     } catch (e) {
       console.warn("[gamevolt] competition leaderboard fetch failed:", e);
     }

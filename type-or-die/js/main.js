@@ -236,55 +236,105 @@ function closeTrophies() {
 
 // ---- high scores -------------------------------------------------------
 
-function renderBoard(listId, emptyId, rows, main, sub) {
+// Both boards are the shared GameVolt component, mounted inline into the
+// screen's own list containers so the placement (and the game's cyan look)
+// is unchanged. The component owns rows, avatars, own-row highlight and the
+// loading / empty / error states; we only supply the data and the units.
+
+const ACCENT = "#00ffff";
+const mounts = { zombie: null, speed: null }; // component instances, one per board
+
+const hasBoardUI = () =>
+  !!(window.GameVolt && window.GameVolt.ui && window.GameVolt.ui.leaderboard);
+
+// Local rows carry `name` (and no avatar); the component reads `username`.
+const fromLocal = (rows) => rows.map((r) => ({ ...r, username: r.name }));
+
+// Prefer the server-validated board when signed in; else the local one.
+async function zombieRows() {
+  const remote = remoteEnabled() ? await board("zombie", "all", 10) : null;
+  return remote || fromLocal(topScores("zombie", "classic", ["score", "wave"]));
+}
+
+async function speedRows() {
+  const remote = remoteEnabled() ? await board("speedtest-30", "all", 10) : null;
+  const rows = remote || fromLocal(topScores("speedtest", "30", ["wpm", "accuracy"]));
+  return rows.map((r) => ({ ...r, score: r.wpm })); // WPM is the primary value
+}
+
+// Minimal local renderer for when the SDK isn't there (standalone / offline).
+// The scores live in localStorage and need no SDK, so they must still show.
+function renderLocalRows(listId, emptyId, rows, main, sub) {
   $(emptyId).hidden = rows.length > 0;
   $(listId).replaceChildren(
     ...rows.map((r, i) => {
-      const li = document.createElement("li");
-      li.className = "lb-row" + (i === 0 ? " lb-row--top" : "");
-      li.innerHTML =
+      const row = document.createElement("div");
+      row.className = "lb-row" + (i === 0 ? " lb-row--top" : "");
+      row.innerHTML =
         `<span class="lb-rank">${i + 1}</span>` +
         '<span class="lb-name"></span>' +
         `<span class="lb-wpm">${main(r)}</span>` +
         `<span class="lb-acc">${sub(r)}</span>`;
-      li.querySelector(".lb-name").textContent = r.name ?? r.username ?? "";
-      return li;
+      row.querySelector(".lb-name").textContent = r.name ?? r.username ?? "";
+      return row;
     }),
   );
 }
 
-async function openLeaderboard() {
-  $("screen-leaderboard").hidden = false;
-  focusScreen();
+// Mount once, then just reload on each re-open (keeps the fetch fresh).
+function mountBoard(key, listId, emptyId, opts) {
+  const empty = $(emptyId);
+  empty.hidden = true; // the component renders its own empty state
+  if (mounts[key]) {
+    mounts[key].reload();
+    return;
+  }
+  mounts[key] = GameVolt.ui.leaderboard({
+    container: $(listId),
+    limit: 10,
+    accent: ACCENT,
+    ...opts,
+  });
+}
 
-  // Prefer the server-validated boards when signed in; else the local ones.
-  const zRemote = remoteEnabled() ? await board("zombie", "all", 10) : null;
-  if (zRemote) {
-    renderBoard("hs-zombie-list", "hs-zombie-empty", zRemote, (r) => r.score, () => "");
+function openLeaderboard() {
+  $("screen-leaderboard").hidden = false;
+
+  if (hasBoardUI()) {
+    mountBoard("zombie", "hs-zombie-list", "hs-zombie-empty", {
+      mode: "zombie",
+      scoreLabel: "pts",
+      fetch: zombieRows,
+      // Local rows record the wave reached; the validated board doesn't.
+      meta: (r) => (r.wave != null ? "wave " + r.wave : ""),
+    });
+
+    mountBoard("speed", "hs-speed-list", "hs-speed-empty", {
+      mode: "speedtest-30",
+      scoreLabel: "wpm",
+      format: (v) => String(v ?? 0),
+      fetch: speedRows,
+      meta: (r) => (r.accuracy != null ? r.accuracy + "%" : ""),
+    });
   } else {
-    renderBoard(
+    // No SDK: the localStorage boards still work, exactly as before.
+    renderLocalRows(
       "hs-zombie-list", "hs-zombie-empty",
       topScores("zombie", "classic", ["score", "wave"]),
       (r) => r.score,
       (r) => "wave " + r.wave,
     );
-  }
-
-  const sRemote = remoteEnabled() ? await board("speedtest-30", "all", 10) : null;
-  if (sRemote) {
-    renderBoard(
-      "hs-speed-list", "hs-speed-empty", sRemote,
-      (r) => r.wpm + " wpm",
-      (r) => (r.accuracy != null ? r.accuracy + "%" : ""),
-    );
-  } else {
-    renderBoard(
+    renderLocalRows(
       "hs-speed-list", "hs-speed-empty",
       topScores("speedtest", "30", ["wpm", "accuracy"]),
       (r) => r.wpm + " wpm",
       (r) => r.accuracy + "%",
     );
   }
+
+  // Focus CLOSE last: the mounted board can contain its own Sign in button,
+  // which precedes CLOSE in document order and would otherwise steal focus.
+  $("leaderboard-close").focus();
 }
 
 function closeLeaderboard() {
