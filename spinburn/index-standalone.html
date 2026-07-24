@@ -397,13 +397,13 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.42.0"></script>
-  <script src="tt-ai.js?v=0.42.0"></script>
-  <script src="sb-net.js?v=0.42.0"></script>
-  <script src="tt-achievements.js?v=0.42.0"></script>
+  <script src="tt-core.js?v=0.43.0"></script>
+  <script src="tt-ai.js?v=0.43.0"></script>
+  <script src="sb-net.js?v=0.43.0"></script>
+  <script src="tt-achievements.js?v=0.43.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.42.0';
+    var VERSION = '0.43.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -453,11 +453,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.42.0', bounce: 'assets/bounce.mp3?v=0.42.0',
-        cheer: 'assets/cheer.mp3?v=0.42.0', net: 'assets/net.mp3?v=0.42.0',
-        crowd: 'assets/crowd.mp3?v=0.42.0', winfare: 'assets/winfare.mp3?v=0.42.0',
-        lose: 'assets/lose.mp3?v=0.42.0', matchpoint: 'assets/matchpoint.mp3?v=0.42.0',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.42.0', voIntro: 'assets/vo-intro.mp3?v=0.42.0'
+        hit: 'assets/hit.mp3?v=0.43.0', bounce: 'assets/bounce.mp3?v=0.43.0',
+        cheer: 'assets/cheer.mp3?v=0.43.0', net: 'assets/net.mp3?v=0.43.0',
+        crowd: 'assets/crowd.mp3?v=0.43.0', winfare: 'assets/winfare.mp3?v=0.43.0',
+        lose: 'assets/lose.mp3?v=0.43.0', matchpoint: 'assets/matchpoint.mp3?v=0.43.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.43.0', voIntro: 'assets/vo-intro.mp3?v=0.43.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -636,6 +636,9 @@
       a.fillStyle = sky; a.fillRect(0, 0, W, H * 0.5);
 
       var BARRIER_Y = K.TABLE_L + 1.25, BARRIER_H = 0.78;
+      // The side boards are the SAME barrier turned 90°: same z band, so the
+      // back wall's ad row can run edge to edge between them (see innerL/innerR).
+      var SIDE_X = 3.3;
       var bl = proj(-6, BARRIER_Y, 0), br = proj(6, BARRIER_Y, 0);
       var tl = proj(-6, BARRIER_Y, BARRIER_H), tr = proj(6, BARRIER_Y, BARRIER_H);
 
@@ -737,23 +740,38 @@
         { t: 'AEROPONG', bg: '#ece9e2', fg: '#12266b' },
         { t: 'TOPSPIN PRO', bg: '#c8281e', fg: '#ffffff' }
       ];
-      var n = ADS.length;
       var L = Math.max(0, bl.x), R = Math.min(W, br.x);
       // dark base wall across the full visible width (no gaps behind the walls)
       a.fillStyle = '#0e1526';
       a.fillRect(L, tl.y, R - L, bl.y - tl.y);
-      // ad panels sit only in the gap between the side barriers (x ≈ ±2.5)
-      var innerL = proj(-2.5, BARRIER_Y, 0).x, innerR = proj(2.5, BARRIER_Y, 0).x;
+      // Ad panels fill the gap between the side barriers, so the row meets the
+      // boards' far ends and the surround reads as one ring. On a narrow or
+      // portrait viewport that gap runs PAST the screen edge, so clamp it —
+      // otherwise the outermost ads lose the start/end of their label.
+      var innerL = Math.max(L, proj(-SIDE_X, BARRIER_Y, 0).x);
+      var innerR = Math.min(R, proj(SIDE_X, BARRIER_Y, 0).x);
+      var bandW = innerR - innerL, bandH = bl.y - tl.y;
+      // Fewer, wider panels when the wall is narrow: four labels across a phone
+      // screen would each be scaled below legibility.
+      var n = bandW < 560 ? 2 : ADS.length;
       for (var i = 0; i < n; i++) {
-        var x0 = innerL + (innerR - innerL) * (i / n), x1 = innerL + (innerR - innerL) * ((i + 1) / n);
+        var x0 = innerL + bandW * (i / n), x1 = innerL + bandW * ((i + 1) / n);
         a.fillStyle = ADS[i].bg;
-        a.fillRect(x0, tl.y, x1 - x0, bl.y - tl.y);
+        a.fillRect(x0, tl.y, x1 - x0, bandH);
         a.fillStyle = 'rgba(0,0,0,0.28)';
-        a.fillRect(x1 - 1.5, tl.y, 1.5, bl.y - tl.y); // panel seam
+        a.fillRect(x1 - 1.5, tl.y, 1.5, bandH); // panel seam
         a.fillStyle = ADS[i].fg;
-        a.font = '800 ' + (bl.y - tl.y) * 0.46 + 'px "Segoe UI", system-ui, sans-serif';
+        // Scale the FONT to fit the panel; maxWidth alone only condenses, which
+        // turns a tight label into an unreadable squashed blob.
+        var afs = bandH * 0.46;
+        a.font = '800 ' + afs + 'px "Segoe UI", system-ui, sans-serif';
         a.textAlign = 'center'; a.textBaseline = 'middle';
-        a.fillText(ADS[i].t, (x0 + x1) / 2, (tl.y + bl.y) / 2 + 1, (x1 - x0) * 0.88);
+        var aNat = a.measureText(ADS[i].t).width, aAvail = (x1 - x0) * 0.88;
+        if (aNat > aAvail) {
+          afs = afs * (aAvail / aNat);
+          a.font = '800 ' + afs + 'px "Segoe UI", system-ui, sans-serif';
+        }
+        if (afs >= 8) a.fillText(ADS[i].t, (x0 + x1) / 2, (tl.y + bl.y) / 2 + 1);
       }
       // glass-like gloss across the whole wall
       var gloss = a.createLinearGradient(0, tl.y, 0, bl.y);
@@ -781,27 +799,44 @@
       a.fillStyle = fsh;
       a.fillRect(0, bl.y, W, 12);
 
-      // SIDE BARRIERS: low courtside boards standing ON THE FLOOR, starting at
-      // the near table edge and receding to the back corner — so they frame the
-      // court instead of looming as tall slanted stripes floating above the mat.
-      var SIDE_Y0 = 0.25, SIDE_Y1 = BARRIER_Y;        // near table edge -> back wall
-      // Board stands on the floor and rises to the back wall's TOP edge
-      // (BARRIER_H), so its far corner closes the gap against the back barrier
-      // instead of meeting only its base — the ring seals at the corners.
-      var SIDE_BASE = K.FLOOR_Z;
-      // The board's top RAMPS from table height near the camera up to the back
-      // wall's top edge at the far end, so it seals the corner gap without
-      // looming over the foreground.
-      function sideTop(y) {
-        var f = (y - SIDE_Y0) / (SIDE_Y1 - SIDE_Y0);
-        return 0 + (BARRIER_H - 0) * Math.max(0, Math.min(1, f));
+      // SIDE BARRIERS: the back wall's own cross-section, turned 90° and run
+      // forward down the court. The board occupies the IDENTICAL z band
+      // (0 .. BARRIER_H) at a constant height, so at the corner it meets the
+      // back wall edge for edge — same base line, same top line — and the ring
+      // seals along its full height instead of leaving a wedge. z = 0 is also
+      // the plane the arena floor is drawn on, so the board reads as standing
+      // on the mat. Its near end is pulled back past the net so a barrier that
+      // is only 0.78 m tall does not loom over the foreground.
+      var SIDE_Y0 = 1.4, SIDE_Y1 = BARRIER_Y;
+      var SIDE_BASE = 0;                              // == the back wall's base
+      // Depth at which a board at |x| = sx crosses a given screen x offset from
+      // the centre. x(y) is a 1/dist hyperbola, so invert it properly instead
+      // of lerping in screen x (which mis-places everything by ~15 px).
+      function sideYatHalf(sx, halfPx) {
+        return (Math.abs(sx) * CAM.S / Math.max(20, halfPx) - CAM.d0) * K.TABLE_L / CAM.depth;
+      }
+      function sideYatX(sx, x) {
+        return sideYatHalf(sx, Math.abs(x - W / 2));
       }
       function sidePanels(sx, panels) {
-        var span = SIDE_Y1 - SIDE_Y0, nP = panels.length;
+        var yEdge = sideYatHalf(sx, W / 2);            // board enters the screen here
+        var yLab = sideYatHalf(sx, W / 2 - 10);        // same, with a safety margin
+        // Subdivide the VISIBLE run into equal on-screen widths. Splitting by
+        // world y instead would squash the far panels to a sliver and push
+        // their labels below the legibility floor.
+        var yStart = Math.max(SIDE_Y0, yEdge);
+        if (yStart > SIDE_Y1 - 0.15) return;           // board is entirely off-screen
+        var xS = proj(sx, yStart, SIDE_BASE).x, xE = proj(sx, SIDE_Y1, SIDE_BASE).x;
+        // On a narrow viewport only the last stretch of the board is on screen;
+        // splitting that into two panels would starve both labels, so fall back
+        // to a single panel that still carries one readable ad.
+        var nP = Math.abs(xE - xS) < 190 ? 1 : panels.length;
         for (var p2 = 0; p2 < nP; p2++) {
-          var y0 = SIDE_Y0 + span * (p2 / nP), y1 = SIDE_Y0 + span * ((p2 + 1) / nP);
+          var y0 = p2 === 0 ? yStart : Math.min(SIDE_Y1, Math.max(yStart, sideYatX(sx, xS + (xE - xS) * (p2 / nP))));
+          var y1 = p2 === nP - 1 ? SIDE_Y1 : Math.min(SIDE_Y1, Math.max(yStart, sideYatX(sx, xS + (xE - xS) * ((p2 + 1) / nP))));
+          if (y1 - y0 < 0.02) continue;
           var b0 = proj(sx, y0, SIDE_BASE), b1 = proj(sx, y1, SIDE_BASE);
-          var t0 = proj(sx, y0, sideTop(y0)), t1 = proj(sx, y1, sideTop(y1));
+          var t0 = proj(sx, y0, BARRIER_H), t1 = proj(sx, y1, BARRIER_H);
           a.save();
           a.beginPath();
           a.moveTo(b0.x, b0.y); a.lineTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.lineTo(t0.x, t0.y);
@@ -811,42 +846,62 @@
           a.clip(); // keep the label strictly inside its own ad panel
           a.strokeStyle = 'rgba(0,0,0,0.28)'; a.lineWidth = 1.5;
           a.beginPath(); a.moveTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.stroke();
-          // Centre the label on the VISIBLE part of the panel: the nearest
-          // panels run off the screen edge, and centring on the full panel
-          // pushed their text off-screen (clipped start/end).
-          var pminX = Math.min(b0.x, b1.x, t0.x, t1.x), pmaxX = Math.max(b0.x, b1.x, t0.x, t1.x);
-          var visL = Math.max(0, pminX), visR = Math.min(W, pmaxX);
-          if (visR - visL > 26) {
-            var cxv = (visL + visR) / 2;
-            var frac = Math.abs(b1.x - b0.x) < 0.001 ? 0.5 : (cxv - b0.x) / (b1.x - b0.x);
-            frac = Math.max(0, Math.min(1, frac));
-            var ym = y0 + (y1 - y0) * frac;
-            var bm = proj(sx, ym, SIDE_BASE), tm = proj(sx, ym, sideTop(ym));
-            a.translate((bm.x + tm.x) / 2, (bm.y + tm.y) / 2);
+          // Label sits inside the ON-SCREEN part of the panel only. Clamp the
+          // panel's y-range to what the screen actually shows, centre the text
+          // on that run, then size it so its ROTATED box fits between the
+          // panel's two vertical end edges — a label is either fully readable
+          // inside its own panel or it is not drawn at all.
+          var yA = Math.max(y0, yLab), yB = y1;
+          if (yB - yA > 0.12) {
+            var xA = proj(sx, yA, SIDE_BASE).x, xB = proj(sx, yB, SIDE_BASE).x;
+            var xc = (xA + xB) / 2, yc = (yA + yB) / 2;
+            // x(y) is a 1/dist hyperbola — invert it so the label lands on the
+            // true centre of the visible run instead of lerping in screen x.
+            if (Math.abs(xc - W / 2) > 1) {
+              var dc = sx * CAM.S / (xc - W / 2);
+              yc = Math.max(yA, Math.min(yB, (dc - CAM.d0) * K.TABLE_L / CAM.depth));
+            }
+            var bm = proj(sx, yc, SIDE_BASE), tm = proj(sx, yc, BARRIER_H);
+            var hMid = Math.abs(bm.y - tm.y);
+            var hEnd = Math.abs(proj(sx, yB, SIDE_BASE).y - proj(sx, yB, BARRIER_H).y);
+            a.translate(bm.x, (bm.y + tm.y) / 2);
             var ang = Math.atan2(b1.y - b0.y, b1.x - b0.x);
             if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI; // keep text upright
             a.rotate(ang);
             a.fillStyle = panels[p2].fg;
             a.textAlign = 'center'; a.textBaseline = 'middle';
-            var panelLen = Math.hypot(b1.x - b0.x, b1.y - b0.y);
-            var avail = Math.min(panelLen * 0.84, (visR - visL) * 0.92);
-            // Scale the FONT to fit the panel — maxWidth only condenses, which
-            // turns a squeezed label into an unreadable blob.
-            var fs = Math.abs(bm.y - tm.y) * 0.46;
+            // Height budget: fit the panel at its shallower far end too.
+            var fs = Math.min(hMid * 0.44, hEnd * 0.62);
             a.font = '800 ' + fs + 'px "Segoe UI", system-ui, sans-serif';
-            var natural = a.measureText(panels[p2].t).width;
-            if (natural > avail) {
-              fs = fs * (avail / natural);
-              a.font = '800 ' + fs + 'px "Segoe UI", system-ui, sans-serif';
-            }
-            if (fs >= 9) a.fillText(panels[p2].t, 0, 0); // skip illegibly small labels
+            // Width budget: the panel's end edges are VERTICAL while the text
+            // is rotated, so the box reaches (w/2)|cos| + (h/2)|sin| in screen
+            // x. Solve that against the panel's half width instead of comparing
+            // an along-axis length with a horizontal one.
+            var kw = a.measureText(panels[p2].t).width / fs;  // width per px of font size
+            var room = Math.abs(xB - xA) * 0.45;              // half width, 10% padding
+            var fsFit = 2 * room / (kw * Math.abs(Math.cos(ang)) + Math.abs(Math.sin(ang)));
+            if (fsFit < fs) { fs = fsFit; a.font = '800 ' + fs + 'px "Segoe UI", system-ui, sans-serif'; }
+            if (fs >= 10) a.fillText(panels[p2].t, 0, 0); // skip illegibly small labels
           }
           a.restore();
         }
-        // white top rail + floor shadow along the board base
-        var st0 = proj(sx, SIDE_Y0, sideTop(SIDE_Y0)), st1 = proj(sx, SIDE_Y1, sideTop(SIDE_Y1));
-        a.strokeStyle = 'rgba(255,255,255,0.85)'; a.lineWidth = 2;
-        a.beginPath(); a.moveTo(st0.x, st0.y); a.lineTo(st1.x, st1.y); a.stroke();
+        // near end cap: the board's own thickness, so the run ends on a post
+        // instead of a cut edge. The ad face is the INNER face at sx and the
+        // body sits OUTBOARD of it, so the cap never paints over a label.
+        var ex = sx + (sx < 0 ? -0.13 : 0.13);
+        var e0 = proj(sx, SIDE_Y0, SIDE_BASE), e1 = proj(sx, SIDE_Y0, BARRIER_H);
+        var e2 = proj(ex, SIDE_Y0, BARRIER_H), e3 = proj(ex, SIDE_Y0, SIDE_BASE);
+        a.fillStyle = '#0e1526';
+        a.beginPath();
+        a.moveTo(e0.x, e0.y); a.lineTo(e1.x, e1.y); a.lineTo(e2.x, e2.y); a.lineTo(e3.x, e3.y);
+        a.closePath(); a.fill();
+        // white top tape + cyan LED accent, matching the back wall's rail
+        var st0 = proj(sx, SIDE_Y0, BARRIER_H), st1 = proj(sx, SIDE_Y1, BARRIER_H);
+        a.strokeStyle = 'rgba(255,255,255,0.9)'; a.lineWidth = 2.5;
+        a.beginPath(); a.moveTo(st0.x, st0.y - 1.2); a.lineTo(st1.x, st1.y - 1.2); a.stroke();
+        a.strokeStyle = 'rgba(0,220,255,0.35)'; a.lineWidth = 1.5;
+        a.beginPath(); a.moveTo(st0.x, st0.y - 3.4); a.lineTo(st1.x, st1.y - 3.4); a.stroke();
+        // soft floor shadow along the board base
         var sb0 = proj(sx, SIDE_Y0, SIDE_BASE), sb1 = proj(sx, SIDE_Y1, SIDE_BASE);
         var inward = sx < 0 ? 9 : -9;
         a.fillStyle = 'rgba(0,0,0,0.28)';
@@ -855,15 +910,16 @@
         a.lineTo(sb1.x + inward * 0.4, sb1.y + 3); a.lineTo(sb0.x + inward, sb0.y + 6);
         a.closePath(); a.fill();
       }
-      sidePanels(-2.6, [
-        { t: 'SMASH ENERGY', bg: '#c8281e', fg: '#ffffff' },
-        { t: 'PADDLE KING', bg: '#0b1226', fg: '#00eaff' },
-        { t: 'VOLT+', bg: '#ece9e2', fg: '#c8281e' }
+      // Nearest panel first. Two per side: the boards only cover ~250 px of
+      // screen width, and three panels squeeze every label under the 10 px
+      // legibility floor, which the label code then (correctly) drops.
+      sidePanels(-SIDE_X, [
+        { t: 'SMASH', bg: '#c8281e', fg: '#ffffff' },
+        { t: 'PADDLE KING', bg: '#0b1226', fg: '#00eaff' }
       ]);
-      sidePanels(2.6, [
-        { t: 'VOLTARENA', bg: '#12266b', fg: '#ffffff' },
-        { t: 'SPIN LAB', bg: '#1a0b22', fg: '#ff4dd2' },
-        { t: 'SPINTEC', bg: '#ece9e2', fg: '#12266b' }
+      sidePanels(SIDE_X, [
+        { t: 'VOLT+', bg: '#ece9e2', fg: '#c8281e' },
+        { t: 'SPIN LAB', bg: '#1a0b22', fg: '#ff4dd2' }
       ]);
 
       // floor reflection of the table below its near edge
