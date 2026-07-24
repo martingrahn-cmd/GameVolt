@@ -1146,20 +1146,20 @@ _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'
     document.getElementById('hsBoardName').textContent = HS_BOARDS[hsBoard].label;
     const list = document.getElementById('hsGlobalList'), total = document.getElementById('hsTotal');
     if (!hasLB()){ list.innerHTML = '<div class="hs-note">Sign in on GameVolt to see the global leaderboard.</div>'; total.textContent=''; return; }
-    const board = HS_BOARDS[hsBoard].mode, myId = GameVolt.leaderboard.userId(), req = ++hsReqId;
-    list.innerHTML = '<div class="hs-note">Loading…</div>';
+    const board = HS_BOARDS[hsBoard].mode, req = ++hsReqId;
     GameVolt.leaderboard.count({ mode:board }).then(n => { if(req===hsReqId){ hsTotal=n|0; total.textContent = n>0 ? (n.toLocaleString()+' players') : ''; } });
-    GameVolt.leaderboard.page({ mode:board, offset:hsOffset, limit:HS_PAGE }).then(rows => {
-      if (req!==hsReqId || !hiscoresOpen()) return;
-      if (!rows.length){ list.innerHTML = '<div class="hs-note">No scores on this board yet — be the first!</div>'; return; }
-      list.innerHTML = rows.map(r => {
-        const me = myId && r.user_id===myId;
-        const name = String(r.username||'player').replace(/[<>&]/g,'').slice(0,20);
-        return '<div class="g-row'+(me?' me':'')+'"><div class="g-rank">#'+r.rank+'</div>'+
-               '<div class="g-name">'+name+(me?' (you)':'')+'</div>'+
-               '<div class="g-score">'+(r.score/100).toFixed(2)+'s</div></div>';
-      }).join('');
-    });
+    // Standardized GameVolt leaderboard, mounted inline. The windowed fetch keeps
+    // this game's pager (top / around-me / page± / jump±1000) working; times stay
+    // formatted as seconds.
+    if (GameVolt.ui && GameVolt.ui.leaderboard) {
+      GameVolt.ui.leaderboard({
+        container: list,
+        mode: board,
+        accent: '#7df9ff',
+        format: v => (v/100).toFixed(2) + 's',
+        fetch: m => GameVolt.leaderboard.page({ mode:m, offset:hsOffset, limit:HS_PAGE })
+      });
+    }
   }
 
   function hsAct(a){

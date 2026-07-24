@@ -499,29 +499,24 @@ export class HighScoresScreen {
             return;
         }
         const mode = HS_BOARDS[this.board].mode;
-        const myId = window.GameVolt.leaderboard.userId ? window.GameVolt.leaderboard.userId() : null;
         const req = ++this.reqId;
-        body.innerHTML = `<div class="sn-hs-empty">LOADING…</div>`;
         window.GameVolt.leaderboard.count({ mode }).then(n => {
             if (req !== this.reqId || !this.element) return;
             this.total = n | 0;
             totalEl.textContent = n > 0 ? n.toLocaleString() + " PLAYERS" : "";
         });
-        window.GameVolt.leaderboard.page({ mode, offset: this.offset, limit: HS_PAGE }).then(rows => {
-            if (req !== this.reqId || !this.element) return;
-            if (!rows.length) {
-                body.innerHTML = `<div class="sn-hs-empty">No scores on this board yet<br>— be the first!</div>`;
-                return;
-            }
-            body.innerHTML = rows.map(r => {
-                const me = myId && r.user_id === myId;
-                const name = this._esc(String(r.username || "player").slice(0, 20));
-                return `<div class="sn-hs-row${me ? " me" : ""}">` +
-                    `<span class="sn-hs-rank">#${r.rank}</span>` +
-                    `<span class="sn-hs-name">${name}${me ? " (YOU)" : ""}</span>` +
-                    `<span class="sn-hs-score">${Number(r.score || 0).toLocaleString()}</span></div>`;
-            }).join("");
-        });
+        // Standardized GameVolt leaderboard, mounted inline. The windowed fetch
+        // keeps this game's pager (top / around-me / page±) working.
+        const offset = this.offset;
+        if (window.GameVolt.ui && window.GameVolt.ui.leaderboard) {
+            window.GameVolt.ui.leaderboard({
+                container: body,
+                mode,
+                accent: "#0ff",
+                scoreLabel: "pts",
+                fetch: m => window.GameVolt.leaderboard.page({ mode: m, offset, limit: HS_PAGE })
+            });
+        }
     }
 
     _act(a) {
