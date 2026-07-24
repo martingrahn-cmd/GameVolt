@@ -47,6 +47,13 @@ When writing code for this project, follow these rules:
 
 ## Game Catalog
 
+**Canonical game count: 21 live portal games.** The table below has 22 numbered
+rows, but row #7 (Flappy Bird) is the hidden 404-page easter egg — NOT a portal
+game. So the count shown on the site (homepage hero stat + "All Games" pill,
+about-page copy) = catalog rows − Flappy Bird = **21**. Cross-check: 21 game
+folders at repo root, 21 `.game-card` entries on the homepage, 21 `.game-item`
+entries in the about lineup. When you add a game, bump all of these together.
+
 Status legend: ✅ = init + leaderboard + achievements + registerMigration, ⚠️ = partial, ❌ = not yet.
 Last verified by auditing the code on 2026-07-09.
 
