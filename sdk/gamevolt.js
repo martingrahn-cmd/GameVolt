@@ -16,7 +16,7 @@
   // footer so you can tell at a glance whether a browser has the latest SDK
   // (Cloudflare caches this file, so an old copy can linger). Also on
   // GameVolt.version and logged to the console on init.
-  var SDK_VERSION = '2026.07.23-1';
+  var SDK_VERSION = '2026.07.24-1';
 
   var sb = null; // Supabase client
   var currentUser = null;
@@ -1421,6 +1421,181 @@
     if (pauseCallbacks && pauseCallbacks.onResume) pauseCallbacks.onResume();
   }
 
+  // --------------------------------------------------------
+  // Standardized leaderboard overlay (ui.leaderboard)
+  //
+  // ONE identical board UI across every game. A game supplies only its
+  // mode(s), accent colour and (optionally) a secondary metric — the SDK
+  // owns the entire overlay, rows, avatars, own-row highlight, sign-in
+  // prompt and states, so all 21 games look and behave the same.
+  // --------------------------------------------------------
+  var lbEl = null, lbOpts = null, lbActiveMode = null, lbAuthHooked = false;
+
+  function _lbEsc(s) { var d = document.createElement('div'); d.textContent = (s == null ? '' : s); return d.innerHTML; }
+
+  function createLeaderboardUI() {
+    if (lbEl) return;
+    lbEl = document.createElement('div');
+    lbEl.id = 'gv-lb';
+    lbEl.innerHTML =
+      '<div class="gv-lb-backdrop"></div>' +
+      '<div class="gv-lb-card">' +
+        '<div class="gv-lb-head">' +
+          '<div class="gv-lb-title">🏆 <span id="gv-lb-title-text">Leaderboard</span></div>' +
+          '<button class="gv-lb-close" aria-label="Close">×</button>' +
+        '</div>' +
+        '<div class="gv-lb-tabs" id="gv-lb-tabs" style="display:none"></div>' +
+        '<div class="gv-lb-signin" id="gv-lb-signin" style="display:none">' +
+          '<span>Sign in to save your score to the global leaderboard.</span>' +
+          '<button class="gv-lb-signin-btn" id="gv-lb-signin-btn">Sign in</button>' +
+        '</div>' +
+        '<div class="gv-lb-list" id="gv-lb-list"></div>' +
+        '<div class="gv-lb-foot" id="gv-lb-foot" style="display:none"></div>' +
+      '</div>';
+
+    var css = document.createElement('style');
+    css.textContent =
+      '#gv-lb{position:fixed;inset:0;z-index:9991;display:none;align-items:center;justify-content:center;font-family:system-ui,-apple-system,sans-serif}' +
+      '#gv-lb.open{display:flex}' +
+      '.gv-lb-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}' +
+      '.gv-lb-card{position:relative;--gv-lb-accent:#7c5cfc;background:#12122a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:20px;width:min(460px,92vw);max-height:86vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.6)}' +
+      '.gv-lb-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}' +
+      '.gv-lb-title{font-size:1.15rem;font-weight:800;letter-spacing:1px;color:#f0f0ff}' +
+      '.gv-lb-close{background:none;border:none;color:#9a95b5;font-size:1.6rem;line-height:1;cursor:pointer;padding:0 4px}' +
+      '.gv-lb-close:hover{color:#fff}' +
+      '.gv-lb-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}' +
+      '.gv-lb-tab{padding:6px 12px;border:1px solid rgba(255,255,255,0.1);border-radius:8px;background:rgba(255,255,255,0.05);color:#c8c3e0;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit}' +
+      '.gv-lb-tab.active{background:var(--gv-lb-accent);border-color:transparent;color:#fff}' +
+      '.gv-lb-signin{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1)}' +
+      '.gv-lb-signin span{font-size:0.8rem;color:#b8b3d0}' +
+      '.gv-lb-signin-btn{padding:7px 14px;border:none;border-radius:8px;background:var(--gv-lb-accent);color:#fff;font-weight:700;font-size:0.8rem;cursor:pointer;font-family:inherit}' +
+      '.gv-lb-list{overflow-y:auto;display:flex;flex-direction:column;gap:2px;min-height:120px}' +
+      '.gv-lb-row{display:grid;grid-template-columns:38px 30px 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:8px}' +
+      '.gv-lb-list.has-meta .gv-lb-row{grid-template-columns:38px 30px 1fr auto auto}' +
+      '.gv-lb-row:nth-child(odd){background:rgba(255,255,255,0.03)}' +
+      '.gv-lb-row.me{background:rgba(255,255,255,0.06);box-shadow:inset 0 0 0 1px var(--gv-lb-accent)}' +
+      '.gv-lb-rank{font-weight:800;color:var(--gv-lb-accent);font-size:0.95rem}' +
+      '.gv-lb-av{width:30px;height:30px;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.12);color:#fff;font-weight:700;font-size:13px;line-height:1}' +
+      '.gv-lb-av .gv-avatar,.gv-lb-av .gv-avatar svg,.gv-lb-av .gv-avatar img{width:100%;height:100%;display:block}' +
+      '.gv-lb-name{font-weight:600;color:#eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+      '.gv-lb-meta{font-size:0.78rem;color:#9a95b5;text-align:right;white-space:nowrap}' +
+      '.gv-lb-score{font-weight:700;color:#fff;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}' +
+      '.gv-lb-foot{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.1);font-size:0.82rem;color:#b8b3d0;text-align:center}' +
+      '.gv-lb-state{text-align:center;color:#8a85a5;padding:36px 10px;font-size:0.9rem}';
+    document.head.appendChild(css);
+    document.body.appendChild(lbEl);
+
+    lbEl.querySelector('.gv-lb-close').addEventListener('click', closeLeaderboardUI);
+    lbEl.querySelector('.gv-lb-backdrop').addEventListener('click', closeLeaderboardUI);
+    document.getElementById('gv-lb-signin-btn').addEventListener('click', function() {
+      if (auth && auth.login) auth.login();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (lbEl && lbEl.classList.contains('open') && e.key === 'Escape') { e.preventDefault(); closeLeaderboardUI(); }
+    });
+    if (!lbAuthHooked && auth && auth.onStateChange) {
+      lbAuthHooked = true;
+      auth.onStateChange(function() { if (lbEl && lbEl.classList.contains('open')) lbLoad(lbActiveMode); });
+    }
+  }
+
+  function lbRenderRows(rows, myId) {
+    var list = document.getElementById('gv-lb-list');
+    if (!rows.length) { list.innerHTML = '<div class="gv-lb-state">No scores yet. Be the first!</div>'; return; }
+    var fmt = (lbOpts && lbOpts.format) || function(v) { return Number(v || 0).toLocaleString(); };
+    var unit = (lbOpts && lbOpts.scoreLabel)
+      ? ' <span style="opacity:.55;font-weight:600;font-size:.78em">' + _lbEsc(lbOpts.scoreLabel) + '</span>' : '';
+    var metaFn = lbOpts && lbOpts.meta;
+    list.classList.toggle('has-meta', !!metaFn);
+    list.innerHTML = '';
+    rows.forEach(function(r, i) {
+      var isMe = myId && r.user_id === myId;
+      var rank = r.rank || (i + 1);
+      var name = r.username || 'Player';
+      var initial = _lbEsc((name.charAt(0) || '?').toUpperCase());
+      var metaHtml = metaFn ? '<div class="gv-lb-meta">' + _lbEsc(metaFn(r)) + '</div>' : '';
+      var row = document.createElement('div');
+      row.className = 'gv-lb-row' + (isMe ? ' me' : '');
+      row.innerHTML =
+        '<div class="gv-lb-rank">#' + rank + '</div>' +
+        '<div class="gv-lb-av" data-av="' + i + '">' + initial + '</div>' +
+        '<div class="gv-lb-name">' + _lbEsc(name) + (isMe ? ' (you)' : '') + '</div>' +
+        metaHtml +
+        '<div class="gv-lb-score">' + fmt(r.score) + unit + '</div>';
+      list.appendChild(row);
+    });
+    // Procedural avatar faces (gv1 -> SVG, real URL -> img, missing -> initial).
+    for (var j = 0; j < rows.length; j++) {
+      var slot = list.querySelector('.gv-lb-av[data-av="' + j + '"]');
+      if (!slot) continue;
+      slot.textContent = '';
+      slot.appendChild(renderAvatar(rows[j].avatar_url, { size: 30, name: rows[j].username }));
+    }
+  }
+
+  function lbLoad(mode) {
+    lbActiveMode = mode;
+    var list = document.getElementById('gv-lb-list');
+    var foot = document.getElementById('gv-lb-foot');
+    var signin = document.getElementById('gv-lb-signin');
+    list.innerHTML = '<div class="gv-lb-state">Loading…</div>';
+    foot.style.display = 'none';
+    var user = (auth && auth.getUser) ? auth.getUser() : null;
+    signin.style.display = user ? 'none' : 'flex';
+    var myId = leaderboard.userId ? leaderboard.userId() : null;
+    var limit = (lbOpts && lbOpts.limit) || 50;
+    var custom = lbOpts && lbOpts.fetch;
+    var fetcher = custom ? lbOpts.fetch : function(m) { return leaderboard.get({ mode: m, limit: limit }); };
+    Promise.resolve(fetcher(mode)).then(function(rows) {
+      rows = rows || [];
+      lbRenderRows(rows, myId);
+      // "Your rank" footer for the standard board when the player isn't in view.
+      if (!custom && user && leaderboard.getRank) {
+        leaderboard.getRank({ mode: mode }).then(function(r) {
+          if (r && r.rank && lbActiveMode === mode) {
+            var inList = rows.some(function(x) { return x.user_id === myId; });
+            if (!inList) { foot.style.display = 'block'; foot.textContent = 'Your rank: #' + r.rank + ' · ' + Number(r.score || 0).toLocaleString(); }
+          }
+        }).catch(function() {});
+      }
+    }).catch(function() {
+      list.innerHTML = '<div class="gv-lb-state">Couldn’t load the leaderboard.</div>';
+    });
+  }
+
+  function openLeaderboardUI(opts) {
+    createLeaderboardUI();
+    lbOpts = opts || {};
+    document.getElementById('gv-lb-title-text').textContent = lbOpts.title || 'Leaderboard';
+    lbEl.querySelector('.gv-lb-card').style.setProperty('--gv-lb-accent', lbOpts.accent || '#7c5cfc');
+
+    var tabsEl = document.getElementById('gv-lb-tabs');
+    var tabs = (lbOpts.tabs && lbOpts.tabs.length) ? lbOpts.tabs : null;
+    var firstMode = lbOpts.mode || (tabs ? tabs[0].mode : 'default');
+    tabsEl.innerHTML = '';
+    if (tabs) {
+      tabsEl.style.display = 'flex';
+      tabs.forEach(function(t, i) {
+        var b = document.createElement('button');
+        b.className = 'gv-lb-tab' + (i === 0 ? ' active' : '');
+        b.textContent = t.label;
+        b.addEventListener('click', function() {
+          tabsEl.querySelectorAll('.gv-lb-tab').forEach(function(x) { x.classList.remove('active'); });
+          b.classList.add('active');
+          lbLoad(t.mode);
+        });
+        tabsEl.appendChild(b);
+      });
+    } else {
+      tabsEl.style.display = 'none';
+    }
+
+    lbEl.classList.add('open');
+    lbLoad(firstMode);
+  }
+
+  function closeLeaderboardUI() { if (lbEl) lbEl.classList.remove('open'); }
+
   var ui = {
     /**
      * Show an achievement toast with Crystal chime.
@@ -1459,7 +1634,32 @@
     /** Check if pause menu is currently open */
     isPaused: function() {
       return pauseVisible;
-    }
+    },
+
+    /**
+     * Open the standardized global leaderboard overlay. Identical UI across
+     * every game — rank + procedural avatar face + name + score, the signed-in
+     * player's row highlighted, a sign-in prompt for guests, and loading /
+     * empty / error states. The game supplies only its data + look.
+     * @param {object} opts
+     *   - title: string — heading (default 'Leaderboard')
+     *   - mode: string — leaderboard mode (default 'default'); ignored if tabs given
+     *   - tabs: [{ label, mode }] — optional standard tab bar
+     *   - limit: number — rows to fetch (default 50)
+     *   - accent: css color — themes rank/tab/own-row/sign-in (default SDK violet)
+     *   - meta: function(row) -> string — optional secondary metric column
+     *       (e.g. wpm, time). The row is the fetched leaderboard row.
+     *   - format: function(score) -> string — optional primary value formatter
+     *   - scoreLabel: string — optional unit after the score (e.g. 'pts')
+     *   - fetch: function(mode) -> Promise<rows> — optional custom fetch for
+     *       non-standard boards (e.g. a server-validated RPC). Rows should look
+     *       like { rank?, user_id, username, avatar_url, score, ... }. When set,
+     *       the "your rank" footer is skipped.
+     */
+    leaderboard: function(opts) { openLeaderboardUI(opts || {}); },
+
+    /** Close the standardized leaderboard overlay. */
+    closeLeaderboard: function() { closeLeaderboardUI(); }
   };
 
   // --------------------------------------------------------
