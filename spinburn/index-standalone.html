@@ -397,13 +397,13 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.38.0"></script>
-  <script src="tt-ai.js?v=0.38.0"></script>
-  <script src="sb-net.js?v=0.38.0"></script>
-  <script src="tt-achievements.js?v=0.38.0"></script>
+  <script src="tt-core.js?v=0.39.0"></script>
+  <script src="tt-ai.js?v=0.39.0"></script>
+  <script src="sb-net.js?v=0.39.0"></script>
+  <script src="tt-achievements.js?v=0.39.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.38.0';
+    var VERSION = '0.39.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -453,11 +453,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.38.0', bounce: 'assets/bounce.mp3?v=0.38.0',
-        cheer: 'assets/cheer.mp3?v=0.38.0', net: 'assets/net.mp3?v=0.38.0',
-        crowd: 'assets/crowd.mp3?v=0.38.0', winfare: 'assets/winfare.mp3?v=0.38.0',
-        lose: 'assets/lose.mp3?v=0.38.0', matchpoint: 'assets/matchpoint.mp3?v=0.38.0',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.38.0', voIntro: 'assets/vo-intro.mp3?v=0.38.0'
+        hit: 'assets/hit.mp3?v=0.39.0', bounce: 'assets/bounce.mp3?v=0.39.0',
+        cheer: 'assets/cheer.mp3?v=0.39.0', net: 'assets/net.mp3?v=0.39.0',
+        crowd: 'assets/crowd.mp3?v=0.39.0', winfare: 'assets/winfare.mp3?v=0.39.0',
+        lose: 'assets/lose.mp3?v=0.39.0', matchpoint: 'assets/matchpoint.mp3?v=0.39.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.39.0', voIntro: 'assets/vo-intro.mp3?v=0.39.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -722,41 +722,43 @@
       a.fillText('SPINBURN OPEN', 0, 0);
       a.restore();
 
-      // FAR BARRIER: full-bleed sponsor panels, rink-style
+      // FAR BARRIER: a dark back wall with a row of sponsor panels framed
+      // neatly BETWEEN the two side barriers, so no ad hides behind a side
+      // wall or clips off the screen edge.
       var ADS = [
         { t: 'RALLYX', bg: '#101c3a', fg: '#00eaff' },
-        { t: 'VOLT+', bg: '#ece9e2', fg: '#c8281e' },
         { t: 'SPINTEC', bg: '#12266b', fg: '#ffffff' },
         { t: 'AEROPONG', bg: '#ece9e2', fg: '#12266b' },
-        { t: 'TOPSPIN PRO', bg: '#c8281e', fg: '#ffffff' },
-        { t: 'PING&CO', bg: '#101c3a', fg: '#ffd166' }
+        { t: 'TOPSPIN PRO', bg: '#c8281e', fg: '#ffffff' }
       ];
-      // Lay the panels across the VISIBLE width of the back wall (bl/br sit far
-      // off-screen at x=±6), so every sponsor is centred and fully readable
-      // instead of the edge ones being clipped by the screen.
       var n = ADS.length;
       var L = Math.max(0, bl.x), R = Math.min(W, br.x);
+      // dark base wall across the full visible width (no gaps behind the walls)
+      a.fillStyle = '#0e1526';
+      a.fillRect(L, tl.y, R - L, bl.y - tl.y);
+      // ad panels sit only in the gap between the side barriers (x ≈ ±2.5)
+      var innerL = proj(-2.5, BARRIER_Y, 0).x, innerR = proj(2.5, BARRIER_Y, 0).x;
       for (var i = 0; i < n; i++) {
-        var x0 = L + (R - L) * (i / n), x1 = L + (R - L) * ((i + 1) / n);
+        var x0 = innerL + (innerR - innerL) * (i / n), x1 = innerL + (innerR - innerL) * ((i + 1) / n);
         a.fillStyle = ADS[i].bg;
         a.fillRect(x0, tl.y, x1 - x0, bl.y - tl.y);
-        a.fillStyle = 'rgba(0,0,0,0.25)';
+        a.fillStyle = 'rgba(0,0,0,0.28)';
         a.fillRect(x1 - 1.5, tl.y, 1.5, bl.y - tl.y); // panel seam
         a.fillStyle = ADS[i].fg;
-        a.font = '800 ' + (bl.y - tl.y) * 0.5 + 'px "Segoe UI", system-ui, sans-serif';
+        a.font = '800 ' + (bl.y - tl.y) * 0.46 + 'px "Segoe UI", system-ui, sans-serif';
         a.textAlign = 'center'; a.textBaseline = 'middle';
-        a.fillText(ADS[i].t, (x0 + x1) / 2, (tl.y + bl.y) / 2 + 1, (x1 - x0) * 0.86);
+        a.fillText(ADS[i].t, (x0 + x1) / 2, (tl.y + bl.y) / 2 + 1, (x1 - x0) * 0.88);
       }
-      // glass-like gloss across the board panels
+      // glass-like gloss across the whole wall
       var gloss = a.createLinearGradient(0, tl.y, 0, bl.y);
-      gloss.addColorStop(0, 'rgba(255,255,255,0.16)');
+      gloss.addColorStop(0, 'rgba(255,255,255,0.14)');
       gloss.addColorStop(0.35, 'rgba(255,255,255,0.03)');
       gloss.addColorStop(1, 'rgba(0,0,0,0.10)');
       a.fillStyle = gloss;
-      a.fillRect(Math.max(0, bl.x), tl.y, Math.min(W, br.x) - Math.max(0, bl.x), bl.y - tl.y);
-      // panel colors reflected faintly on the floor
+      a.fillRect(L, tl.y, R - L, bl.y - tl.y);
+      // ad panel colours reflected faintly on the floor (only under the ads)
       for (var ri = 0; ri < n; ri++) {
-        var rx0 = L + (R - L) * (ri / n), rx1 = L + (R - L) * ((ri + 1) / n);
+        var rx0 = innerL + (innerR - innerL) * (ri / n), rx1 = innerL + (innerR - innerL) * ((ri + 1) / n);
         var rgd = a.createLinearGradient(0, bl.y, 0, bl.y + 16);
         rgd.addColorStop(0, ADS[ri].bg + '2e');
         rgd.addColorStop(1, ADS[ri].bg + '00');
@@ -1030,7 +1032,7 @@
     }
 
     function drawNet() {
-      var hw = K.TABLE_W / 2 + 0.12;
+      var hw = K.TABLE_W / 2; // posts clamp to the table's side edges, like a real net
       var bl = proj(-hw, K.NET_Y, 0), br = proj(hw, K.NET_Y, 0);
       var tl = proj(-hw, K.NET_Y, K.NET_H), tr = proj(hw, K.NET_Y, K.NET_H);
       var pm = ppm(K.NET_Y);
@@ -1073,17 +1075,22 @@
       ctx.beginPath(); ctx.moveTo(acc.x, acc.y); ctx.lineTo(accR.x, accR.y);
       ctx.lineTo(np(1, 0.93).x, np(1, 0.93).y); ctx.lineTo(np(0, 0.93).x, np(0, 0.93).y);
       ctx.closePath(); ctx.fill();
-      // posts + clamps at each end
+      // posts clamped onto the table edge, like a real net assembly
       [{ b: bl, t: tl, i: 1 }, { b: br, t: tr, i: -1 }].forEach(function (P) {
-        ctx.strokeStyle = '#20263e';
-        ctx.lineWidth = Math.max(2.5, 0.03 * pm);
-        ctx.beginPath(); ctx.moveTo(P.b.x, P.b.y); ctx.lineTo(P.t.x, P.t.y); ctx.stroke();
-        ctx.strokeStyle = 'rgba(150,170,210,0.55)'; // metallic edge highlight
-        ctx.lineWidth = Math.max(1, 0.012 * pm);
-        ctx.beginPath(); ctx.moveTo(P.b.x + P.i * 1.2, P.b.y); ctx.lineTo(P.t.x + P.i * 1.2, P.t.y); ctx.stroke();
-        // clamp block at the base
+        // clamp bracket gripping over the table lip
+        ctx.fillStyle = '#12172a';
+        ctx.fillRect(P.b.x - 0.03 * pm, P.b.y - 0.008 * pm, 0.06 * pm, 0.085 * pm);
         ctx.fillStyle = '#2b3350';
-        ctx.fillRect(P.b.x - 0.03 * pm, P.b.y - 0.02 * pm, 0.06 * pm, 0.05 * pm);
+        ctx.fillRect(P.b.x - 0.022 * pm, P.b.y - 0.022 * pm, 0.044 * pm, 0.055 * pm);
+        ctx.fillStyle = 'rgba(180,196,226,0.75)'; // clamp screw
+        ctx.beginPath(); ctx.arc(P.b.x, P.b.y + 0.022 * pm, Math.max(1, 0.009 * pm), 0, Math.PI * 2); ctx.fill();
+        // post
+        ctx.strokeStyle = '#242a44';
+        ctx.lineWidth = Math.max(2.5, 0.028 * pm);
+        ctx.beginPath(); ctx.moveTo(P.b.x, P.b.y); ctx.lineTo(P.t.x, P.t.y); ctx.stroke();
+        ctx.strokeStyle = 'rgba(150,170,210,0.5)'; // metallic edge highlight
+        ctx.lineWidth = Math.max(1, 0.011 * pm);
+        ctx.beginPath(); ctx.moveTo(P.b.x + P.i * 1.2, P.b.y); ctx.lineTo(P.t.x + P.i * 1.2, P.t.y); ctx.stroke();
       });
     }
 
@@ -1249,9 +1256,9 @@
       ctx.beginPath(); ctx.roundRect(-r * 0.145, r * 0.6, r * 0.07, r * 0.82, r * 0.05); ctx.fill(); // grip highlight
       // --- blade: pale wood/tape edge, then the rubber face ---
       ctx.fillStyle = '#efe6d2';
-      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.9, r * 1.0, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.86, r * 0.96, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = 'rgba(0,0,0,0.18)'; // thin shade line inside the edge
-      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.83, r * 0.93, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.82, r * 0.92, 0, 0, Math.PI * 2); ctx.fill();
       var bg = ctx.createRadialGradient(-r * 0.26, -r * 0.3, r * 0.15, 0, 0, r);
       bg.addColorStop(0, color); bg.addColorStop(0.72, color); bg.addColorStop(1, dark);
       ctx.fillStyle = bg;
@@ -1273,11 +1280,11 @@
       var target = Math.max(-1.55, Math.min(1.55, (pad.x / xm) * 1.5 + pointerVX * 0.05));
       padTilt += (target - padTilt) * 0.18;
       padKick *= 0.85;
-      paddleShape(pad.x, K.PADDLE_Y[1], pad.z, 0.18, '#ff4d4d', '#a3122a', padTilt + padKick);
+      paddleShape(pad.x, K.PADDLE_Y[1], pad.z, 0.15, '#ff4d4d', '#a3122a', padTilt + padKick);
     }
     function drawFarPaddle() {
       var pad = game.paddles[2];
-      paddleShape(pad.x, K.PADDLE_Y[2], pad.z, 0.17, '#3aa0ff', '#134a91',
+      paddleShape(pad.x, K.PADDLE_Y[2], pad.z, 0.14, '#3aa0ff', '#134a91',
         Math.max(-1.2, Math.min(1.2, -pad.x * 0.9)));
     }
 
