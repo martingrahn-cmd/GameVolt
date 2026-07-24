@@ -62,7 +62,7 @@ Last verified by auditing the code on 2026-07-09.
 | 1 | Breakout | ✅ Live | ✅ Full |
 | 2 | TapRush | ✅ Live | ✅ Full (31 trophies, added 2026-04-17) |
 | 3 | BlockStorm (Tetris) | ✅ Live | ✅ Full |
-| 4 | Solitaire Collection | ✅ Live | ⚠️ achievements + migration via SDK; leaderboard still on legacy Firebase (`pulsegames-solitaire`) — migrate to Supabase |
+| 4 | Solitaire Collection | ✅ Live | ✅ Full (leaderboard migrated Firebase → Supabase SDK 2026-07-24; game id `solitaire`, mode per variant) |
 | 5 | Snake Neo (3 modes) | ✅ Live | ✅ Full (31 trophies + leaderboard, added 2026-07-09) |
 | 6 | Connect 4 | ✅ Live | ✅ Full |
 | 7 | Flappy Bird (404 page) | ✅ Live | ❌ Not yet (not planned) |
@@ -82,7 +82,7 @@ Last verified by auditing the code on 2026-07-09.
 | 21 | Gridburn | ✅ Live | ✅ Full (31 trophies, solo leaderboard, online lockstep multiplayer) |
 | 22 | Spinburn | ✅ Live | ✅ Full (31 trophies, career-points leaderboard, online mirror-per-client multiplayer) |
 
-**Remaining work:** migrate the Solitaire leaderboard from legacy Firebase to the Supabase SDK path.
+**Remaining work:** none — the Solitaire leaderboard is now on the Supabase SDK path (migrated 2026-07-24). Every game leaderboard is on Supabase.
 
 ---
 
@@ -379,7 +379,7 @@ Spec, rebranding, Supabase, SDK v1, HoverDash pilot — all done.
 
 ### Phase 2 — Engagement (in progress)
 SDK + leaderboards + profile page done. All games integrated (see catalog).
-- [x] Roll out SDK to remaining games (Snake done 2026-07-09; only the Solitaire Firebase→Supabase leaderboard migration remains)
+- [x] Roll out SDK to remaining games (Snake done 2026-07-09; Solitaire Firebase→Supabase leaderboard migration done 2026-07-24 — all games now on the Supabase SDK)
 - [ ] Submit HoverDash to Poki (clean version without SDK)
 - [ ] Submit HoverDash to CrazyGames (clean version without SDK)
 
@@ -424,7 +424,7 @@ HoverDash (and future games) target multiple platforms from one codebase:
 
 ### Remaining
 - [ ] Decide: redirect pulsegames.eu → gamevolt.io, or let it expire
-- [ ] Migrate the Solitaire leaderboard from legacy Firebase (`pulsegames-solitaire`) to the Supabase SDK path
+- [x] Migrate the Solitaire leaderboard from legacy Firebase (`pulsegames-solitaire`) to the Supabase SDK path (done 2026-07-24; scores reset with the fresh Supabase boards)
 - [ ] Update GameMonetize developer profile with new URL
 - [ ] Update portal submissions / social media with new URL
 
