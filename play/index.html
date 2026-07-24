@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dim">
 <head>
+    <script>(function(){try{var t=localStorage.getItem('gv-theme');if(t==='light'||t==='dim'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Play Free Browser Games — GameVolt</title>
@@ -19,8 +20,9 @@
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="/js/gv-tracker.js"></script>
+    <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-search.js"></script>
   <script src="/sdk/gamevolt.js"></script>
 
@@ -36,33 +38,126 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* ============================================================
+       THEME TOKENS — light / dim / dark (dim = default)
+       Mirrors index.html. Toggle UI: /js/gv-theme.js
+       ============================================================ */
+
+    /* ---- DIM (default): between white portal and pure black ---- */
+    html[data-theme="dim"] {
+        --primary: #9b82ff;
+        --primary-light: #b4a0ff;
+        --primary-dark: #6d4dff;
+        --secondary: #f472b6;
+        --accent: #34d399;
+        --accent-blue: #38bdf8;
+        --hot: #ff6b6b;
+
+        --bg-body: #16141f;
+        --bg-header: rgba(22, 20, 31, 0.85);
+        --bg-surface: #1e1b2b;
+        --bg-card: rgba(28, 25, 48, 0.72);
+        --bg-card-hover: rgba(40, 36, 64, 0.85);
+        --bg-glass: rgba(255, 255, 255, 0.04);
+        --bg-gradient: linear-gradient(135deg, #9b82ff 0%, #38bdf8 50%, #34d399 100%);
+        --bg-gradient-alt: linear-gradient(135deg, #6d4dff 0%, #9b82ff 100%);
+
+        --text-bright: #f0ecff;
+        --text-medium: #a39bbf;
+        --text-muted: #857da0;
+
+        --border-subtle: rgba(255, 255, 255, 0.09);
+        --border-glow: rgba(155, 130, 255, 0.35);
+
+        --glow-primary: 0 0 20px rgba(155, 130, 255, 0.3);
+        --glow-accent: 0 0 20px rgba(52, 211, 153, 0.2);
+        --shadow-card: 0 10px 24px rgba(0, 0, 0, 0.22);
+        --shadow-card-hover: 0 22px 50px rgba(0, 0, 0, 0.35), 0 4px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ---- LIGHT ---- */
+    html[data-theme="light"] {
+        --primary: #6d4dff;
+        --primary-light: #8b6cff;
+        --primary-dark: #5536e8;
+        --secondary: #ec4899;
+        --accent: #059669;
+        --accent-blue: #0284c7;
+        --hot: #ef4444;
+
+        --bg-body: #f6f4fb;
+        --bg-header: rgba(255, 255, 255, 0.85);
+        --bg-surface: #ffffff;
+        --bg-card: #ffffff;
+        --bg-card-hover: #faf8ff;
+        --bg-glass: rgba(40, 30, 80, 0.04);
+        --bg-gradient: linear-gradient(135deg, #6d4dff 0%, #0284c7 50%, #059669 100%);
+        --bg-gradient-alt: linear-gradient(135deg, #5536e8 0%, #6d4dff 100%);
+
+        --text-bright: #1a1430;
+        --text-medium: #5c5674;
+        --text-muted: #8b85a1;
+
+        --border-subtle: rgba(40, 30, 80, 0.10);
+        --border-glow: rgba(109, 77, 255, 0.28);
+
+        --glow-primary: 0 0 20px rgba(109, 77, 255, 0.18);
+        --glow-accent: 0 0 20px rgba(5, 150, 105, 0.16);
+        --shadow-card: 0 8px 20px rgba(40, 30, 90, 0.06);
+        --shadow-card-hover: 0 18px 40px rgba(40, 30, 90, 0.10), 0 4px 20px rgba(40, 30, 90, 0.06);
+    }
+
+    /* ---- DARK: near-black ---- */
+    html[data-theme="dark"] {
+        --primary: #8b6cff;
+        --primary-light: #c4b5fd;
+        --primary-dark: #6d4dff;
+        --secondary: #f472b6;
+        --accent: #34d399;
+        --accent-blue: #38bdf8;
+        --hot: #ff6b6b;
+
+        --bg-body: #08070d;
+        --bg-header: rgba(8, 7, 13, 0.85);
+        --bg-surface: #100e18;
+        --bg-card: rgba(18, 16, 26, 0.72);
+        --bg-card-hover: rgba(30, 26, 44, 0.85);
+        --bg-glass: rgba(255, 255, 255, 0.03);
+        --bg-gradient: linear-gradient(135deg, #8b6cff 0%, #38bdf8 50%, #34d399 100%);
+        --bg-gradient-alt: linear-gradient(135deg, #6d4dff 0%, #8b6cff 100%);
+
+        --text-bright: #f5f2ff;
+        --text-medium: #9b96b0;
+        --text-muted: #6d687f;
+
+        --border-subtle: rgba(255, 255, 255, 0.07);
+        --border-glow: rgba(139, 108, 255, 0.4);
+
+        --glow-primary: 0 0 20px rgba(139, 108, 255, 0.35);
+        --glow-accent: 0 0 20px rgba(52, 211, 153, 0.18);
+        --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.4);
+        --shadow-card-hover: 0 24px 60px rgba(0, 0, 0, 0.55), 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Theme-independent tokens */
     :root {
-      --header-h: 48px;
-      --bar-h: 40px;
-      --sidebar-w: 260px;
-      --bg-body: #0f1221;
-      --bg-surface: #181c30;
-      --bg-card: rgba(25, 30, 55, 0.7);
-      --bg-card-hover: rgba(35, 42, 75, 0.85);
-      --bg-gradient: linear-gradient(135deg, #7c5cfc 0%, #38bdf8 50%, #06d6a0 100%);
-      --text-bright: #f0f0ff;
-      --text-medium: #a0a4c0;
-      --text-muted: #626580;
-      --border-subtle: rgba(124, 92, 252, 0.15);
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      /* iPhone notch / Dynamic Island / home indicator (viewport-fit=cover) */
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --safe-left: env(safe-area-inset-left, 0px);
-      --safe-right: env(safe-area-inset-right, 0px);
+        --header-h: 48px;
+        --bar-h: 40px;
+        --sidebar-w: 260px;
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        /* iPhone notch / Dynamic Island / home indicator (viewport-fit=cover) */
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-left: env(safe-area-inset-left, 0px);
+        --safe-right: env(safe-area-inset-right, 0px);
     }
 
     html, body {
       height: 100%;
       background: var(--bg-body);
       color: var(--text-bright);
-      font-family: 'Nunito', sans-serif;
+      font-family: 'DM Sans', system-ui, sans-serif;
       overflow: hidden;
     }
 
@@ -71,7 +166,7 @@
       position: fixed;
       top: 0; left: 0; right: 0;
       height: calc(var(--header-h) + var(--safe-top));
-      background: rgba(15, 18, 33, 0.95);
+      background: var(--bg-header);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border-subtle);
@@ -627,7 +722,7 @@
       justify-content: center;
       align-items: center;
       gap: 16px;
-      font-family: 'Nunito', sans-serif;
+      font-family: 'DM Sans', system-ui, sans-serif;
     }
     .gv-rotate-icon {
       font-size: 60px;
@@ -659,7 +754,7 @@
     }
     .gv-game-area:fullscreen .gv-game-bar,
     .gv-game-area:-webkit-full-screen .gv-game-bar {
-      background: rgba(15, 18, 33, 0.95);
+      background: var(--bg-header);
     }
 
     /* ── Error state ── */
