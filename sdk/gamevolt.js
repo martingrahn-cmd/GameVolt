@@ -16,7 +16,7 @@
   // footer so you can tell at a glance whether a browser has the latest SDK
   // (Cloudflare caches this file, so an old copy can linger). Also on
   // GameVolt.version and logged to the console on init.
-  var SDK_VERSION = '2026.07.24-1';
+  var SDK_VERSION = '2026.07.25-1';
 
   var sb = null; // Supabase client
   var currentUser = null;
@@ -958,6 +958,35 @@
           return { avg: sum / count, count: count };
         })
         .catch(function() { return { avg: 0, count: 0 }; });
+    },
+
+    /**
+     * Aggregates for EVERY game in one request, as { gameId: {avg, count} }.
+     * Callers that need many games at once (a card grid) should use this
+     * instead of looping getAggregate — that was one round-trip per game.
+     * Games with no ratings are simply absent from the map.
+     */
+    getAllAggregates: function() {
+      if (!sb) return Promise.resolve({});
+      return sb.from('ratings').select('game_id, rating')
+        .then(function(res) {
+          var rows = (res && res.data) ? res.data : [];
+          var sums = {}, counts = {};
+          for (var i = 0; i < rows.length; i++) {
+            var g = rows[i].game_id;
+            if (!g) continue;
+            sums[g] = (sums[g] || 0) + rows[i].rating;
+            counts[g] = (counts[g] || 0) + 1;
+          }
+          var out = {};
+          for (var k in counts) {
+            if (Object.prototype.hasOwnProperty.call(counts, k)) {
+              out[k] = { avg: sums[k] / counts[k], count: counts[k] };
+            }
+          }
+          return out;
+        })
+        .catch(function() { return {}; });
     }
   };
 
