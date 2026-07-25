@@ -11,13 +11,25 @@
 # single-file build. Single-player makes zero external requests; online play
 # still works (loads Supabase on demand) if the PLAY ONLINE button is used.
 #
+# It emits TWO things:
+#   1. index-standalone.html — the single page, playable in place next to the
+#      game's own js/assets (this is the URL already submitted to Cool Math
+#      Games, so the path must not move).
+#   2. portal/ — the same build as a COMPLETE, self-contained folder
+#      (index.html + every script, sound and image it needs). Portals such as
+#      CrazyGames host the files themselves, and the page is NOT self-contained
+#      on its own — it pulls in tt-*.js and assets/ — so handing over only the
+#      HTML would ship a broken game.
+#
 # Re-run after ANY change to index.html:  python3 spinburn/build-standalone.py
 # ============================================================
 import os
+import shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 src = os.path.join(HERE, 'index.html')
 dst = os.path.join(HERE, 'index-standalone.html')
+portal = os.path.join(HERE, 'portal')
 s = open(src, encoding='utf-8').read()
 orig_len = len(s)
 
@@ -120,3 +132,45 @@ s = s.replace('<!DOCTYPE html>', '<!DOCTYPE html>' + header, 1)
 
 open(dst, 'w', encoding='utf-8').write(s)
 print(f'wrote {dst}  ({orig_len} -> {len(s)} bytes, -{orig_len - len(s)})')
+
+# ---- portal/ : the same build as a complete, handover-ready folder ----------
+# Rebuilt from scratch every run so a renamed or deleted asset can't linger.
+if os.path.isdir(portal):
+    shutil.rmtree(portal)
+os.makedirs(os.path.join(portal, 'assets'))
+os.makedirs(os.path.join(portal, 'icons'))
+
+# entry point must be index.html — that is what a portal loads
+open(os.path.join(portal, 'index.html'), 'w', encoding='utf-8').write(s)
+
+# every script the page pulls in. sb-net.js is still required even though the
+# online lobby is unreachable here: the page references SBNet at startup.
+SCRIPTS = ['tt-core.js', 'tt-ai.js', 'tt-achievements.js', 'sb-net.js']
+for f in SCRIPTS:
+    shutil.copy2(os.path.join(HERE, f), os.path.join(portal, f))
+
+SOUNDS = ['hit', 'bounce', 'cheer', 'net', 'crowd', 'winfare', 'lose',
+          'matchpoint', 'vo-matchpoint', 'vo-intro']
+for f in SOUNDS:
+    shutil.copy2(os.path.join(HERE, 'assets', f + '.mp3'),
+                 os.path.join(portal, 'assets', f + '.mp3'))
+
+PORTRAITS = ['opp-hans', 'opp-hummel', 'opp-chongli', 'opp-player']
+for f in PORTRAITS:
+    shutil.copy2(os.path.join(HERE, 'assets', f + '.png'),
+                 os.path.join(portal, 'assets', f + '.png'))
+
+for f in ['favicon-32.png', 'apple-touch-icon.png']:
+    shutil.copy2(os.path.join(HERE, 'icons', f), os.path.join(portal, 'icons', f))
+
+# fail loudly if the page asks for something the folder does not carry
+import re
+refs = set(re.findall(r'(?:src|href)="((?:assets|icons)/[^"?]+)', s))
+refs |= set(m + '.mp3' for m in re.findall(r"'(assets/[a-z0-9-]+)\.mp3", s))
+refs |= set(m + '.png' for m in re.findall(r"'(assets/[a-z0-9-]+)\.png", s))
+missing = [r for r in refs if not os.path.exists(os.path.join(portal, r))]
+assert not missing, f'portal/ is missing files the page loads: {missing}'
+
+n = sum(len(f) for _, _, f in os.walk(portal))
+size = sum(os.path.getsize(os.path.join(d, f)) for d, _, fs in os.walk(portal) for f in fs)
+print(f'wrote {portal}/  ({n} files, {size / 1024:.0f} KB) — hand this folder to a portal')
