@@ -86,6 +86,14 @@
     position: fixed; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; text-align: center;
     padding: 24px; pointer-events: none; z-index: 5;
+    /* Scroll instead of clipping when the screen is taller than the viewport —
+       flex centering cuts the TOP off first, and inside the portal iframe the
+       viewport is ~90px shorter than the window. */
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .overlay > * { flex-shrink: 0; }
+  @media (max-height: 700px) {
+    .overlay { justify-content: flex-start; }
   }
   .overlay.on { pointer-events: auto; }
   .hidden { display: none !important; }

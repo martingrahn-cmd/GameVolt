@@ -53,10 +53,25 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Scroll instead of clipping when the menu is taller than the viewport —
+     flex centering cuts the TOP off first, and inside the portal iframe the
+     viewport is ~90px shorter than the window. */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background:
     radial-gradient(ellipse at 30% 20%, #1e2a6a 0%, transparent 60%),
     radial-gradient(ellipse at 80% 80%, #3a1248 0%, transparent 50%),
     linear-gradient(160deg, #0d1230 0%, #1a1040 40%, #2d1045 100%);
+}
+
+.main-menu > * {
+  flex-shrink: 0;
+}
+
+@media (max-height: 700px) {
+  .main-menu {
+    align-items: flex-start;
+  }
 }
 
 .main-menu[hidden] {
