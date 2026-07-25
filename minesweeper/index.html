@@ -140,12 +140,14 @@ body{
 .diff-btn[data-diff="easy"]{border-left-color:#39ff7f}
 .diff-btn[data-diff="medium"]{border-left-color:var(--yellow)}
 .diff-btn[data-diff="hard"]{border-left-color:var(--red)}
+#lbBtn{border-left-color:var(--cyan)}
 
 /* Stagger entrance */
 .menu-buttons .daily-btn{animation:menuSlideIn 0.35s 0.25s ease-out forwards}
 .menu-buttons .diff-btn:nth-child(2){animation:menuSlideIn 0.35s 0.32s ease-out forwards}
 .menu-buttons .diff-btn:nth-child(3){animation:menuSlideIn 0.35s 0.39s ease-out forwards}
 .menu-buttons .diff-btn:nth-child(4){animation:menuSlideIn 0.35s 0.46s ease-out forwards}
+.menu-buttons .diff-btn:nth-child(5){animation:menuSlideIn 0.35s 0.53s ease-out forwards}
 
 @keyframes menuSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes menuFadeIn{from{opacity:0}to{opacity:1}}
@@ -576,6 +578,7 @@ body{
     <button class="diff-btn" data-diff="easy"><span class="diff-label">Easy</span><span class="info">9x9 · 10 mines</span></button>
     <button class="diff-btn" data-diff="medium"><span class="diff-label">Medium</span><span class="info">16x16 · 40 mines</span></button>
     <button class="diff-btn" data-diff="hard"><span class="diff-label">Hard</span><span class="info">30x16 · 99 mines</span></button>
+    <button class="diff-btn" id="lbBtn"><span class="diff-label">🏆 Leaderboard</span><span class="info">Global best times</span></button>
   </div>
   <div class="menu-options">
     <label class="toggle-row" id="noGuessToggle">
@@ -1298,6 +1301,7 @@ const $backBtn=$('backBtn'), $flagToggle=$('flagToggle');
 const $statsLink=$('statsLink'), $statsModal=$('stats-modal'), $statsGrid=$('statsGrid');
 const $statsClose=$('statsClose'), $statsTabs=$('statsTabs');
 const $dailyBtn=$('dailyBtn'), $dailyStreak=$('dailyStreak'), $dailyBadge=$('dailyBadge');
+const $lbBtn=$('lbBtn');
 const $noGuessCheck=$('noGuessCheck');
 const $trophyLink=$('trophyLink'), $trophyModal=$('trophy-modal');
 const $hsLink=$('hsLink'), $hsModal=$('hs-modal'), $hsTabs=$('hsTabs'), $hsContent=$('hsContent'), $hsClose=$('hsClose');
@@ -1315,9 +1319,16 @@ function init() {
 
   updateDailyButton();
 
-  document.querySelectorAll('.diff-btn').forEach(btn => {
+  document.querySelectorAll('.diff-btn[data-diff]').forEach(btn => {
     btn.addEventListener('click', () => startGame(btn.dataset.diff));
   });
+
+  // Global leaderboard (SDK only — hidden when the SDK isn't loaded)
+  if(window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
+    $lbBtn.addEventListener('click', showLeaderboard);
+  } else {
+    $lbBtn.style.display = 'none';
+  }
 
   $dailyBtn.addEventListener('click', startDaily);
   $faceBtn.addEventListener('click', () => { if(difficulty) { if(isDaily) startDaily(); else startGame(difficulty); } });
@@ -2168,6 +2179,22 @@ async function submitScore(){
   if(!window.GameVolt)return;
   const mode = isDaily ? `daily-${getTodayKey()}` : difficulty;
   try{await GameVolt.leaderboard.submit(seconds,{mode});}catch(e){}
+}
+
+// Global board — one tab per submitted mode. Scores are clear times in seconds.
+function showLeaderboard(){
+  if(!(window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard)) return;
+  GameVolt.ui.leaderboard({
+    title: 'Minesweeper',
+    tabs: [
+      { label:'Easy', mode:'easy' },
+      { label:'Medium', mode:'medium' },
+      { label:'Hard', mode:'hard' },
+      { label:'Daily', mode:`daily-${getTodayKey()}` }
+    ],
+    accent: '#2de4ff',
+    format: v => formatTime(v)
+  });
 }
 
 

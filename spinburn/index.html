@@ -271,7 +271,7 @@
       border-radius: 999px; padding: 8px 20px; cursor: pointer; margin-top: 8px;
     }
     #install-btn.hidden, #ios-hint.hidden, #update-chip.hidden, #ladder-reset.hidden,
-    #ol-share.hidden, #ol-code-box.hidden { display: none; }
+    #ol-share.hidden, #ol-code-box.hidden, #leaderboard-btn.hidden { display: none; }
     #ios-hint { font-size: 0.64rem; color: #8fa8c8; letter-spacing: 1px; margin-top: 8px; text-align: center; }
     #update-chip {
       font-family: inherit; font-weight: 800; letter-spacing: 2px; font-size: 0.78rem;
@@ -377,6 +377,7 @@
     <button class="btn medium" data-level="medium">MEDIUM</button>
     <button class="btn hard" data-level="hard">HARD</button>
     <button class="btn ghost" id="trophies-btn">🏆 TROPHIES</button>
+    <button class="btn ghost" id="leaderboard-btn">🏆 LEADERBOARD</button>
     <div class="menu-note">Drag to move your paddle — swipe through the ball to aim.<br>First to 11, win by 2. Tap to toss, then swipe through the ball to strike the serve.</div>
     <button id="update-chip" class="hidden">◆ NEW VERSION — TAP TO UPDATE</button>
     <button id="install-btn" class="hidden">⬇ INSTALL APP</button>
@@ -2147,6 +2148,20 @@
     });
     document.getElementById('campaign-btn').addEventListener('click', openLadder);
     document.getElementById('trophies-btn').addEventListener('click', openTrophies);
+    // shared GameVolt board — same modal in every game; hidden when the SDK isn't there
+    var lbBtn = document.getElementById('leaderboard-btn');
+    if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
+      lbBtn.addEventListener('click', function () {
+        GameVolt.ui.leaderboard({
+          title: 'SPINBURN',
+          mode: 'default',
+          accent: '#00eaff',
+          scoreLabel: 'pts'
+        });
+      });
+    } else {
+      lbBtn.classList.add('hidden');
+    }
     document.getElementById('trophies-back').addEventListener('click', closeTrophies);
     document.getElementById('vs-fight').addEventListener('click', function () {
       campIdx = vsIdx;

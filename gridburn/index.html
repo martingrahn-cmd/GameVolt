@@ -365,6 +365,7 @@
       <button class="btn" data-mode="2p">2-PLAYER LOCAL</button>
       <button class="btn p2" data-mode="solo">SOLO PRACTICE</button>
       <button class="btn ghost" id="trophies-btn">TROPHIES</button>
+      <button class="btn ghost" id="leaderboard-btn">🏆 LEADERBOARD</button>
       <button class="btn ghost" id="options-btn">OPTIONS</button>
     </div>
     <div class="controls-hint">
@@ -1765,13 +1766,31 @@
     document.getElementById('trophies-btn').addEventListener('click', function () { Sound.unlock(); openTrophies(); });
     document.getElementById('tr-back').addEventListener('click', closeTrophies);
 
+    // ---------- leaderboard (shared GameVolt board) ----------
+    // Solo practice submits survival time in centiseconds, so the board formats
+    // as seconds instead of plain points. No SDK -> hide the button entirely.
+    var lbBtn = document.getElementById('leaderboard-btn');
+    if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
+      lbBtn.addEventListener('click', function () {
+        Sound.unlock();
+        GameVolt.ui.leaderboard({
+          title: 'GRIDBURN',
+          mode: 'solo',
+          accent: '#00eaff',
+          format: function (v) { return (v / 100).toFixed(2) + 's'; }
+        });
+      });
+    } else {
+      lbBtn.style.display = 'none';
+    }
+
     // ---------- keyboard menu navigation ----------
     // Each screen is a list of rows; a row can hold several items (the AI
     // difficulty trio). Up/down moves rows, left/right moves within a row.
     // Real DOM focus is used, so Enter/Space activation comes from the
     // browser for free and sliders keep their native left/right handling.
     var NAV_DEFS = {
-      menu: [['[data-ai="easy"]', '[data-ai="medium"]', '[data-ai="hard"]'], ['#online-btn'], ['[data-mode="2p"]'], ['[data-mode="solo"]'], ['#trophies-btn'], ['#options-btn']],
+      menu: [['[data-ai="easy"]', '[data-ai="medium"]', '[data-ai="hard"]'], ['#online-btn'], ['[data-mode="2p"]'], ['[data-mode="solo"]'], ['#trophies-btn'], ['#leaderboard-btn'], ['#options-btn']],
       trophies: [['#tr-back']],
       online: [['#ol-create'], ['#ol-copy-link', '#ol-share'], ['#ol-join-input'], ['#ol-join'], ['#ol-back']],
       options: [['#vol-master'], ['#vol-engine'], ['#vol-sfx'], ['#opt-mute'], ['#opt-fs'], ['#opt-back']],

@@ -4,7 +4,7 @@
      1. VERSION in index.html
      2. the ?v= on the script tags in index.html
      3. CACHE below AND the ?v= entries in ASSETS */
-const CACHE = 'ttpwa-v0.38.0';
+const CACHE = 'ttpwa-v0.38.1';
 const ASSETS = [
   './',
   './index.html',
