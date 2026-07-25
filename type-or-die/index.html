@@ -269,12 +269,13 @@
         <h2 class="panel-title">HIGH SCORES</h2>
         <div class="lb">
           <div class="lb-head">ZOMBIE <span class="lb-sub">all-time</span></div>
-          <ol class="lb-list" id="hs-zombie-list"></ol>
+          <!-- Host for the shared GameVolt leaderboard component (renders divs). -->
+          <div class="lb-list" id="hs-zombie-list"></div>
           <p class="lb-empty" id="hs-zombie-empty">No runs yet.</p>
         </div>
         <div class="lb">
           <div class="lb-head">SPEED TEST <span class="lb-sub">30s · all-time</span></div>
-          <ol class="lb-list" id="hs-speed-list"></ol>
+          <div class="lb-list" id="hs-speed-list"></div>
           <p class="lb-empty" id="hs-speed-empty">No runs yet.</p>
         </div>
         <div class="screen-actions">
@@ -361,6 +362,6 @@
     }
   </script>
 
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/main.js?v=2"></script>
 </body>
 </html>

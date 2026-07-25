@@ -2833,16 +2833,6 @@ div.cell {
   font-size: 0.9rem;
 }
 
-.leaderboard-separator {
-  padding: 8px 4px 4px;
-  color: #6bcbff;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-align: center;
-  text-transform: uppercase;
-}
-
 .board.completion-burst {
   animation: completion-board-pulse 700ms ease-out;
 }

@@ -444,6 +444,10 @@
         <span class="label">🏆 Achievements</span>
         <span class="desc" id="achCountLabel">0 / 31 unlocked</span>
       </button>
+      <button class="diff-btn" id="leaderboardBtn" style="margin-top:12px;background:transparent;border-color:rgba(124,92,252,0.3)" onclick="openLeaderboard()">
+        <span class="label">🏆 Leaderboard</span>
+        <span class="desc">Fastest solvers worldwide</span>
+      </button>
     </div>
   </div>
 
@@ -695,6 +699,29 @@
     window.closeAchievements = function() {
       document.getElementById('achOverlay').classList.add('hidden');
     };
+
+    // Shared GameVolt board — same modal in every game. One tab per difficulty,
+    // matching the modes we submit. Scores are stored inverted (100000 - seconds)
+    // so lower times sort first, so format them back to the mm:ss the game shows.
+    window.openLeaderboard = function() {
+      if (!(window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard)) return;
+      GameVolt.ui.leaderboard({
+        title: 'Sudoku',
+        tabs: [
+          { label: 'Easy', mode: 'easy' },
+          { label: 'Medium', mode: 'medium' },
+          { label: 'Hard', mode: 'hard' }
+        ],
+        accent: '#7c5cfc',
+        format: function(v) { return formatTime(Math.max(0, 100000 - Number(v || 0))); }
+      });
+    };
+
+    // No SDK -> hide the entry entirely, the rest of the game is unaffected
+    if (!(window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard)) {
+      var lbBtnEl = document.getElementById('leaderboardBtn');
+      if (lbBtnEl) lbBtnEl.style.display = 'none';
+    }
 
     // Update count label on load
     setTimeout(function() {

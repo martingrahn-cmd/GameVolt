@@ -1,4 +1,4 @@
-const CACHE_NAME = 'connect4-v2';
+const CACHE_NAME = 'connect4-v3';
 const urlsToCache = [
   '/',
   '/index.html',

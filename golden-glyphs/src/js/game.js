@@ -7,7 +7,7 @@ import { Input } from "./input.js?v=7";
 import { BitField } from "./bitfield.js?v=7";
 import { Tray } from "./tray.js?v=8";
 import { AudioManager } from "./audio.js";
-import { UI } from "./ui.js?v=11";
+import { UI } from "./ui.js?v=12";
 import { Effects } from "./effects.js?v=7";
 import { CONFIG, SHAPES, WORLDS, SYSTEM_IMAGES, SKINS, TRAILS, ACHIEVEMENTS } from "./config.js";
 import { AchievementSystem } from "./achievements.js?v=4";

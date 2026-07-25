@@ -251,6 +251,7 @@
         <button class="tab" data-d="expert">Expert</button>
       </div>
       <div class="grid" id="grid"></div>
+      <button style="flex:0 0 auto;min-width:130px" id="lbBtn">🏅 Leaderboard</button>
       <button style="flex:0 0 auto;min-width:130px" id="menuClose">Close</button>
     </div>
   </div>
@@ -857,6 +858,11 @@ document.getElementById("reset").onclick=()=>{ if(winning||trans)return; if(path
 document.getElementById("undo").onclick=undo;
 document.getElementById("trophyBtn").onclick=()=>{ renderTrophies(); document.getElementById("trophyOv").classList.add("show"); };
 document.getElementById("trophyClose").onclick=()=>document.getElementById("trophyOv").classList.remove("show");
+/* Endless-topplistan (delad GameVolt-UI) — dölj knappen helt om SDK:t saknas */
+const lbBtn=document.getElementById("lbBtn");
+if(window.GameVolt&&GameVolt.ui&&GameVolt.ui.leaderboard){
+  lbBtn.onclick=()=>{ GameVolt.ui.leaderboard({title:"Livewire",mode:"endless",accent:"#67e0c8",scoreLabel:"solved"}); };
+}else{ lbBtn.style.display="none"; }
 document.getElementById("aux").onclick=()=>{ if(mode==="endless") load(); else showHint(); };
 document.getElementById("sound").onclick=function(){muted=!muted;store.set("fb_mute",muted);this.textContent="Sound: "+(muted?"off":"on");if(!muted)beep(540,.07,"triangle",.05);};
 

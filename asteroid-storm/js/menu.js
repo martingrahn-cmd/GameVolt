@@ -19,6 +19,7 @@ class MenuSystem {
         // it counts as a press.
         this.gpHeldFromBoot = new Set();
 
+        this._pruneLeaderboardItem();
         this.refreshItems();
         this.setupInput();
         this.updateSelection();
@@ -50,6 +51,15 @@ class MenuSystem {
         if (window.game && window.game.audio) {
             window.game.audio.playMusic('menu_theme');
         }
+    }
+
+    // The LEADERBOARD entry opens the shared GameVolt board. Without the SDK
+    // there is nothing to show, so drop the item before the menu indexes it —
+    // otherwise it would sit there as a dead, focusable row.
+    _pruneLeaderboardItem() {
+        if (window.GameVolt && window.GameVolt.ui && window.GameVolt.ui.leaderboard) return;
+        const item = document.querySelector('#mainMenu .menu-item[data-mode="leaderboard"]');
+        if (item) item.remove();
     }
 
     refreshItems() {
@@ -444,6 +454,18 @@ class MenuSystem {
             case 'highscores':
                 this.showScreen('highscores');
                 this.populateHighscores('campaign');
+                break;
+            case 'leaderboard':
+                // Shared GameVolt board — same modal in every game. Scores are
+                // submitted to the 'default' mode as plain points (main.js).
+                if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
+                    GameVolt.ui.leaderboard({
+                        title: 'ASTEROID STORM',
+                        mode: 'default',
+                        accent: '#00ffff',
+                        scoreLabel: 'pts'
+                    });
+                }
                 break;
             case 'startmission':
                 const missionId = parseInt(item.getAttribute('data-mission'));

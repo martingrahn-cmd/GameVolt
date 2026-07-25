@@ -153,6 +153,7 @@
       <div class="menu-list">
         <button class="btn primary" id="menuResume">▶ RESUME</button>
         <button class="btn" id="menuHighscores">🏆 HIGH SCORES</button>
+        <button class="btn" id="menuLeaderboard">🌐 LEADERBOARD</button>
         <button class="btn" id="menuAchievements">★ ACHIEVEMENTS</button>
         <button class="btn" id="menuStats">📊 STATS</button>
         <button class="btn" id="menuHowto">? HOW TO PLAY</button>
@@ -590,6 +591,17 @@
     $("menuHowto").addEventListener("click", function () { hideScreen("menu"); openTutorial(); });
     $("menuHighscores").addEventListener("click", function () { hideScreen("menu"); openHighScores("menu"); });
     $("menuAchievements").addEventListener("click", function () { hideScreen("menu"); openAchievements(); });
+
+    // Global board — the shared GameVolt modal. HIGH SCORES above stays local.
+    $("menuLeaderboard").addEventListener("click", function () {
+      if (!(window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard)) return;
+      hideScreen("menu");
+      GameVolt.ui.leaderboard({ title: "Chain Reaction", mode: "default", accent: "#21e6ff", scoreLabel: "pts" });
+    });
+    // Standalone build (no portal SDK): hide it rather than offer a dead button.
+    if (!(window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard)) {
+      $("menuLeaderboard").style.display = "none";
+    }
 
     var hsReturn = "menu"; // which screen the high-scores BACK button returns to
 

@@ -20,6 +20,13 @@ export const uiMixin = {
     document.getElementById("menuHighscoreBtn").addEventListener("click", () => { sfx.init(); sfx.uiClick(); this.showHighscores(); });
     document.getElementById("menuAchievementsBtn").addEventListener("click", () => { sfx.init(); sfx.uiClick(); this.showAchievements(); });
 
+    const leaderboardBtn = document.getElementById("menuLeaderboardBtn");
+    if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
+      leaderboardBtn.addEventListener("click", () => { sfx.init(); sfx.uiClick(); GameVolt.ui.leaderboard({ title: "Manga Match!", mode: "default", accent: "#8af8ff", scoreLabel: "pts" }); });
+    } else {
+      leaderboardBtn.hidden = true;
+    }
+
     this.howtoOverlay = document.getElementById("howtoOverlay");
     document.getElementById("menuHowtoBtn").addEventListener("click", () => { sfx.init(); sfx.uiClick(); this.howtoOverlay.hidden = false; });
     document.getElementById("menuTutorialBtn").addEventListener("click", () => { sfx.init(); sfx.uiClick(); this.mainMenuEl.hidden = true; this.hideLevelSelect(); this.loadLevel(0); window.setTimeout(() => this.startTutorial(), 400); });

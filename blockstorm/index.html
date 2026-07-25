@@ -986,58 +986,17 @@
     // LEADERBOARD FUNCTIONS
     // ==========================================
     
-    async function loadLeaderboard(mode) {
-      leaderboardList.innerHTML = '<div class="loading">Loading...</div>';
+    function loadLeaderboard(mode) {
       currentLeaderboardMode = mode;
-
       // Update tabs
       lbTabs.forEach(tab => {
         tab.classList.toggle('active', tab.dataset.mode === mode);
       });
-
-      if (!window.GameVolt) {
+      // Standardized GameVolt leaderboard, mounted inline (blockstorm keeps its mode tabs).
+      if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
+        GameVolt.ui.leaderboard({ container: leaderboardList, mode: mode, accent: '#45d9c8', scoreLabel: 'pts' });
+      } else {
         leaderboardList.innerHTML = '<div class="lb-empty">Leaderboard unavailable</div>';
-        return;
-      }
-
-      try {
-        const scores = await GameVolt.leaderboard.get({mode: mode, limit: 50});
-        const user = GameVolt.auth.getUser();
-        const myId = user ? user.id : null;
-
-        if (!scores || scores.length === 0) {
-          let html = '<div class="lb-empty">No scores yet!<br>Be the first to play!</div>';
-          if (!myId) {
-            html += '<div class="lb-login">Log in to appear on the leaderboard.<br><button onclick="GameVolt.auth.login()">LOG IN</button></div>';
-          }
-          leaderboardList.innerHTML = html;
-          return;
-        }
-
-        let html = '';
-        scores.forEach((entry, index) => {
-          const isMe = myId && entry.user_id === myId;
-          const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
-          const topClass = index < 3 ? `top${index + 1}` : '';
-          const name = entry.username || 'Player';
-
-          html += `
-            <div class="lb-entry ${topClass} ${isMe ? 'highlight' : ''}">
-              <span class="lb-rank ${rankClass}">#${entry.rank || (index+1)}</span>
-              <span class="lb-name">${name.replace(/</g,'&lt;')}</span>
-              <span class="lb-score">${(entry.score||0).toLocaleString()}</span>
-            </div>
-          `;
-        });
-
-        if (!myId) {
-          html += '<div class="lb-login">Log in to appear on the leaderboard.<br><button onclick="GameVolt.auth.login()">LOG IN</button></div>';
-        }
-
-        leaderboardList.innerHTML = html;
-      } catch (error) {
-        console.error('Failed to load leaderboard:', error);
-        leaderboardList.innerHTML = '<div class="lb-empty">Failed to load scores</div>';
       }
     }
     

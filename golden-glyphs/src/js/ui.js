@@ -190,32 +190,45 @@ export class UI {
                 background: 'rgba(0,0,0,.28)', borderRadius: '9px', padding: '10px 14px',
                 marginBottom: '14px', fontFamily: "'Cinzel', serif", fontSize: '.8em', position: 'relative'
             });
-            leaderboardBox.textContent = 'DAILY TOP 10 · LOADING…';
+            const lbHeading = document.createElement('div');
+            lbHeading.textContent = 'DAILY TOP 10';
+            lbHeading.style.color = '#FFD700';
+            lbHeading.style.marginBottom = '7px';
+            const lbStatus = document.createElement('div');
+            lbStatus.textContent = 'LOADING…';
+            lbStatus.style.color = '#aaa';
+            const lbMount = document.createElement('div'); // shared GameVolt board mounts here
+            leaderboardBox.appendChild(lbHeading);
+            leaderboardBox.appendChild(lbStatus);
+            leaderboardBox.appendChild(lbMount);
             box.appendChild(leaderboardBox);
+            const formatDailyTime = (ms) => {
+                const value = Number(ms) || 0;
+                return `${Math.floor(value / 60000)}:${Math.floor((value % 60000) / 1000).toString().padStart(2, '0')}`;
+            };
             Promise.resolve(dailySummary.leaderboard || []).then((rows) => {
-                leaderboardBox.innerHTML = '';
-                const heading = document.createElement('div');
-                heading.textContent = 'DAILY TOP 10';
-                heading.style.color = '#FFD700';
-                heading.style.marginBottom = '7px';
-                leaderboardBox.appendChild(heading);
-                if (!rows || rows.length === 0) {
-                    const empty = document.createElement('div');
-                    empty.textContent = 'No ranked results yet — be first.';
-                    empty.style.color = '#aaa';
-                    leaderboardBox.appendChild(empty);
+                rows = rows || [];
+                if (rows.length === 0) {
+                    lbStatus.textContent = 'No ranked results yet — be first.';
                     return;
                 }
-                rows.slice(0, 10).forEach((row, index) => {
-                    const line = document.createElement('div');
-                    const timeMs = Number(row.time_ms) || 0;
-                    const rowMinutes = Math.floor(timeMs / 60000);
-                    const rowSeconds = Math.floor((timeMs % 60000) / 1000).toString().padStart(2, '0');
-                    line.textContent = `#${row.rank || index + 1}  ${row.username || 'Player'}  ${rowMinutes}:${rowSeconds}`;
-                    line.style.cssText = 'display:flex;justify-content:space-between;color:#ddd;padding:3px 0;border-top:1px solid rgba(255,255,255,.06)';
-                    leaderboardBox.appendChild(line);
+                // Standardized shared board. Without the SDK component the status
+                // line stays put so the daily result still reads sanely.
+                if (!(window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard)) {
+                    lbStatus.textContent = 'Leaderboard unavailable.';
+                    return;
+                }
+                lbStatus.remove();
+                // Time-based board: the daily rank IS the solve time, so map it into
+                // `score` and format it back to the M:SS the result screen has always shown.
+                const boardRows = rows.slice(0, 10).map((row) => Object.assign({}, row, { score: Number(row.time_ms) || 0 }));
+                GameVolt.ui.leaderboard({
+                    container: lbMount,
+                    accent: '#FFD700',
+                    fetch: () => Promise.resolve(boardRows),
+                    format: (score) => formatDailyTime(score)
                 });
-            }).catch(() => { leaderboardBox.textContent = 'DAILY TOP 10 · UNAVAILABLE'; });
+            }).catch(() => { lbStatus.textContent = 'UNAVAILABLE'; });
         } else {
             box.appendChild(title);
             const rule = document.createElement('div'); rule.className = 'gg-result-rule'; box.appendChild(rule);

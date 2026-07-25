@@ -258,6 +258,44 @@ html,body{
   }
 }
 
+/* ============================================
+   Leaderboard button – BOTTOM RIGHT corner
+   ============================================ */
+#lbWrap {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;      /* ← ur vägen för HUD och startOverlay */
+  display: flex;
+  flex-direction: row;
+  z-index: 9990;     /* ← under SDK-modalen (9991) så backdrop täcker knappen */
+  pointer-events: auto;
+  transition: opacity .25s ease;
+}
+#lbWrap.hidden { opacity: 0; pointer-events: none; }
+
+#lbBtn {
+  width: auto;
+  padding: 0 14px;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
+/* Mobil */
+@media (max-width: 768px) {
+  #lbWrap {
+    right: 12px;
+    bottom: 12px;
+  }
+  #lbBtn {
+    height: 34px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+}
+
 
 /* Slutet av CSS */
 
@@ -342,6 +380,10 @@ html,body{
   <button id="muteFX" class="muteBtn" title="Toggle FX">💥</button>
 </div>
 
+  <div id="lbWrap">
+  <button id="lbBtn" class="muteBtn" title="Leaderboard">🏆 LEADERBOARD</button>
+</div>
+
 
   <div id="targets"></div>
   <div id="whiteflash"></div>
@@ -386,6 +428,8 @@ const targetsLayer=document.getElementById('targets'),
  bgGrid=document.getElementById('bgGrid'),
  muteMusicBtn=document.getElementById('muteMusic'),
  muteFXBtn=document.getElementById('muteFX'),
+ lbWrap=document.getElementById('lbWrap'),
+ lbBtn=document.getElementById('lbBtn'),
  savedHS=document.getElementById('savedHS'),
  brandLogo=document.getElementById('brandLogo'),
  brandIntro=document.getElementById('brandIntro');
@@ -672,6 +716,14 @@ function music_play(){if(musicMuted)return;ensureAudio();if(AC.state==='suspende
 function updateMuteIcons(){muteMusicBtn.textContent=musicMuted?'🔇':'🔊';muteFXBtn.textContent=fxMuted?'🔈':'💥';muteMusicBtn.classList.toggle('off',musicMuted);muteFXBtn.classList.toggle('off',fxMuted);}
 muteMusicBtn.onclick=()=>{musicMuted=!musicMuted;if(musicMuted)music_stop();else{ensureAudio();music_play();}updateMuteIcons();};
 muteFXBtn.onclick=()=>{fxMuted=!fxMuted;updateMuteIcons();};
+/* Leaderboard — shared GameVolt board. Hidden entirely when the SDK is absent. */
+lbBtn.onclick=(e)=>{
+  e.stopPropagation();
+  if(window.GameVolt&&GameVolt.ui&&GameVolt.ui.leaderboard){
+    GameVolt.ui.leaderboard({title:'Tap Rush',mode:'default',accent:'#00ffe0',scoreLabel:'pts'});
+  }
+};
+if(!(window.GameVolt&&GameVolt.ui&&GameVolt.ui.leaderboard)) lbWrap.style.display='none';
 function saveHiScore(v){localStorage.setItem('taprushreflex_hs',v);hiscoreEl.textContent=v.toString().padStart(3,'0');savedHS.classList.add('show');setTimeout(()=>savedHS.classList.remove('show'),800);}
 function avg(a){return a.length?a.reduce((x,y)=>x+y)/a.length:0;}
 function fmt(ms){return (ms/1e3).toFixed(2)+'s';}
@@ -964,6 +1016,7 @@ function startGame() {
   levelSummary.style.display = 'none';
   levelIntro.style.display   = "none";
   gameoverEl.style.display = 'none';
+  lbWrap.classList.add('hidden');
 
   score = 0; lives = 5; level = 1;
   roundClicks = 0; reactionTimes = [];
@@ -1033,6 +1086,7 @@ function endGame(){
   const avgMs=avg(reactionTimes);
   summaryEl.innerHTML=`Score:<b>${score}</b><br>Level:<b>${level}</b><br>Avg:${reactionTimes.length?fmt(avgMs):'–'}<br>Best:${isFinite(bestReaction)?fmt(bestReaction):'–'}<br>High:${hiscore}`;
   gameoverEl.style.display='block';
+  lbWrap.classList.remove('hidden');
 
   // GameVolt: track session stats, submit to leaderboard, run trophy checks
   trMax('bestScore', score);
@@ -1188,6 +1242,7 @@ function quitToMenu() {
   // Show start screen
   startOverlay.classList.remove('hidden');
   brandIntro.classList.remove('hidden');
+  lbWrap.classList.remove('hidden');
 }
 
 function togglePause() {
