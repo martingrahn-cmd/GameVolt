@@ -397,13 +397,13 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.38.0"></script>
-  <script src="tt-ai.js?v=0.38.0"></script>
-  <script src="sb-net.js?v=0.38.0"></script>
-  <script src="tt-achievements.js?v=0.38.0"></script>
+  <script src="tt-core.js?v=0.43.0"></script>
+  <script src="tt-ai.js?v=0.43.0"></script>
+  <script src="sb-net.js?v=0.43.0"></script>
+  <script src="tt-achievements.js?v=0.43.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.38.0';
+    var VERSION = '0.43.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -453,11 +453,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.38.0', bounce: 'assets/bounce.mp3?v=0.38.0',
-        cheer: 'assets/cheer.mp3?v=0.38.0', net: 'assets/net.mp3?v=0.38.0',
-        crowd: 'assets/crowd.mp3?v=0.38.0', winfare: 'assets/winfare.mp3?v=0.38.0',
-        lose: 'assets/lose.mp3?v=0.38.0', matchpoint: 'assets/matchpoint.mp3?v=0.38.0',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.38.0', voIntro: 'assets/vo-intro.mp3?v=0.38.0'
+        hit: 'assets/hit.mp3?v=0.43.0', bounce: 'assets/bounce.mp3?v=0.43.0',
+        cheer: 'assets/cheer.mp3?v=0.43.0', net: 'assets/net.mp3?v=0.43.0',
+        crowd: 'assets/crowd.mp3?v=0.43.0', winfare: 'assets/winfare.mp3?v=0.43.0',
+        lose: 'assets/lose.mp3?v=0.43.0', matchpoint: 'assets/matchpoint.mp3?v=0.43.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.43.0', voIntro: 'assets/vo-intro.mp3?v=0.43.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -636,6 +636,9 @@
       a.fillStyle = sky; a.fillRect(0, 0, W, H * 0.5);
 
       var BARRIER_Y = K.TABLE_L + 1.25, BARRIER_H = 0.78;
+      // The side boards are the SAME barrier turned 90°: same z band, so the
+      // back wall's ad row can run edge to edge between them (see innerL/innerR).
+      var SIDE_X = 3.3;
       var bl = proj(-6, BARRIER_Y, 0), br = proj(6, BARRIER_Y, 0);
       var tl = proj(-6, BARRIER_Y, BARRIER_H), tr = proj(6, BARRIER_Y, BARRIER_H);
 
@@ -643,20 +646,26 @@
       var crowdTop = Math.max(0, tl.y - H * 0.17);
       arenaMeta.crowdTop = crowdTop; arenaMeta.crowdBot = tl.y;
       var cg = a.createLinearGradient(0, crowdTop, 0, tl.y);
-      cg.addColorStop(0, '#0a0816'); cg.addColorStop(1, '#191430');
+      cg.addColorStop(0, '#0a0816'); cg.addColorStop(1, '#20193a');
       a.fillStyle = cg; a.fillRect(0, crowdTop, W, tl.y - crowdTop);
-      for (var row = 3; row >= 0; row--) {
-        var ry = tl.y - 5 - row * H * 0.03;
-        a.fillStyle = 'rgba(7,5,16,' + (0.92 - row * 0.16) + ')';
-        for (var hx = -12; hx < W + 12; hx += 12 + row * 3) {
-          var jx = hx + arnd() * 9, jr = 4.5 + arnd() * 3 + row * 1.4;
-          a.beginPath(); a.arc(jx, ry, jr, Math.PI, 0); a.fill();
+      // tiered stands: rows of head-and-shoulder silhouettes receding upward,
+      // most in shadow with a few catching the arena light (a fuller crowd)
+      for (var row = 6; row >= 0; row--) {
+        var ry = tl.y - 4 - row * (H * 0.023);
+        var shade = 0.95 - row * 0.1;
+        for (var hx = -14; hx < W + 14; hx += 10 + row * 2) {
+          var jx = hx + arnd() * 7, jr = 3.6 + arnd() * 2.4 + row * 1.0;
+          var lit = arnd();
+          a.fillStyle = lit > 0.88 ? 'rgba(74,66,98,' + shade + ')' : (lit > 0.72 ? 'rgba(40,34,60,' + shade + ')' : 'rgba(8,6,18,' + shade + ')');
+          a.beginPath(); a.arc(jx, ry, jr, Math.PI, 0); a.fill();          // head
+          a.fillRect(jx - jr * 1.15, ry, jr * 2.3, jr * 0.85);              // shoulders
         }
       }
-      for (var clx = 0; clx < 14; clx++) {
+      // static phone lights / camera dots twinkling in the stands
+      for (var clx = 0; clx < 22; clx++) {
         var lr = arnd();
-        a.fillStyle = lr > 0.7 ? 'rgba(255,90,90,0.8)' : (lr > 0.35 ? 'rgba(215,232,255,0.65)' : 'rgba(140,190,255,0.5)');
-        a.beginPath(); a.arc(arnd() * W, crowdTop + arnd() * (tl.y - crowdTop) * 0.7, 1.2 + arnd(), 0, Math.PI * 2); a.fill();
+        a.fillStyle = lr > 0.7 ? 'rgba(255,120,120,0.8)' : (lr > 0.35 ? 'rgba(225,238,255,0.7)' : 'rgba(150,195,255,0.55)');
+        a.beginPath(); a.arc(arnd() * W, crowdTop + arnd() * (tl.y - crowdTop) * 0.82, 1.1 + arnd() * 1.2, 0, Math.PI * 2); a.fill();
       }
 
       // lighting truss with spotlights above the crowd
@@ -722,41 +731,58 @@
       a.fillText('SPINBURN OPEN', 0, 0);
       a.restore();
 
-      // FAR BARRIER: full-bleed sponsor panels, rink-style
+      // FAR BARRIER: a dark back wall with a row of sponsor panels framed
+      // neatly BETWEEN the two side barriers, so no ad hides behind a side
+      // wall or clips off the screen edge.
       var ADS = [
         { t: 'RALLYX', bg: '#101c3a', fg: '#00eaff' },
-        { t: 'VOLT+', bg: '#ece9e2', fg: '#c8281e' },
         { t: 'SPINTEC', bg: '#12266b', fg: '#ffffff' },
         { t: 'AEROPONG', bg: '#ece9e2', fg: '#12266b' },
-        { t: 'TOPSPIN PRO', bg: '#c8281e', fg: '#ffffff' },
-        { t: 'PING&CO', bg: '#101c3a', fg: '#ffd166' }
+        { t: 'TOPSPIN PRO', bg: '#c8281e', fg: '#ffffff' }
       ];
-      // Lay the panels across the VISIBLE width of the back wall (bl/br sit far
-      // off-screen at x=±6), so every sponsor is centred and fully readable
-      // instead of the edge ones being clipped by the screen.
-      var n = ADS.length;
       var L = Math.max(0, bl.x), R = Math.min(W, br.x);
+      // dark base wall across the full visible width (no gaps behind the walls)
+      a.fillStyle = '#0e1526';
+      a.fillRect(L, tl.y, R - L, bl.y - tl.y);
+      // Ad panels fill the gap between the side barriers, so the row meets the
+      // boards' far ends and the surround reads as one ring. On a narrow or
+      // portrait viewport that gap runs PAST the screen edge, so clamp it —
+      // otherwise the outermost ads lose the start/end of their label.
+      var innerL = Math.max(L, proj(-SIDE_X, BARRIER_Y, 0).x);
+      var innerR = Math.min(R, proj(SIDE_X, BARRIER_Y, 0).x);
+      var bandW = innerR - innerL, bandH = bl.y - tl.y;
+      // Fewer, wider panels when the wall is narrow: four labels across a phone
+      // screen would each be scaled below legibility.
+      var n = bandW < 560 ? 2 : ADS.length;
       for (var i = 0; i < n; i++) {
-        var x0 = L + (R - L) * (i / n), x1 = L + (R - L) * ((i + 1) / n);
+        var x0 = innerL + bandW * (i / n), x1 = innerL + bandW * ((i + 1) / n);
         a.fillStyle = ADS[i].bg;
-        a.fillRect(x0, tl.y, x1 - x0, bl.y - tl.y);
-        a.fillStyle = 'rgba(0,0,0,0.25)';
-        a.fillRect(x1 - 1.5, tl.y, 1.5, bl.y - tl.y); // panel seam
+        a.fillRect(x0, tl.y, x1 - x0, bandH);
+        a.fillStyle = 'rgba(0,0,0,0.28)';
+        a.fillRect(x1 - 1.5, tl.y, 1.5, bandH); // panel seam
         a.fillStyle = ADS[i].fg;
-        a.font = '800 ' + (bl.y - tl.y) * 0.5 + 'px "Segoe UI", system-ui, sans-serif';
+        // Scale the FONT to fit the panel; maxWidth alone only condenses, which
+        // turns a tight label into an unreadable squashed blob.
+        var afs = bandH * 0.46;
+        a.font = '800 ' + afs + 'px "Segoe UI", system-ui, sans-serif';
         a.textAlign = 'center'; a.textBaseline = 'middle';
-        a.fillText(ADS[i].t, (x0 + x1) / 2, (tl.y + bl.y) / 2 + 1, (x1 - x0) * 0.86);
+        var aNat = a.measureText(ADS[i].t).width, aAvail = (x1 - x0) * 0.88;
+        if (aNat > aAvail) {
+          afs = afs * (aAvail / aNat);
+          a.font = '800 ' + afs + 'px "Segoe UI", system-ui, sans-serif';
+        }
+        if (afs >= 8) a.fillText(ADS[i].t, (x0 + x1) / 2, (tl.y + bl.y) / 2 + 1);
       }
-      // glass-like gloss across the board panels
+      // glass-like gloss across the whole wall
       var gloss = a.createLinearGradient(0, tl.y, 0, bl.y);
-      gloss.addColorStop(0, 'rgba(255,255,255,0.16)');
+      gloss.addColorStop(0, 'rgba(255,255,255,0.14)');
       gloss.addColorStop(0.35, 'rgba(255,255,255,0.03)');
       gloss.addColorStop(1, 'rgba(0,0,0,0.10)');
       a.fillStyle = gloss;
-      a.fillRect(Math.max(0, bl.x), tl.y, Math.min(W, br.x) - Math.max(0, bl.x), bl.y - tl.y);
-      // panel colors reflected faintly on the floor
+      a.fillRect(L, tl.y, R - L, bl.y - tl.y);
+      // ad panel colours reflected faintly on the floor (only under the ads)
       for (var ri = 0; ri < n; ri++) {
-        var rx0 = L + (R - L) * (ri / n), rx1 = L + (R - L) * ((ri + 1) / n);
+        var rx0 = innerL + (innerR - innerL) * (ri / n), rx1 = innerL + (innerR - innerL) * ((ri + 1) / n);
         var rgd = a.createLinearGradient(0, bl.y, 0, bl.y + 16);
         rgd.addColorStop(0, ADS[ri].bg + '2e');
         rgd.addColorStop(1, ADS[ri].bg + '00');
@@ -773,55 +799,127 @@
       a.fillStyle = fsh;
       a.fillRect(0, bl.y, W, 12);
 
-      // SIDE BARRIERS: perspective ad panels filling the full board height
+      // SIDE BARRIERS: the back wall's own cross-section, turned 90° and run
+      // forward down the court. The board occupies the IDENTICAL z band
+      // (0 .. BARRIER_H) at a constant height, so at the corner it meets the
+      // back wall edge for edge — same base line, same top line — and the ring
+      // seals along its full height instead of leaving a wedge. z = 0 is also
+      // the plane the arena floor is drawn on, so the board reads as standing
+      // on the mat. Its near end is pulled back past the net so a barrier that
+      // is only 0.78 m tall does not loom over the foreground.
+      var SIDE_Y0 = 1.4, SIDE_Y1 = BARRIER_Y;
+      var SIDE_BASE = 0;                              // == the back wall's base
+      // Depth at which a board at |x| = sx crosses a given screen x offset from
+      // the centre. x(y) is a 1/dist hyperbola, so invert it properly instead
+      // of lerping in screen x (which mis-places everything by ~15 px).
+      function sideYatHalf(sx, halfPx) {
+        return (Math.abs(sx) * CAM.S / Math.max(20, halfPx) - CAM.d0) * K.TABLE_L / CAM.depth;
+      }
+      function sideYatX(sx, x) {
+        return sideYatHalf(sx, Math.abs(x - W / 2));
+      }
       function sidePanels(sx, panels) {
-        var yStops = [-0.55, 1.05, 2.45, BARRIER_Y];
-        for (var p2 = 0; p2 < panels.length; p2++) {
-          var y0 = yStops[p2], y1 = yStops[p2 + 1];
-          var b0 = proj(sx, y0, 0), b1 = proj(sx, y1, 0);
+        var yEdge = sideYatHalf(sx, W / 2);            // board enters the screen here
+        var yLab = sideYatHalf(sx, W / 2 - 10);        // same, with a safety margin
+        // Subdivide the VISIBLE run into equal on-screen widths. Splitting by
+        // world y instead would squash the far panels to a sliver and push
+        // their labels below the legibility floor.
+        var yStart = Math.max(SIDE_Y0, yEdge);
+        if (yStart > SIDE_Y1 - 0.15) return;           // board is entirely off-screen
+        var xS = proj(sx, yStart, SIDE_BASE).x, xE = proj(sx, SIDE_Y1, SIDE_BASE).x;
+        // On a narrow viewport only the last stretch of the board is on screen;
+        // splitting that into two panels would starve both labels, so fall back
+        // to a single panel that still carries one readable ad.
+        var nP = Math.abs(xE - xS) < 190 ? 1 : panels.length;
+        for (var p2 = 0; p2 < nP; p2++) {
+          var y0 = p2 === 0 ? yStart : Math.min(SIDE_Y1, Math.max(yStart, sideYatX(sx, xS + (xE - xS) * (p2 / nP))));
+          var y1 = p2 === nP - 1 ? SIDE_Y1 : Math.min(SIDE_Y1, Math.max(yStart, sideYatX(sx, xS + (xE - xS) * ((p2 + 1) / nP))));
+          if (y1 - y0 < 0.02) continue;
+          var b0 = proj(sx, y0, SIDE_BASE), b1 = proj(sx, y1, SIDE_BASE);
           var t0 = proj(sx, y0, BARRIER_H), t1 = proj(sx, y1, BARRIER_H);
-          a.fillStyle = panels[p2].bg;
+          a.save();
           a.beginPath();
           a.moveTo(b0.x, b0.y); a.lineTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.lineTo(t0.x, t0.y);
-          a.closePath(); a.fill();
+          a.closePath();
+          a.fillStyle = panels[p2].bg;
+          a.fill();
+          a.clip(); // keep the label strictly inside its own ad panel
           a.strokeStyle = 'rgba(0,0,0,0.28)'; a.lineWidth = 1.5;
           a.beginPath(); a.moveTo(b1.x, b1.y); a.lineTo(t1.x, t1.y); a.stroke();
-          // depth-scaled text along the board
-          var ym = (y0 + y1) / 2;
-          var bm = proj(sx, ym, 0), tm = proj(sx, ym, BARRIER_H);
-          var panelLen = Math.hypot(b1.x - b0.x, b1.y - b0.y);
-          a.save();
-          a.translate((bm.x + tm.x) / 2, (bm.y + tm.y) / 2);
-          var ang = Math.atan2(b1.y - b0.y, b1.x - b0.x);
-          if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI; // keep text upright
-          a.rotate(ang);
-          a.fillStyle = panels[p2].fg;
-          a.font = '800 ' + Math.abs(bm.y - tm.y) * 0.5 + 'px "Segoe UI", system-ui, sans-serif';
-          a.textAlign = 'center'; a.textBaseline = 'middle';
-          a.fillText(panels[p2].t, 0, 0, panelLen * 0.86);
+          // Label sits inside the ON-SCREEN part of the panel only. Clamp the
+          // panel's y-range to what the screen actually shows, centre the text
+          // on that run, then size it so its ROTATED box fits between the
+          // panel's two vertical end edges — a label is either fully readable
+          // inside its own panel or it is not drawn at all.
+          var yA = Math.max(y0, yLab), yB = y1;
+          if (yB - yA > 0.12) {
+            var xA = proj(sx, yA, SIDE_BASE).x, xB = proj(sx, yB, SIDE_BASE).x;
+            var xc = (xA + xB) / 2, yc = (yA + yB) / 2;
+            // x(y) is a 1/dist hyperbola — invert it so the label lands on the
+            // true centre of the visible run instead of lerping in screen x.
+            if (Math.abs(xc - W / 2) > 1) {
+              var dc = sx * CAM.S / (xc - W / 2);
+              yc = Math.max(yA, Math.min(yB, (dc - CAM.d0) * K.TABLE_L / CAM.depth));
+            }
+            var bm = proj(sx, yc, SIDE_BASE), tm = proj(sx, yc, BARRIER_H);
+            var hMid = Math.abs(bm.y - tm.y);
+            var hEnd = Math.abs(proj(sx, yB, SIDE_BASE).y - proj(sx, yB, BARRIER_H).y);
+            a.translate(bm.x, (bm.y + tm.y) / 2);
+            var ang = Math.atan2(b1.y - b0.y, b1.x - b0.x);
+            if (ang > Math.PI / 2 || ang < -Math.PI / 2) ang += Math.PI; // keep text upright
+            a.rotate(ang);
+            a.fillStyle = panels[p2].fg;
+            a.textAlign = 'center'; a.textBaseline = 'middle';
+            // Height budget: fit the panel at its shallower far end too.
+            var fs = Math.min(hMid * 0.44, hEnd * 0.62);
+            a.font = '800 ' + fs + 'px "Segoe UI", system-ui, sans-serif';
+            // Width budget: the panel's end edges are VERTICAL while the text
+            // is rotated, so the box reaches (w/2)|cos| + (h/2)|sin| in screen
+            // x. Solve that against the panel's half width instead of comparing
+            // an along-axis length with a horizontal one.
+            var kw = a.measureText(panels[p2].t).width / fs;  // width per px of font size
+            var room = Math.abs(xB - xA) * 0.45;              // half width, 10% padding
+            var fsFit = 2 * room / (kw * Math.abs(Math.cos(ang)) + Math.abs(Math.sin(ang)));
+            if (fsFit < fs) { fs = fsFit; a.font = '800 ' + fs + 'px "Segoe UI", system-ui, sans-serif'; }
+            if (fs >= 10) a.fillText(panels[p2].t, 0, 0); // skip illegibly small labels
+          }
           a.restore();
         }
-        // top tape + floor shadow along the board
-        var st0 = proj(sx, -0.55, BARRIER_H), st1 = proj(sx, BARRIER_Y, BARRIER_H);
-        a.strokeStyle = 'rgba(255,255,255,0.85)'; a.lineWidth = 2;
-        a.beginPath(); a.moveTo(st0.x, st0.y); a.lineTo(st1.x, st1.y); a.stroke();
-        var sb0 = proj(sx, -0.55, 0), sb1 = proj(sx, BARRIER_Y, 0);
+        // near end cap: the board's own thickness, so the run ends on a post
+        // instead of a cut edge. The ad face is the INNER face at sx and the
+        // body sits OUTBOARD of it, so the cap never paints over a label.
+        var ex = sx + (sx < 0 ? -0.13 : 0.13);
+        var e0 = proj(sx, SIDE_Y0, SIDE_BASE), e1 = proj(sx, SIDE_Y0, BARRIER_H);
+        var e2 = proj(ex, SIDE_Y0, BARRIER_H), e3 = proj(ex, SIDE_Y0, SIDE_BASE);
+        a.fillStyle = '#0e1526';
+        a.beginPath();
+        a.moveTo(e0.x, e0.y); a.lineTo(e1.x, e1.y); a.lineTo(e2.x, e2.y); a.lineTo(e3.x, e3.y);
+        a.closePath(); a.fill();
+        // white top tape + cyan LED accent, matching the back wall's rail
+        var st0 = proj(sx, SIDE_Y0, BARRIER_H), st1 = proj(sx, SIDE_Y1, BARRIER_H);
+        a.strokeStyle = 'rgba(255,255,255,0.9)'; a.lineWidth = 2.5;
+        a.beginPath(); a.moveTo(st0.x, st0.y - 1.2); a.lineTo(st1.x, st1.y - 1.2); a.stroke();
+        a.strokeStyle = 'rgba(0,220,255,0.35)'; a.lineWidth = 1.5;
+        a.beginPath(); a.moveTo(st0.x, st0.y - 3.4); a.lineTo(st1.x, st1.y - 3.4); a.stroke();
+        // soft floor shadow along the board base
+        var sb0 = proj(sx, SIDE_Y0, SIDE_BASE), sb1 = proj(sx, SIDE_Y1, SIDE_BASE);
         var inward = sx < 0 ? 9 : -9;
-        a.fillStyle = 'rgba(0,0,0,0.22)';
+        a.fillStyle = 'rgba(0,0,0,0.28)';
         a.beginPath();
         a.moveTo(sb0.x, sb0.y); a.lineTo(sb1.x, sb1.y);
         a.lineTo(sb1.x + inward * 0.4, sb1.y + 3); a.lineTo(sb0.x + inward, sb0.y + 6);
         a.closePath(); a.fill();
       }
-      sidePanels(-2.6, [
-        { t: 'SMASH ENERGY', bg: '#c8281e', fg: '#ffffff' },
-        { t: 'PADDLE KING', bg: '#0b1226', fg: '#00eaff' },
-        { t: 'VOLT+', bg: '#ece9e2', fg: '#c8281e' }
+      // Nearest panel first. Two per side: the boards only cover ~250 px of
+      // screen width, and three panels squeeze every label under the 10 px
+      // legibility floor, which the label code then (correctly) drops.
+      sidePanels(-SIDE_X, [
+        { t: 'SMASH', bg: '#c8281e', fg: '#ffffff' },
+        { t: 'PADDLE KING', bg: '#0b1226', fg: '#00eaff' }
       ]);
-      sidePanels(2.6, [
-        { t: 'VOLTARENA', bg: '#12266b', fg: '#ffffff' },
-        { t: 'SPIN LAB', bg: '#1a0b22', fg: '#ff4dd2' },
-        { t: 'SPINTEC', bg: '#ece9e2', fg: '#12266b' }
+      sidePanels(SIDE_X, [
+        { t: 'VOLT+', bg: '#ece9e2', fg: '#c8281e' },
+        { t: 'SPIN LAB', bg: '#1a0b22', fg: '#ff4dd2' }
       ]);
 
       // floor reflection of the table below its near edge
@@ -908,6 +1006,31 @@
       }
     }
 
+    // Live crowd: ambient twinkling that ERUPTS into camera-flash applause when
+    // the player wins a ball. crowdFx is the excitement level (0 = idle).
+    var crowdFx = 0;
+    function crowdReact(strength) { crowdFx = Math.min(1.6, crowdFx + (strength || 1)); }
+    function drawCrowd() {
+      var top = arenaMeta.crowdTop, bot = arenaMeta.crowdBot;
+      if (!bot) return;
+      var band = bot - top;
+      var n = 5 + Math.round(crowdFx * 70); // idle shimmer -> full applause
+      for (var i = 0; i < n; i++) {
+        var x = Math.random() * W, y = top + Math.random() * band * 0.92;
+        var bright = 0.25 + Math.random() * 0.55;
+        var r = 0.8 + Math.random() * (1.2 + crowdFx * 1.8);
+        ctx.fillStyle = Math.random() > 0.86 ? 'rgba(255,185,120,' + bright + ')' : 'rgba(240,248,255,' + bright + ')';
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      }
+      if (crowdFx > 0.05) { // warm glow washes the stands as the crowd erupts
+        var glow = ctx.createLinearGradient(0, top, 0, bot);
+        glow.addColorStop(0, 'rgba(255,214,150,' + (0.09 * crowdFx).toFixed(3) + ')');
+        glow.addColorStop(1, 'rgba(255,214,150,0)');
+        ctx.fillStyle = glow; ctx.fillRect(0, top, W, band);
+      }
+      if (crowdFx > 0) crowdFx *= 0.975; // ~1.5s to settle
+    }
+
     var shook = false;
     function draw() {
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -919,6 +1042,7 @@
       }
       if (!arenaCv) buildArena();
       ctx.drawImage(arenaCv, 0, 0, W, H);
+      drawCrowd(); // live twinkles / applause over the static stands
       // gentle breathing of the under-table light
       var gp2 = proj(0, 1.35, K.FLOOR_Z);
       var pulse = 0.09 + 0.045 * Math.sin(performance.now() / 900);
@@ -1030,7 +1154,8 @@
     }
 
     function drawNet() {
-      var hw = K.TABLE_W / 2 + 0.12;
+      var hwT = K.TABLE_W / 2;      // table edge (the white sideline)
+      var hw = hwT + 0.09;          // the net overhangs the table slightly, like a real net
       var bl = proj(-hw, K.NET_Y, 0), br = proj(hw, K.NET_Y, 0);
       var tl = proj(-hw, K.NET_Y, K.NET_H), tr = proj(hw, K.NET_Y, K.NET_H);
       var pm = ppm(K.NET_Y);
@@ -1073,17 +1198,29 @@
       ctx.beginPath(); ctx.moveTo(acc.x, acc.y); ctx.lineTo(accR.x, accR.y);
       ctx.lineTo(np(1, 0.93).x, np(1, 0.93).y); ctx.lineTo(np(0, 0.93).x, np(0, 0.93).y);
       ctx.closePath(); ctx.fill();
-      // posts + clamps at each end
-      [{ b: bl, t: tl, i: 1 }, { b: br, t: tr, i: -1 }].forEach(function (P) {
+      // Posts sit at the net's outer edge (past the table), each joined to the
+      // table's side edge by a clamp arm that grips the white sideline — the
+      // real net-post assembly, so it reads as fixed to the table, not floating.
+      [{ b: bl, t: tl, edgeX: -hwT, i: 1 }, { b: br, t: tr, edgeX: hwT, i: -1 }].forEach(function (P) {
+        var e = proj(P.edgeX, K.NET_Y, 0); // table-edge clamp point
+        // clamp arm from the table edge out to the post base
         ctx.strokeStyle = '#20263e';
-        ctx.lineWidth = Math.max(2.5, 0.03 * pm);
-        ctx.beginPath(); ctx.moveTo(P.b.x, P.b.y); ctx.lineTo(P.t.x, P.t.y); ctx.stroke();
-        ctx.strokeStyle = 'rgba(150,170,210,0.55)'; // metallic edge highlight
-        ctx.lineWidth = Math.max(1, 0.012 * pm);
-        ctx.beginPath(); ctx.moveTo(P.b.x + P.i * 1.2, P.b.y); ctx.lineTo(P.t.x + P.i * 1.2, P.t.y); ctx.stroke();
-        // clamp block at the base
+        ctx.lineWidth = Math.max(2, 0.03 * pm);
+        ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(P.b.x, P.b.y); ctx.stroke();
+        // clamp bracket gripping over the table lip
+        ctx.fillStyle = '#12172a';
+        ctx.fillRect(e.x - 0.028 * pm, e.y - 0.008 * pm, 0.056 * pm, 0.085 * pm);
         ctx.fillStyle = '#2b3350';
-        ctx.fillRect(P.b.x - 0.03 * pm, P.b.y - 0.02 * pm, 0.06 * pm, 0.05 * pm);
+        ctx.fillRect(e.x - 0.02 * pm, e.y - 0.022 * pm, 0.04 * pm, 0.05 * pm);
+        ctx.fillStyle = 'rgba(180,196,226,0.75)'; // clamp screw
+        ctx.beginPath(); ctx.arc(e.x, e.y + 0.02 * pm, Math.max(1, 0.009 * pm), 0, Math.PI * 2); ctx.fill();
+        // post
+        ctx.strokeStyle = '#242a44';
+        ctx.lineWidth = Math.max(2.5, 0.028 * pm);
+        ctx.beginPath(); ctx.moveTo(P.b.x, P.b.y); ctx.lineTo(P.t.x, P.t.y); ctx.stroke();
+        ctx.strokeStyle = 'rgba(150,170,210,0.5)'; // metallic edge highlight
+        ctx.lineWidth = Math.max(1, 0.011 * pm);
+        ctx.beginPath(); ctx.moveTo(P.b.x + P.i * 1.2, P.b.y); ctx.lineTo(P.t.x + P.i * 1.2, P.t.y); ctx.stroke();
       });
     }
 
@@ -1249,9 +1386,9 @@
       ctx.beginPath(); ctx.roundRect(-r * 0.145, r * 0.6, r * 0.07, r * 0.82, r * 0.05); ctx.fill(); // grip highlight
       // --- blade: pale wood/tape edge, then the rubber face ---
       ctx.fillStyle = '#efe6d2';
-      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.9, r * 1.0, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.86, r * 0.96, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = 'rgba(0,0,0,0.18)'; // thin shade line inside the edge
-      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.83, r * 0.93, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, 0, r * 0.82, r * 0.92, 0, 0, Math.PI * 2); ctx.fill();
       var bg = ctx.createRadialGradient(-r * 0.26, -r * 0.3, r * 0.15, 0, 0, r);
       bg.addColorStop(0, color); bg.addColorStop(0.72, color); bg.addColorStop(1, dark);
       ctx.fillStyle = bg;
@@ -1273,11 +1410,11 @@
       var target = Math.max(-1.55, Math.min(1.55, (pad.x / xm) * 1.5 + pointerVX * 0.05));
       padTilt += (target - padTilt) * 0.18;
       padKick *= 0.85;
-      paddleShape(pad.x, K.PADDLE_Y[1], pad.z, 0.18, '#ff4d4d', '#a3122a', padTilt + padKick);
+      paddleShape(pad.x, K.PADDLE_Y[1], pad.z, 0.15, '#ff4d4d', '#a3122a', padTilt + padKick);
     }
     function drawFarPaddle() {
       var pad = game.paddles[2];
-      paddleShape(pad.x, K.PADDLE_Y[2], pad.z, 0.17, '#3aa0ff', '#134a91',
+      paddleShape(pad.x, K.PADDLE_Y[2], pad.z, 0.14, '#3aa0ff', '#134a91',
         Math.max(-1.2, Math.min(1.2, -pad.x * 0.9)));
     }
 
@@ -1851,6 +1988,7 @@
           if (game.scores[2] - game.scores[1] > mMaxDeficit) mMaxDeficit = game.scores[2] - game.scores[1];
           if (window.SBTrophies) SBTrophies.event('point', { mine: mine, ace: ace, rally: rHits, lead: game.scores[1] - game.scores[2] });
           Sound.point(e.to === 1);
+          if (e.to === 1) crowdReact(1); // the crowd applauds a won ball
           updateHud();
           if (!res.events.some(function (x) { return x.type === 'over'; })) {
             addLabel(e.to === 1 ? 'POINT!' : (campaignOpp ? campaignOpp.short : 'AI') + ' POINT', W / 2, H * 0.42,
@@ -1872,7 +2010,7 @@
           pointTimer = 66; // ~1.1s pause, ball physics keep settling
         } else if (e.type === 'over') {
           Sound.end(e.winner === 1);
-          if (e.winner === 1) Sound.bigCheer(); // fuller applause roar on the winning ball
+          if (e.winner === 1) { Sound.bigCheer(); crowdReact(1.6); } // fuller roar + crowd eruption on the winning ball
           showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — ' + (campaignOpp ? campaignOpp.short : 'AI'), 1400);
           endMatch();
         }
@@ -1936,6 +2074,7 @@
           // I'm the authority (mirror never scores): tell the opponent
           netSend('pt', { as: game.scores[1], os: game.scores[2], authWon: e.to === 1 });
           Sound.point(e.to === 1);
+          if (e.to === 1) crowdReact(1); // the crowd applauds a won ball
           updateHud();
           if (!res.events.some(function (x) { return x.type === 'over'; })) {
             addLabel(e.to === 1 ? 'POINT!' : 'RIVAL POINT', W / 2, H * 0.42, e.to === 1 ? '#7dffb0' : '#ff8aa8', 46, 1150);
@@ -1945,7 +2084,7 @@
         }
         if (e.type === 'over') {
           Sound.end(e.winner === 1);
-          if (e.winner === 1) Sound.bigCheer(); // fuller applause roar on the winning ball
+          if (e.winner === 1) { Sound.bigCheer(); crowdReact(1.6); } // fuller roar + crowd eruption on the winning ball
           showBanner(e.winner === 1 ? 'GAME — YOU!' : 'GAME — RIVAL', 1400);
           endOnlineMatch();
         }
@@ -2432,6 +2571,7 @@
       get ui() { return ui; },
       get game() { return game; },
       get level() { return level; },
+      crowdReact: crowdReact,
       // test hook: force a finished match to inspect the match report
       _finish: function (myScore, oppScore) {
         if (!game) return;
