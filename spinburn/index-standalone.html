@@ -202,7 +202,7 @@
       border-radius: 999px; padding: 8px 20px; cursor: pointer; margin-top: 8px;
     }
     #install-btn.hidden, #ios-hint.hidden, #update-chip.hidden, #ladder-reset.hidden,
-    #ol-share.hidden, #ol-code-box.hidden { display: none; }
+    #ol-share.hidden, #ol-code-box.hidden, #leaderboard-btn.hidden { display: none; }
     #ios-hint { font-size: 0.64rem; color: #8fa8c8; letter-spacing: 1px; margin-top: 8px; text-align: center; }
     #update-chip {
       font-family: inherit; font-weight: 800; letter-spacing: 2px; font-size: 0.78rem;
@@ -299,15 +299,15 @@
     <div id="ticker"><div class="tick-in">SPINTEC · AEROPONG · VOLT+ · TOPSPIN PRO · RALLYX · PING&amp;CO · SMASH ENERGY · VOLTARENA · PADDLE KING · SPIN LAB ·&nbsp;&nbsp;SPINTEC · AEROPONG · VOLT+ · TOPSPIN PRO · RALLYX · PING&amp;CO · SMASH ENERGY · VOLTARENA · PADDLE KING · SPIN LAB ·&nbsp;&nbsp;</div></div>
     <div class="title">SPINBURN</div>
     <div class="subtitle">2.5D arcade table tennis</div>
-    <div class="proto-tag">Spinburn Open · online &amp; vs AI</div>
+    <div class="proto-tag">Spinburn Open · beat all three</div>
     <div style="height:8px"></div>
     <button class="btn camp" id="campaign-btn">🏆 CAMPAIGN</button>
-    <button class="btn online" id="online-btn">🌐 PLAY ONLINE</button>
     <div class="menu-note" style="margin:2px 0 -6px">QUICK MATCH</div>
     <button class="btn easy" data-level="easy">EASY</button>
     <button class="btn medium" data-level="medium">MEDIUM</button>
     <button class="btn hard" data-level="hard">HARD</button>
     <button class="btn ghost" id="trophies-btn">🏆 TROPHIES</button>
+    <button class="btn ghost" id="leaderboard-btn">🏆 LEADERBOARD</button>
     <div class="menu-note">Drag to move your paddle — swipe through the ball to aim.<br>First to 11, win by 2. Tap to toss, then swipe through the ball to strike the serve.</div>
   </div>
 
@@ -397,13 +397,13 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.43.0"></script>
-  <script src="tt-ai.js?v=0.43.0"></script>
-  <script src="sb-net.js?v=0.43.0"></script>
-  <script src="tt-achievements.js?v=0.43.0"></script>
+  <script src="tt-core.js?v=0.44.0"></script>
+  <script src="tt-ai.js?v=0.44.0"></script>
+  <script src="sb-net.js?v=0.44.0"></script>
+  <script src="tt-achievements.js?v=0.44.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.43.0';
+    var VERSION = '0.44.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -453,11 +453,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.43.0', bounce: 'assets/bounce.mp3?v=0.43.0',
-        cheer: 'assets/cheer.mp3?v=0.43.0', net: 'assets/net.mp3?v=0.43.0',
-        crowd: 'assets/crowd.mp3?v=0.43.0', winfare: 'assets/winfare.mp3?v=0.43.0',
-        lose: 'assets/lose.mp3?v=0.43.0', matchpoint: 'assets/matchpoint.mp3?v=0.43.0',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.43.0', voIntro: 'assets/vo-intro.mp3?v=0.43.0'
+        hit: 'assets/hit.mp3?v=0.44.0', bounce: 'assets/bounce.mp3?v=0.44.0',
+        cheer: 'assets/cheer.mp3?v=0.44.0', net: 'assets/net.mp3?v=0.44.0',
+        crowd: 'assets/crowd.mp3?v=0.44.0', winfare: 'assets/winfare.mp3?v=0.44.0',
+        lose: 'assets/lose.mp3?v=0.44.0', matchpoint: 'assets/matchpoint.mp3?v=0.44.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.44.0', voIntro: 'assets/vo-intro.mp3?v=0.44.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -1031,6 +1031,68 @@
       if (crowdFx > 0) crowdFx *= 0.975; // ~1.5s to settle
     }
 
+    // ---------- first-run coach: teaches the two-part serve gesture ----------
+    // Text alone does not teach a gesture. A new player taps, never swipes, and
+    // then quietly loses points without understanding why — so animate the
+    // motion until they land one real swipe-serve, then never show it again.
+    var coachDone = false;
+    try { coachDone = localStorage.getItem('ttCoach') === '1'; } catch (e) {}
+    function coachClear() {
+      if (coachDone) return;
+      coachDone = true;
+      try { localStorage.setItem('ttCoach', '1'); } catch (e) {}
+    }
+    function coachText(txt, x, y) {
+      ctx.font = '800 15px "Segoe UI", system-ui, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      var w = ctx.measureText(txt).width + 26;
+      x = Math.max(w / 2 + 6, Math.min(W - w / 2 - 6, x));
+      y = Math.min(H - 34, y);
+      ctx.fillStyle = 'rgba(10,8,20,0.82)';
+      ctx.beginPath(); ctx.roundRect(x - w / 2, y - 15, w, 30, 15); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,209,102,0.55)'; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = '#ffd166';
+      ctx.fillText(txt, x, y + 1);
+    }
+    function drawCoach() {
+      if (coachDone || !game || ui !== 'playing') return;
+      if (game.phase !== 'serve' || game.server !== 1) return;
+      var t = performance.now() / 1000;
+      var pad = game.paddles[1];
+      var p = proj(pad.x, K.PADDLE_Y[1], pad.z);
+      ctx.save();
+      if (!toss) {
+        // stage 1 — tap to toss: a ring pulsing out from the paddle
+        var pulse = (t % 1.2) / 1.2;
+        ctx.strokeStyle = 'rgba(255,209,102,' + (0.85 * (1 - pulse)).toFixed(3) + ')';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 18 + pulse * 40, 0, Math.PI * 2); ctx.stroke();
+        coachText('TAP TO TOSS', p.x, p.y + 76);
+      } else {
+        // stage 2 — swipe: a finger travelling up through the tossed ball
+        var f = (t % 1.35) / 1.35;
+        var bp = proj(game.ball.x, game.ball.y, game.ball.z);
+        var x0 = p.x, y0 = p.y + 46, y1 = bp.y - 34;
+        var e = f < 0.75 ? f / 0.75 : 1;              // travel, then hold
+        var ease = e * e * (3 - 2 * e);
+        var cy = y0 + (y1 - y0) * ease;
+        var al = f < 0.75 ? 1 : 1 - (f - 0.75) / 0.25;
+        var grad = ctx.createLinearGradient(0, y0, 0, cy);
+        grad.addColorStop(0, 'rgba(255,209,102,0)');
+        grad.addColorStop(1, 'rgba(255,209,102,' + (0.55 * al).toFixed(3) + ')');
+        ctx.strokeStyle = grad; ctx.lineWidth = 5; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0, cy); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,209,102,' + al.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.moveTo(x0, cy - 13); ctx.lineTo(x0 - 9, cy + 5); ctx.lineTo(x0 + 9, cy + 5);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,' + (0.9 * al).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(x0, cy + 14, 7, 0, Math.PI * 2); ctx.fill();
+        coachText('SWIPE UP THROUGH THE BALL', p.x, p.y + 76);
+      }
+      ctx.restore();
+    }
+
     var shook = false;
     function draw() {
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -1140,6 +1202,7 @@
 
       drawNearPaddle();
       if (ballOnTop && !ballBehindNet) drawBall();
+      drawCoach();
     }
 
     function trapezoid(x0, y0, x1, y1, z) {
@@ -1941,6 +2004,8 @@
           spawnSparks(sp3.x, sp3.y, aim.pace, 1);
           addLabel('POWER SERVE!', sp3.x, sp3.y - 26, '#7fd8ff');
         }
+        // a real swipe-serve means the gesture landed — retire the coach
+        if (wasHuman && toss.strikeAt !== undefined) coachClear();
         toss = null;
         if (wasHuman) padKick = 0.55;
         return true;
@@ -2210,6 +2275,20 @@
     });
     document.getElementById('campaign-btn').addEventListener('click', openLadder);
     document.getElementById('trophies-btn').addEventListener('click', openTrophies);
+    // shared GameVolt board — same modal in every game; hidden when the SDK isn't there
+    var lbBtn = document.getElementById('leaderboard-btn');
+    if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
+      lbBtn.addEventListener('click', function () {
+        GameVolt.ui.leaderboard({
+          title: 'SPINBURN',
+          mode: 'default',
+          accent: '#00eaff',
+          scoreLabel: 'pts'
+        });
+      });
+    } else {
+      lbBtn.classList.add('hidden');
+    }
     document.getElementById('trophies-back').addEventListener('click', closeTrophies);
     document.getElementById('vs-fight').addEventListener('click', function () {
       campIdx = vsIdx;
@@ -2257,7 +2336,7 @@
       onlineEl.classList.add('hidden');
       el.menu.classList.remove('hidden');
     }
-    document.getElementById('online-btn').addEventListener('click', openOnline);
+    var olBtn = document.getElementById('online-btn'); if (olBtn) olBtn.addEventListener('click', openOnline); // absent in portal builds
     document.getElementById('ol-back').addEventListener('click', closeOnline);
 
     // ---- online character select: both players pick from the four fighters ----
@@ -2546,7 +2625,7 @@
     }
     // Invite links: /spinburn/?join=CODE drops straight into the room.
     try {
-      var joinCode = (new URLSearchParams(location.search).get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      var joinCode = ''; // ?join= invite links are disabled in portal builds
       if (joinCode.length === 4) {
         history.replaceState(null, '', location.pathname);
         openOnline();
