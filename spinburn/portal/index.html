@@ -309,9 +309,10 @@
     <div id="ticker"><div class="tick-in">SPINTEC · AEROPONG · VOLT+ · TOPSPIN PRO · RALLYX · PING&amp;CO · SMASH ENERGY · VOLTARENA · PADDLE KING · SPIN LAB ·&nbsp;&nbsp;SPINTEC · AEROPONG · VOLT+ · TOPSPIN PRO · RALLYX · PING&amp;CO · SMASH ENERGY · VOLTARENA · PADDLE KING · SPIN LAB ·&nbsp;&nbsp;</div></div>
     <div class="title">SPINBURN</div>
     <div class="subtitle">2.5D arcade table tennis</div>
-    <div class="proto-tag">Spinburn Open · beat all three</div>
+    <div class="proto-tag">Spinburn Open · online &amp; vs AI</div>
     <div style="height:8px"></div>
     <button class="btn camp" id="campaign-btn">🏆 CAMPAIGN</button>
+    <button class="btn online" id="online-btn">🌐 PLAY ONLINE</button>
     <div class="menu-note" style="margin:2px 0 -6px">QUICK MATCH</div>
     <button class="btn easy" data-level="easy">EASY</button>
     <button class="btn medium" data-level="medium">MEDIUM</button>
@@ -2346,7 +2347,7 @@
       onlineEl.classList.add('hidden');
       el.menu.classList.remove('hidden');
     }
-    var olBtn = document.getElementById('online-btn'); if (olBtn) olBtn.addEventListener('click', openOnline); // absent in portal builds
+    document.getElementById('online-btn').addEventListener('click', openOnline);
     document.getElementById('ol-back').addEventListener('click', closeOnline);
 
     // ---- online character select: both players pick from the four fighters ----
@@ -2635,7 +2636,7 @@
     }
     // Invite links: /spinburn/?join=CODE drops straight into the room.
     try {
-      var joinCode = ''; // ?join= invite links are disabled in portal builds
+      var joinCode = (new URLSearchParams(location.search).get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (joinCode.length === 4) {
         history.replaceState(null, '', location.pathname);
         openOnline();

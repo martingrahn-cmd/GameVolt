@@ -2346,7 +2346,7 @@
       onlineEl.classList.add('hidden');
       el.menu.classList.remove('hidden');
     }
-    var olBtn = document.getElementById('online-btn'); if (olBtn) olBtn.addEventListener('click', openOnline); // absent in portal builds
+    var olBtn = document.getElementById('online-btn'); if (olBtn) olBtn.addEventListener('click', openOnline); // absent in this build
     document.getElementById('ol-back').addEventListener('click', closeOnline);
 
     // ---- online character select: both players pick from the four fighters ----
@@ -2635,7 +2635,7 @@
     }
     // Invite links: /spinburn/?join=CODE drops straight into the room.
     try {
-      var joinCode = ''; // ?join= invite links are disabled in portal builds
+      var joinCode = ''; // ?join= invite links are disabled in this build
       if (joinCode.length === 4) {
         history.replaceState(null, '', location.pathname);
         openOnline();
