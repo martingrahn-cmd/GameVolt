@@ -2175,25 +2175,35 @@ function checkPlatinum(){
 }
 
 // ===== LEADERBOARD =====
+// Minesweeper is a race: lower time wins. The Supabase board always ranks
+// score DESC, so a raw seconds value would put the SLOWEST clear on top.
+// Store the time inverted instead — same convention Sudoku uses — and decode
+// it for display. The '-v2' modes start the boards fresh: rows submitted under
+// the old raw-seconds encoding are left behind rather than mixed in, where
+// they would rank below every new entry and render as nonsense times.
+const LB_TIME_BASE = 100000;
+const lbEncodeTime = s => Math.max(0, LB_TIME_BASE - Math.round(s));
+const lbDecodeTime = v => Math.max(0, LB_TIME_BASE - Number(v || 0));
+const lbMode = () => (isDaily ? `daily-v2-${getTodayKey()}` : `${difficulty}-v2`);
+
 async function submitScore(){
   if(!window.GameVolt)return;
-  const mode = isDaily ? `daily-${getTodayKey()}` : difficulty;
-  try{await GameVolt.leaderboard.submit(seconds,{mode});}catch(e){}
+  try{await GameVolt.leaderboard.submit(lbEncodeTime(seconds),{mode:lbMode()});}catch(e){}
 }
 
-// Global board — one tab per submitted mode. Scores are clear times in seconds.
+// Global board — one tab per submitted mode, fastest clear first.
 function showLeaderboard(){
   if(!(window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard)) return;
   GameVolt.ui.leaderboard({
     title: 'Minesweeper',
     tabs: [
-      { label:'Easy', mode:'easy' },
-      { label:'Medium', mode:'medium' },
-      { label:'Hard', mode:'hard' },
-      { label:'Daily', mode:`daily-${getTodayKey()}` }
+      { label:'Easy', mode:'easy-v2' },
+      { label:'Medium', mode:'medium-v2' },
+      { label:'Hard', mode:'hard-v2' },
+      { label:'Daily', mode:`daily-v2-${getTodayKey()}` }
     ],
     accent: '#2de4ff',
-    format: v => formatTime(v)
+    format: v => formatTime(lbDecodeTime(v))
   });
 }
 

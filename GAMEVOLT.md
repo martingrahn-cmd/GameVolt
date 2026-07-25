@@ -160,6 +160,21 @@ await GameVolt.leaderboard.get({
 await GameVolt.leaderboard.getRank({ mode: 'default' })
 ```
 
+> **Score direction — read before adding a time-based board.** `get_leaderboard`
+> always ranks `score DESC`, i.e. **higher is better**. For a game where *lower
+> is better* (a clear time, fewest moves), submitting the raw value silently puts
+> the WORST run on top. Store it inverted instead — `score = 100000 - seconds` —
+> and decode it for display with `format`. Sudoku and Minesweeper both do this.
+> Higher-is-better values (points, survival time, count solved) are submitted
+> as-is. Changing an existing board's encoding needs a fresh `mode` name
+> (e.g. `easy-v2`), otherwise old and new rows are ranked on different scales.
+
+**Standardized board UI:** every game shows its leaderboard through
+`GameVolt.ui.leaderboard({...})` — one shared component (rank + avatar face +
+name + score, own-row highlight, sign-in prompt, tabs, states). Pass `container`
+to mount it inline in the game's own panel, omit it for the standard modal. Only
+supply data + accent; never re-implement rows. See the SDK for the full options.
+
 #### Phase 3 — Achievements & Daily Challenges
 
 ```javascript
