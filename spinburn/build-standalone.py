@@ -139,6 +139,36 @@ def scrub_branding(t):
         ('HOVERDASH', 'SPIN LAB'),
     ]:
         t = t.replace(a, b)
+
+    # The three campaign rivals are named after film characters on gamevolt.io —
+    # a private easter egg. Portals screen for IP and a reviewer has no time to
+    # weigh homage against infringement, so the portal builds get original
+    # names. Only the text changes: the pixel portraits are generic archetypes
+    # (a suited fixer, a cigar-chewing general, a headbanded fighter), not
+    # likenesses, so they carry over unchanged. Asset filenames keep their
+    # original ids — they are internal and never shown to a player.
+    for a, b in [
+        # names, longest first so the short forms can't match early
+        ("name: 'HANS GRUBER', short: 'GRUBER'", "name: 'KLAUS VOGEL', short: 'VOGEL'"),
+        ("name: 'GENERAL HUMMEL', short: 'HUMMEL'", "name: 'GENERAL HOLLIS', short: 'HOLLIS'"),
+        ("name: 'CHONG LI', short: 'CHONG LI'", "name: 'LONG WEI', short: 'LONG WEI'"),
+        # dialogue that names them
+        ('The ice cracks. Gruber adjusts his tie', 'The ice cracks. Vogel adjusts his tie'),
+        ('Gruber smirks.', 'Vogel smirks.'),
+        # ...and the two lines that quote the film verbatim
+        ('“You are next!”', '“You will not last.”'),
+        ('“You were NOT next.” Chong Li laughs', '“You were never close.” Long Wei laughs'),
+    ]:
+        assert a in t, f'character rename anchor missing: {a[:48]}'
+        t = t.replace(a, b)
+
+    # Nothing a PLAYER can see may still name a film character. The internal
+    # ids (id: 'hans' / 'hummel' / 'chongli', which only build the portrait
+    # filenames) deliberately keep their original spelling: renaming them would
+    # break index-standalone.html, which loads the real spinburn/assets/, and a
+    # filename is never rendered anywhere in the game.
+    for leftover in ['GRUBER', 'Gruber', 'HUMMEL', 'Hummel', 'CHONG LI', 'Chong Li']:
+        assert leftover not in t, f'film character name still visible: {leftover}'
     # Header note so anyone opening the file knows it's generated. It must go
     # AFTER <!DOCTYPE html> — anything before the doctype trips browsers into
     # quirks mode.
