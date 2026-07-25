@@ -264,6 +264,15 @@
       z-index: 100;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
+      /* Scroll instead of clipping when the menu is taller than the viewport —
+         flex centering cuts the TOP off first, and inside the portal iframe the
+         viewport is ~90px shorter than the window. */
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 12px 0;
+    }
+    .overlay > * { flex-shrink: 0; }
+    @media (max-height: 700px) {
+      .overlay { align-items: flex-start; }
     }
     .overlay.hidden { display: none; }
 
