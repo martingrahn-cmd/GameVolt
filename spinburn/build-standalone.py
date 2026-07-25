@@ -11,15 +11,23 @@
 # single-file build. Single-player makes zero external requests; online play
 # still works (loads Supabase on demand) if the PLAY ONLINE button is used.
 #
-# It emits TWO things:
-#   1. index-standalone.html — the single page, playable in place next to the
-#      game's own js/assets (this is the URL already submitted to Cool Math
-#      Games, so the path must not move).
-#   2. portal/ — the same build as a COMPLETE, self-contained folder
-#      (index.html + every script, sound and image it needs). Portals such as
-#      CrazyGames host the files themselves, and the page is NOT self-contained
-#      on its own — it pulls in tt-*.js and assets/ — so handing over only the
-#      HTML would ship a broken game.
+# It emits TWO builds, which differ ONLY in whether online play is reachable:
+#
+#   1. index-standalone.html — COOL MATH GAMES. Online multiplayer stripped:
+#      CMG is wary of a game reaching an external service, and a room code
+#      means nothing to someone arriving from a game grid. Single-player makes
+#      zero external requests. This URL is already submitted, so neither its
+#      path nor its behaviour may change.
+#
+#   2. portal/ — CRAZYGAMES. Online multiplayer KEPT, because CrazyGames runs
+#      a multiplayer category and actively promotes play-with-a-friend games,
+#      so the room code is an asset there rather than a liability. Delivered as
+#      a COMPLETE folder (index.html + every script, sound and image), because
+#      the page is NOT self-contained on its own — it pulls in tt-*.js and
+#      assets/, and a portal that hosts the files itself would otherwise ship a
+#      broken game.
+#      Note: opening PLAY ONLINE loads Supabase from a CDN on demand. That is
+#      the only external request the build can make; single-player makes none.
 #
 # Re-run after ANY change to index.html:  python3 spinburn/build-standalone.py
 # ============================================================
@@ -84,56 +92,72 @@ i = s.index('  <div id="seo-content" style="display:none;">')
 j = s.index('</body>')
 s = s[:i] + s[j:]
 
-# J. Remove online multiplayer from the portal build. Portals are wary of a
-#    game reaching an external service (the room-code lobby talks to Supabase),
-#    and a room code is meaningless to someone arriving from a portal's game
-#    grid. The netcode itself stays in the file but becomes unreachable: no
-#    button, no invite-link entry point, so sb-net.js never loads its CDN and
-#    single-player makes zero external requests.
-online_btn = '    <button class="btn online" id="online-btn">🌐 PLAY ONLINE</button>\n'
-assert online_btn in s, 'online button not found'
-s = s.replace(online_btn, '')
+# --- everything above is common to both portal variants -----------------------
+base = s
 
-online_wire = "document.getElementById('online-btn').addEventListener('click', openOnline);"
-assert online_wire in s, 'online button wiring not found'
-s = s.replace(
-    online_wire,
-    "var olBtn = document.getElementById('online-btn'); "
-    "if (olBtn) olBtn.addEventListener('click', openOnline); // absent in portal builds"
-)
+# J. Optional: remove online multiplayer.
+#    Cool Math Games is wary of a game reaching an external service (the
+#    room-code lobby talks to Supabase) and a room code means nothing to
+#    someone arriving from a portal's game grid — so that build drops it.
+#    CrazyGames is the opposite: it runs a multiplayer category and actively
+#    promotes games you can play with a friend, so that build keeps it.
+#    Stripping leaves the netcode in the file but unreachable: no button and
+#    no invite-link entry point, so sb-net.js never loads its CDN.
+def strip_online(t):
+    online_btn = '    <button class="btn online" id="online-btn">🌐 PLAY ONLINE</button>\n'
+    assert online_btn in t, 'online button not found'
+    t = t.replace(online_btn, '')
 
-join_line = ("      var joinCode = (new URLSearchParams(location.search).get('join') || '')"
-             ".toUpperCase().replace(/[^A-Z0-9]/g, '');")
-assert join_line in s, 'invite-link handler not found'
-s = s.replace(join_line, "      var joinCode = ''; // ?join= invite links are disabled in portal builds")
+    online_wire = "document.getElementById('online-btn').addEventListener('click', openOnline);"
+    assert online_wire in t, 'online button wiring not found'
+    t = t.replace(
+        online_wire,
+        "var olBtn = document.getElementById('online-btn'); "
+        "if (olBtn) olBtn.addEventListener('click', openOnline); // absent in this build"
+    )
 
-# the menu badge advertises online play — it no longer exists here
-s = s.replace('<div class="proto-tag">GameVolt Open · online &amp; vs AI</div>',
-              '<div class="proto-tag">GameVolt Open · beat all three</div>')
+    join_line = ("      var joinCode = (new URLSearchParams(location.search).get('join') || '')"
+                 ".toUpperCase().replace(/[^A-Z0-9]/g, '');")
+    assert join_line in t, 'invite-link handler not found'
+    t = t.replace(join_line, "      var joinCode = ''; // ?join= invite links are disabled in this build")
+
+    # the menu badge advertises online play — it no longer exists here
+    t = t.replace('<div class="proto-tag">GameVolt Open · online &amp; vs AI</div>',
+                  '<div class="proto-tag">GameVolt Open · beat all three</div>')
+    return t
+
 
 # K. Scrub portal / sibling-game branding from the arena (tournament name,
-#    wall banners, and the menu ticker) -> neutral fictional sponsors
-for a, b in [
-    ('GameVolt Open', 'Spinburn Open'),
-    ('GAMEVOLT OPEN', 'SPINBURN OPEN'),
-    ('GAMEVOLT.IO', 'RALLYX'),
-    ('GRIDBURN', 'PADDLE KING'),
-    ('HOVERDASH', 'SPIN LAB'),
-]:
-    s = s.replace(a, b)
+#    wall banners, and the menu ticker) -> neutral fictional sponsors.
+#    Runs AFTER strip_online, which matches the un-scrubbed "GameVolt Open".
+def scrub_branding(t):
+    for a, b in [
+        ('GameVolt Open', 'Spinburn Open'),
+        ('GAMEVOLT OPEN', 'SPINBURN OPEN'),
+        ('GAMEVOLT.IO', 'RALLYX'),
+        ('GRIDBURN', 'PADDLE KING'),
+        ('HOVERDASH', 'SPIN LAB'),
+    ]:
+        t = t.replace(a, b)
+    # Header note so anyone opening the file knows it's generated. It must go
+    # AFTER <!DOCTYPE html> — anything before the doctype trips browsers into
+    # quirks mode.
+    header = ('\n<!-- GENERATED FILE — do not edit by hand.\n'
+              '     Portal build of Spinburn, produced from index.html by\n'
+              '     spinburn/build-standalone.py. Re-run that script after editing index.html. -->')
+    return t.replace('<!DOCTYPE html>', '<!DOCTYPE html>' + header, 1)
 
-# Header note so anyone opening the file knows it's generated. It must go
-# AFTER <!DOCTYPE html> — anything before the doctype trips browsers into
-# quirks mode.
-header = ('\n<!-- GENERATED FILE — do not edit by hand.\n'
-          '     Portal build of Spinburn, produced from index.html by\n'
-          '     spinburn/build-standalone.py. Re-run that script after editing index.html. -->')
-s = s.replace('<!DOCTYPE html>', '<!DOCTYPE html>' + header, 1)
 
-open(dst, 'w', encoding='utf-8').write(s)
-print(f'wrote {dst}  ({orig_len} -> {len(s)} bytes, -{orig_len - len(s)})')
+# index-standalone.html — the Cool Math Games build (no online). This URL is
+# already submitted to CMG, so neither its path nor its behaviour may change.
+cmg = scrub_branding(strip_online(base))
+open(dst, 'w', encoding='utf-8').write(cmg)
+print(f'wrote {dst}  ({orig_len} -> {len(cmg)} bytes)  [CMG: no online]')
 
-# ---- portal/ : the same build as a complete, handover-ready folder ----------
+# portal/ — the CrazyGames handover folder, online multiplayer KEPT.
+s = scrub_branding(base)
+
+# ---- portal/ : the CrazyGames handover folder, complete and self-contained --
 # Rebuilt from scratch every run so a renamed or deleted asset can't linger.
 if os.path.isdir(portal):
     shutil.rmtree(portal)
@@ -143,8 +167,8 @@ os.makedirs(os.path.join(portal, 'icons'))
 # entry point must be index.html — that is what a portal loads
 open(os.path.join(portal, 'index.html'), 'w', encoding='utf-8').write(s)
 
-# every script the page pulls in. sb-net.js is still required even though the
-# online lobby is unreachable here: the page references SBNet at startup.
+# every script the page pulls in — including sb-net.js, which this build needs
+# for real: PLAY ONLINE is live here.
 SCRIPTS = ['tt-core.js', 'tt-ai.js', 'tt-achievements.js', 'sb-net.js']
 for f in SCRIPTS:
     shutil.copy2(os.path.join(HERE, f), os.path.join(portal, f))
@@ -173,4 +197,4 @@ assert not missing, f'portal/ is missing files the page loads: {missing}'
 
 n = sum(len(f) for _, _, f in os.walk(portal))
 size = sum(os.path.getsize(os.path.join(d, f)) for d, _, fs in os.walk(portal) for f in fs)
-print(f'wrote {portal}/  ({n} files, {size / 1024:.0f} KB) — hand this folder to a portal')
+print(f'wrote {portal}/  ({n} files, {size / 1024:.0f} KB)  [CrazyGames: online KEPT] — hand this folder over')
