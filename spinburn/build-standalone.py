@@ -72,7 +72,34 @@ i = s.index('  <div id="seo-content" style="display:none;">')
 j = s.index('</body>')
 s = s[:i] + s[j:]
 
-# J. Scrub portal / sibling-game branding from the arena (tournament name,
+# J. Remove online multiplayer from the portal build. Portals are wary of a
+#    game reaching an external service (the room-code lobby talks to Supabase),
+#    and a room code is meaningless to someone arriving from a portal's game
+#    grid. The netcode itself stays in the file but becomes unreachable: no
+#    button, no invite-link entry point, so sb-net.js never loads its CDN and
+#    single-player makes zero external requests.
+online_btn = '    <button class="btn online" id="online-btn">🌐 PLAY ONLINE</button>\n'
+assert online_btn in s, 'online button not found'
+s = s.replace(online_btn, '')
+
+online_wire = "document.getElementById('online-btn').addEventListener('click', openOnline);"
+assert online_wire in s, 'online button wiring not found'
+s = s.replace(
+    online_wire,
+    "var olBtn = document.getElementById('online-btn'); "
+    "if (olBtn) olBtn.addEventListener('click', openOnline); // absent in portal builds"
+)
+
+join_line = ("      var joinCode = (new URLSearchParams(location.search).get('join') || '')"
+             ".toUpperCase().replace(/[^A-Z0-9]/g, '');")
+assert join_line in s, 'invite-link handler not found'
+s = s.replace(join_line, "      var joinCode = ''; // ?join= invite links are disabled in portal builds")
+
+# the menu badge advertises online play — it no longer exists here
+s = s.replace('<div class="proto-tag">GameVolt Open · online &amp; vs AI</div>',
+              '<div class="proto-tag">GameVolt Open · beat all three</div>')
+
+# K. Scrub portal / sibling-game branding from the arena (tournament name,
 #    wall banners, and the menu ticker) -> neutral fictional sponsors
 for a, b in [
     ('GameVolt Open', 'Spinburn Open'),
