@@ -2,18 +2,23 @@
 
 Ideer som inte är akuta men värda att bygga vidare på.
 
+> **Avbockat mot koden 2026-07-25.** Ungefär halva listan var redan byggd men
+> aldrig markerad. `[x]` = verifierad i koden. Punkter som bara är *delvis*
+> byggda står kvar som `[ ]` med en `—` **Finns:** -not om vad som redan
+> existerar, så det som återstår är tydligt.
+
 ---
 
 ## Iframe / Game Player
 
 Spelaren (`/play/index.html`) laddar spel i en iframe. PostMessage-bridgen skickar redan `game_start`, `game_over`, `high_score`, `achievement`, `level_complete` — men det finns mycket mer att göra med den datan.
 
-- [ ] **Live trophy-toast i parent** — visa achievement-popups i game bar/sidebar istället för bara i spelet
-- [ ] **Mini-leaderboard i sidebar** — top 5 i realtid medan man spelar
+- [ ] **Live trophy-toast i parent** — visa achievement-popups i game bar/sidebar istället för bara i spelet. **Finns:** `achievement`-eventet tas emot men loggas bara till GVTracker (`play/index.html`), ingen toast.
+- [x] **Mini-leaderboard i sidebar** — top 5 i realtid medan man spelar (`#sidebarLbSection` + "Full Leaderboard →")
 - [ ] **Achievement-progress i sidebar** — "12/31 trophies" med progress bar
-- [ ] **Rate & Favorite** — stjärnbetyg + hjärta direkt i spelaren
-- [ ] **Relaterade spel** — "Gillar du detta? Prova även..." under/bredvid spelaren
-- [ ] **Screenshot/share** — ta screenshot av canvasen via postMessage, dela på sociala medier
+- [x] **Rate & Favorite** — stjärnbetyg i sidebaren (`#ratingStars`) + hjärta i game baren (`#favBtn`)
+- [ ] **Relaterade spel** — "Gillar du detta? Prova även..." **Finns:** en "More Games"-grid (`#sidebarGrid`), men urvalet är inte relaterat till spelet man kör.
+- [ ] **Screenshot/share** — **Finns:** en dela-knapp (`#shareBtn`) som delar länken. Kvar: screenshot av canvasen via postMessage.
 - [ ] **Game stats live** — visa score/level/tid från spelet i game bar i realtid
 - [ ] **Spectator-mode** — streama speldata via postMessage för en "watch live"-vy
 - [ ] **Game-specifik info** — visa beskrivning, kontroller, tips i en expanderbar panel
@@ -25,12 +30,12 @@ Spelaren (`/play/index.html`) laddar spel i en iframe. PostMessage-bridgen skick
 
 Idé: låt användare skapa/anpassa sin avatar istället för default Gravatar/initialer.
 
-- [ ] **Preset gallery** — välj bland färdiga avatarer (pixelart, emojis, teman)
-- [ ] **Avatar builder** — bygg ihop ansikte/hår/ögon/mun-kombos (paper doll-stil)
-- [ ] **Unlockable avatars** — lås upp speciella avatarer via trophies (t.ex. platinum i ett spel = exklusiv avatar)
-- [ ] **Ready-made system** — utforska befintliga lösningar (DiceBear, Boring Avatars, ReadyPlayerMe)
-- [ ] **Visas överallt** — leaderboard, profil, kommentarer, activity feed
-- [ ] **Lagras i profiles-tabellen** — `avatar_url` eller `avatar_config` JSON
+- [ ] **Preset gallery** — välj bland färdiga avatarer (pixelart, emojis, teman). **Finns:** en "randomize"-knapp i byggaren, men inget galleri av färdiga val.
+- [x] **Avatar builder** — modell/hy/hår/frisyr/uttryck/accessoar med live-preview i `/profile/`
+- [ ] **Unlockable avatars** — lås upp speciella delar via trophies (t.ex. platinum = exklusiv accessoar)
+- [x] **Ready-made system** — utvärderat; vi byggde en egen procedurell SVG-motor i SDK:n i stället för DiceBear/ReadyPlayerMe (noll beroenden, funkar offline)
+- [ ] **Visas överallt** — **Finns:** profil, portalens Leaderboards-hubb, Top Players på startsidan och alla 21 spels in-game leaderboards. Kvar: kommentarer och activity feed (finns inte än).
+- [x] **Lagras i profiles-tabellen** — kompakt `gv1:`-sträng i befintliga `avatar_url` (ingen DB-migrering)
 
 ---
 
@@ -38,12 +43,12 @@ Idé: låt användare skapa/anpassa sin avatar istället för default Gravatar/i
 
 Idag returnerar SDK:n tyst `Promise.resolve()` för gäster vid `leaderboard.submit()` och `achievements.unlock()`. Användaren fattar aldrig att de missar något. Idén: bygg in smartare nudging direkt i SDK:n så alla spel får det gratis utan kodändringar.
 
-- [ ] **Score nudge** — "You scored 1,234! Sign in to save it to the leaderboard" popup vid `leaderboard.submit()` för gäster
+- [x] **Score nudge** — "You scored 1,234! Sign in to save it to the leaderboard" vid `leaderboard.submit()` för gäster
 - [ ] **Visa rank** — "You'd be #7 worldwide!" för extra motivation
-- [ ] **Trophy nudge** — "Trophy unlocked! Sign in to keep it forever" vid `achievements.unlock()` för gäster
-- [ ] **Spara temporärt** — håll score/trophies i minnet, submitta automatiskt om de loggar in under samma session
-- [ ] **Max 1 per session** — sessionStorage-flagga så det inte spammar
-- [ ] **Google OAuth** — ett klick istället för magic link, minskar friktion enormt
+- [ ] **Trophy nudge** — "Trophy unlocked! Sign in to keep it forever" vid `achievements.unlock()`. **Finns:** nudge-komponenten; den anropas bara från `leaderboard.submit()`.
+- [x] **Spara temporärt** — `pendingSubmission` + `flushPendingSubmission()` submittar automatiskt om man loggar in under samma session
+- [x] **Max 1 per session** — `sessionStorage`-flaggan `gv_nudge_shown`
+- [x] **Google OAuth** — `signInWithOAuth({ provider: 'google' })` i SDK:n
 - [ ] **Progress bar** — "You have 5 unsaved trophies and 2 highscores" som en subtil reminder
 - [ ] **Milestone nudge** — trigga vid speciella tillfällen: första game over, 10:e spelomgången, ny highscore
 
@@ -52,8 +57,8 @@ Allt byggs i `sdk/gamevolt.js` — noll ändringar i spelen. Se även `TODO-logi
 ---
 
 ## Engagement & Retention
-- [ ] **Daily challenges system** — globalt dagligt uppdrag som ger bonuspoäng
-- [ ] **Streak tracking** — visa current/longest streak på profilen, belöna med guld/avatarer
+- [ ] **Daily challenges system** — **Finns:** `GameVolt.challenge`-API + `get_daily_leaderboard`, använt av One Stroke (daily/weekly) och Golden Glyphs. Kvar: ett *globalt* dagligt uppdrag över hela portalen.
+- [ ] **Streak tracking** — **Finns:** `current_streak` / `longest_streak` i `profiles`-tabellen, men inget i UI:t visar dem. Kvar: visa på profilen + belöning.
 - [ ] **Notifications** — "Your highscore on HoverDash was beaten by Player123!"
 - [ ] **Weekly digest** — email med "din vecka på GameVolt" (kräver Supabase edge functions)
 
@@ -61,9 +66,9 @@ Allt byggs i `sdk/gamevolt.js` — noll ändringar i spelen. Se även `TODO-logi
 
 ## Community
 
-- [ ] **Ratings & reviews** — 1-5 stjärnor per spel, visa snittbetyg på kortet
-- [ ] **Favorites** — hjärta-knapp, "My Games"-sida
-- [ ] **Trending/Most Played** — sortering baserat på play_count
+- [ ] **Ratings & reviews** — **Finns:** `GameVolt.rating`-API, stjärnsättning i spelaren och ett "Top Rated"-filter på startsidan som aggregerar snittbetyg. Kvar: visa snittbetyget på själva spelkortet, och recensionstext.
+- [x] **Favorites** — hjärta-knapp + `/favorites/` ("My Games")
+- [x] **Trending/Most Played** — "🔥 Trending"-filter på startsidan (sorterar på speltid från GVTracker; en serversidig `play_count` vore mer rättvis)
 - [ ] **Player profiles** — publika profiler med trophies, top scores, favoriter
 - [ ] **Friends/follow** — se vänners aktivitet och tävla mot dem
 
@@ -80,7 +85,7 @@ Allt byggs i `sdk/gamevolt.js` — noll ändringar i spelen. Se även `TODO-logi
 ## Tech / Polish
 
 - [ ] **Customize Supabase email template** — snygga upp magic link-mailet
-- [ ] **Google OAuth** — ett klick istället för email-flödet (minskar friktion)
+- [x] **Google OAuth** — implementerat i SDK:n (se "SDK v2" ovan)
 - [ ] **PWA improvements** — offline-stöd, install prompt, push notifications
 - [ ] **Performance dashboard** — Grafana/analytics för speltid, retention, populäraste spel
 - [ ] **A/B testing** — testa olika CTA:er, layouter, ordning på spel
@@ -93,8 +98,8 @@ Allt byggs i `sdk/gamevolt.js` — noll ändringar i spelen. Se även `TODO-logi
 Status från audit 2026-05-29 över alla 17 spel (15 har lokala trofésystem, 2 saknar helt).
 
 ### Lägg till saknade trofésystem
-- [ ] **Snake** — bygg ut det lokala trofésystemet (redan TODO på [snake/backlog.md](snake/backlog.md)). Init-only SDK idag; behöver både defs (15/10/5/1) och toast-UI.
-- [ ] **Solitaire** — inga troféer alls i någon av de 6 varianterna. Beslut: per-variant defs eller en gemensam Solitaire-trofé-uppsättning?
+- [x] **Snake** — 31 troféer + leaderboard (2026-07-09), defs i `sql/snake-achievements.sql`
+- [x] **Solitaire** — 31 gemensamma defs under spel-id `solitaire` (`sql/solitaire-achievements.sql`); leaderboarden migrerad till Supabase 2026-07-24
 
 ### Konvertera batched → live toasting
 Spel där trofé-toasten i dag visas först vid game over fast den **kunde** poppa direkt när villkoret nås mitt i spelet:
