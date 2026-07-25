@@ -408,13 +408,13 @@
   <!-- ?v= must be bumped on every release: Cloudflare edge-caches the .js
        files separately from index.html, and a stale physics file with a
        fresh shell is exactly the bug you can't reproduce locally -->
-  <script src="tt-core.js?v=0.44.1"></script>
-  <script src="tt-ai.js?v=0.44.1"></script>
-  <script src="sb-net.js?v=0.44.1"></script>
-  <script src="tt-achievements.js?v=0.44.1"></script>
+  <script src="tt-core.js?v=0.45.0"></script>
+  <script src="tt-ai.js?v=0.45.0"></script>
+  <script src="sb-net.js?v=0.45.0"></script>
+  <script src="tt-achievements.js?v=0.45.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.44.1';
+    var VERSION = '0.45.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -464,11 +464,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.44.1', bounce: 'assets/bounce.mp3?v=0.44.1',
-        cheer: 'assets/cheer.mp3?v=0.44.1', net: 'assets/net.mp3?v=0.44.1',
-        crowd: 'assets/crowd.mp3?v=0.44.1', winfare: 'assets/winfare.mp3?v=0.44.1',
-        lose: 'assets/lose.mp3?v=0.44.1', matchpoint: 'assets/matchpoint.mp3?v=0.44.1',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.44.1', voIntro: 'assets/vo-intro.mp3?v=0.44.1'
+        hit: 'assets/hit.mp3?v=0.45.0', bounce: 'assets/bounce.mp3?v=0.45.0',
+        cheer: 'assets/cheer.mp3?v=0.45.0', net: 'assets/net.mp3?v=0.45.0',
+        crowd: 'assets/crowd.mp3?v=0.45.0', winfare: 'assets/winfare.mp3?v=0.45.0',
+        lose: 'assets/lose.mp3?v=0.45.0', matchpoint: 'assets/matchpoint.mp3?v=0.45.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.45.0', voIntro: 'assets/vo-intro.mp3?v=0.45.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -1488,7 +1488,24 @@
     }
     function drawFarPaddle() {
       var pad = game.paddles[2];
-      paddleShape(pad.x, K.PADDLE_Y[2], pad.z, 0.14, '#3aa0ff', '#134a91',
+      // The rival sits 0.22 m BEYOND the far table edge, which in landscape
+      // projects it up into the bright sponsor row — a small blue oval on a
+      // busy light band reads as background, so you lose track of who you're
+      // playing. Ground it with a shadow on the table, separate it from the
+      // boards with a dark halo, and give it a little extra size: strict
+      // perspective is not worth losing the opponent to.
+      var sh = proj(pad.x, K.TABLE_L - 0.02, 0);       // shadow on the table's far end
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.beginPath();
+      ctx.ellipse(sh.x, sh.y, 0.1 * sh.s, 0.032 * sh.s, 0, 0, Math.PI * 2);
+      ctx.fill();
+      var p = proj(pad.x, K.PADDLE_Y[2], pad.z);
+      var halo = ctx.createRadialGradient(p.x, p.y, 0.04 * p.s, p.x, p.y, 0.26 * p.s);
+      halo.addColorStop(0, 'rgba(4,8,20,0.55)');
+      halo.addColorStop(1, 'rgba(4,8,20,0)');
+      ctx.fillStyle = halo;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 0.26 * p.s, 0, Math.PI * 2); ctx.fill();
+      paddleShape(pad.x, K.PADDLE_Y[2], pad.z, 0.19, '#3aa0ff', '#134a91',
         Math.max(-1.2, Math.min(1.2, -pad.x * 0.9)));
     }
 
