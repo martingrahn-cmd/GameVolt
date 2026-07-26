@@ -178,6 +178,60 @@ export const WAVE_CONFIG = {
     powerupChance: 0.15,
 };
 
+// Each world changes how the player reads and solves a wave, not only its art.
+export const WORLD_RULES = [
+    {
+        mechanic: 'ASTEROID FIELD',
+        hint: 'BREAK COVER OR DODGE DEBRIS',
+        preferredShapes: ['hline', 'diagonal', 'vee'],
+        preferredMoves: ['straight', 'sinewave'],
+        asteroidMult: 1.65,
+        mineMult: 0.35,
+        speedMult: 0.95,
+        shieldChance: 0,
+    },
+    {
+        mechanic: 'CROSSFIRE LANES',
+        hint: 'READ THE OPEN LANE',
+        preferredShapes: ['pincer', 'cross', 'vline'],
+        preferredMoves: ['zigzag', 'diagonal'],
+        asteroidMult: 0.65,
+        mineMult: 1.25,
+        speedMult: 1,
+        shieldChance: 0,
+    },
+    {
+        mechanic: 'SHIELD GRID',
+        hint: 'FIRST HIT BREAKS THE GRID',
+        preferredShapes: ['cross', 'spread', 'hline'],
+        preferredMoves: ['circle', 'sinewave'],
+        asteroidMult: 0.35,
+        mineMult: 1.4,
+        speedMult: 0.95,
+        shieldChance: 0.34,
+    },
+    {
+        mechanic: 'JETSTREAM',
+        hint: 'FAST SWOOPS, NO ASTEROIDS',
+        preferredShapes: ['diagonal', 'vee', 'spread'],
+        preferredMoves: ['swoop', 'diagonal', 'divebomb'],
+        asteroidMult: 0,
+        mineMult: 0.65,
+        speedMult: 1.18,
+        shieldChance: 0,
+    },
+    {
+        mechanic: 'GROUND ASSAULT',
+        hint: 'DENSE SWARMS AND HUNTER MINES',
+        preferredShapes: ['swarm', 'pincer', 'cross'],
+        preferredMoves: ['divebomb', 'circle', 'swoop'],
+        asteroidMult: 0,
+        mineMult: 1.75,
+        speedMult: 1.12,
+        shieldChance: 0.12,
+    },
+];
+
 export const ENEMY_DEFS = {
     scout:   { hp: 1, speed: 1.8, score: 100, type: 3, shootRate: 0, size: 18 },
     fighter: { hp: 2, speed: 1.3, score: 200, type: 2, shootRate: 120, size: 24 },

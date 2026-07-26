@@ -8,6 +8,8 @@ export class Audio {
         this.bgm = null;          // procedural fallback
         this.bgmPlayer = null;    // OGG player
         this._bgmMode = 'none';   // 'ogg' | 'procedural' | 'none'
+        this._requestedTrack = null;
+        this.onMusicProgress = null;
     }
 
     init() {
@@ -18,6 +20,9 @@ export class Audio {
             this.masterGain.gain.value = 0.3;
             this.masterGain.connect(this.ctx.destination);
             this.bgmPlayer = new BGMPlayer(this.ctx, this.masterGain);
+            this.bgmPlayer.onProgress = (track, progress) => {
+                if (this.onMusicProgress) this.onMusicProgress(track, progress);
+            };
             this._initialized = true;
         } catch (e) {
             this.enabled = false;
@@ -26,7 +31,15 @@ export class Audio {
 
     async loadBGM() {
         if (!this.bgmPlayer) return;
-        await this.bgmPlayer.loadAll();
+        await Promise.allSettled([
+            this.bgmPlayer.loadTrack('title'),
+            this.bgmPlayer.loadTrack(0),
+        ]);
+    }
+
+    preloadWorld(worldIndex) {
+        if (!this.bgmPlayer) return Promise.resolve(false);
+        return this.bgmPlayer.loadTrack(worldIndex);
     }
 
     resume() {
@@ -46,6 +59,7 @@ export class Audio {
         this.stopBGM();
         if (!this.enabled || !this.ctx) return;
         this.resume();
+        this._requestedTrack = worldIndex;
 
         // Try file-based BGM first
         if (this.bgmPlayer && this.bgmPlayer.hasTrack(worldIndex)) {
@@ -58,16 +72,33 @@ export class Audio {
         this.bgm = new BGMTrack(this.ctx, this.masterGain, worldIndex);
         this.bgm.start();
         this._bgmMode = 'procedural';
+        this.preloadWorld(worldIndex).then((loaded) => {
+            if (!loaded || this._requestedTrack !== worldIndex || !this.bgmPlayer) return;
+            if (this.bgm) {
+                this.bgm.stop();
+                this.bgm = null;
+            }
+            this.bgmPlayer.start(worldIndex);
+            this._bgmMode = 'ogg';
+        }).catch(() => {});
     }
 
     startTitleBGM() {
         this.stopBGM();
         if (!this.enabled || !this.ctx) return;
         this.resume();
+        this._requestedTrack = 'title';
         if (this.bgmPlayer && this.bgmPlayer.hasTrack('title')) {
             this.bgmPlayer.start('title');
             this._bgmMode = 'ogg';
+            return;
         }
+        this.bgmPlayer?.loadTrack('title').then((loaded) => {
+            if (loaded && this._requestedTrack === 'title') {
+                this.bgmPlayer.start('title');
+                this._bgmMode = 'ogg';
+            }
+        }).catch(() => {});
     }
 
     stopBGM() {
@@ -79,6 +110,7 @@ export class Audio {
             this.bgm = null;
         }
         this._bgmMode = 'none';
+        this._requestedTrack = null;
     }
 
     // ─── SFX ───
@@ -325,46 +357,79 @@ class BGMPlayer {
         this.buffers = {}; // worldIndex → AudioBuffer
         this.source = null;
         this.gainNode = ctx.createGain();
+        this.volume = 0.7;
         this.gainNode.gain.value = 0;
         this.gainNode.connect(destination);
         this.playing = false;
         this.currentWorld = -1;
+        this.loading = {};
+        this.onProgress = null;
+    }
+
+    async loadTrack(track) {
+        if (this.buffers[track]) return true;
+        if (this.loading[track]) return this.loading[track];
+        const file = track === 'title' ? BGM_TITLE : BGM_FILES[track];
+        if (!file) return false;
+        this.loading[track] = (async () => {
+            try {
+                this.onProgress?.(track, 0);
+                const resp = await fetch('assets/' + file);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const total = Number(resp.headers.get('content-length')) || 0;
+                let arrayBuf;
+                if (resp.body && resp.body.getReader) {
+                    const reader = resp.body.getReader();
+                    const chunks = [];
+                    let received = 0;
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        chunks.push(value);
+                        received += value.length;
+                        this.onProgress?.(track, total ? Math.min(0.9, received / total * 0.9) : 0.45);
+                    }
+                    const bytes = new Uint8Array(received);
+                    let offset = 0;
+                    for (const chunk of chunks) {
+                        bytes.set(chunk, offset);
+                        offset += chunk.length;
+                    }
+                    arrayBuf = bytes.buffer;
+                } else {
+                    arrayBuf = await resp.arrayBuffer();
+                    this.onProgress?.(track, 0.9);
+                }
+                const audioBuf = await this.ctx.decodeAudioData(arrayBuf);
+                this.buffers[track] = audioBuf;
+                this.onProgress?.(track, 1);
+                console.log(`🎵 Loaded BGM: ${file} (${audioBuf.duration.toFixed(1)}s)`);
+                return true;
+            } catch (e) {
+                console.warn(`BGM load error: ${file}`, e);
+                this.onProgress?.(track, -1);
+                return false;
+            } finally {
+                delete this.loading[track];
+            }
+        })();
+        return this.loading[track];
     }
 
     async loadAll() {
-        const promises = BGM_FILES.map(async (file, i) => {
-            try {
-                const resp = await fetch('assets/' + file);
-                if (!resp.ok) {
-                    console.warn(`BGM not found: ${file} (will use procedural)`);
-                    return;
-                }
-                const arrayBuf = await resp.arrayBuffer();
-                const audioBuf = await this.ctx.decodeAudioData(arrayBuf);
-                this.buffers[i] = audioBuf;
-                console.log(`🎵 Loaded BGM: ${file} (${audioBuf.duration.toFixed(1)}s)`);
-            } catch (e) {
-                console.warn(`BGM load error: ${file}`, e);
-            }
-        });
-        // Also load title music
-        promises.push((async () => {
-            try {
-                const resp = await fetch('assets/' + BGM_TITLE);
-                if (!resp.ok) return;
-                const arrayBuf = await resp.arrayBuffer();
-                const audioBuf = await this.ctx.decodeAudioData(arrayBuf);
-                this.buffers['title'] = audioBuf;
-                console.log(`🎵 Loaded title BGM (${audioBuf.duration.toFixed(1)}s)`);
-            } catch (e) {
-                console.warn('Title BGM load error:', e);
-            }
-        })());
-        await Promise.allSettled(promises);
+        await Promise.allSettled([
+            this.loadTrack('title'),
+            ...BGM_FILES.map((file, index) => this.loadTrack(index)),
+        ]);
     }
 
     hasTrack(worldIndex) {
         return !!this.buffers[worldIndex];
+    }
+
+    setVolume(value) {
+        this.volume = Math.max(0, Math.min(1, Number(value) || 0));
+        if (this.playing) this.gainNode.gain.setValueAtTime(this.volume, this.ctx.currentTime);
     }
 
     start(worldIndex) {
@@ -379,7 +444,7 @@ class BGMPlayer {
 
         // Fade in
         this.gainNode.gain.setValueAtTime(0, this.ctx.currentTime);
-        this.gainNode.gain.linearRampToValueAtTime(0.7, this.ctx.currentTime + 0.5);
+        this.gainNode.gain.linearRampToValueAtTime(this.volume, this.ctx.currentTime + 0.5);
 
         this.source.start(0);
         this.playing = true;

@@ -47,9 +47,10 @@ The `Game.state` property drives everything. States and their flow:
 
 ```
 loading → menu ──→ levelselect → playing → gameover → menu
-                ├→ trophies → menu          ├→ paused → playing / menu
-                ├→ options → menu            ├→ stageclear → playing (next world)
-                └→ credits → menu            └→ victory → menu
+                ├→ challenges → playing      ├→ paused → playing / menu
+                ├→ scores / trophies → menu  ├→ stageclear → playing (next world)
+                ├→ options → menu            └→ victory → menu
+                └→ credits → menu
 ```
 
 Each state has:
@@ -63,20 +64,25 @@ When adding a new state, you must update ALL THREE: update switch, render switch
 
 ## Menu System
 
-The main menu has 4 items: **START, TROPHIES, OPTIONS, CREDITS**
-- `menuCursor` tracks which item is selected (0-3)
+The main menu has 7 items: **START/CONTINUE, PRACTICE, CHALLENGES, SCORES,
+ACHIEVEMENTS, OPTIONS, CREDITS**
+- `menuCursor` tracks which item is selected (0-6)
 - Navigation: Arrow keys / gamepad / touch tap
-- START → goes to `levelselect` state
-- TROPHIES → goes to `trophies` state (scrollable canvas grid)
-- OPTIONS → goes to `options` state (music vol, sfx vol, autofire, back)
+- START/CONTINUE → starts Campaign World 1 or an unranked checkpoint
+- PRACTICE → goes to `levelselect`
+- CHALLENGES → Daily Sector / Weekly Boss
+- SCORES and ACHIEVEMENTS use HTML overlays
+- OPTIONS → music, SFX, autofire, handedness, reduced motion, color assist
 - CREDITS → goes to `credits` state
 
 When returning from a sub-screen, set `menuCursor` to the correct index:
-- From trophies: `menuCursor = 1`
-- From options: `menuCursor = 2`
-- From credits: `menuCursor = 3`
+- Challenges: 2
+- Scores: 3
+- Achievements: 4
+- Options: 5
+- Credits: 6
 
-Menu items render at `y = 340 + i * 34` (important for touch hit detection).
+Menu items render at `y = 312 + i * 37` (important for touch hit detection).
 
 ---
 
@@ -112,6 +118,51 @@ Each world has 10 waves (`WAVE_CONFIG.bossEvery = 10`):
 
 Stored in `this.settings.difficulty`. Selected on level select screen.
 
+## Run Types & Progression
+
+Axeluga has five explicit run types:
+
+- **Campaign** — always starts in World 1, is ranked, unlocks subsequent worlds,
+  and submits to `campaign-easy`, `campaign-medium`, or `campaign-hard`.
+- **Practice** — starts in an already unlocked later world, is never ranked, and
+  cannot unlock full-campaign trophies.
+- **Continue** — resumes at the latest world checkpoint with the standard
+  loadout. It can unlock the next checkpoint but is always unranked.
+- **Daily** — deterministic UTC sector with three waves and a mini-boss.
+- **Weekly** — deterministic UTC boss mission.
+
+Daily and Weekly allow one ranked attempt per rotation. Later retries are
+practice attempts. They submit to dated leaderboard modes; Campaign leaderboards
+remain isolated.
+
+Worlds 2–5 remain locked until the previous world is cleared in Campaign.
+Production must never grant debug power-ups for a later-world start.
+
+Progress is stored in the versioned `axeluga_save_v2` localStorage record and
+synced through `GameVolt.save` for signed-in players. Save normalization and
+merge rules live in `js/progression.js`.
+
+Full-campaign trophies require Worlds 1–5 to be cleared in order within the
+same Campaign run. Practice and debug runs must never submit leaderboard scores.
+
+## First Flight UX
+
+The main menu starts Campaign directly; Practice has its own world selector.
+Fresh saves default to touch autofire so mobile play never requires a two-finger
+move-and-fire grip. The first Campaign presents contextual move, fire, danger,
+and power-up prompts across the opening waves and persists tutorial completion
+in save schema v2.
+
+Enemy bullets use a minimum visual radius, bright outline, and center highlight.
+The player ship renders a precise collision-point marker. Game Over and Victory
+show a run summary with time, damage, max combo, difficulty, ranked/practice
+status, and PB delta where applicable.
+
+Run analytics are started and ended explicitly by the Game class. Every run must
+produce at most one start and one terminal event (`win`, `lose`, `quit`,
+`restart`, or `leave`); state transitions such as stage clear must not create a
+new analytics session.
+
 ---
 
 ## Player Mechanics
@@ -125,7 +176,8 @@ Stored in `this.settings.difficulty`. Selected on level select screen.
 - **Invulnerability:** Brief period after hit or at game start.
 
 Power-ups drop from enemies (10% base, scaled by difficulty):
-`health, shield, weapon, speed, score2x` — cycle visually, type determined on pickup.
+`health, shield, weapon, speed, score2x`. Their type is fixed when spawned,
+labelled in the playfield, and biased toward health/weapon when the player needs it.
 
 ---
 
@@ -212,7 +264,9 @@ Trophy data is included in the SDK save migration (`axeluga_trophies` key).
 
 ## Audio System (`audio.js`)
 
-- **BGM:** MP3 files per world (`bgm_world1.mp3` ... `bgm_world5.mp3`) + `bgm_title_music.mp3`
+- **BGM:** title and World 1 load on demand; the next world's MP3 is prefetched
+  during play. Procedural music is used while a missing track streams.
+- **Progress:** streamed bytes report real loading progress in menu/HUD.
 - **SFX:** All procedural (Web Audio API oscillators) via `_play(fn)` helper
 - **Volume:** `settings.musicVol` (0-1) and `settings.sfxVol` (0-1), applied via `_applyVolumes()`
 - **Methods:** `menuClick()`, `waveStart()`, `playerHit()`, `explosion(big)`, `powerup()`, `bossAlert()`, `bossExplode()`, `bombSfx()`, `playerDeath()`, `gameOverSfx()`, `enemyShoot()`

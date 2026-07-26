@@ -3,10 +3,28 @@ import {
     PLAYER_MAX_HP, PLAYER_INVULN_TIME, ENEMY_BULLET_SPEED,
     SPRITES, WAVE_CONFIG, ENEMY_DEFS, BOSS_DEF, WORLDS,
     DYL_ENEMIES, MINI_BOSS_DEFS, DYL_BACKGROUNDS,
-    PE_ENEMIES, CLOUD_SPRITES, CITY_ASSETS, DIFFICULTY
+    PE_ENEMIES, CLOUD_SPRITES, CITY_ASSETS, DIFFICULTY, WORLD_RULES
 } from './config.js';
 import { Input } from './input.js';
 import { Audio } from './audio.js';
+import {
+    AXELUGA_SAVE_KEY,
+    RUN_TYPES,
+    challengeWorld,
+    checkpointWorld,
+    dailyChallengeId,
+    hasRankedChallengeAttempt,
+    isFullCampaignRun,
+    isWorldUnlocked,
+    leaderboardMode,
+    mergeSaves,
+    normalizeSave,
+    recordCampaignScore,
+    recordChallengeAttempt,
+    recordWorldClear,
+    seedFromString,
+    weeklyChallengeId,
+} from './progression.js';
 
 // ─── Trophy Definitions ───
 const TROPHIES = [
@@ -761,11 +779,11 @@ class Background {
 
 // ─── Screen Shake ───
 class ScreenShake {
-    constructor() { this.intensity = 0; this.decay = 0.9; }
-    add(amount) { this.intensity = Math.min(this.intensity + amount, 12); }
+    constructor() { this.intensity = 0; this.decay = 0.9; this.disabled = false; }
+    add(amount) { if (!this.disabled) this.intensity = Math.min(this.intensity + amount, 12); }
     update() { this.intensity *= this.decay; if (this.intensity < 0.5) this.intensity = 0; }
     get offset() {
-        if (this.intensity === 0) return { x: 0, y: 0 };
+        if (this.disabled || this.intensity === 0) return { x: 0, y: 0 };
         return {
             x: (Math.random() - 0.5) * this.intensity * 2,
             y: (Math.random() - 0.5) * this.intensity * 2,
@@ -790,9 +808,14 @@ export class Game {
         this.frame = 0;
         this.score = 0;
         this.highScore = parseInt(localStorage.getItem('axeluga_hi') || '0');
+        this.saveData = this._loadSaveData();
+        this.run = null;
+        this._cloudSaveTimer = null;
+        this._cloudSyncPromise = null;
 
         // Settings (persisted)
         this._loadSettings();
+        this.shake.disabled = this.settings.reducedMotion;
         this.input.autofire = this.settings.autofire;
         this._applyHandedness();
         this.optionsCursor = 0;
@@ -838,6 +861,12 @@ export class Game {
         this._leaderboardData = null;
         this._leaderboardLoading = false;
         this._scoresMaxScroll = 0;
+        this.challengeCursor = 0;
+        this._bossSummary = null;
+        this._musicLoad = null;
+        this.audio.onMusicProgress = (track, progress) => {
+            this._musicLoad = progress >= 1 || progress < 0 ? null : { track, progress };
+        };
     }
 
     async init() {
@@ -908,6 +937,7 @@ export class Game {
         this.bg = new Background(this.assets);
         this.resize();
         window.addEventListener('resize', () => this.resize());
+        window.addEventListener('pagehide', () => this._endTrackedRun('leave'));
 
         // Sync high score with cloud (GameVolt leaderboard may have a higher score)
         this._syncHighScore();
@@ -926,29 +956,37 @@ export class Game {
                 this._titleMusicResumed = true;
             }
             if (this.state === 'menu') {
-                // Tap on menu buttons (5 items, spacing=46, start=330)
-                const menuY = 330;
-                const spacing = 46;
-                const btnH = 38;
-                for (let i = 0; i < 5; i++) {
+                // Tap on menu buttons (7 items, compact enough for 360×640).
+                const menuY = 312;
+                const spacing = 37;
+                const btnH = 34;
+                for (let i = 0; i < 7; i++) {
                     const by = menuY + i * spacing - btnH / 2;
                     if (y > by && y < by + btnH) {
                         this.audio.menuClick();
                         this.menuCursor = i;
                         if (i === 0) {
+                            const primary = this._primaryRun();
+                            this.startGame(primary.world, primary.type);
+                        } else if (i === 1) {
                             this.state = 'levelselect';
-                            this.menuCursor = 0;
+                            this.menuCursor = Math.min(1, this.saveData.campaign.highestUnlockedWorld);
+                            this._practiceSelect = true;
                             this._levelSelectInit = true;
                             this.frame = 0;
-                        } else if (i === 1) {
-                            this.openScoresOverlay();
                         } else if (i === 2) {
-                            this.openTrophiesOverlay();
+                            this.state = 'challenges';
+                            this.challengeCursor = 0;
+                            this.frame = 0;
                         } else if (i === 3) {
+                            this.openScoresOverlay();
+                        } else if (i === 4) {
+                            this.openTrophiesOverlay();
+                        } else if (i === 5) {
                             this.state = 'options';
                             this.optionsCursor = 0;
                             this.frame = 0;
-                        } else if (i === 4) {
+                        } else if (i === 6) {
                             this.state = 'credits';
                             this.frame = 0;
                         }
@@ -958,9 +996,9 @@ export class Game {
             } else if (this.state === 'options') {
                 // Touch areas match drawOptions card layout
                 // Cards: slider=76h, toggle=70h, gap=10
-                const cardHeights = [76, 76, 70, 70]; // music, sfx, autofire, lefthanded
-                let cardTop = 110;
-                for (let oi = 0; oi < 4; oi++) {
+                const cardHeights = [60, 60, 50, 50, 50, 50];
+                let cardTop = 100;
+                for (let oi = 0; oi < 6; oi++) {
                     const ch = cardHeights[oi];
                     if (y > cardTop && y < cardTop + ch) {
                         if (oi < 2) {
@@ -979,17 +1017,24 @@ export class Game {
                             this.settings.leftHanded = !this.settings.leftHanded;
                             this._applyHandedness();
                             this.audio.menuClick();
+                        } else if (oi === 4) {
+                            this.settings.reducedMotion = !this.settings.reducedMotion;
+                            this.shake.disabled = this.settings.reducedMotion;
+                            this.audio.menuClick();
+                        } else if (oi === 5) {
+                            this.settings.colorblindMode = !this.settings.colorblindMode;
+                            this.audio.menuClick();
                         }
                         return;
                     }
-                    cardTop += ch + 10;
+                    cardTop += ch + 6;
                 }
                 // BACK button
                 const backBtnY = cardTop + 10;
                 if (y > backBtnY && y < backBtnY + 36) {
                     this._saveSettings();
                     this.state = 'menu';
-                    this.menuCursor = 3;
+                    this.menuCursor = 5;
                     this.frame = 0;
                 }
             } else if (this.state === 'trophies') {
@@ -997,7 +1042,7 @@ export class Game {
                 if (y > GAME_H - 50) {
                     this.input.setScrollMode(false);
                     this.state = 'menu';
-                    this.menuCursor = 2;
+                    this.menuCursor = 4;
                     this.frame = 0;
                 }
             } else if (this.state === 'scores') {
@@ -1005,15 +1050,31 @@ export class Game {
                 if (y > GAME_H - 50) {
                     this.input.setScrollMode(false);
                     this.state = 'menu';
-                    this.menuCursor = 1;
+                    this.menuCursor = 3;
                     this.frame = 0;
                 }
             } else if (this.state === 'credits') {
                 // BACK button at bottom
                 if (y > GAME_H - 65) {
                     this.state = 'menu';
-                    this.menuCursor = 4;
+                    this.menuCursor = 6;
                     this.frame = 0;
+                }
+            } else if (this.state === 'challenges') {
+                const rows = [270, 360, 475];
+                for (let i = 0; i < rows.length; i++) {
+                    if (y > rows[i] - 34 && y < rows[i] + 34) {
+                        this.audio.menuClick();
+                        this.challengeCursor = i;
+                        if (i === 0) this.startChallenge(RUN_TYPES.DAILY);
+                        else if (i === 1) this.startChallenge(RUN_TYPES.WEEKLY);
+                        else {
+                            this.state = 'menu';
+                            this.menuCursor = 2;
+                            this.frame = 0;
+                        }
+                        return;
+                    }
                 }
             } else if (this.state === 'levelselect') {
                 // Tap on world options
@@ -1022,7 +1083,8 @@ export class Game {
                     if (y > optY - 22 && y < optY + 22) {
                         this.audio.menuClick();
                         this.menuCursor = i;
-                        this.startGame(i);
+                        if (i === 0) this.startGame(0, RUN_TYPES.CAMPAIGN);
+                        else if (isWorldUnlocked(this.saveData, i)) this.startGame(i, RUN_TYPES.PRACTICE);
                         return;
                     }
                 }
@@ -1046,13 +1108,13 @@ export class Game {
                     return;
                 }
             } else if (this.state === 'gameover' && this.frame > 60) {
-                const retryY = GAME_H / 2 + 100;
-                const menuBtnY = GAME_H / 2 + 150;
+                const retryY = GAME_H / 2 + 115;
+                const menuBtnY = GAME_H / 2 + 160;
                 const btnH2 = 36;
                 if (y > retryY - btnH2 / 2 && y < retryY + btnH2 / 2) {
                     // Retry
                     this.audio.menuClick();
-                    this.startGame(this._gameOverWorld || 0);
+                    this.startGame(this._retryStartWorld(), this._retryRunType(), this.run?.challengeId);
                 } else if (y > menuBtnY - btnH2 / 2 && y < menuBtnY + btnH2 / 2) {
                     // Menu
                     this.audio.menuClick();
@@ -1076,6 +1138,7 @@ export class Game {
                 if (y > resumeY - 15 && y < resumeY + 15) {
                     this.state = 'playing';
                 } else if (y > quitY - 15 && y < quitY + 15) {
+                    this._endTrackedRun('quit');
                     this.audio.stopBGM();
                     this.state = 'menu';
                     this.menuCursor = 0;
@@ -1097,23 +1160,185 @@ export class Game {
 
     _loadSettings() {
         try {
-            const s = JSON.parse(localStorage.getItem('axeluga_settings') || '{}');
+            const legacy = JSON.parse(localStorage.getItem('axeluga_settings') || '{}');
+            const s = Object.assign({}, this.saveData ? this.saveData.settings : {}, legacy);
             this.settings = {
                 musicVol: s.musicVol !== undefined ? s.musicVol : 0.7,
                 sfxVol: s.sfxVol !== undefined ? s.sfxVol : 0.8,
                 difficulty: s.difficulty !== undefined ? s.difficulty : 1, // 0=easy, 1=medium, 2=hard
-                autofire: s.autofire !== undefined ? s.autofire : false,
+                autofire: s.autofire !== undefined ? s.autofire : true,
                 leftHanded: s.leftHanded !== undefined ? s.leftHanded : false,
+                reducedMotion: s.reducedMotion !== undefined ? s.reducedMotion : false,
+                colorblindMode: s.colorblindMode !== undefined ? s.colorblindMode : false,
             };
         } catch (e) {
-            this.settings = { musicVol: 0.7, sfxVol: 0.8, difficulty: 1, autofire: false, leftHanded: false };
+            this.settings = { musicVol: 0.7, sfxVol: 0.8, difficulty: 1, autofire: true, leftHanded: false, reducedMotion: false, colorblindMode: false };
         }
     }
 
     _saveSettings() {
         try {
             localStorage.setItem('axeluga_settings', JSON.stringify(this.settings));
+            this.saveData.settings = Object.assign({}, this.settings);
+            this._persistSaveData();
         } catch (e) {}
+    }
+
+    _loadSaveData() {
+        try {
+            return normalizeSave(JSON.parse(localStorage.getItem(AXELUGA_SAVE_KEY) || 'null'));
+        } catch (e) {
+            return normalizeSave(null);
+        }
+    }
+
+    _persistSaveData(syncCloud = true) {
+        this.saveData = normalizeSave(this.saveData);
+        this.saveData.updatedAt = Date.now();
+        try { localStorage.setItem(AXELUGA_SAVE_KEY, JSON.stringify(this.saveData)); } catch (e) {}
+        if (!syncCloud || !window.GameVolt || !GameVolt.save || !GameVolt.auth?.getUser?.()) return;
+        clearTimeout(this._cloudSaveTimer);
+        this._cloudSaveTimer = setTimeout(() => {
+            GameVolt.save.set(this.saveData).catch(() => {});
+        }, 300);
+    }
+
+    syncCloudSave() {
+        if (!window.GameVolt || !GameVolt.save || !GameVolt.auth?.getUser?.()) return Promise.resolve(null);
+        if (this._cloudSyncPromise) return this._cloudSyncPromise;
+        this._cloudSyncPromise = (async () => {
+            const cloud = await GameVolt.save.get();
+            this.saveData = mergeSaves(this.saveData, cloud);
+            this.settings = Object.assign({}, this.settings, this.saveData.settings);
+            this.input.autofire = this.settings.autofire;
+            this.shake.disabled = this.settings.reducedMotion;
+            this._applyHandedness();
+            try {
+                localStorage.setItem('axeluga_settings', JSON.stringify(this.settings));
+                localStorage.setItem(AXELUGA_SAVE_KEY, JSON.stringify(this.saveData));
+            } catch (e) {}
+            await GameVolt.save.set(this.saveData);
+            return this.saveData;
+        })().catch(error => {
+            console.warn('[Axeluga] Cloud save sync failed:', error);
+            return null;
+        }).finally(() => {
+            this._cloudSyncPromise = null;
+        });
+        return this._cloudSyncPromise;
+    }
+
+    _isRankedRun() {
+        return !!this.run && this.run.ranked &&
+            !!leaderboardMode(this.run.type, this.run.difficulty, this.run.challengeId);
+    }
+
+    _isCampaignRankedRun() {
+        return this._isRankedRun() && this.run.type === RUN_TYPES.CAMPAIGN;
+    }
+
+    _submitRankedScore() {
+        if (!this._isRankedRun() || this.score <= 0) return Promise.resolve(false);
+        const mode = leaderboardMode(this.run.type, this.run.difficulty, this.run.challengeId);
+        if (!mode || !window.GameVolt) return Promise.resolve(false);
+        return GameVolt.leaderboard.submit(this.score, { mode }).then(() => true).catch(() => false);
+    }
+
+    _retryStartWorld() {
+        return this.run && this.run.type !== RUN_TYPES.CAMPAIGN ? this.run.startWorld : 0;
+    }
+
+    _retryRunType() {
+        return this.run ? this.run.type : RUN_TYPES.CAMPAIGN;
+    }
+
+    _primaryRun() {
+        const world = checkpointWorld(this.saveData);
+        return {
+            world,
+            type: world > 0 ? RUN_TYPES.CONTINUE : RUN_TYPES.CAMPAIGN,
+            label: world > 0 ? `CONTINUE WORLD ${world + 1}` : 'START CAMPAIGN',
+        };
+    }
+
+    _random() {
+        if (!this._rngState) return Math.random();
+        let value = this._rngState >>> 0;
+        value ^= value << 13;
+        value ^= value >>> 17;
+        value ^= value << 5;
+        this._rngState = value >>> 0 || 1;
+        return this._rngState / 4294967296;
+    }
+
+    _challengeDetails(runType, date = new Date()) {
+        const challengeId = runType === RUN_TYPES.DAILY
+            ? dailyChallengeId(date)
+            : weeklyChallengeId(date);
+        return {
+            runType,
+            challengeId,
+            world: challengeWorld(challengeId, WORLDS.length),
+            rankedAvailable: !hasRankedChallengeAttempt(this.saveData, runType, challengeId),
+        };
+    }
+
+    startChallenge(runType) {
+        const challenge = this._challengeDetails(runType);
+        return this.startGame(challenge.world, runType, challenge.challengeId);
+    }
+
+    _campaignRecord(difficulty = this.settings.difficulty) {
+        const keys = ['campaignEasy', 'campaignMedium', 'campaignHard'];
+        return Number(this.saveData.records[keys[difficulty] || keys[1]]) || 0;
+    }
+
+    _buildRunSummary(outcome) {
+        if (!this.run) return null;
+        const elapsedSeconds = Math.max(0, Math.round((Date.now() - this.run.startedAt) / 1000));
+        return {
+            outcome,
+            runType: this.run.type,
+            difficulty: DIFFICULTY[this.run.difficulty]?.name || 'MEDIUM',
+            score: this.score,
+            previousBest: this.run.previousBest || 0,
+            pbDelta: Math.max(0, this.score - (this.run.previousBest || 0)),
+            elapsedSeconds,
+            damageTaken: this._runStats?.damageTaken || 0,
+            maxCombo: this._runStats?.maxCombo || 0,
+            worldsCleared: this.run.worldsCleared.length,
+            ranked: this.run.ranked,
+        };
+    }
+
+    _endTrackedRun(outcome) {
+        if (!this.run || this.run.trackingEnded) return;
+        this.run.trackingEnded = true;
+        if (window.GameVoltTracker && typeof GameVoltTracker.end === 'function') {
+            GameVoltTracker.end({
+                score: this.score,
+                level: this.wave,
+                outcome,
+                run_type: this.run.type,
+                difficulty: DIFFICULTY[this.run.difficulty]?.name || 'MEDIUM',
+                start_world: this.run.startWorld + 1,
+                challenge_id: this.run.challengeId || null,
+                seed: this.run.seed,
+            });
+        }
+    }
+
+    _updateTutorial() {
+        if (!this.tutorial || this.tutorial.complete) return;
+        const movement = this.input.getTouchMove() || this.input.getMovement().dx || this.input.getMovement().dy;
+        if (this.tutorial.step === 0 && movement) this.tutorial.step = 1;
+        if (this.tutorial.step === 1 && this.input.isFiring()) this.tutorial.step = 2;
+        if (this.tutorial.step === 2 && this.wave >= 2) this.tutorial.step = 3;
+        if (this.tutorial.step === 3 && (this._runStats?.powerupsCollected > 0 || this.wave >= 3)) {
+            this.tutorial.complete = true;
+            this.saveData.stats = Object.assign({}, this.saveData.stats, { tutorialComplete: true });
+            this._persistSaveData();
+        }
     }
 
     _applyHandedness() {
@@ -1135,9 +1360,7 @@ export class Game {
             this.audio.masterGain.gain.value = this.settings.sfxVol * 0.3;
         }
         if (this.audio.bgmPlayer && this.audio.bgmPlayer.gainNode) {
-            this.audio.bgmPlayer.gainNode.gain.setValueAtTime(
-                this.settings.musicVol * 0.7, this.audio.ctx.currentTime
-            );
+            this.audio.bgmPlayer.setVolume(this.settings.musicVol * 0.7);
         }
         // Procedural BGM gain
         if (this.audio.bgm && this.audio.bgm.bgmGain) {
@@ -1151,7 +1374,8 @@ export class Game {
         // If GameVolt is available, check if cloud has a higher score
         if (!window.GameVolt) return;
         try {
-            GameVolt.leaderboard.get({ mode: 'default', limit: 1, player: true }).then(rows => {
+            const mode = leaderboardMode(RUN_TYPES.CAMPAIGN, this.settings.difficulty);
+            GameVolt.leaderboard.get({ mode, limit: 1, player: true }).then(rows => {
                 if (rows && rows.length > 0) {
                     const cloudScore = rows[0].score || 0;
                     if (cloudScore > this.highScore) {
@@ -1194,7 +1418,10 @@ export class Game {
         }
     }
 
-    startGame(startWorld = 0) {
+    startGame(startWorld = 0, requestedRunType = null, challengeId = '') {
+        const isChallenge = requestedRunType === RUN_TYPES.DAILY || requestedRunType === RUN_TYPES.WEEKLY;
+        if (!isChallenge && !isWorldUnlocked(this.saveData, startWorld)) return false;
+        if (this.run && !this.run.trackingEnded) this._endTrackedRun('restart');
         this._titleMusicPlaying = false;
         this.state = 'playing';
         this.frame = 0;
@@ -1212,8 +1439,38 @@ export class Game {
 
         // World system
         this.world = startWorld;
+        const runType = requestedRunType || (startWorld === 0 ? RUN_TYPES.CAMPAIGN : RUN_TYPES.PRACTICE);
+        const challengeRun = runType === RUN_TYPES.DAILY || runType === RUN_TYPES.WEEKLY;
+        this._rngState = challengeRun
+            ? seedFromString(`${runType}:${challengeId}:${this.settings.difficulty}`)
+            : 0;
+        const challengeRanked = challengeRun &&
+            !hasRankedChallengeAttempt(this.saveData, runType, challengeId);
+        this.run = {
+            type: runType,
+            ranked: runType === RUN_TYPES.CAMPAIGN ? startWorld === 0 : challengeRanked,
+            startWorld,
+            difficulty: this.settings.difficulty,
+            challengeId: challengeRun ? challengeId : '',
+            seed: challengeRun ? this._rngState : null,
+            worldsCleared: [],
+            startedAt: Date.now(),
+            previousBest: runType === RUN_TYPES.CAMPAIGN ? this._campaignRecord(this.settings.difficulty) : 0,
+            trackingEnded: false,
+        };
+        if (challengeRanked) {
+            this.saveData = recordChallengeAttempt(this.saveData, runType, challengeId);
+            this._persistSaveData();
+        }
+        this._runSummary = null;
+        this.tutorial = runType === RUN_TYPES.CAMPAIGN && startWorld === 0 && !this.saveData.stats.tutorialComplete
+            ? { step: 0, complete: false }
+            : null;
         // Fast-forward wave counter to match world
-        if (startWorld > 0) {
+        if (runType === RUN_TYPES.WEEKLY) {
+            this.wave = startWorld * WAVE_CONFIG.bossEvery + WAVE_CONFIG.bossEvery - 1;
+            this._skipNextTransitionCheck = true;
+        } else if (startWorld > 0) {
             this.wave = startWorld * WAVE_CONFIG.bossEvery;
             this._skipNextTransitionCheck = true; // don't trigger transition on first nextWave
         }
@@ -1281,21 +1538,21 @@ export class Game {
             exhaustFrame: 0,
         };
 
-        // Debug mode: start with max powerups when selecting level > 1
-        if (startWorld > 0) {
-            this.player.weaponLevel = 5;
-            this.player.hp = PLAYER_MAX_HP;
-            this.player.maxHp = PLAYER_MAX_HP;
-            this.player.speedLevel = 3;
-            this.player.speed = PLAYER_SPEED + 3 * 0.4;
-            this.player.shield = 600;   // 10 seconds of shield
-            this.player.invuln = 180;
-        }
-
         this.audio.init();
         this._applyVolumes();
         this.audio.waveStart();
         this.audio.startBGM(startWorld);
+        this.audio.preloadWorld?.((startWorld + 1) % WORLDS.length);
+        if (window.GameVoltTracker && typeof GameVoltTracker.start === 'function') {
+            GameVoltTracker.start('Axeluga', {
+                run_type: this.run.type,
+                difficulty: DIFFICULTY[this.run.difficulty]?.name || 'MEDIUM',
+                start_world: startWorld + 1,
+                challenge_id: this.run.challengeId || null,
+                seed: this.run.seed,
+            });
+        }
+        return true;
     }
 
     // ─── Main Loop (locked to 60fps) ───
@@ -1394,36 +1651,43 @@ export class Game {
                 this._titleMusicResumed = !!(this.audio.ctx && this.audio.ctx.state === 'running');
                 if (this._titleMusicResumed) this._audioActivated = true;
             }
-            const menuItems = 5; // START, SCORES, TROPHIES, OPTIONS, CREDITS
+            const menuItems = 7; // Continue/Campaign, Practice, Challenges, Scores, Trophies, Options, Credits
             if (navUp) { this.menuCursor = (this.menuCursor - 1 + menuItems) % menuItems; this.audio.menuClick(); }
             if (navDown) { this.menuCursor = (this.menuCursor + 1) % menuItems; this.audio.menuClick(); }
             if (confirm) {
                 this.audio.menuClick();
                 if (this.menuCursor === 0) {
-                    // START → level select
+                    const primary = this._primaryRun();
+                    this.startGame(primary.world, primary.type);
+                } else if (this.menuCursor === 1) {
                     this.state = 'levelselect';
-                    this.menuCursor = 0;
+                    this.menuCursor = Math.min(1, this.saveData.campaign.highestUnlockedWorld);
+                    this._practiceSelect = true;
                     this._levelSelectInit = true;
                     this.frame = 0;
-                } else if (this.menuCursor === 1) {
+                } else if (this.menuCursor === 2) {
+                    this.state = 'challenges';
+                    this.challengeCursor = 0;
+                    this.frame = 0;
+                } else if (this.menuCursor === 3) {
                     // SCORES → HTML overlay
                     this.openScoresOverlay();
-                } else if (this.menuCursor === 2) {
+                } else if (this.menuCursor === 4) {
                     // TROPHIES → HTML overlay
                     this.openTrophiesOverlay();
-                } else if (this.menuCursor === 3) {
+                } else if (this.menuCursor === 5) {
                     // OPTIONS
                     this.state = 'options';
                     this.optionsCursor = 0;
                     this.frame = 0;
-                } else if (this.menuCursor === 4) {
+                } else if (this.menuCursor === 6) {
                     // CREDITS
                     this.state = 'credits';
                     this.frame = 0;
                 }
             }
         } else if (this.state === 'options') {
-            const optItems = 5; // Music, SFX, Autofire, Left-handed, Back
+            const optItems = 7; // Music, SFX, Autofire, Left-handed, reduced motion, colorblind, Back
             if (navUp) { this.optionsCursor = (this.optionsCursor - 1 + optItems) % optItems; this.audio.menuClick(); }
             if (navDown) { this.optionsCursor = (this.optionsCursor + 1) % optItems; this.audio.menuClick(); }
             // Left/right to adjust volumes
@@ -1453,19 +1717,30 @@ export class Game {
                     this._applyHandedness();
                     this.audio.menuClick();
                 }
+            } else if (this.optionsCursor === 4) {
+                if (left || right || confirm) {
+                    this.settings.reducedMotion = !this.settings.reducedMotion;
+                    this.shake.disabled = this.settings.reducedMotion;
+                    this.audio.menuClick();
+                }
+            } else if (this.optionsCursor === 5) {
+                if (left || right || confirm) {
+                    this.settings.colorblindMode = !this.settings.colorblindMode;
+                    this.audio.menuClick();
+                }
             }
             // ESC / Confirm on back
             if (this.input.keys['Escape'] && !this._escPrev) {
                 this._saveSettings();
                 this.state = 'menu';
-                this.menuCursor = 3;
+                this.menuCursor = 5;
                 this.frame = 0;
             }
-            if (confirm && this.optionsCursor === 4) {
+            if (confirm && this.optionsCursor === 6) {
                 // "BACK" option
                 this._saveSettings();
                 this.state = 'menu';
-                this.menuCursor = 3;
+                this.menuCursor = 5;
                 this.frame = 0;
             }
             this._kLeftPrev = kLeft;
@@ -1475,7 +1750,26 @@ export class Game {
         } else if (this.state === 'credits') {
             if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
                 this.state = 'menu';
-                this.menuCursor = 4;
+                this.menuCursor = 6;
+                this.frame = 0;
+            }
+        } else if (this.state === 'challenges') {
+            const challengeItems = 3;
+            if (navUp) { this.challengeCursor = (this.challengeCursor - 1 + challengeItems) % challengeItems; this.audio.menuClick(); }
+            if (navDown) { this.challengeCursor = (this.challengeCursor + 1) % challengeItems; this.audio.menuClick(); }
+            if (confirm) {
+                this.audio.menuClick();
+                if (this.challengeCursor === 0) this.startChallenge(RUN_TYPES.DAILY);
+                else if (this.challengeCursor === 1) this.startChallenge(RUN_TYPES.WEEKLY);
+                else {
+                    this.state = 'menu';
+                    this.menuCursor = 2;
+                    this.frame = 0;
+                }
+            }
+            if (this.input.keys['Escape'] && !this._escPrev) {
+                this.state = 'menu';
+                this.menuCursor = 2;
                 this.frame = 0;
             }
         } else if (this.state === 'trophies') {
@@ -1504,7 +1798,7 @@ export class Game {
             if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
                 this.input.setScrollMode(false);
                 this.state = 'menu';
-                this.menuCursor = 2;
+                this.menuCursor = 4;
                 this.frame = 0;
             }
         } else if (this.state === 'scores') {
@@ -1533,7 +1827,7 @@ export class Game {
             if (confirm || (this.input.keys['Escape'] && !this._escPrev)) {
                 this.input.setScrollMode(false);
                 this.state = 'menu';
-                this.menuCursor = 1;
+                this.menuCursor = 3;
                 this.frame = 0;
             }
         } else if (this.state === 'levelselect') {
@@ -1561,7 +1855,8 @@ export class Game {
             if (confirm) {
                 this.audio.menuClick();
                 if (this.menuCursor < WORLDS.length) {
-                    this.startGame(this.menuCursor);
+                    if (this.menuCursor === 0) this.startGame(0, RUN_TYPES.CAMPAIGN);
+                    else if (isWorldUnlocked(this.saveData, this.menuCursor)) this.startGame(this.menuCursor, RUN_TYPES.PRACTICE);
                 } else if (this.menuCursor === diffRow) {
                     // Confirm on difficulty cycles it too
                     this.settings.difficulty = (this.settings.difficulty + 1) % 3;
@@ -1601,9 +1896,10 @@ export class Game {
                             this.input.gpPausePrev = true;
                         },
                         onRestart: () => {
-                            this.startGame(this.world);
+                            this.startGame(this._retryStartWorld(), this._retryRunType(), this.run?.challengeId);
                         },
                         onQuit: () => {
+                            this._endTrackedRun('quit');
                             this.audio.stopBGM();
                             this.state = 'menu';
                             this.menuCursor = 0;
@@ -1650,6 +1946,7 @@ export class Game {
                 if (this.pauseCursor === 0) {
                     this.state = 'playing';
                 } else {
+                    this._endTrackedRun('quit');
                     this.audio.stopBGM();
                     this.state = 'menu';
                     this.menuCursor = 0;
@@ -1667,7 +1964,7 @@ export class Game {
                     this.audio.menuClick();
                     if (this._gameOverCursor === 0) {
                         // Retry: restart same world, reset score
-                        this.startGame(this._gameOverWorld || 0);
+                        this.startGame(this._retryStartWorld(), this._retryRunType(), this.run?.challengeId);
                     } else {
                         // Back to menu
                         this.state = 'menu';
@@ -1731,6 +2028,7 @@ export class Game {
         const p = this.player;
         if (p.dead) return;
         this._runFrames = (this._runFrames || 0) + 1; // count active play time for the speed bonus
+        this._updateTutorial();
 
         // ── Player movement ──
         const touchMove = this.input.getTouchMove();
@@ -1808,11 +2106,12 @@ export class Game {
         // ── Random asteroid/mine spawns (scaled to wave) ──
         // No asteroids in atmosphere/city (they look like planets!)
         const worldDef = WORLDS[this.world % WORLDS.length];
+        const worldRule = WORLD_RULES[this.world % WORLD_RULES.length];
         const noAsteroids = worldDef.bgType === 'atmosphere' || worldDef.bgType === 'city';
         const localWv = ((this.wave) % WAVE_CONFIG.bossEvery) + 1;
-        const asteroidChance = localWv <= 2 ? 0.005 : WAVE_CONFIG.asteroidChance;
-        if (!noAsteroids && Math.random() < asteroidChance) this.spawnAsteroid();
-        if (localWv > 3 && Math.random() < WAVE_CONFIG.mineChance) this.spawnMine();
+        const asteroidChance = (localWv <= 2 ? 0.005 : WAVE_CONFIG.asteroidChance) * worldRule.asteroidMult;
+        if (!noAsteroids && this._random() < asteroidChance) this.spawnAsteroid();
+        if (localWv > 3 && this._random() < WAVE_CONFIG.mineChance * worldRule.mineMult) this.spawnMine();
 
         // ── Bomb activation ──
         if (this.bombActive > 0) {
@@ -1876,6 +2175,7 @@ export class Game {
                 wt.timer = 0;
                 this.showWorldText = 180;
                 this.audio.startBGM(this.world);
+                this.audio.preloadWorld?.((this.world + 1) % WORLDS.length);
             } else if (wt.phase === 3 && wt.timer >= 60) {
                 // Transition complete
                 this.worldTransition = null;
@@ -1978,6 +2278,16 @@ export class Game {
             for (let j = this.enemies.length - 1; j >= 0; j--) {
                 const e = this.enemies[j];
                 if (this.collides(b, e)) {
+                    if (e.shieldHits > 0) {
+                        e.shieldHits--;
+                        e.flashTimer = 5;
+                        this.audio.hit();
+                        this.particles.emit(b.x, b.y, 8, '#66ffff', 3, 14);
+                        this.spawnFloatingText(e.x, e.y - e.h / 2, 'GRID DOWN');
+                        this.playerBullets.splice(i, 1);
+                        hit = false;
+                        break;
+                    }
                     const wasAboveRage = e.hp / e.maxHp > 0.25;
                     e.hp -= b.damage;
                     if (e.hp <= 0) {
@@ -2031,10 +2341,22 @@ export class Game {
 
             // Shooting
             if (e.shootRate > 0) {
-                e.shootTimer--;
-                if (e.shootTimer <= 0) {
-                    this.enemyShoot(e);
-                    e.shootTimer = e.shootRate;
+                if (e.telegraphTimer > 0) {
+                    e.telegraphTimer--;
+                    if (e.telegraphTimer === 0) {
+                        this.enemyShoot(e);
+                        e.shootTimer = e.shootRate;
+                    }
+                } else {
+                    e.shootTimer--;
+                    if (e.shootTimer <= 0) {
+                        if (e.isBoss || e.isMiniBoss) {
+                            e.telegraphTimer = e.isBoss ? 36 : 24;
+                        } else {
+                            this.enemyShoot(e);
+                            e.shootTimer = e.shootRate;
+                        }
+                    }
                 }
             }
 
@@ -2392,6 +2714,8 @@ export class Game {
 
     killEnemy(index) {
         const e = this.enemies[index];
+        const completesDaily = this.run?.type === RUN_TYPES.DAILY && this.run.challengeFinalActive && e.isMiniBoss;
+        const completesWeekly = this.run?.type === RUN_TYPES.WEEKLY && e.isBoss;
 
         // Score with combo
         this.combo++;
@@ -2426,6 +2750,11 @@ export class Game {
 
         if (e.isBoss) {
             this.bossActive = false;
+            this._bossSummary = {
+                elapsedSeconds: Math.max(0, Math.round(((this._runFrames || 0) - (this._bossFightStartedFrame || 0)) / 60)),
+                damageTaken: Math.max(0, (this._runStats?.damageTaken || 0) - (this._bossFightStartedDamage || 0)),
+                phase: 3,
+            };
             this.flashAlpha = 1;
             this.audio.bossExplode(); // Big crunch!
             if (this._runStats) {
@@ -2478,7 +2807,7 @@ export class Game {
             // Mini-boss drops 2: 1 weapon + 1 cycling
             this.spawnPowerup(e.x, e.y, 'weapon');
             this.spawnPowerup(e.x + 15, e.y);
-        } else if (Math.random() < 0.10 * (DIFFICULTY[this.settings.difficulty] || DIFFICULTY[1]).dropMult) {
+        } else if (this._random() < 0.10 * (DIFFICULTY[this.settings.difficulty] || DIFFICULTY[1]).dropMult) {
             // Regular enemies: base 10% drop chance, scaled by difficulty
             this.spawnPowerup(e.x, e.y);
         }
@@ -2487,6 +2816,29 @@ export class Game {
         this.spawnFloatingText(e.x, e.y, points);
 
         this.enemies.splice(index, 1);
+        if (completesDaily || completesWeekly) this._completeChallenge();
+    }
+
+    _completeChallenge() {
+        if (!this.run || this.run.challengeComplete) return;
+        this.run.challengeComplete = true;
+        const bonus = this.run.type === RUN_TYPES.DAILY ? 15000 : 30000;
+        this.score += bonus;
+        this.formationQueue = [];
+        this.enemies = [];
+        this.enemyBullets = [];
+        this.asteroids = [];
+        this.mines = [];
+        this.bossActive = false;
+        this.audio.stopBGM();
+        this._runSummary = this._buildRunSummary('win');
+        this._endTrackedRun('win');
+        this._saveScoreHistory(this.score, this.world, this.wave);
+        this._submitRankedScore();
+        this.checkEndgameTrophies();
+        this.state = 'victory';
+        this.frame = 0;
+        this._playTransitionSound();
     }
 
     // ─── Bomb Charge System ───
@@ -2681,14 +3033,22 @@ export class Game {
         this.audio.playerDeath();
         this.audio.explosion(true);
         this.input.vibrate(500, 1.0, 1.0);
+        this._runSummary = this._buildRunSummary('lose');
+        this._endTrackedRun('lose');
 
-        if (this.score > this.highScore) {
+        if (this._isCampaignRankedRun() && this.score > this.highScore) {
             this.highScore = this.score;
             localStorage.setItem('axeluga_hi', this.highScore.toString());
         }
         // Save score to local history
         this._saveScoreHistory(this.score, this.world, this.wave);
-        if (window.GameVolt) GameVolt.leaderboard.submit(this.score, { mode: 'default' });
+        if (this._isRankedRun()) {
+            if (this.run.type === RUN_TYPES.CAMPAIGN) {
+                this.saveData = recordCampaignScore(this.saveData, this.run.difficulty, this.score);
+                this._persistSaveData();
+            }
+            this._submitRankedScore();
+        }
         this.checkEndgameTrophies();
 
         setTimeout(() => {
@@ -2712,7 +3072,7 @@ export class Game {
                 const formation = this.formationQueue.shift();
                 this.spawnFormation(formation);
                 // Delay before next formation
-                this.formationDelay = 60 + Math.floor(Math.random() * 40);
+                this.formationDelay = 34 + Math.floor(this._random() * 24);
             }
             return;
         }
@@ -2731,9 +3091,15 @@ export class Game {
 
     nextWave() {
         this.wave++;
+        if (this.run?.challengeId) {
+            this._rngState = seedFromString(
+                `${this.run.type}:${this.run.challengeId}:${this.run.difficulty}:wave:${this.wave}`,
+            );
+        }
 
         // Pause between waves
-        this.waveTimer = Math.max(30, 90 - this.wave * 5);
+        const localWave = ((this.wave - 1) % WAVE_CONFIG.bossEvery) + 1;
+        this.waveTimer = Math.max(24, 54 - localWave * 3);
 
         // Check for world transition (after each boss)
         if ((this.wave - 1) % WAVE_CONFIG.bossEvery === 0 && this.wave > 1) {
@@ -2742,10 +3108,6 @@ export class Game {
             } else if (this.world === WORLDS.length - 1) {
                 // ── FINAL BOSS DEFEATED → VICTORY! ──
                 this.audio.stopBGM();
-                if (this.score > this.highScore) {
-                    this.highScore = this.score;
-                    localStorage.setItem('axeluga_hi', this.highScore.toString());
-                }
                 // Bonus for final world
                 const bonus = (this.world + 1) * 10000;
                 this.score += bonus;
@@ -2761,11 +3123,21 @@ export class Game {
                 const cleanBonus = Math.max(0, 80000 - Math.round((this._runStats.damageTaken || 0) * 400));
                 const skillBonus = speedBonus + hpBonus + cleanBonus;
                 this.score += skillBonus;
+                this._runSummary = this._buildRunSummary('win');
+                this._endTrackedRun('win');
 
+                if (this._isCampaignRankedRun() && this.score > this.highScore) {
+                    this.highScore = this.score;
+                    localStorage.setItem('axeluga_hi', this.highScore.toString());
+                }
                 this._saveScoreHistory(this.score, this.world, this.wave);
                 this.spawnFloatingText(GAME_W / 2, GAME_H / 2, `+${bonus + skillBonus}`);
-                if (window.GameVolt) {
-                    GameVolt.leaderboard.submit(this.score, { mode: 'default' });
+                if (this._isRankedRun()) {
+                    if (this.run.type === RUN_TYPES.CAMPAIGN) {
+                        this.saveData = recordCampaignScore(this.saveData, this.run.difficulty, this.score);
+                        this._persistSaveData();
+                    }
+                    this._submitRankedScore();
                 }
                 // Trophy checks for world 5 clear + victory
                 this.checkWorldClearTrophies(this.world);
@@ -2794,6 +3166,15 @@ export class Game {
 
         const waveInWorld = ((this.wave - 1) % WAVE_CONFIG.bossEvery) + 1;
 
+        if (this.run?.type === RUN_TYPES.DAILY && waveInWorld === 4) {
+            this.showWaveText = 90;
+            this.waveTextType = 'miniboss';
+            this.run.challengeFinalActive = true;
+            this.spawnMiniBoss();
+            this.audio.bossAlert();
+            return;
+        }
+
         if (waveInWorld === WAVE_CONFIG.bossEvery) {
             // Boss wave (last wave in world)
             this.showWaveText = 120;
@@ -2806,12 +3187,12 @@ export class Game {
             this.spawnMiniBoss();
             // Also queue some formations alongside mini-boss
             this.queueFormations();
-            this.formationDelay = 60;
+            this.formationDelay = 42;
             this.audio.bossAlert();
         } else {
             // Normal wave
             this.queueFormations();
-            this.formationDelay = 20;
+            this.formationDelay = 14;
             this.audio.waveStart();
         }
     }
@@ -2819,6 +3200,7 @@ export class Game {
     queueFormations() {
         this.formationQueue = [];
         const w = this.world; // world index for scaling
+        const worldRule = WORLD_RULES[w % WORLD_RULES.length];
         // Use wave-within-world for difficulty progression (1-10 per world)
         const lw = ((this.wave) % WAVE_CONFIG.bossEvery) + 1;
 
@@ -2854,21 +3236,25 @@ export class Game {
         else maxType = types.length;
 
         for (let i = 0; i < numFormations; i++) {
-            const shape = shapes[Math.floor(Math.random() * shapes.length)];
-            const typeKey = types[Math.floor(Math.random() * maxType)];
+            const preferredShapes = worldRule.preferredShapes.filter(shape => shapes.includes(shape));
+            const shapePool = preferredShapes.length && this._random() < 0.62 ? preferredShapes : shapes;
+            const shape = shapePool[Math.floor(this._random() * shapePool.length)];
+            const typeKey = types[Math.floor(this._random() * maxType)];
 
             // Formation size varies — bigger in later worlds
             let size;
             if (lw <= 2) size = 3 + Math.min(w, 2);
-            else if (lw <= 4) size = 3 + Math.floor(Math.random() * 2) + Math.min(w, 2);
-            else size = 3 + Math.floor(Math.random() * 3) + Math.min(w, 2);
+            else if (lw <= 4) size = 3 + Math.floor(this._random() * 2) + Math.min(w, 2);
+            else size = 3 + Math.floor(this._random() * 3) + Math.min(w, 2);
             size = Math.min(size, 8); // cap
 
             // Movement patterns — more aggressive in later worlds
             const movePatterns = ['straight', 'zigzag', 'sinewave'];
             if (lw > 3 || w >= 1) movePatterns.push('swoop', 'diagonal');
             if (lw > 5 || w >= 2) movePatterns.push('divebomb', 'circle');
-            const pattern = movePatterns[Math.floor(Math.random() * movePatterns.length)];
+            const preferredMoves = worldRule.preferredMoves.filter(patternName => movePatterns.includes(patternName));
+            const patternPool = preferredMoves.length && this._random() < 0.62 ? preferredMoves : movePatterns;
+            const pattern = patternPool[Math.floor(this._random() * patternPool.length)];
 
             this.formationQueue.push({ shape, typeKey, size, pattern });
         }
@@ -2876,8 +3262,8 @@ export class Game {
 
     spawnFormation(f) {
         const def = ENEMY_DEFS[f.typeKey];
-        const phase = Math.random() * Math.PI * 2;
-        const swoopDir = Math.random() < 0.5 ? -1 : 1;
+        const phase = this._random() * Math.PI * 2;
+        const swoopDir = this._random() < 0.5 ? -1 : 1;
 
         const positions = this.getFormationPositions(f.shape, f.size);
 
@@ -2885,6 +3271,7 @@ export class Game {
         // Use local wave (1-10) not global wave to keep difficulty fair per world
         const localWave = ((this.wave) % WAVE_CONFIG.bossEvery) + 1;
         const diff = DIFFICULTY[this.settings.difficulty] || DIFFICULTY[1];
+        const worldRule = WORLD_RULES[this.world % WORLD_RULES.length];
         let shootRate = 0;
         if (def.shootRate > 0) {
             const worldBoost = this.world * 2; // gentle world scaling
@@ -2901,25 +3288,25 @@ export class Game {
 
         // Optionally use DyLESTorm sprites based on world config
         const worldDef = WORLDS[this.world % WORLDS.length];
-        const useDylSprite = Math.random() < (worldDef.dylChance || 0);
+        const useDylSprite = this._random() < (worldDef.dylChance || 0);
         const dylSprite = useDylSprite
-            ? DYL_ENEMIES[(this.world + Math.floor(Math.random() * DYL_ENEMIES.length)) % DYL_ENEMIES.length]
+            ? DYL_ENEMIES[(this.world + Math.floor(this._random() * DYL_ENEMIES.length)) % DYL_ENEMIES.length]
             : null;
         
         // Pixel Enemies sprites (PE pack)
         let peSprite = null;
-        if (worldDef.peChance && Math.random() < worldDef.peChance) {
+        if (worldDef.peChance && this._random() < worldDef.peChance) {
             // Use tougher sprites for heavier enemy types
             const isTough = (f.typeKey === 'heavy' || f.typeKey === 'elite');
             const poolName = isTough ? (worldDef.peTough || 'danger') : (worldDef.pePool || 'wings');
             const pool = PE_ENEMIES[poolName] || PE_ENEMIES.wings;
-            peSprite = pool[Math.floor(Math.random() * pool.length)];
+            peSprite = pool[Math.floor(this._random() * pool.length)];
         }
         
         // Use world-specific color rows for Timberlate enemies
         const colorRow = worldDef.enemyRows
-            ? worldDef.enemyRows[Math.floor(Math.random() * worldDef.enemyRows.length)]
-            : (this.world + Math.floor(Math.random() * 2)) % 3;
+            ? worldDef.enemyRows[Math.floor(this._random() * worldDef.enemyRows.length)]
+            : (this.world + Math.floor(this._random() * 2)) % 3;
 
         for (const pos of positions) {
             this.enemies.push({
@@ -2928,10 +3315,10 @@ export class Game {
                 w: def.size, h: def.size,
                 hp: def.hp + hpBonus,
                 maxHp: def.hp + hpBonus,
-                speed: def.speed + speedBonus,
+                speed: (def.speed + speedBonus) * worldRule.speedMult,
                 score: def.score,
                 shootRate,
-                shootTimer: 120 + Math.floor(Math.random() * 120),
+                shootTimer: 120 + Math.floor(this._random() * 120),
                 spriteType: def.type,
                 colorRow,
                 pattern: f.pattern,
@@ -2942,6 +3329,7 @@ export class Game {
                 originY: pos.y,
                 flashTimer: 0,
                 isBoss: false,
+                shieldHits: this._random() < worldRule.shieldChance ? 1 : 0,
                 dylSprite,
                 peSprite,
             });
@@ -2953,7 +3341,7 @@ export class Game {
         const positions = [];
 
         // Random center X for the formation
-        const centerX = 60 + Math.random() * (GAME_W - 120);
+        const centerX = 60 + this._random() * (GAME_W - 120);
         const startY = -40;
 
         switch (shape) {
@@ -2976,7 +3364,7 @@ export class Game {
 
             case 'diagonal': {
                 // Diagonal line
-                const dir = Math.random() < 0.5 ? 1 : -1;
+                const dir = this._random() < 0.5 ? 1 : -1;
                 const startX = centerX - dir * ((count - 1) * spacing * 0.5) / 2;
                 for (let i = 0; i < count; i++) {
                     positions.push({
@@ -3039,7 +3427,7 @@ export class Game {
                 }
                 // Fill remaining
                 while (positions.length < count) {
-                    positions.push({ x: centerX + (Math.random() - 0.5) * spacing * 2, y: startY - Math.random() * spacing });
+                    positions.push({ x: centerX + (this._random() - 0.5) * spacing * 2, y: startY - this._random() * spacing });
                 }
                 break;
             }
@@ -3048,8 +3436,8 @@ export class Game {
                 // Tight cluster
                 for (let i = 0; i < count; i++) {
                     positions.push({
-                        x: centerX + (Math.random() - 0.5) * spacing * 2.5,
-                        y: startY - Math.random() * spacing * 2,
+                        x: centerX + (this._random() - 0.5) * spacing * 2.5,
+                        y: startY - this._random() * spacing * 2,
                     });
                 }
                 break;
@@ -3059,8 +3447,8 @@ export class Game {
                 // Fallback: random scatter
                 for (let i = 0; i < count; i++) {
                     positions.push({
-                        x: 40 + Math.random() * (GAME_W - 80),
-                        y: startY - Math.random() * spacing * 2,
+                        x: 40 + this._random() * (GAME_W - 80),
+                        y: startY - this._random() * spacing * 2,
                     });
                 }
             }
@@ -3099,6 +3487,9 @@ export class Game {
         const bossSize = (worldDef.bossType === 'pe' || worldDef.bossType === 'pe_animated') ? 100 : BOSS_DEF.size * 2;
 
         const bossHp = Math.round((BOSS_DEF.hp + hpScale) * diff.hpMult);
+        this._bossFightStartedFrame = this._runFrames || 0;
+        this._bossFightStartedDamage = this._runStats?.damageTaken || 0;
+        this._bossSummary = null;
         this.enemies.push({
             x: GAME_W / 2, y: -80,
             w: bossSize, h: bossSize,
@@ -3108,6 +3499,7 @@ export class Game {
             score: BOSS_DEF.score + (w + 1) * 3000,
             shootRate: Math.round(shootRateScale * diff.shootMult),
             shootTimer: 90,
+            telegraphTimer: 0,
             spriteType: 0,
             colorRow: bossColorRow,
             pattern: 'boss',
@@ -3136,6 +3528,7 @@ export class Game {
             score: def.score + w * 500,
             shootRate: Math.round(Math.max(20, def.shootRate - w * 3) * diff.shootMult),
             shootTimer: 60,
+            telegraphTimer: 0,
             spriteType: 0,
             colorRow: 0,
             pattern: 'miniboss',
@@ -3184,39 +3577,46 @@ export class Game {
 
     spawnPowerup(x, y, forcedType) {
         const types = ['health', 'shield', 'weapon', 'speed', 'score2x'];
+        let selectedType = forcedType;
+        if (!selectedType) {
+            if (this.player && this.player.hp <= Math.ceil(this.player.maxHp / 2)) selectedType = 'health';
+            else if (this.player && this.player.weaponLevel < 3) selectedType = 'weapon';
+            else if (this.player && this.player.shield <= 0 && this._random() < 0.3) selectedType = 'shield';
+            else selectedType = types[Math.floor(this._random() * types.length)];
+        }
         this.powerups.push({
             x, y,
             vy: 1.2,
             w: 24, h: 24,
-            forcedType: forcedType || null, // null = cycling, string = fixed
-            frame: Math.floor(Math.random() * 300), // random start phase
+            forcedType: selectedType,
+            frame: Math.floor(this._random() * 300), // random start phase
         });
     }
 
     spawnAsteroid() {
-        const typeIdx = Math.floor(Math.random() * SPRITES.asteroids.types.length);
+        const typeIdx = Math.floor(this._random() * SPRITES.asteroids.types.length);
         const def = SPRITES.asteroids.types[typeIdx];
         const size = Math.max(def.w, def.h);
         this.asteroids.push({
-            x: Math.random() * GAME_W,
+            x: this._random() * GAME_W,
             y: -50,
-            vx: (Math.random() - 0.5) * 1,
-            vy: 1 + Math.random() * 1.5,
+            vx: (this._random() - 0.5) * 1,
+            vy: 1 + this._random() * 1.5,
             w: size, h: size,
             typeIdx,
-            rot: Math.random() * Math.PI * 2,
-            rotSpeed: (Math.random() - 0.5) * 0.03,
+            rot: this._random() * Math.PI * 2,
+            rotSpeed: (this._random() - 0.5) * 0.03,
             hp: size > 30 ? 3 : (size > 20 ? 2 : 1),
         });
     }
 
     spawnMine() {
         this.mines.push({
-            x: 20 + Math.random() * (GAME_W - 40),
+            x: 20 + this._random() * (GAME_W - 40),
             y: -30,
-            vy: 0.8 + Math.random() * 0.5,
+            vy: 0.8 + this._random() * 0.5,
             w: 24, h: 24,
-            colorIdx: Math.floor(Math.random() * 3),
+            colorIdx: Math.floor(this._random() * 3),
             frame: 0,
             hp: 2,
         });
@@ -3266,7 +3666,14 @@ export class Game {
         }
         this.audio.powerup();
         this.particles.emit(pu.x, pu.y, 10, '#0f0', 3, 20);
-        this.spawnFloatingText(pu.x, pu.y - 10, type.toUpperCase());
+        const messages = {
+            health: '+1 HULL',
+            shield: 'SHIELD 10s',
+            weapon: 'WEAPON UP',
+            speed: 'SPEED UP',
+            score2x: 'SCORE x2',
+        };
+        this.spawnFloatingText(pu.x, pu.y - 10, messages[type] || type.toUpperCase());
         if (this._runStats) {
             this._runStats.powerupsCollected++;
             this.checkInstantTrophies();
@@ -3447,6 +3854,8 @@ export class Game {
             this.drawOptions(ctx);
         } else if (this.state === 'credits') {
             this.drawCredits(ctx);
+        } else if (this.state === 'challenges') {
+            this.drawChallenges(ctx);
         } else if (this.state === 'levelselect') {
             this.drawLevelSelect(ctx);
         } else if (this.state === 'playing' || this.state === 'gameover' || this.state === 'paused') {
@@ -3465,7 +3874,7 @@ export class Game {
         ctx.restore();
 
         // Flash overlay (no shake)
-        if (this.flashAlpha > 0) {
+        if (this.flashAlpha > 0 && !this.settings.reducedMotion) {
             ctx.fillStyle = `rgba(255,255,255,${this.flashAlpha})`;
             ctx.fillRect(0, 0, GAME_W, GAME_H);
         }
@@ -3563,7 +3972,7 @@ export class Game {
         // Status
         const prStatus = document.getElementById('pr-status');
         if (prStatus) {
-            if (this.state === 'menu' || this.state === 'levelselect') {
+            if (this.state === 'menu' || this.state === 'levelselect' || this.state === 'challenges' || this.state === 'options' || this.state === 'credits') {
                 prStatus.textContent = 'STANDBY';
                 prStatus.style.color = '#0ff';
             } else if (this.state === 'gameover') {
@@ -3695,17 +4104,17 @@ export class Game {
             ctx.fillStyle = '#ff8';
             ctx.font = 'bold 13px "Courier New", monospace';
             ctx.globalAlpha = 0.85;
-            ctx.fillText(`★ HIGH SCORE: ${this.highScore.toLocaleString()} ★`, cx, 295);
+            ctx.fillText(`★ HIGH SCORE: ${this.highScore.toLocaleString()} ★`, cx, 284);
             ctx.globalAlpha = 1;
         }
 
         // ── Menu items (styled buttons) ──
-        const menuItems = ['START', 'SCORES', 'ACHIEVEMENTS', 'OPTIONS', 'CREDITS'];
-        const menuIcons = ['▶', '🏆', '★', '⚙', '✦'];
-        const menuY = 330;
-        const spacing = 46;
+        const menuItems = [this._primaryRun().label, 'PRACTICE', 'CHALLENGES', 'SCORES', 'ACHIEVEMENTS', 'OPTIONS', 'CREDITS'];
+        const menuIcons = ['▶', '◇', '◆', '🏆', '★', '⚙', '✦'];
+        const menuY = 312;
+        const spacing = 37;
         const btnW = 220;
-        const btnH = 38;
+        const btnH = 34;
 
         for (let i = 0; i < menuItems.length; i++) {
             const y = menuY + i * spacing;
@@ -3755,7 +4164,7 @@ export class Game {
 
                 // Text
                 ctx.fillStyle = '#fff';
-                ctx.font = 'bold 20px "Courier New", monospace';
+                ctx.font = 'bold 17px "Courier New", monospace';
                 ctx.fillText(menuItems[i], cx + 8, y + 6);
             } else {
                 // Unselected: visible outline
@@ -3772,12 +4181,12 @@ export class Game {
 
                 // Text
                 ctx.fillStyle = '#99aacc';
-                ctx.font = '18px "Courier New", monospace';
+                ctx.font = '16px "Courier New", monospace';
                 ctx.fillText(menuItems[i], cx + 8, y + 5);
             }
 
             // Trophy count badge next to TROPHIES
-            if (i === 2) {
+            if (i === 4) {
                 const tc = this.getTrophyCount();
                 ctx.fillStyle = tc >= 31 ? '#b4ffff' : tc > 0 ? '#ffd700' : '#556';
                 ctx.font = '11px "Courier New", monospace';
@@ -3800,7 +4209,11 @@ export class Game {
         // Version / branding
         ctx.fillStyle = '#556';
         ctx.font = '9px "Courier New", monospace';
-        ctx.fillText('SMARTPROC GAMES', cx, GAME_H - 12);
+        ctx.fillText('A GAMEVOLT ORIGINAL', cx, GAME_H - 12);
+        if (this._musicLoad) {
+            ctx.fillStyle = '#7899bb';
+            ctx.fillText(`MUSIC ${Math.round(this._musicLoad.progress * 100)}%`, cx, GAME_H - 38);
+        }
     }
 
     drawOptions(ctx) {
@@ -3846,16 +4259,18 @@ export class Game {
             { label: 'SFX', type: 'slider', value: this.settings.sfxVol, color: '#ff8800', icon: '🔊' },
             { label: 'AUTOFIRE', type: 'toggle', value: this.settings.autofire, color: '#00ff00', hint: 'fire when touching', icon: '⚡' },
             { label: 'LEFT-HANDED', type: 'toggle', value: this.settings.leftHanded, color: '#ff00ff', hint: 'swap fire & bomb', icon: '🔄' },
+            { label: 'REDUCED MOTION', type: 'toggle', value: this.settings.reducedMotion, color: '#66ddff', hint: 'less shake & flashing', icon: '◌' },
+            { label: 'COLOR ASSIST', type: 'toggle', value: this.settings.colorblindMode, color: '#ffff66', hint: 'shapes + fixed danger color', icon: '◐' },
         ];
 
         const cardW = GAME_W - 40;
         const cardX = 20;
-        let curY = 110;
+        let curY = 100;
 
         for (let i = 0; i < items.length; i++) {
             const sel = this.optionsCursor === i;
             const item = items[i];
-            const cardH = item.type === 'slider' ? 76 : 70;
+            const cardH = item.type === 'slider' ? 60 : 50;
 
             // Card background
             roundRect(cardX, curY, cardW, cardH, 10);
@@ -3904,7 +4319,7 @@ export class Game {
                 const barW = cardW - 28;
                 const barH = 18;
                 const barX = cardX + 14;
-                const barY = curY + 38;
+                const barY = curY + 34;
                 const br = 6;
 
                 // Track
@@ -3940,7 +4355,7 @@ export class Game {
                 if (sel) {
                     ctx.fillStyle = '#556';
                     ctx.font = '10px "Courier New", monospace';
-                    ctx.fillText('TAP BAR OR ◄► TO ADJUST', cx, curY + cardH - 4);
+                    ctx.fillText('TAP BAR OR ◄► TO ADJUST', cx, curY + cardH - 2);
                 }
             } else if (item.type === 'toggle') {
                 // Toggle switch on the right side of the card
@@ -3983,11 +4398,11 @@ export class Game {
                 ctx.fillStyle = sel ? '#778' : '#556';
                 ctx.font = '11px "Courier New", monospace';
                 ctx.textAlign = 'left';
-                ctx.fillText(item.hint || '', cardX + 40, curY + 46);
+                ctx.fillText(item.hint || '', cardX + 40, curY + 43);
                 ctx.textAlign = 'center';
             }
 
-            curY += cardH + 10;
+            curY += cardH + 6;
         }
 
         // ── BACK button ──
@@ -4071,7 +4486,7 @@ export class Game {
 
         section('GAME', [
             'Martin Grahn',
-            'SmartProc / GameVolt.io',
+            'A GameVolt Original by Martin Grahn',
         ], '#00ffff');
 
         section('PIXEL ART', [
@@ -4099,7 +4514,69 @@ export class Game {
         ctx.fillStyle = '#667';
         ctx.font = '10px "Courier New", monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('© 2026 SmartProc Games', cx, GAME_H - 10);
+        ctx.fillText('© 2026 GameVolt · Martin Grahn', cx, GAME_H - 10);
+    }
+
+    drawChallenges(ctx) {
+        ctx.fillStyle = 'rgba(0,0,0,0.78)';
+        ctx.fillRect(0, 0, GAME_W, GAME_H);
+        ctx.textAlign = 'center';
+        const cx = GAME_W / 2;
+        const daily = this._challengeDetails(RUN_TYPES.DAILY);
+        const weekly = this._challengeDetails(RUN_TYPES.WEEKLY);
+
+        ctx.fillStyle = '#0ff';
+        ctx.font = 'bold 24px "Courier New", monospace';
+        ctx.fillText('CHALLENGES', cx, 105);
+        ctx.fillStyle = '#8ab';
+        ctx.font = '11px "Courier New", monospace';
+        ctx.fillText('ONE RANKED ATTEMPT · THEN PRACTICE', cx, 128);
+
+        const cards = [
+            {
+                y: 270,
+                title: 'DAILY SECTOR',
+                meta: `${daily.challengeId} · ${WORLDS[daily.world].name}`,
+                desc: '3 WAVES + MINI-BOSS',
+                ranked: daily.rankedAvailable,
+                color: '#44ddff',
+            },
+            {
+                y: 360,
+                title: 'WEEKLY BOSS',
+                meta: `${weekly.challengeId} · ${WORLDS[weekly.world].name}`,
+                desc: 'ONE BOSS · ONE SCORE',
+                ranked: weekly.rankedAvailable,
+                color: '#ff66cc',
+            },
+        ];
+
+        for (let i = 0; i < cards.length; i++) {
+            const card = cards[i];
+            const sel = this.challengeCursor === i;
+            const x = 24;
+            const y = card.y - 34;
+            const w = GAME_W - 48;
+            const h = 68;
+            ctx.fillStyle = sel ? card.color + '22' : 'rgba(10,18,35,0.72)';
+            ctx.strokeStyle = sel ? card.color : '#33445a';
+            ctx.lineWidth = sel ? 2 : 1;
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeRect(x, y, w, h);
+            ctx.fillStyle = sel ? '#fff' : '#b9c5d8';
+            ctx.font = `bold ${sel ? 17 : 15}px "Courier New", monospace`;
+            ctx.fillText(card.title, cx, card.y - 12);
+            ctx.fillStyle = card.color;
+            ctx.font = '10px "Courier New", monospace';
+            ctx.fillText(card.meta, cx, card.y + 6);
+            ctx.fillStyle = '#8a9aae';
+            ctx.fillText(`${card.desc} · ${card.ranked ? 'RANKED READY' : 'PRACTICE'}`, cx, card.y + 23);
+        }
+
+        this._drawBackButton(ctx, cx, 458, this.challengeCursor === 2);
+        ctx.fillStyle = '#667';
+        ctx.font = '10px "Courier New", monospace';
+        ctx.fillText('UTC ROTATION · SAME MISSION FOR EVERY PILOT', cx, 530);
     }
 
     drawLevelSelect(ctx) {
@@ -4113,7 +4590,7 @@ export class Game {
         // Header
         ctx.fillStyle = '#0ff';
         ctx.font = 'bold 24px "Courier New", monospace';
-        ctx.fillText('SELECT WORLD', cx, 175);
+        ctx.fillText('MISSIONS', cx, 175);
 
         ctx.strokeStyle = '#0ff';
         ctx.lineWidth = 1;
@@ -4133,6 +4610,7 @@ export class Game {
             const w = WORLDS[i];
             const y = 220 + i * worldSpacing;
             const sel = this.menuCursor === i;
+            const unlocked = i === 0 || isWorldUnlocked(this.saveData, i);
             const pulse = sel ? 0.95 + Math.sin(this.frame * 0.08) * 0.05 : 1;
 
             // Card background
@@ -4197,20 +4675,20 @@ export class Game {
             ctx.fillText(`${i + 1}`, badgeX, badgeY + 5);
 
             // World name
-            ctx.fillStyle = sel ? '#fff' : '#99aacc';
+            ctx.fillStyle = unlocked ? (sel ? '#fff' : '#99aacc') : '#445066';
             ctx.font = `${sel ? 'bold ' : ''}${sel ? 16 : 14}px "Courier New", monospace`;
             ctx.textAlign = 'left';
             ctx.save();
             ctx.translate(bx + 48, y - 5);
             ctx.scale(pulse, pulse);
-            ctx.fillText(w.name, 0, 0);
+            ctx.fillText(i === 0 ? 'NEW CAMPAIGN' : (unlocked ? w.name : 'LOCKED'), 0, 0);
             ctx.restore();
 
             // Subtitle
             ctx.fillStyle = sel ? '#aab' : '#7788aa';
             ctx.font = '10px "Courier New", monospace';
             ctx.textAlign = 'left';
-            ctx.fillText(w.subtitle, bx + 48, y + 12);
+            ctx.fillText(i === 0 ? 'RANKED · START FROM WORLD 1' : (unlocked ? `${w.subtitle} · PRACTICE` : 'CLEAR THE PREVIOUS WORLD'), bx + 48, y + 12);
 
             // Icon on the right
             ctx.textAlign = 'center';
@@ -4285,13 +4763,6 @@ export class Game {
             ctx.fillStyle = '#ff8';
             ctx.font = 'bold 13px "Courier New", monospace';
             ctx.fillText(`★ HIGH SCORE: ${this.highScore.toLocaleString()} ★`, cx, 555);
-        }
-
-        // Debug mode hint
-        if (this.menuCursor > 0 && this.menuCursor < WORLDS.length) {
-            ctx.fillStyle = '#0f8';
-            ctx.font = '10px "Courier New", monospace';
-            ctx.fillText('⚡ DEBUG: MAX POWER START', cx, 570);
         }
 
         // BACK button
@@ -4404,6 +4875,7 @@ export class Game {
 
         // Draw HUD
         this.drawHUD(ctx);
+        this.drawTutorial(ctx);
 
         // Wave text (boss warning)
         if (this.showWaveText > 0) {
@@ -4468,9 +4940,38 @@ export class Game {
                     p.x - 6, p.y + p.h / 2 - 4, 12, 18);
             }
         }
+
+        // Precise collision point: keeps dense bullet patterns readable.
+        ctx.save();
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#0ff';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y + 1, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
     }
 
     drawEnemy(ctx, e) {
+        if (e.telegraphTimer > 0) {
+            const progress = 1 - e.telegraphTimer / (e.isBoss ? 36 : 24);
+            ctx.save();
+            ctx.globalAlpha = this.settings.reducedMotion ? 0.75 : 0.45 + Math.sin(this.frame * 0.45) * 0.25;
+            ctx.strokeStyle = '#ffdd44';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, e.w * 0.55 + (1 - progress) * 16, 0, Math.PI * 2);
+            ctx.stroke();
+            if (this.player) {
+                ctx.beginPath();
+                ctx.moveTo(e.x, e.y + e.h * 0.35);
+                ctx.lineTo(this.player.x, this.player.y);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
         if (e.flashTimer > 0) {
             ctx.globalCompositeOperation = 'lighter';
         }
@@ -4684,6 +5185,18 @@ export class Game {
             }
         }
 
+        if (e.shieldHits > 0) {
+            ctx.save();
+            ctx.strokeStyle = '#66ffff';
+            ctx.fillStyle = 'rgba(60,220,255,0.08)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(e.x, e.y, Math.max(e.w, e.h) * 0.62, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+
         if (e.flashTimer > 0) {
             ctx.globalCompositeOperation = 'source-over';
         }
@@ -4713,21 +5226,35 @@ export class Game {
 
         // Enemy bullet glow + color per world
         if (!isPlayer) {
-            const worldColors = ['#f44', '#f80', '#f0f', '#0cf', '#fa0']; // red, orange, magenta, cyan, amber
-            const glowColors = ['rgba(255,60,60,', 'rgba(255,140,0,', 'rgba(255,0,255,', 'rgba(0,200,255,', 'rgba(255,170,0,'];
+            const worldColors = this.settings.colorblindMode
+                ? ['#ff3344', '#ff3344', '#ff3344', '#ff3344', '#ff3344']
+                : ['#f44', '#f80', '#f0f', '#0cf', '#fa0'];
+            const glowColors = this.settings.colorblindMode
+                ? ['rgba(255,40,60,', 'rgba(255,40,60,', 'rgba(255,40,60,', 'rgba(255,40,60,', 'rgba(255,40,60,']
+                : ['rgba(255,60,60,', 'rgba(255,140,0,', 'rgba(255,0,255,', 'rgba(0,200,255,', 'rgba(255,170,0,'];
             const ci = this.world % worldColors.length;
             // Glow
             ctx.save();
             ctx.globalAlpha = 0.4 + Math.sin(this.frame * 0.15 + b.x * 0.1) * 0.2;
             ctx.fillStyle = glowColors[ci] + '0.5)';
             ctx.beginPath();
-            ctx.arc(b.x, b.y, b.w * 0.9, 0, Math.PI * 2);
+            const bulletRadius = Math.max(5, b.w * 0.75);
+            ctx.arc(b.x, b.y, bulletRadius + 3, 0, Math.PI * 2);
             ctx.fill();
             ctx.globalAlpha = 1;
+            ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, bulletRadius, 0, Math.PI * 2);
+            ctx.stroke();
             // Core bullet
             ctx.fillStyle = worldColors[ci];
             ctx.beginPath();
-            ctx.arc(b.x, b.y, b.w * 0.4, 0, Math.PI * 2);
+            if (this.settings.colorblindMode) {
+                ctx.rect(b.x - bulletRadius, b.y - bulletRadius, bulletRadius * 2, bulletRadius * 2);
+            } else {
+                ctx.arc(b.x, b.y, bulletRadius, 0, Math.PI * 2);
+            }
             ctx.fill();
             // Bright center
             ctx.fillStyle = '#fff';
@@ -4868,10 +5395,12 @@ export class Game {
         const p = this.player;
 
         // ══════ TOP BAR ══════
+        ctx.fillStyle = 'rgba(0,0,0,0.48)';
+        ctx.fillRect(0, 0, GAME_W, 42);
         // Score (left)
         ctx.textAlign = 'left';
         ctx.fillStyle = '#fff';
-        ctx.font = 'bold 14px "Courier New", monospace';
+        ctx.font = 'bold 15px "Courier New", monospace';
         ctx.fillText('SCORE', 8, 18);
         ctx.fillStyle = '#0ff';
         ctx.fillText(this.score.toLocaleString(), 8, 34);
@@ -4879,7 +5408,7 @@ export class Game {
         // High score (right)
         ctx.textAlign = 'right';
         ctx.fillStyle = '#555';
-        ctx.font = '10px "Courier New", monospace';
+        ctx.font = '11px "Courier New", monospace';
         ctx.fillText(`HI: ${this.highScore.toLocaleString()}`, GAME_W - 8, 34);
 
         // World name + difficulty (right)
@@ -4889,6 +5418,12 @@ export class Game {
         const diffName = DIFFICULTY[this.settings.difficulty]?.name || '';
         const diffTag = this.settings.difficulty !== 1 ? ` [${diffName}]` : ''; // Only show if not medium
         ctx.fillText(worldDef.name + diffTag, GAME_W - 8, 18);
+        if (this._musicLoad) {
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#7899bb';
+            ctx.font = '8px "Courier New", monospace';
+            ctx.fillText(`MUSIC ${Math.round(this._musicLoad.progress * 100)}%`, GAME_W / 2, 52);
+        }
 
         // Combo (center)
         if (this.combo > 1) {
@@ -5040,6 +5575,31 @@ export class Game {
         }
     }
 
+    drawTutorial(ctx) {
+        if (!this.tutorial || this.tutorial.complete || this.state !== 'playing') return;
+        const touch = this.input.isTouchDevice;
+        const messages = [
+            touch ? 'DRAG TO MOVE' : 'ARROWS / WASD TO MOVE',
+            touch && this.input.autofire ? 'AUTO-FIRE ON · KEEP MOVING' : (touch ? 'HOLD FIRE WITH A SECOND FINGER' : 'HOLD SPACE TO FIRE'),
+            'DODGE BRIGHT ENEMY SHOTS · BUILD COMBO',
+            'COLLECT POWER-UPS TO UPGRADE YOUR SHIP',
+        ];
+        const text = messages[this.tutorial.step] || messages[0];
+        const y = GAME_H - 135;
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = 'rgba(2,8,18,0.82)';
+        ctx.fillRect(18, y - 20, GAME_W - 36, 34);
+        ctx.strokeStyle = '#0ff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(18, y - 20, GAME_W - 36, 34);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 11px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(text, GAME_W / 2, y + 2);
+        ctx.restore();
+    }
+
     drawWaveText(ctx) {
         const isMiniBoss = this.waveTextType === 'miniboss';
         if (!this.bossActive && !isMiniBoss) return;
@@ -5172,6 +5732,7 @@ export class Game {
 
     drawWorldText(ctx) {
         const worldDef = WORLDS[this.world % WORLDS.length];
+        const worldRule = WORLD_RULES[this.world % WORLD_RULES.length];
         const t = this.showWorldText;
 
         // Fade in for first 30 frames, hold, fade out last 30 frames
@@ -5202,6 +5763,13 @@ export class Game {
         ctx.fillStyle = '#0ff';
         ctx.font = '11px "Courier New", monospace';
         ctx.fillText(worldDef.subtitle, 0, 28);
+
+        ctx.fillStyle = '#ffcc66';
+        ctx.font = 'bold 10px "Courier New", monospace';
+        ctx.fillText(worldRule.mechanic, 0, 49);
+        ctx.fillStyle = '#9aa8b8';
+        ctx.font = '8px "Courier New", monospace';
+        ctx.fillText(worldRule.hint, 0, 64);
 
         ctx.restore();
     }
@@ -5297,7 +5865,7 @@ export class Game {
         ctx.stroke();
 
         // "STAGE CLEAR!" with shake intro
-        const shake = t < 20 ? (20 - t) * 0.5 * Math.sin(t * 2) : 0;
+        const shake = !this.settings.reducedMotion && t < 20 ? (20 - t) * 0.5 * Math.sin(t * 2) : 0;
         ctx.fillStyle = '#0ff';
         ctx.font = 'bold 30px "Courier New", monospace';
         ctx.fillText('STAGE CLEAR!', GAME_W / 2 + shake, GAME_H / 2 - 70);
@@ -5326,16 +5894,25 @@ export class Game {
             ctx.font = 'bold 14px "Courier New", monospace';
             ctx.fillText(`CLEAR BONUS: +${bonus.toLocaleString()}`, GAME_W / 2, GAME_H / 2 + 52);
         }
+        if (t > 58 && this._bossSummary) {
+            ctx.fillStyle = this._bossSummary.damageTaken === 0 ? '#66ff99' : '#9ab';
+            ctx.font = '10px "Courier New", monospace';
+            ctx.fillText(
+                `BOSS ${this._bossSummary.elapsedSeconds}s · DAMAGE ${this._bossSummary.damageTaken} · 3 PHASES`,
+                GAME_W / 2,
+                GAME_H / 2 + 69,
+            );
+        }
 
         // Next world preview
         if (t > 65) {
             const nextWorld = WORLDS[(this.stageClearWorld + 1) % WORLDS.length];
             ctx.fillStyle = '#f80';
             ctx.font = '12px "Courier New", monospace';
-            ctx.fillText(`NEXT: ${nextWorld.name}`, GAME_W / 2, GAME_H / 2 + 85);
+            ctx.fillText(`NEXT: ${nextWorld.name}`, GAME_W / 2, GAME_H / 2 + 91);
             ctx.fillStyle = '#888';
             ctx.font = '10px "Courier New", monospace';
-            ctx.fillText(`"${nextWorld.subtitle}"`, GAME_W / 2, GAME_H / 2 + 102);
+            ctx.fillText(`"${nextWorld.subtitle}"`, GAME_W / 2, GAME_H / 2 + 108);
         }
 
         // Decorative bottom line
@@ -5367,7 +5944,7 @@ export class Game {
         ctx.globalAlpha = alpha;
 
         // Stars/sparkle effects
-        if (t > 30) {
+        if (t > 30 && !this.settings.reducedMotion) {
             for (let i = 0; i < 12; i++) {
                 const sx = GAME_W / 2 + Math.cos(t * 0.02 + i * 0.52) * (80 + i * 12);
                 const sy = GAME_H / 2 - 60 + Math.sin(t * 0.03 + i * 0.73) * 50;
@@ -5380,8 +5957,8 @@ export class Game {
 
         // "MISSION COMPLETE"
         if (t > 10) {
-            const shake = t < 30 ? (30 - t) * 0.3 * Math.sin(t * 1.5) : 0;
-            const glow = 0.6 + Math.sin(t * 0.04) * 0.4;
+            const shake = !this.settings.reducedMotion && t < 30 ? (30 - t) * 0.3 * Math.sin(t * 1.5) : 0;
+            const glow = this.settings.reducedMotion ? 0.65 : 0.6 + Math.sin(t * 0.04) * 0.4;
 
             // Glow behind text
             ctx.save();
@@ -5398,7 +5975,12 @@ export class Game {
         if (t > 40) {
             ctx.fillStyle = '#fff';
             ctx.font = '14px "Courier New", monospace';
-            ctx.fillText('ALL SECTORS CLEARED', GAME_W / 2, GAME_H / 2 - 20);
+            const missionLabel = this.run?.type === RUN_TYPES.DAILY
+                ? `DAILY SECTOR ${this.run.challengeId}`
+                : this.run?.type === RUN_TYPES.WEEKLY
+                    ? `WEEKLY BOSS ${this.run.challengeId}`
+                    : 'ALL SECTORS CLEARED';
+            ctx.fillText(missionLabel, GAME_W / 2, GAME_H / 2 - 20);
         }
         if (t > 55) {
             ctx.fillStyle = '#ff8';
@@ -5408,17 +5990,26 @@ export class Game {
             ctx.font = 'bold 24px "Courier New", monospace';
             ctx.fillText(`${this.score.toLocaleString()}`, GAME_W / 2, GAME_H / 2 + 50);
         }
-        if (t > 70 && this.score >= this.highScore && this.score > 0) {
+        if (t > 70 && this._runSummary?.ranked && this.score >= this.highScore && this.score > 0) {
             ctx.fillStyle = '#f0f';
             ctx.font = 'bold 14px "Courier New", monospace';
             ctx.fillText('★ NEW HIGH SCORE! ★', GAME_W / 2, GAME_H / 2 + 80);
         }
         if (t > 85) {
+            if (this._runSummary) {
+                const mins = Math.floor(this._runSummary.elapsedSeconds / 60);
+                const secs = String(this._runSummary.elapsedSeconds % 60).padStart(2, '0');
+                ctx.fillStyle = '#9ab';
+                ctx.font = '10px "Courier New", monospace';
+                ctx.fillText(`TIME ${mins}:${secs} · DAMAGE ${this._runSummary.damageTaken} · COMBO x${this._runSummary.maxCombo}`, GAME_W / 2, GAME_H / 2 + 102);
+            }
             ctx.fillStyle = '#0ff';
             ctx.font = '11px "Courier New", monospace';
-            ctx.fillText('THANK YOU FOR PLAYING!', GAME_W / 2, GAME_H / 2 + 115);
+            ctx.fillText(this.run?.type === RUN_TYPES.DAILY || this.run?.type === RUN_TYPES.WEEKLY
+                ? (this.run.ranked ? 'RANKED SCORE SUBMITTED' : 'PRACTICE RESULT')
+                : 'THANK YOU FOR PLAYING!', GAME_W / 2, GAME_H / 2 + 125);
             ctx.fillStyle = '#666';
-            ctx.fillText('SMARTPROC GAMES', GAME_W / 2, GAME_H / 2 + 135);
+            ctx.fillText('A GAMEVOLT ORIGINAL', GAME_W / 2, GAME_H / 2 + 143);
         }
 
         // "Press to continue"
@@ -5426,7 +6017,7 @@ export class Game {
             const pulse = 0.4 + Math.sin(t * 0.06) * 0.6;
             ctx.fillStyle = `rgba(255,255,255,${pulse})`;
             ctx.font = '13px "Courier New", monospace';
-            ctx.fillText('PRESS TO CONTINUE', GAME_W / 2, GAME_H / 2 + 175);
+            ctx.fillText('PRESS TO CONTINUE', GAME_W / 2, GAME_H / 2 + 178);
         }
 
         ctx.globalAlpha = 1;
@@ -5453,8 +6044,8 @@ export class Game {
 
         // "GAME OVER" with glitch effect
         const titleY = GAME_H / 2 - 100 + (1 - slideIn) * -40;
-        const glitchX = this.frame < 20 ? (Math.random() - 0.5) * 6 : 0;
-        const glitchY = this.frame < 20 ? (Math.random() - 0.5) * 3 : 0;
+        const glitchX = !this.settings.reducedMotion && this.frame < 20 ? (Math.random() - 0.5) * 6 : 0;
+        const glitchY = !this.settings.reducedMotion && this.frame < 20 ? (Math.random() - 0.5) * 3 : 0;
 
         // Shadow layers
         if (this.frame < 25) {
@@ -5480,7 +6071,7 @@ export class Game {
 
         // Stats card
         const cardY = GAME_H / 2 - 40 + (1 - slideIn) * 30;
-        const cardH = 90;
+        const cardH = 118;
         const cardW = GAME_W - 50;
         const cardX = 25;
         const r = 8;
@@ -5505,24 +6096,45 @@ export class Game {
         // Score
         ctx.fillStyle = '#aabbcc';
         ctx.font = '11px "Courier New", monospace';
-        ctx.fillText('FINAL SCORE', cx, cardY + 20);
+        const runLabel = this.run?.type === RUN_TYPES.CAMPAIGN
+            ? (this._runSummary?.ranked ? 'RANKED CAMPAIGN' : 'CAMPAIGN')
+            : this.run?.type === RUN_TYPES.CONTINUE
+                ? 'CONTINUE · UNRANKED'
+                : this.run?.type === RUN_TYPES.DAILY
+                    ? `DAILY · ${this.run.ranked ? 'RANKED' : 'PRACTICE'}`
+                    : this.run?.type === RUN_TYPES.WEEKLY
+                        ? `WEEKLY · ${this.run.ranked ? 'RANKED' : 'PRACTICE'}`
+                        : 'PRACTICE RUN';
+        ctx.fillText(runLabel, cx, cardY + 18);
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 22px "Courier New", monospace';
-        ctx.fillText(this.score.toLocaleString(), cx, cardY + 46);
+        ctx.fillText(this.score.toLocaleString(), cx, cardY + 42);
 
         // World + Wave
         const worldDef = WORLDS[this.world % WORLDS.length];
         ctx.fillStyle = '#ff8';
         ctx.font = '12px "Courier New", monospace';
-        ctx.fillText(`WAVE ${this.wave} · ${worldDef.name}`, cx, cardY + 68);
+        ctx.fillText(`WAVE ${this.wave} · ${worldDef.name}`, cx, cardY + 62);
+        if (this._runSummary) {
+            ctx.fillStyle = '#9ab';
+            ctx.font = '10px "Courier New", monospace';
+            const mins = Math.floor(this._runSummary.elapsedSeconds / 60);
+            const secs = String(this._runSummary.elapsedSeconds % 60).padStart(2, '0');
+            ctx.fillText(`TIME ${mins}:${secs} · DAMAGE ${this._runSummary.damageTaken}`, cx, cardY + 82);
+            ctx.fillText(`MAX COMBO x${this._runSummary.maxCombo} · ${this._runSummary.difficulty}`, cx, cardY + 99);
+            if (this._runSummary.pbDelta > 0 && this._runSummary.ranked) {
+                ctx.fillStyle = '#0ff';
+                ctx.fillText(`PB +${this._runSummary.pbDelta.toLocaleString()}`, cx, cardY + 114);
+            }
+        }
 
         // New high score
-        if (this.score >= this.highScore && this.score > 0) {
+        if (this._runSummary?.ranked && this.score >= this.highScore && this.score > 0) {
             ctx.fillStyle = '#ff44ff';
             ctx.font = 'bold 14px "Courier New", monospace';
             const hsAlpha = 0.6 + Math.sin(this.frame * 0.08) * 0.4;
             ctx.globalAlpha = fadeIn * hsAlpha;
-            ctx.fillText('★ NEW HIGH SCORE! ★', cx, cardY + cardH + 24);
+            ctx.fillText('★ NEW HIGH SCORE! ★', cx, cardY + cardH + 18);
             ctx.globalAlpha = fadeIn;
         }
 
@@ -5531,8 +6143,8 @@ export class Game {
             const btnAlpha = Math.min(1, (this.frame - 60) / 20);
             ctx.globalAlpha = fadeIn * btnAlpha;
 
-            const retryY = GAME_H / 2 + 100;
-            const menuBtnY = GAME_H / 2 + 150;
+            const retryY = GAME_H / 2 + 115;
+            const menuBtnY = GAME_H / 2 + 160;
             const retrySel = this._gameOverCursor === 0;
             const menuSel = this._gameOverCursor === 1;
             const btnW2 = 200;
@@ -5569,7 +6181,10 @@ export class Game {
                 ctx.fillStyle = '#99aacc';
                 ctx.font = '15px "Courier New", monospace';
             }
-            ctx.fillText('↻ RETRY WORLD', cx, retryY + 5);
+            const retryLabel = this.run?.type === RUN_TYPES.DAILY || this.run?.type === RUN_TYPES.WEEKLY
+                ? '↻ RETRY AS PRACTICE'
+                : '↻ RETRY WORLD';
+            ctx.fillText(retryLabel, cx, retryY + 5);
 
             // MENU button
             const mbx = cx - btnW2 / 2;
@@ -5671,6 +6286,14 @@ export class Game {
     }
 
     checkWorldClearTrophies(worldIdx) {
+        if (this.run && !this.run.worldsCleared.includes(worldIdx)) {
+            this.run.worldsCleared.push(worldIdx);
+            this.run.worldsCleared.sort((a, b) => a - b);
+        }
+        if (this.run && (this.run.type === RUN_TYPES.CAMPAIGN || this.run.type === RUN_TYPES.CONTINUE)) {
+            this.saveData = recordWorldClear(this.saveData, worldIdx, this.run.difficulty);
+            this._persistSaveData();
+        }
         const worldTrophies = ['deep-space-clear', 'station-clear', 'core-clear', 'atmosphere-clear', 'city-clear'];
         if (worldTrophies[worldIdx]) this.tryUnlockTrophy(worldTrophies[worldIdx]);
 
@@ -5684,6 +6307,7 @@ export class Game {
     }
 
     checkVictoryTrophies() {
+        if (!isFullCampaignRun(this.run)) return;
         this.tryUnlockTrophy('galaxy-savior');
         if (this._runStats.difficulty >= 1) this.tryUnlockTrophy('medium-clear');
         if (this._runStats.difficulty === 2) this.tryUnlockTrophy('hard-clear');
@@ -5778,7 +6402,7 @@ export class Game {
         if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard) {
             GameVolt.ui.leaderboard({
                 container: host,
-                mode: 'default',
+                mode: leaderboardMode(RUN_TYPES.CAMPAIGN, this.settings.difficulty),
                 limit: 20,
                 accent: '#0ff',
                 scoreLabel: 'pts'
@@ -5870,6 +6494,9 @@ export class Game {
                 score,
                 world: world + 1,
                 wave,
+                runType: this.run ? this.run.type : 'legacy',
+                difficulty: this.run ? this.run.difficulty : 1,
+                ranked: this._isRankedRun(),
                 date: Date.now()
             });
             // Keep top 20 sorted by score
@@ -5892,7 +6519,10 @@ export class Game {
         this._leaderboardLoading = false;
         if (window.GameVolt) {
             this._leaderboardLoading = true;
-            GameVolt.leaderboard.get({ mode: 'default', limit: 20 }).then(rows => {
+            GameVolt.leaderboard.get({
+                mode: leaderboardMode(RUN_TYPES.CAMPAIGN, this.settings.difficulty),
+                limit: 20
+            }).then(rows => {
                 this._leaderboardData = rows || [];
                 this._leaderboardLoading = false;
                 this._scoresLoaded = true;
