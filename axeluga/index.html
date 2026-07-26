@@ -97,6 +97,7 @@
     </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: border-box; }
         html, body {
             width: 100%; height: 100%;
             overflow: hidden;
@@ -388,7 +389,7 @@
     </div>
 
     <script src="/sdk/gamevolt.js"></script>
-    <script type="module" src="js/main.js?v=20260318a"></script>
+    <script type="module" src="js/main.js?v=20260726p2"></script>
     <script>
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
         const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
@@ -634,54 +635,14 @@
       </div>
     </div>
 
-    <script>
-    // GameVolt SDK init
-    if(window.GameVolt){
-      GameVolt.init('axeluga');
-      GameVolt.save.registerMigration({
-        keys:['axeluga_hi','axeluga_settings','axeluga_trophies'],
-        merge:function(local,cloud){
-          var c=cloud||{};
-          var hi=parseInt(local['axeluga_hi'])||0;
-          var settings={};
-          var trophies={};
-          try{settings=JSON.parse(local['axeluga_settings']||'{}');}catch(e){}
-          try{trophies=JSON.parse(local['axeluga_trophies']||'{}');}catch(e){}
-          // Merge trophies: keep earliest unlock timestamp
-          var merged=Object.assign({},c.trophies||{},trophies);
-          if(c.trophies){for(var k in c.trophies){if(c.trophies[k]&&(!merged[k]||c.trophies[k]<merged[k]))merged[k]=c.trophies[k];}}
-          return{
-            highScore:Math.max(hi,c.highScore||0),
-            settings:Object.assign({},c.settings||{},settings),
-            trophies:merged
-          };
-        },
-        getScores:function(local){
-          var hi=parseInt(local['axeluga_hi'])||0;
-          if(!hi)return[];
-          return[{score:hi,mode:'default'}];
-        }
-      });
-    }
-    </script>
     <script>if(window.parent!==window){document.getElementById('seo-content').style.display='none';}</script>
     <script>
     // GA4 Game Event Tracker
     var GameVoltTracker={gameName:null,startTime:null,hasTracked30s:false,hasTracked60s:false,timerInterval:null,
-    start:function(n){this.gameName=n;this.startTime=Date.now();this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',{game_name:n});if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
-    end:function(o){o=o||{};var t=this.startTime?Math.round((Date.now()-this.startTime)/1000):0;this._send('game_end',{game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'});if(this.timerInterval)clearInterval(this.timerInterval);},
+    start:function(n,p){if(this.startTime)this.end({outcome:'restart'});this.gameName=n;this.startTime=Date.now();this.hasTracked30s=false;this.hasTracked60s=false;this._send('game_start',Object.assign({game_name:n},p||{}));if(this.timerInterval)clearInterval(this.timerInterval);var self=this;this.timerInterval=setInterval(function(){self._checkMilestones();},5000);},
+    end:function(o){if(!this.startTime)return;o=o||{};var t=Math.round((Date.now()-this.startTime)/1000);this._send('game_end',Object.assign({game_name:this.gameName,play_time_seconds:t,score:o.score||null,level:o.level||null,outcome:o.outcome||'unknown'},o));if(this.timerInterval)clearInterval(this.timerInterval);this.timerInterval=null;this.startTime=null;},
     _checkMilestones:function(){if(!this.startTime)return;var t=(Date.now()-this.startTime)/1000;if(t>=30&&!this.hasTracked30s){this.hasTracked30s=true;this._send('game_play_30s',{game_name:this.gameName});}if(t>=60&&!this.hasTracked60s){this.hasTracked60s=true;this._send('game_play_60s',{game_name:this.gameName});}},
     _send:function(n,p){if(window.parent!==window){window.parent.postMessage({type:'gamevolt_ga4',event:n,params:p},'*');return;}if(typeof gtag==='function'){gtag('event',n,p);return;}}};
-    // Track Axeluga game state changes
-    (function(){
-      var lastState='',tracking=false;
-      setInterval(function(){
-        var g=window.__axelugaGame;if(!g)return;
-        if(g.state==='playing'&&lastState!=='playing'){GameVoltTracker.start('Axeluga');tracking=true;}
-        if(g.state==='gameover'&&lastState!=='gameover'&&tracking){GameVoltTracker.end({score:g.score,level:g.wave,outcome:'lose'});tracking=false;}
-        lastState=g.state;
-      },500);
-    })();
     </script>
 </body>
 </html>
