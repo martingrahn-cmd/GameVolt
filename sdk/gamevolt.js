@@ -16,7 +16,7 @@
   // footer so you can tell at a glance whether a browser has the latest SDK
   // (Cloudflare caches this file, so an old copy can linger). Also on
   // GameVolt.version and logged to the console on init.
-  var SDK_VERSION = '2026.07.25-1';
+  var SDK_VERSION = '2026.07.26-1';
 
   var sb = null; // Supabase client
   var currentUser = null;
@@ -320,7 +320,11 @@
     nudgeEl.querySelector('.gv-nudge-close').onclick = hideNudge;
   }
 
+  // showNudge(score)            -> "You scored 1,234!"
+  // showNudge({ trophy: true }) -> "Trophy unlocked!"
+  // Still capped at one nudge per session, whichever fires first.
   function showNudge(score) {
+    var isTrophy = !!(score && typeof score === 'object' && score.trophy);
     try {
       if (sessionStorage.getItem('gv_nudge_shown')) return;
       sessionStorage.setItem('gv_nudge_shown', '1');
@@ -328,7 +332,10 @@
     createNudge();
     var title = nudgeEl.querySelector('.gv-nudge-title');
     var sub = nudgeEl.querySelector('.gv-nudge-sub');
-    if (typeof score === 'number' && score > 0) {
+    if (isTrophy) {
+      title.textContent = 'Trophy unlocked!';
+      sub.textContent = 'Sign in to keep it forever';
+    } else if (typeof score === 'number' && score > 0) {
       title.textContent = 'You scored ' + score.toLocaleString() + '!';
       sub.textContent = 'Sign in to save it to the leaderboard';
     } else {
@@ -678,7 +685,10 @@
       var fullId = currentGameId + '-' + id;
 
       if (!currentUser || !sb) {
-        // Guest: store in localStorage
+        // Guest: store in localStorage, and nudge on the FIRST genuinely new
+        // unlock — a trophy they'd lose by never signing in. Games re-report
+        // already-earned trophies, so only a fresh one counts.
+        var freshUnlock = false;
         try {
           var key = 'gv_ach_' + currentGameId;
           var raw = localStorage.getItem(key);
@@ -686,8 +696,11 @@
           if (!data[id]) {
             data[id] = Date.now();
             localStorage.setItem(key, JSON.stringify(data));
+            freshUnlock = true;
           }
         } catch (e) {}
+        // let the game's own trophy toast land first
+        if (freshUnlock) setTimeout(function() { showNudge({ trophy: true }); }, 3500);
         return Promise.resolve();
       }
 
