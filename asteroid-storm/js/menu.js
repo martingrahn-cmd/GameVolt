@@ -219,10 +219,27 @@ class MenuSystem {
         for (const g of gamepads) { if (g) { gp = g; break; } }
 
         if (gp) {
-            // Update settings screen gamepad status
+            // Update settings screen gamepad status — a live readout, so it is
+            // possible to tell WHERE stick input is going. On a Steam Deck the
+            // D-pad arrives as buttons while the sticks are usually bound to
+            // mouse/keyboard by the Steam Input layout, so they never reach the
+            // Gamepad API at all: sticks move, axes stay 0.00. If the axes DO
+            // move here and the menu still ignores them, that is our bug.
             const gpStatus = document.getElementById('settingsGPStatus');
             if (gpStatus && this.currentScreen === 'settings') {
-                gpStatus.textContent = gp.id;
+                const axes = Array.from(gp.axes || []).map(a => (a || 0).toFixed(2));
+                const pressed = [];
+                for (let i = 0; i < gp.buttons.length; i++) {
+                    if (gp.buttons[i] && gp.buttons[i].pressed) pressed.push(i);
+                }
+                const live = Math.abs(gp.axes[0] || 0) > 0.5 || Math.abs(gp.axes[1] || 0) > 0.5;
+                gpStatus.dataset.gpSeen = '1';
+                gpStatus.innerHTML =
+                    '<div>' + this._escGp(gp.id) + '</div>' +
+                    '<div>mapping: ' + this._escGp(gp.mapping || '(none)') +
+                    ' · axes: ' + (axes.length ? this._escGp(axes.join(' ')) : '(none)') + '</div>' +
+                    '<div>buttons: ' + (pressed.length ? pressed.join(' ') : '—') +
+                    ' · stick nav: ' + (live ? 'ACTIVE' : 'idle') + '</div>';
                 gpStatus.style.color = 'rgba(0,255,0,0.6)';
             }
 
@@ -339,6 +356,15 @@ class MenuSystem {
             }
 
             this.gpPrevButtons = { up, down, left, right, confirm, back };
+        } else {
+            // No pad this frame — say so rather than leaving a stale readout,
+            // which would look like a live reading of a disconnected pad.
+            const gpStatus = document.getElementById('settingsGPStatus');
+            if (gpStatus && this.currentScreen === 'settings' && gpStatus.dataset.gpSeen === '1') {
+                gpStatus.textContent = 'No gamepad detected';
+                gpStatus.style.color = '';
+                gpStatus.dataset.gpSeen = '0';
+            }
         }
 
         requestAnimationFrame(() => this.pollGamepad());
@@ -364,6 +390,11 @@ class MenuSystem {
             if (action === 'music') audio.setMusicVolume(v);
             else audio.setSfxVolume(v);
         }
+    }
+
+    // gp.id is vendor-supplied text — escape before putting it in innerHTML.
+    _escGp(s) {
+        return String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
     }
 
     playNav() {
