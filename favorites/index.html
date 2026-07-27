@@ -387,9 +387,14 @@
         loadAndRender();
 
         // Re-render when auth state changes (guest → signed in migrates via SDK)
-        if (window.GameVolt && GameVolt.onReady) {
+        //
+        // init() has to come BEFORE onReady, not inside it: onReady callbacks
+        // only run once init() has connected, so calling init from within one
+        // was a deadlock — the SDK never started, and signed-in favourites
+        // never loaded from the cloud.
+        if (window.GameVolt) {
+          GameVolt.init('favorites');
           GameVolt.onReady(function() {
-            GameVolt.init('favorites');
             if (GameVolt.auth && GameVolt.auth.onStateChange) {
               GameVolt.auth.onStateChange(function() { loadAndRender(); });
             }
