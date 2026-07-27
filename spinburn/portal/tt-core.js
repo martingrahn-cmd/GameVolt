@@ -224,8 +224,17 @@
           // contact angles the return (physical feel, and honest whiff-ish
           // shanks when you barely reach a wide ball)
           var off = (cx - pad2.x) * 0.55;
-          launchAt(s, p,
-            (typeof aim.tx === 'number' ? aim.tx : 0) + off,
+          var goalX = (typeof aim.tx === 'number' ? aim.tx : 0) + off;
+          // ...but stretching for a wide ball must not be an AUTOMATIC out.
+          // The hitbox (REACH) is several times wider than the drawn blade, so
+          // the player cannot see how far off-centre the contact was: aim.tx at
+          // its clamp plus a full-stretch deflection targeted 0.92, well past
+          // the 0.76 sideline, and every save from the corner sailed wide. A
+          // shank you had no way to read is just a stolen point, so keep the
+          // combined target on the table — depth is where the real risk lives.
+          var lim = TABLE_W / 2 - 0.01;
+          goalX = Math.max(-lim, Math.min(lim, goalX));
+          launchAt(s, p, goalX,
             typeof aim.ty === 'number' ? aim.ty : NET_Y + fwd * 0.9,
             typeof aim.t === 'number' ? aim.t : 0.7);
           ev.push({ type: 'hit', by: p, x: b.x, z: b.z });

@@ -145,6 +145,61 @@ check('every serve power lands IN (' + serveOut + ' out)', serveOut === 0);
 check('the hardest serve still lands on the table (' + serveDepth.toFixed(2) + ')',
   serveDepth > 0 && serveDepth <= K.TABLE_L + 0.06);
 
+// 8c-3. A WIDE SAVE MUST NOT BE AN AUTOMATIC OUT. Off-centre contact angles
+// the return, but the hitbox (REACH 0.44) is far wider than the drawn blade
+// (~0.12), so the player cannot see how badly they caught it. Reaching for a
+// corner ball with a wide swipe used to target aim.tx(0.68) + deflection
+// (0.55 * 0.44 = 0.242) = 0.92, well past the 0.76 sideline — every stretched
+// save sailed wide. Build a real rally ball at the receiver and drive it at
+// each blade edge in turn; the return must stay on the table.
+//
+// The landing to judge is the FIRST bounce AFTER the hit. Judging the first
+// side-1 bounce in the whole event list reads the SERVE's own legal own-side
+// bounce (x ~ 0, always in) and passes no matter how wide the return flies —
+// which is exactly how this went unnoticed.
+function wideTrial(side, d, swipeTx) {
+  var wg = TT.createGame(1);
+  wg.phase = 'rally';
+  wg.lastHitBy = 1;
+  wg.bounced = true;                 // the incoming shot already bounced legally
+  // straight approach (vx = 0), so the x where it crosses the paddle plane
+  // is exactly where we put it
+  wg.ball = { x: side * d, y: K.TABLE_L - 0.30, z: 0.26, vx: 0, vy: 6, vz: 0.2 };
+  wg.paddles[2] = { x: 0, z: 0.26 };  // blade centred: contact lands d off-centre
+  var inp = { 2: { x: 0, z: 0.26, aim: { tx: side * swipeTx, ty: K.NET_Y - 0.9, t: 0.7 } } };
+  var hit = false, land = null, dead = false;
+  for (var wi = 0; wi < 400; wi++) {
+    var wr = TT.step(wg, hit ? {} : inp);
+    for (var wj = 0; wj < wr.events.length; wj++) {
+      var e = wr.events[wj];
+      if (e.type === 'hit' && e.by === 2) hit = true;
+      else if (hit && !land && e.type === 'bounce' && e.side === 1) land = e;
+      else if (hit && !land && (e.type === 'floor' || e.type === 'net')) dead = true;
+    }
+    if (land || dead) break;
+  }
+  return { hit: hit, land: land };
+}
+// Guard: without the core's clamp this sweep DID produce wide-outs, so the
+// test has teeth — offsets past ~0.25 landed at 0.84-0.89 vs a 0.8175 limit.
+var wideOut = 0, wideTried = 0;
+[-1, 1].forEach(function (side) {
+  [0.15, 0.3, 0.42].forEach(function (d) {
+    var r = wideTrial(side, d, 0.68);
+    if (!r.hit) return;
+    wideTried++;
+    if (!r.land || Math.abs(r.land.x) > K.TABLE_W / 2 + 0.056) wideOut++;
+  });
+});
+check('wide stretched saves land on the table (' + wideOut + '/' + wideTried + ' out)',
+  wideTried >= 4 && wideOut === 0);
+// ...and the deflection must still EXIST: catching the ball on the edge of the
+// blade has to angle the shot, or the clamp has flattened a real mechanic into
+// nothing. Compare a centred contact against a full-stretch one.
+var wCentre = wideTrial(1, 0.0, 0.2), wEdge = wideTrial(1, 0.42, 0.2);
+check('off-centre contact still angles the return',
+  wCentre.land && wEdge.land && wEdge.land.x - wCentre.land.x > 0.1);
+
 // 8d. edge-ball justice: a fast serve landing 4cm inside the end line must
 // be judged IN (step-boundary judging used to call these out)
 g = TT.createGame(1);
