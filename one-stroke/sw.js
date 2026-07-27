@@ -1,4 +1,4 @@
-const CACHE_NAME = "one-stroke-v21";
+const CACHE_NAME = "one-stroke-v22";
 
 const PRECACHE_URLS = [
   "./",

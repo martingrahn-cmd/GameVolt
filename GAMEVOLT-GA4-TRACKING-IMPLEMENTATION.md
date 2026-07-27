@@ -11,6 +11,31 @@ This document describes exactly what needs to be implemented.
 
 ---
 
+## ⚠️ Status update (2026-07-26) — read before using the code below
+
+The tracker is no longer pasted into each game. It lives once in
+**`/js/gv-ga4.js`**, included with `<script src="/js/gv-ga4.js"></script>`; the
+13 inline copies had drifted into two different versions.
+
+Its semantics were also corrected, because the original design below measured
+the wrong thing:
+
+| | Before | Now |
+|---|---|---|
+| `game_start` | sent from `start()`, which games call while the page initialises — so it counted **page loads** | sent by `play()`: the first real input (pointer/key/touch), or when the game says play began |
+| `game_play_30s` / `60s` | timer from page load — an idle background tab scored the same as playing | measured from the real start, and **paused while the tab is hidden** |
+| `game_end` | sent even if nobody played | skipped unless play actually started, so bounces stop diluting averages |
+
+How much this mattered: in the 29 Jun–26 Jul export, `game_start` showed 253
+users and `game_play_30s` 121, while `level_start` — the only event that
+required a real click — showed **11**.
+
+The code sample below is kept for context but is **superseded**; edit
+`/js/gv-ga4.js` instead. In particular, the instruction to call `start()` when
+the "game loads" is what caused the inflation.
+
+---
+
 ## Architecture
 
 GameVolt uses a shared iframe shell at `/play/index.html` that loads individual games. GA4 (gtag.js) runs on the parent page. Games inside the iframe need to send events to the parent via `postMessage`, where they get forwarded to GA4.
@@ -65,7 +90,7 @@ const GameVoltTracker = {
   timerInterval: null,
 
   /**
-   * Call when the player starts playing (clicks Play, game loads, etc.)
+   * Call when play actually begins — NOT on page load. See the status note above.
    * @param {string} gameName - e.g. 'HoverDash', 'SnakeNeo', 'GravityWell'
    */
   start(gameName) {
@@ -176,7 +201,7 @@ Here's where to hook in for each game in the catalog:
 |------|------|--------------------|-----------------|
 | HoverDash | `/games/hoverdash/index.html` | When game loop starts / play button clicked | On crash/game over |
 | Snake Neo | `/games/snake-neo/index.html` | When a mode starts (Neo/Nokia/16-bit) | On death / game over screen |
-| Gravity Well | `/games/gravity-well/index.html` | When gameplay begins | On death animation complete |
+| Gravity Well | `/gravitywell/index.html` | When gameplay begins | On death animation complete |
 | BounceBlob | `/games/bounceblob/index.html` | When level starts | On fall / level complete |
 | GridFury | `/games/gridfury/index.html` | When arena loads | On player death |
 | Axeluga | `/games/axeluga/index.html` | When game starts | On ship destroyed / game over |
@@ -218,7 +243,7 @@ Alternatively, use browser DevTools → Console and look for the `postMessage` c
 This is done manually in YouTube Studio → Kampanjer:
 
 - **HoverDash campaign** ("Can you beat my score?"): Change destination URL from `gamevolt.io` to `gamevolt.io/games/hoverdash/`
-- **GravityWell campaign**: Change destination URL from `gamevolt.io` to `gamevolt.io/games/gravity-well/`
+- **GravityWell campaign**: Change destination URL from `gamevolt.io` to `gamevolt.io/gravitywell/`
 
 Verify the exact URL paths match the actual game pages on the site.
 
