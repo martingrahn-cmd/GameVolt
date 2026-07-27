@@ -9,7 +9,9 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-PY073ZX38N');
+    // Inside the portal iframe the parent page already counts this visit;
+    // a second page_view here would report one play as two.
+    gtag('config', 'G-PY073ZX38N', window.parent !== window ? { send_page_view: false } : {});
   </script>
   
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -879,6 +881,9 @@
       #overlay, #pause-overlay, #pause-btn { display: none !important; }
     }
   </style>
+  <!-- GA4 Game Event Tracker (iframe-safe) -->
+  <script src="/js/gv-ga4.js"></script>
+  <script>window.GameVoltTracker=window.GameVoltTracker||{start:function(){},play:function(){},track:function(){},end:function(){}};</script>
   <script src="/sdk/gamevolt.js"></script>
 </head>
 

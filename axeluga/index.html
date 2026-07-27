@@ -9,7 +9,9 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-PY073ZX38N');
+      // Inside the portal iframe the parent page already counts this visit;
+      // a second page_view here would report one play as two.
+      gtag('config', 'G-PY073ZX38N', window.parent !== window ? { send_page_view: false } : {});
     </script>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">

@@ -19,6 +19,8 @@
 //   30s/60s      measured from the real start, and paused while the tab is
 //                hidden, so they mean "played that long", not "left open".
 //   end()        only reports if play() ever happened; a bounce is not a game.
+//   restart      start() called mid-run closes the open session first, so a
+//                restart is two runs in GA4 rather than one very long one.
 (function () {
     'use strict';
 
@@ -34,6 +36,7 @@
 
     var T = {
         gameName: null,
+        startParams: null,    // extra params the game wants on game_start
         startTime: null,      // when play actually began
         armed: false,
         started: false,
@@ -44,10 +47,16 @@
         hasTracked60s: false,
         timerInterval: null,
 
-        // Called at load. Prepares tracking without claiming a session.
-        start: function (name) {
-            if (this.started && !this.ended) return;   // already playing
+        // Called at load, or at the top of a run. Prepares tracking without
+        // claiming a session. Any params are attached to `game_start`.
+        start: function (name, params) {
+            // A new run beginning while one is still open means the player
+            // restarted without the game reporting an end (pause -> restart,
+            // quit to menu -> new game). Close the old session first, or its
+            // clock keeps running and the new run never registers at all.
+            if (this.started && !this.ended) this.end({ outcome: 'restart' });
             this.gameName = name;
+            this.startParams = params || null;
             this.armed = true;
             this.started = false;
             this.ended = false;
@@ -67,7 +76,13 @@
             this.startTime = Date.now();
             this._lastTick = this.startTime;
             this._removeFirstInput();
-            this._send('game_start', { game_name: this.gameName });
+            var params = { game_name: this.gameName };
+            if (this.startParams) {
+                for (var k in this.startParams) {
+                    if (Object.prototype.hasOwnProperty.call(this.startParams, k)) params[k] = this.startParams[k];
+                }
+            }
+            this._send('game_start', params);
             if (this.timerInterval) clearInterval(this.timerInterval);
             var self = this;
             this.timerInterval = setInterval(function () { self._tick(); }, 2000);

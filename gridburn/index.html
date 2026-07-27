@@ -9,7 +9,9 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-PY073ZX38N');
+    // Inside the portal iframe the parent page already counts this visit;
+    // a second page_view here would report one play as two.
+    gtag('config', 'G-PY073ZX38N', window.parent !== window ? { send_page_view: false } : {});
   </script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -552,6 +554,9 @@
   }
   </script>
 
+  <!-- GA4 Game Event Tracker (iframe-safe) -->
+  <script src="/js/gv-ga4.js"></script>
+  <script>window.GameVoltTracker=window.GameVoltTracker||{start:function(){},play:function(){},track:function(){},end:function(){}};</script>
   <script src="/sdk/gamevolt.js" data-game="gridburn"></script>
   <script src="nc-core.js"></script>
   <script src="nc-ai.js"></script>
@@ -1051,6 +1056,8 @@
       Sound.unlock(); // called from a click/keypress, so audio can start
       bgStop();
       mode = m;
+      // Only ever reached from a menu click, so the tracker counts it at once.
+      GameVoltTracker.start('GridBurn', { mode: m });
       clearTimers();
       wins = { 1: 0, 2: 0 };
       roundNum = 1;
@@ -1385,6 +1392,9 @@
       }
       document.getElementById('net-ind').classList.remove('on');
       document.getElementById('ping-ind').classList.remove('on');
+      GameVoltTracker.end(mode === 'solo'
+        ? { score: soloTicks, outcome: 'lose' }
+        : { score: wins[1], outcome: wins[1] >= ROUNDS_TO_WIN ? 'win' : 'lose' });
       resetRematchUI();
       el.end.classList.remove('hidden');
       navReset('end');

@@ -4,7 +4,7 @@
      1. VERSION in index.html
      2. the ?v= on the script tags in index.html
      3. CACHE below AND the ?v= entries in ASSETS */
-const CACHE = 'ttpwa-v0.47.0';
+const CACHE = 'ttpwa-v0.47.1';
 const ASSETS = [
   './',
   './index.html',
@@ -23,10 +23,10 @@ const ASSETS = [
   './assets/matchpoint.mp3?v=0.47.0',
   './assets/vo-matchpoint.mp3?v=0.47.0',
   './assets/vo-intro.mp3?v=0.47.0',
-  './assets/opp-hans.png?v=0.47.0',
-  './assets/opp-hummel.png?v=0.47.0',
-  './assets/opp-chongli.png?v=0.47.0',
-  './assets/opp-player.png?v=0.47.0',
+  './assets/opp-hans.png?v=0.47.1',
+  './assets/opp-hummel.png?v=0.47.1',
+  './assets/opp-chongli.png?v=0.47.1',
+  './assets/opp-player.png?v=0.47.1',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-192.png',
