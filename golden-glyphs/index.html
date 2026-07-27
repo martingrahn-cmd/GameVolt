@@ -280,6 +280,7 @@
 
     <!-- postMessage bridge + GA4 tracker -->
     <script src="/js/gv-ga4.js"></script>
+    <script>window.GameVoltTracker=window.GameVoltTracker||{start:function(){},play:function(){},track:function(){},end:function(){}};</script>
     <script>
     function gvPost(action, payload) {
       if (window.parent !== window) {

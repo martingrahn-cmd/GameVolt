@@ -1,4 +1,4 @@
-const CACHE_NAME = 'axeluga-v8';
+const CACHE_NAME = 'axeluga-v9';
 
 // Pre-cache core files on install
 self.addEventListener('install', e => {
