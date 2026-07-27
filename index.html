@@ -916,19 +916,8 @@
             color: var(--text-bright);
         }
 
-        /* Average rating — injected only for games that actually have ratings */
-        .game-rating {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin: -4px 0 8px;
-            font-size: 0.82rem;
-            font-weight: 700;
-            line-height: 1;
-        }
-        .game-rating-star { color: #fbbf24; font-size: 0.95rem; }
-        .game-rating-avg { color: var(--text-bright); }
-        .game-rating-count { color: var(--text-muted); font-weight: 600; font-size: 0.76rem; }
+        /* .game-rating styling ships with /js/gv-card-ratings.js, which owns
+           the badge on every listing page. */
 
         .game-description {
             color: var(--text-medium);
@@ -2560,6 +2549,7 @@
     <script src="/js/gv-tracker.js"></script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
+    <script src="/js/gv-card-ratings.js" defer></script>
     <script src="/js/gv-search.js"></script>
     <script src="/sdk/gamevolt.js"></script>
     <script>
@@ -2636,9 +2626,6 @@
         // Snapshot the original DOM order so we can restore "All Games".
         var originalOrder = Array.prototype.slice.call(grid.querySelectorAll('.game-card'));
 
-        // Cache for per-game aggregate ratings — populated on first Top Rated click
-        var ratingCache = null; // Map<gameId, { avg, count }>
-
         function cards() { return grid.querySelectorAll('.game-card'); }
 
         function slugOf(card) {
@@ -2689,41 +2676,12 @@
             restoreOrder();
         }
 
+        // Rendering the badges lives in /js/gv-card-ratings.js, shared with the
+        // category pages and Favorites. Sorting reuses its cache, so picking
+        // "Top Rated" costs no extra request.
         function loadRatingAggregates() {
-            // One request for every game's ratings (was one per game).
-            if (ratingCache) return Promise.resolve(ratingCache);
-            if (!(window.GameVolt && GameVolt.rating && GameVolt.rating.getAllAggregates)) {
-                ratingCache = {};
-                return Promise.resolve(ratingCache);
-            }
-            return GameVolt.rating.getAllAggregates().then(function(map) {
-                ratingCache = map || {};
-                return ratingCache;
-            });
-        }
-
-        // Show the average on each card — the strongest signal a visitor has
-        // when picking between 21 otherwise identical-looking cards. Purely
-        // additive: unrated games and a missing SDK just render nothing.
-        function renderCardRatings() {
-            loadRatingAggregates().then(function(cache) {
-                if (!cache) return;
-                document.querySelectorAll('.game-card').forEach(function(card) {
-                    var agg = cache[slugOf(card)];
-                    if (!agg || !agg.count) return;
-                    if (card.querySelector('.game-rating')) return;
-                    var title = card.querySelector('.game-title');
-                    if (!title) return;
-                    var el = document.createElement('div');
-                    el.className = 'game-rating';
-                    el.setAttribute('aria-label',
-                        agg.avg.toFixed(1) + ' out of 5, ' + agg.count + ' rating' + (agg.count === 1 ? '' : 's'));
-                    el.innerHTML = '<span class="game-rating-star" aria-hidden="true">★</span>' +
-                        '<span class="game-rating-avg">' + agg.avg.toFixed(1) + '</span>' +
-                        '<span class="game-rating-count">(' + agg.count + ')</span>';
-                    title.insertAdjacentElement('afterend', el);
-                });
-            }).catch(function() {});
+            if (window.GVCardRatings) return GVCardRatings.load();
+            return Promise.resolve({});
         }
 
         function applyTopRated() {
@@ -2738,11 +2696,6 @@
                 });
             });
         }
-
-        // Ratings load after the cards are already on screen, so nothing blocks
-        // first paint; the badge just appears when the data arrives.
-        if (window.GameVolt && GameVolt.onReady) GameVolt.onReady(renderCardRatings);
-        else renderCardRatings();
 
         filters.addEventListener('click', function(e) {
             var pill = e.target.closest('.category-pill');
