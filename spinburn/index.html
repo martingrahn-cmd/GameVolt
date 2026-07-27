@@ -484,13 +484,13 @@
        game runs. All SDK use is optional (if (window.GameVolt)) — Spinburn
        plays fine standalone / on other portals with no SDK present. -->
   <script src="/sdk/gamevolt.js" data-game="spinburn"></script>
-  <script src="tt-core.js?v=0.45.0"></script>
-  <script src="tt-ai.js?v=0.45.0"></script>
-  <script src="sb-net.js?v=0.45.0"></script>
-  <script src="tt-achievements.js?v=0.45.0"></script>
+  <script src="tt-core.js?v=0.46.0"></script>
+  <script src="tt-ai.js?v=0.46.0"></script>
+  <script src="sb-net.js?v=0.46.0"></script>
+  <script src="tt-achievements.js?v=0.46.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.45.0';
+    var VERSION = '0.46.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -540,11 +540,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.45.0', bounce: 'assets/bounce.mp3?v=0.45.0',
-        cheer: 'assets/cheer.mp3?v=0.45.0', net: 'assets/net.mp3?v=0.45.0',
-        crowd: 'assets/crowd.mp3?v=0.45.0', winfare: 'assets/winfare.mp3?v=0.45.0',
-        lose: 'assets/lose.mp3?v=0.45.0', matchpoint: 'assets/matchpoint.mp3?v=0.45.0',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.45.0', voIntro: 'assets/vo-intro.mp3?v=0.45.0'
+        hit: 'assets/hit.mp3?v=0.46.0', bounce: 'assets/bounce.mp3?v=0.46.0',
+        cheer: 'assets/cheer.mp3?v=0.46.0', net: 'assets/net.mp3?v=0.46.0',
+        crowd: 'assets/crowd.mp3?v=0.46.0', winfare: 'assets/winfare.mp3?v=0.46.0',
+        lose: 'assets/lose.mp3?v=0.46.0', matchpoint: 'assets/matchpoint.mp3?v=0.46.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.46.0', voIntro: 'assets/vo-intro.mp3?v=0.46.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -2096,7 +2096,12 @@
             tx: Math.max(-0.65, Math.min(0.65, game.paddles[1].x * 0.3 + pointerVX * 0.5)),
             // even a no-swipe serve lands deep and carries to the receiver at
             // a hittable height (no more "hold still on serve = free point")
-            ty: K.NET_Y + 0.95 + 0.6 * power,
+            // Depth floor 0.95 keeps the no-swipe serve reachable (that was the
+            // "hold the paddle still = free point" exploit). The coefficient
+            // caps the top of the range: at full power this must still land ON
+            // the table — 0.6 put it at 2.92, well past the 2.74 end line, so
+            // every hard-struck serve was called out. 0.45 tops out at 2.77.
+            ty: K.NET_Y + 0.95 + 0.45 * power,
             pace: Math.max(0.4, power),
             lift: toss.strikeAt !== undefined ? tossHeight() : 0
           };
