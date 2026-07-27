@@ -10,7 +10,9 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-PY073ZX38N');
+  // Inside the portal iframe the parent page already counts this visit;
+  // a second page_view here would report one play as two.
+  gtag('config', 'G-PY073ZX38N', window.parent !== window ? { send_page_view: false } : {});
 </script>
 <title>Vector Hexagon — Free Twitch Survival Game | GameVolt.io</title>
 <meta name="description" content="Play Vector Hexagon free online — a Super Hexagon-style twitch survival game. One hex, six lanes, walls closing in. Dodge into the gap, climb the tiers, chase the leaderboard. No download." />
@@ -450,7 +452,7 @@
   // ── VERSION ─────────────────────────────────────────────────────────────
   // Bump this AND the CACHE string in sw.js together on every deploy, so the
   // start screen shows the running version and installed apps update.
-  const VERSION = 'v2.4';
+  const VERSION = 'v2.6';
   const verEl = document.getElementById('version');
   if (verEl) verEl.textContent = VERSION;
   // ────────────────────────────────────────────────────────────────────────

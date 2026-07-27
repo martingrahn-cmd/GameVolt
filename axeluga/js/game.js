@@ -1462,13 +1462,6 @@ export class Game {
             this.saveData = recordChallengeAttempt(this.saveData, runType, challengeId);
             this._persistSaveData();
         }
-        // Arm GA4 for this run. _endTrackedRun() has always reported game_end,
-        // but nothing ever reported the start — so the game sent orphan end
-        // events and never appeared as played. A run only begins from a menu
-        // choice, i.e. after a real interaction, so this counts immediately.
-        if (window.GameVoltTracker && typeof GameVoltTracker.start === 'function') {
-            GameVoltTracker.start('Axeluga');
-        }
         this._runSummary = null;
         this.tutorial = runType === RUN_TYPES.CAMPAIGN && startWorld === 0 && !this.saveData.stats.tutorialComplete
             ? { step: 0, complete: false }

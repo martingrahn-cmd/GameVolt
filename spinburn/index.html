@@ -9,7 +9,9 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-PY073ZX38N');
+    // Inside the portal iframe the parent page already counts this visit;
+    // a second page_view here would report one play as two.
+    gtag('config', 'G-PY073ZX38N', window.parent !== window ? { send_page_view: false } : {});
   </script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -483,6 +485,9 @@
   <!-- GameVolt SDK: loads first, no defer, so window.GameVolt exists when the
        game runs. All SDK use is optional (if (window.GameVolt)) — Spinburn
        plays fine standalone / on other portals with no SDK present. -->
+  <!-- GA4 Game Event Tracker (iframe-safe) -->
+  <script src="/js/gv-ga4.js"></script>
+  <script>window.GameVoltTracker=window.GameVoltTracker||{start:function(){},play:function(){},track:function(){},end:function(){}};</script>
   <script src="/sdk/gamevolt.js" data-game="spinburn"></script>
   <script src="tt-core.js?v=0.47.0"></script>
   <script src="tt-ai.js?v=0.47.0"></script>
@@ -490,7 +495,7 @@
   <script src="tt-achievements.js?v=0.47.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.47.0';
+    var VERSION = '0.47.1';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -1942,6 +1947,8 @@
       campaignOpp = opp || null;
       mAces = 0; mMaxDeficit = 0; rServer = 0; rHits = 0; rOppHits = 0;
       if (window.SBTrophies) SBTrophies.event('start', { campaign: !!opp });
+      // Only ever reached from a menu click, so the tracker counts it at once.
+      GameVoltTracker.start('Spinburn', { mode: opp ? 'campaign' : 'quick', ai_level: (typeof lvl === 'string') ? lvl : null });
       document.getElementById('vs').classList.add('hidden');
       game = TTCore.createGame(1);
       aiMem = {};
@@ -2022,6 +2029,7 @@
         if (window.GameVolt && st) { try { GameVolt.leaderboard.submit(st.points, { mode: 'default' }); } catch (e) {} }
       }
       setHint('');
+      GameVoltTracker.end({ score: game.scores[1], outcome: won ? 'win' : 'lose' });
       setTimeout(function () { el.end.classList.remove('hidden'); }, 700);
     }
 
@@ -2321,6 +2329,7 @@
         if (window.GameVolt && st) { try { GameVolt.leaderboard.submit(st.points, { mode: 'default' }); } catch (e) {} }
       }
       setHint('');
+      GameVoltTracker.end({ score: game.scores[1], outcome: won ? 'win' : 'lose' });
       setTimeout(function () { el.end.classList.remove('hidden'); }, 700);
     }
 
@@ -2557,6 +2566,7 @@
       netQ = []; oppPaddle = { x: 0, z: 0.25 }; oppRematch = iRematch = false;
       oLastMy = 0; oLastOpp = 0; oMaxDeficit = 0;
       if (window.SBTrophies) SBTrophies.event('start', { online: true });
+      GameVoltTracker.start('Spinburn', { mode: 'online' });
       ui = 'playing';
       el.hud.classList.remove('hidden');
       updateHud();

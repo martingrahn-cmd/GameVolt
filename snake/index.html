@@ -9,7 +9,9 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-PY073ZX38N');
+    // Inside the portal iframe the parent page already counts this visit;
+    // a second page_view here would report one play as two.
+    gtag('config', 'G-PY073ZX38N', window.parent !== window ? { send_page_view: false } : {});
   </script>
   
   <meta name="viewport"
@@ -245,10 +247,10 @@
       if(origGO){g.__proto__._gameOver=function(){GameVoltTracker.end({score:this.scoring?this.scoring.getFinalStats().score:0,outcome:'lose'});origGO.call(this);};}
       // Patch _gameOver16bit
       if(g._gameOver16bit){var orig16=g._gameOver16bit;g._gameOver16bit=function(){GameVoltTracker.end({score:this.scoring?this.scoring.getFinalStats().score:0,outcome:'lose'});orig16.call(this);};}
-      // Start tracking
-      GameVoltTracker.start('SnakeNeo');
     },500);
-    // Also track restart: listen for state changes
+    // Every run — including the first — is picked up by the state watcher
+    // below. Arming here as well would report a game_start for merely opening
+    // the page, which is the inflation this tracker exists to avoid.
     var lastState='';
     setInterval(function(){
       var g=window.currentGame;if(!g)return;
