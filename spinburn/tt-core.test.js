@@ -124,6 +124,27 @@ for (var sd = 1; sd <= 6; sd++) {
 }
 check('soft serve is returnable by medium AI (' + returned + '/6)', returned >= 5);
 
+// 8c-2. THE SERVE MUST NEVER BE SELF-DEFEATING. The shell aims a serve at
+// NET_Y + 0.95 + k*power; raising the depth FLOOR to kill the "hold the paddle
+// still = free point" exploit once pushed the CEILING past the end line, so a
+// hard-struck serve was always called out — striking it well lost you the
+// point. Every depth the shell can ask for must land ON the table.
+var serveOut = 0, serveDepth = 0;
+for (var sp = 0; sp <= 1.0001; sp += 0.05) {
+  var svg = TT.createGame(1);
+  TT.serve(svg, { tx: 0, ty: K.NET_Y + 0.95 + 0.45 * sp, pace: Math.max(0.4, sp) });
+  var sev = [];
+  for (var sq = 0; sq < 400 && svg.phase === 'rally'; sq++) {
+    sev = sev.concat(TT.step(svg, { 2: { x: 9 } }).events);
+  }
+  var sb2 = sev.filter(function (e) { return e.type === 'bounce' && e.side === 2; });
+  if (!sb2.length) serveOut++;
+  else if (sb2[0].y > serveDepth) serveDepth = sb2[0].y;
+}
+check('every serve power lands IN (' + serveOut + ' out)', serveOut === 0);
+check('the hardest serve still lands on the table (' + serveDepth.toFixed(2) + ')',
+  serveDepth > 0 && serveDepth <= K.TABLE_L + 0.06);
+
 // 8d. edge-ball justice: a fast serve landing 4cm inside the end line must
 // be judged IN (step-boundary judging used to call these out)
 g = TT.createGame(1);
