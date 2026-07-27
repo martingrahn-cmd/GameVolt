@@ -16,7 +16,7 @@
   // footer so you can tell at a glance whether a browser has the latest SDK
   // (Cloudflare caches this file, so an old copy can linger). Also on
   // GameVolt.version and logged to the console on init.
-  var SDK_VERSION = '2026.07.26-1';
+  var SDK_VERSION = '2026.07.27-1';
 
   var sb = null; // Supabase client
   var currentUser = null;
@@ -892,11 +892,24 @@
   // Guests store their own ratings in localStorage as
   //   { "<game-id>": 1..5 }.  On login they are upserted to
   // the `ratings` Supabase table (PK: user_id + game_id).
-  // getAggregate() reads every rating row for the game and
-  // averages client-side — fine for this scale; swap to an
-  // RPC (get_rating_aggregate) once per-game volume grows.
+  //
+  // Averages come from the get_rating_aggregate(s) RPCs in
+  // sql/rating-aggregates.sql, which return one row per game
+  // instead of every rating ever cast. Where those functions
+  // are absent the old client-side scan still runs, so the
+  // site works before the migration is applied — the first
+  // miss is remembered so later calls skip the failed hop.
 
   var GV_RATING_KEY = 'gv_ratings';
+  var ratingRpcMissing = false;   // set once, if the migration has not been run
+
+  // PostgREST answers an unknown function with PGRST202. Anything else (a
+  // network blip, a timeout) should NOT permanently disable the RPC path.
+  function isMissingFunction(err) {
+    if (!err) return false;
+    return err.code === 'PGRST202' ||
+      (typeof err.message === 'string' && /Could not find the function/i.test(err.message));
+  }
 
   function loadLocalRatings() {
     try {
@@ -961,16 +974,32 @@
     getAggregate: function(gameId) {
       gameId = gameId || currentGameId;
       if (!gameId || !sb) return Promise.resolve({ avg: 0, count: 0 });
-      return sb.from('ratings').select('rating').eq('game_id', gameId)
+
+      function scanRows() {
+        return sb.from('ratings').select('rating').eq('game_id', gameId)
+          .then(function(res) {
+            var rows = (res && res.data) ? res.data : [];
+            var count = rows.length;
+            if (!count) return { avg: 0, count: 0 };
+            var sum = 0;
+            for (var i = 0; i < count; i++) sum += rows[i].rating;
+            return { avg: sum / count, count: count };
+          })
+          .catch(function() { return { avg: 0, count: 0 }; });
+      }
+
+      if (ratingRpcMissing) return scanRows();
+      return sb.rpc('get_rating_aggregate', { p_game_id: gameId })
         .then(function(res) {
-          var rows = (res && res.data) ? res.data : [];
-          var count = rows.length;
-          if (!count) return { avg: 0, count: 0 };
-          var sum = 0;
-          for (var i = 0; i < count; i++) sum += rows[i].rating;
-          return { avg: sum / count, count: count };
+          if (res && res.error) {
+            if (isMissingFunction(res.error)) ratingRpcMissing = true;
+            return scanRows();
+          }
+          var row = (res && res.data && res.data[0]) ? res.data[0] : null;
+          if (!row || !row.rating_count) return { avg: 0, count: 0 };
+          return { avg: Number(row.avg_rating) || 0, count: Number(row.rating_count) || 0 };
         })
-        .catch(function() { return { avg: 0, count: 0 }; });
+        .catch(function() { return scanRows(); });
     },
 
     /**
@@ -981,25 +1010,51 @@
      */
     getAllAggregates: function() {
       if (!sb) return Promise.resolve({});
-      return sb.from('ratings').select('game_id, rating')
-        .then(function(res) {
-          var rows = (res && res.data) ? res.data : [];
-          var sums = {}, counts = {};
-          for (var i = 0; i < rows.length; i++) {
-            var g = rows[i].game_id;
-            if (!g) continue;
-            sums[g] = (sums[g] || 0) + rows[i].rating;
-            counts[g] = (counts[g] || 0) + 1;
-          }
-          var out = {};
-          for (var k in counts) {
-            if (Object.prototype.hasOwnProperty.call(counts, k)) {
-              out[k] = { avg: sums[k] / counts[k], count: counts[k] };
+
+      // Pre-RPC path: pull every rating row and fold it in the browser. Kept
+      // only so the site still works before sql/rating-aggregates.sql is run.
+      function scanRows() {
+        return sb.from('ratings').select('game_id, rating')
+          .then(function(res) {
+            var rows = (res && res.data) ? res.data : [];
+            var sums = {}, counts = {};
+            for (var i = 0; i < rows.length; i++) {
+              var g = rows[i].game_id;
+              if (!g) continue;
+              sums[g] = (sums[g] || 0) + rows[i].rating;
+              counts[g] = (counts[g] || 0) + 1;
             }
+            var out = {};
+            for (var k in counts) {
+              if (Object.prototype.hasOwnProperty.call(counts, k)) {
+                out[k] = { avg: sums[k] / counts[k], count: counts[k] };
+              }
+            }
+            return out;
+          })
+          .catch(function() { return {}; });
+      }
+
+      if (ratingRpcMissing) return scanRows();
+      return sb.rpc('get_rating_aggregates')
+        .then(function(res) {
+          if (res && res.error) {
+            if (isMissingFunction(res.error)) ratingRpcMissing = true;
+            return scanRows();
+          }
+          var rows = (res && res.data) ? res.data : [];
+          var out = {};
+          for (var i = 0; i < rows.length; i++) {
+            var r = rows[i];
+            if (!r || !r.game_id || !r.rating_count) continue;
+            out[r.game_id] = {
+              avg: Number(r.avg_rating) || 0,
+              count: Number(r.rating_count) || 0
+            };
           }
           return out;
         })
-        .catch(function() { return {}; });
+        .catch(function() { return scanRows(); });
     }
   };
 
