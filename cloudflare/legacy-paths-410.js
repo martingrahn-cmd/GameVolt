@@ -8,15 +8,18 @@
  * It only intercepts the paths it cares about. Everything else is
  * passed straight through to Cloudflare Pages.
  *
- * Handles three things in one Worker:
+ * Handles four things in one Worker:
  *
  * 1. 410 Gone for legacy third-party feed paths
  *    /game/*, /tag/*, /category/*  →  410 with a polite HTML body
  *
- * 2. www → non-www canonicalisation
+ * 2. Duplicate game URLs
+ *    /games/<name>/  →  301  /<name>/
+ *
+ * 3. www → non-www canonicalisation
  *    https://www.gamevolt.io/<path>  →  301  https://gamevolt.io/<path>
  *
- * 3. Pass-through for everything else
+ * 4. Pass-through for everything else
  *    Returns fetch(request) unchanged so Cloudflare Pages keeps serving.
  *
  * Note: gone-410 fires BEFORE www-redirect on purpose — if a bot
@@ -66,13 +69,34 @@ export default {
       });
     }
 
-    // 2. www → non-www, preserving path + query
+    // 2. /games/<name>/ → /<name>/ (301)
+    //
+    // These used to be served as HTML stubs carrying noindex + canonical +
+    // a meta refresh all at once — contradictory signals (canonical says
+    // "merge me into that one", noindex says "drop me"), and a meta refresh
+    // is a weak redirect signal at best. Google kept the duplicates: in the
+    // 3 months to 2026-07-24, /games/manga-match3/ took 2 clicks at average
+    // position 8.4 while the real /manga-match3/ sat at 9.0 with none. The
+    // duplicate was outranking the page it points at.
+    //
+    // A real 301 consolidates the signals instead of splitting them. Every
+    // stub maps to a plain prefix strip, so one rule covers all 15.
+    if (url.pathname === '/games' || url.pathname.startsWith('/games/')) {
+      url.pathname = url.pathname.slice('/games'.length) || '/';
+      // Drop www here too. Leaving it would send www/games/snake/ to
+      // www/snake/ and only then to the apex — a two-hop chain that bleeds
+      // link equity for no reason.
+      url.hostname = 'gamevolt.io';
+      return Response.redirect(url.toString(), 301);
+    }
+
+    // 3. www → non-www, preserving path + query
     if (url.hostname === 'www.gamevolt.io') {
       url.hostname = 'gamevolt.io';
       return Response.redirect(url.toString(), 301);
     }
 
-    // 3. Everything else: pass through to origin (Cloudflare Pages)
+    // 4. Everything else: pass through to origin (Cloudflare Pages)
     return fetch(request);
   }
 };

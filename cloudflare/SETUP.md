@@ -103,7 +103,32 @@ In the Worker's settings → **Triggers** → **Add route**:
 - Zone: `gamevolt.io`
 - Add another route for `www.gamevolt.io/*` (so the www → non-www redirect inside the Worker fires too)
 
-The Worker only acts on legacy paths and on `www.*` — everything else falls through `fetch(request)` to GitHub Pages.
+The Worker only acts on legacy paths, `/games/*` and `www.*` — everything else falls through `fetch(request)` to GitHub Pages.
+
+### Step 2b — `/games/<name>/` → `/<name>/` (301)
+
+The same Worker now also 301s the duplicate game URLs. They used to be HTML stubs
+carrying `noindex` **and** a canonical **and** a meta refresh — contradictory signals,
+and Google kept the duplicates anyway. In the 3 months to 2026-07-24,
+`/games/manga-match3/` took 2 clicks at average position 8.4 while the real
+`/manga-match3/` sat at 9.0 with none: the duplicate was outranking the page it
+pointed at. `/games/connect4/` and `/games/taprush/` were splitting impressions the
+same way.
+
+Nothing extra to configure — it ships with the Worker. The stub files stay in the repo
+as a fallback for anything that reaches Pages directly; once the Worker route is live
+they are never served.
+
+```sh
+curl -I https://gamevolt.io/games/manga-match3/
+# Expected:
+#   HTTP/2 301
+#   location: https://gamevolt.io/manga-match3/
+
+curl -I https://www.gamevolt.io/games/snake/
+# One hop, not two — www is dropped in the same redirect:
+#   location: https://gamevolt.io/snake/
+```
 
 ### Step 3 — Update robots.txt (this repo)
 
