@@ -88,13 +88,18 @@ RETURNS TABLE (streak_current INT, streak_longest INT, streak_last_day DATE) AS 
    WHERE p.id = auth.uid();
 $$ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public;
 
--- Postgres grants EXECUTE on a new function to PUBLIC by default, so granting
--- to `authenticated` alone leaves anon able to call these too. Both are no-ops
--- without auth.uid(), so that is not a hole today — but these run SECURITY
--- DEFINER, and the day someone adds a branch that forgets the uid check, anon
--- would already be holding the key. Take the default away first.
-REVOKE EXECUTE ON FUNCTION record_play_day() FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION get_my_streak()   FROM PUBLIC;
+-- Granting to `authenticated` does not, on its own, keep anon out. Two separate
+-- defaults hand it access:
+--   * Postgres grants EXECUTE on any new function to PUBLIC;
+--   * Supabase additionally runs ALTER DEFAULT PRIVILEGES ... GRANT EXECUTE ON
+--     FUNCTIONS TO anon, so anon lands in the ACL by name — revoking PUBLIC
+--     alone leaves `anon=X/postgres` sitting there untouched.
+--
+-- Both functions are no-ops without auth.uid(), so this is not a hole today.
+-- But they run SECURITY DEFINER, and the day a branch gets added that forgets
+-- the uid check, anon is already holding the key. Take both defaults away.
+REVOKE EXECUTE ON FUNCTION record_play_day() FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION get_my_streak()   FROM PUBLIC, anon;
 
 GRANT EXECUTE ON FUNCTION record_play_day() TO authenticated;
 GRANT EXECUTE ON FUNCTION get_my_streak()   TO authenticated;
