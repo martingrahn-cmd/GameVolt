@@ -83,9 +83,26 @@
                 }
             }
             this._send('game_start', params);
+            this._countStreakDay();
             if (this.timerInterval) clearInterval(this.timerInterval);
             var self = this;
             this.timerInterval = setInterval(function () { self._tick(); }, 2000);
+        },
+
+        // The play streak wants exactly the moment this function already
+        // establishes — real play began — and this is the only place on the
+        // site that knows it for all 21 games. Calling the SDK from here beats
+        // 21 per-game edits, and beats hanging the streak off page load, which
+        // would count a bounce as a day played.
+        //
+        // Optional in both directions: no SDK, an older SDK, or a game running
+        // outside the portal all just skip it, and analytics never waits on it.
+        _countStreakDay: function () {
+            try {
+                if (window.GameVolt && GameVolt.streak && typeof GameVolt.streak.record === 'function') {
+                    GameVolt.streak.record();
+                }
+            } catch (e) {}
         },
 
         track: function (name, params) {
