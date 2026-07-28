@@ -187,13 +187,25 @@ await GameVolt.achievements.getAll()
 // Get all achievements across all games (for profile)
 await GameVolt.achievements.getProfile()
 
-// Daily challenge
-await GameVolt.daily.getChallenge()    // Today's challenge
-await GameVolt.daily.complete()        // Mark completed
-
-// Streaks
-await GameVolt.streaks.get()           // { current: 5, longest: 12 }
+// Play streak — consecutive days the player played anything, on any game
+await GameVolt.streak.record()         // count today; safe to call repeatedly
+await GameVolt.streak.get()            // { current: 5, longest: 12, lastDay: '2026-07-28' }
 ```
+
+`record()` is called for you from `js/gv-ga4.js` at the moment real play begins,
+so a game does not need to call it — that is the one place on the site that knows
+play started rather than a page loading, for all 21 games. Days are UTC, matching
+the per-game dailies. Guests get the same behaviour from localStorage. A chain
+whose last day is older than yesterday reports 0 while the stored `longest`
+survives. Server side: `sql/streaks.sql`.
+
+> **Not built yet:** there is no `GameVolt.daily` module. Five games
+> (golden-glyphs, manga-match3, livewire, minesweeper, one-stroke) each run their
+> own daily in localStorage, and the `daily_challenges` / `daily_completions`
+> tables in the schema have never been written to. Note that `daily_challenges`
+> is keyed `date PRIMARY KEY` — one challenge per day for the whole site — which
+> does not fit five games each having their own; that table needs redesigning
+> before it is used.
 
 #### Phase 4 — Ratings & Ads
 
@@ -295,6 +307,7 @@ CREATE TABLE profiles (
     last_seen TIMESTAMPTZ DEFAULT NOW(),
     current_streak INT DEFAULT 0,
     longest_streak INT DEFAULT 0,
+    last_play_date DATE,              -- added by sql/streaks.sql
     total_play_time_seconds INT DEFAULT 0
 );
 
@@ -383,6 +396,43 @@ CREATE INDEX idx_scores_game_mode ON scores(game_id, mode, score DESC);
 CREATE INDEX idx_scores_user ON scores(user_id);
 CREATE INDEX idx_achievements_user ON user_achievements(user_id);
 ```
+
+### Writing a SECURITY DEFINER function
+
+Adding `GRANT EXECUTE ... TO authenticated` does **not** keep `anon` out. Two
+independent defaults hand it access, and revoking one leaves the other:
+
+- PostgreSQL grants `EXECUTE` on every new function to `PUBLIC`
+- Supabase additionally runs `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT
+  EXECUTE ON FUNCTIONS TO anon, authenticated, service_role`, which writes
+  `anon` into the ACL **by name**
+
+So a signed-in-only function needs the revoke first, naming both:
+
+```sql
+REVOKE EXECUTE ON FUNCTION my_function() FROM PUBLIC, anon;
+GRANT  EXECUTE ON FUNCTION my_function() TO authenticated;
+```
+
+Leave `service_role` alone — it is the backend key, never exposed to a browser.
+
+**Confirm with the ACL, not with a call.** A function that checks `auth.uid()`
+returns an empty array to `anon` whether or not the grant was removed, so a
+`200 []` proves nothing:
+
+```sql
+SELECT proname, proacl FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public' AND proname = 'my_function';
+```
+
+Locked down correctly, `anon` is absent:
+`{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}`
+
+This cost three attempts on `sql/streaks.sql` (2026-07-28). A scratch Postgres
+without Supabase's default privileges passed a revoke that did nothing in
+production — if you test grants locally, set the same `ALTER DEFAULT PRIVILEGES`
+first or the test is checking a database you don't have.
 
 ---
 

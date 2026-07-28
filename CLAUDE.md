@@ -15,13 +15,18 @@ This is **GameVolt.io** (rebranded from PulseGames.eu) — a curated HTML5 game 
 - All SDK usage must be optional: always wrap in `if (window.GameVolt)`
 - localStorage is the fallback for everything when user is not logged in
 - Backend is Supabase (PostgreSQL + Auth)
+- A signed-in-only RPC needs `REVOKE EXECUTE ... FROM PUBLIC, anon` before the
+  `GRANT` — Supabase grants anon by name, so granting to `authenticated` alone
+  changes nothing. Verify with `pg_proc.proacl`, not by calling it. See
+  GAMEVOLT.md → "Writing a SECURITY DEFINER function".
 - Hosting is GitHub Pages — no server-side rendering
 - Mobile-first, touch support required
 
 ## Current Priority
 
 1. SDK rollout: done for all games — Solitaire leaderboard migrated off legacy Firebase to Supabase (2026-07-24). No games remain on Firebase.
-2. Daily challenges & streak tracking
+2. Daily challenges — the play streak shipped 2026-07-28 (`GameVolt.streak`,
+   `sql/streaks.sql`); per-game dailies are the part still missing
 3. Ratings, favorites, community features
 
 **Portal submissions — mostly settled, don't re-propose as a next step.**
