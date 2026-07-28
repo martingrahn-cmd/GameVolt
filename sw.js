@@ -1,4 +1,4 @@
-const CACHE_NAME = "gamevolt-v10";
+const CACHE_NAME = "gamevolt-v11";
 
 const PRECACHE_URLS = [
   "/",
