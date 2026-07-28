@@ -395,8 +395,12 @@ Spec, rebranding, Supabase, SDK v1, HoverDash pilot — all done.
 ### Phase 2 — Engagement (in progress)
 SDK + leaderboards + profile page done. All games integrated (see catalog).
 - [x] Roll out SDK to remaining games (Snake done 2026-07-09; Solitaire Firebase→Supabase leaderboard migration done 2026-07-24 — all games now on the Supabase SDK)
-- [ ] Submit HoverDash to Poki (clean version without SDK)
-- [ ] Submit HoverDash to CrazyGames (clean version without SDK)
+- [x] Submit to CrazyGames (clean versions without SDK) — done 2026-07, and the
+      answer was mostly no. **Rejected:** HoverDash, Golden Glyphs,
+      Breakout: Neon Drift, Tap Rush: Reflex. **Still open:** SpinBurn, sitting
+      at "Awaiting review — pending build/art update", which means CrazyGames is
+      waiting on us for a new build or artwork, not the other way round.
+- [ ] SpinBurn: supply the build/art update CrazyGames is waiting for
 
 ### Phase 3 — Retention (partially done)
 Achievements API + trophy catalog + per-game definitions done (HoverDash, Breakout, Connect 4).
