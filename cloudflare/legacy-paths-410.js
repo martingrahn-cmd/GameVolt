@@ -1,9 +1,14 @@
 /**
  * Cloudflare Worker — legacy path 410 + redirect bundle
  *
- * Deploy this as a Worker on the gamevolt.io zone, then bind a route:
+ * Deployed on the gamevolt.io zone as the Worker named `gone-handler`,
+ * with one route per path family it handles:
  *
- *   Route: gamevolt.io/*    Worker: legacy-paths-410
+ *   gamevolt.io/game/*      gamevolt.io/tag/*
+ *   gamevolt.io/category/*  gamevolt.io/games/*
+ *
+ * A rule below does nothing until its route exists — the Worker is never
+ * invoked for an unrouted path. See cloudflare/SETUP.md.
  *
  * It only intercepts the paths it cares about. Everything else is
  * passed straight through to Cloudflare Pages.
@@ -18,6 +23,8 @@
  *
  * 3. www → non-www canonicalisation
  *    https://www.gamevolt.io/<path>  →  301  https://gamevolt.io/<path>
+ *    Currently dead code: there is no www.gamevolt.io/* route, and www is
+ *    already canonicalised elsewhere in Cloudflare. Kept as a fallback.
  *
  * 4. Pass-through for everything else
  *    Returns fetch(request) unchanged so Cloudflare Pages keeps serving.
