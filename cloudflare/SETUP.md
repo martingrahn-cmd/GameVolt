@@ -91,19 +91,36 @@ The `cloudflare/legacy-paths-410.js` Worker in this repo handles both 1.1 and 3.
 ### Step 1 — Deploy the Worker
 
 1. Cloudflare → **Workers & Pages** → **Create application** → **Create Worker**
-2. Name: `legacy-paths-410`
-3. **Quick Edit** → paste the contents of `cloudflare/legacy-paths-410.js` from this repo
-4. **Save and Deploy**
+2. **Quick Edit** → paste the contents of `cloudflare/legacy-paths-410.js` from this repo
+3. **Save and Deploy**
 
-### Step 2 — Bind a route
+> **As actually deployed (checked 2026-07-28):** the Worker is named **`gone-handler`**,
+> not `legacy-paths-410`. The filename in this repo is just the filename.
 
-In the Worker's settings → **Triggers** → **Add route**:
+### Step 2 — Bind the routes
 
-- Route: `gamevolt.io/*`
-- Zone: `gamevolt.io`
-- Add another route for `www.gamevolt.io/*` (so the www → non-www redirect inside the Worker fires too)
+Cloudflare → **Workers Routes** → **Add route**, once per pattern below. Each maps to
+the `gone-handler` Worker on the `gamevolt.io` zone.
 
-The Worker only acts on legacy paths, `/games/*` and `www.*` — everything else falls through `fetch(request)` to GitHub Pages.
+| Route | Feeds Worker rule |
+|---|---|
+| `gamevolt.io/game/*` | 410 Gone |
+| `gamevolt.io/category/*` | 410 Gone |
+| `gamevolt.io/tag/*` | 410 Gone |
+| `gamevolt.io/games/*` | 301 → `/<name>/` |
+
+**A route is not optional.** The Worker only runs for paths a route matches — code
+inside it for an unrouted path is dead. `/games/*` sat at `200` after the 301 rule
+shipped precisely because its route was missing.
+
+Narrow routes are deliberate here. A single `gamevolt.io/*` would also work (everything
+else falls through `fetch(request)` to Pages) but puts every request on the site through
+the Worker for no benefit.
+
+> **www:** the Worker carries a www → non-www rule, but there is no `www.gamevolt.io/*`
+> route, so it never fires. `https://www.gamevolt.io/snake/` still 301s correctly —
+> that is handled elsewhere in Cloudflare, so the Worker rule is dead code kept as a
+> fallback. Don't add the route expecting a change.
 
 ### Step 2b — `/games/<name>/` → `/<name>/` (301)
 
