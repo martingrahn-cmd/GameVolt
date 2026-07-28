@@ -21,9 +21,15 @@ This is **GameVolt.io** (rebranded from PulseGames.eu) — a curated HTML5 game 
 ## Current Priority
 
 1. SDK rollout: done for all games — Solitaire leaderboard migrated off legacy Firebase to Supabase (2026-07-24). No games remain on Firebase.
-2. Submit HoverDash to Poki / CrazyGames
-3. Daily challenges & streak tracking
-4. Ratings, favorites, community features
+2. Daily challenges & streak tracking
+3. Ratings, favorites, community features
+
+**Portal submissions — mostly settled, don't re-propose as a next step.**
+CrazyGames rejected four games as of 2026-07: HoverDash, Golden Glyphs,
+Breakout: Neon Drift and Tap Rush: Reflex. Only SpinBurn is still open there,
+sitting at "Awaiting review — pending build/art update", i.e. the ball is with
+us, not them. The standalone builds stay regardless; they're what any future
+submission uses.
 
 ## File Structure
 
