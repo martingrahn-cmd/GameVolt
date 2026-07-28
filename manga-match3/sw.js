@@ -1,4 +1,4 @@
-const CACHE_NAME = "manga-match-v6";
+const CACHE_NAME = "manga-match-v7";
 const ASSETS = [
   "./",
   "./index.html",

@@ -1,4 +1,4 @@
-const CACHE='hoverdash-v6';
+const CACHE='hoverdash-v7';
 const ASSETS=[
   './',
   './index.html',

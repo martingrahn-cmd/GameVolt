@@ -45,7 +45,7 @@
   "operatingSystem": "Any (Browser-based)",
   "applicationCategory": "Game",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "author": { "@type": "Organization", "name": "GameVolt", "url": "https://gamevolt.io" },
+  "author": { "@type": "Organization", "@id": "https://gamevolt.io/#organization", "name": "GameVolt", "url": "https://gamevolt.io" },
   "inLanguage": "en",
   "isAccessibleForFree": true,
   "playMode": "SinglePlayer"
@@ -452,7 +452,7 @@
   // ── VERSION ─────────────────────────────────────────────────────────────
   // Bump this AND the CACHE string in sw.js together on every deploy, so the
   // start screen shows the running version and installed apps update.
-  const VERSION = 'v2.6';
+  const VERSION = 'v2.7';
   const verEl = document.getElementById('version');
   if (verEl) verEl.textContent = VERSION;
   // ────────────────────────────────────────────────────────────────────────
