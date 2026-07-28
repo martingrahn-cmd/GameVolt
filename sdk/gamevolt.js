@@ -16,7 +16,7 @@
   // footer so you can tell at a glance whether a browser has the latest SDK
   // (Cloudflare caches this file, so an old copy can linger). Also on
   // GameVolt.version and logged to the console on init.
-  var SDK_VERSION = '2026.07.27-1';
+  var SDK_VERSION = '2026.07.28-1';
 
   var sb = null; // Supabase client
   var currentUser = null;
@@ -1055,6 +1055,111 @@
           return out;
         })
         .catch(function() { return scanRows(); });
+    }
+  };
+
+  // --------------------------------------------------------
+  // STREAK module (consecutive days played)
+  // --------------------------------------------------------
+  // A streak day is a day the player played something, on any game. Signed in,
+  // the counters live in profiles.current_streak / longest_streak via the RPCs
+  // in sql/streaks.sql; as a guest they live in localStorage under the same
+  // rules, so the feature works logged out like everything else here.
+  //
+  // Days are UTC, matching the per-game dailies (golden-glyphs/src/js/daily.js).
+  //
+  // Guest and account streaks are deliberately NOT merged on sign-in. A local
+  // number is trivially editable, so importing it would let anyone hand
+  // themselves a 90-day streak; the server's value simply takes over.
+
+  var GV_STREAK_KEY = 'gv_streak';
+  var streakRecorded = false;   // once per page — a session is not 12 streak days
+
+  function utcToday() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function utcYesterday() {
+    return new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  }
+
+  function loadLocalStreak() {
+    try {
+      var o = JSON.parse(localStorage.getItem(GV_STREAK_KEY) || 'null');
+      if (o && typeof o === 'object') {
+        return { current: o.current || 0, longest: o.longest || 0, lastDay: o.lastDay || null };
+      }
+    } catch (e) {}
+    return { current: 0, longest: 0, lastDay: null };
+  }
+
+  function saveLocalStreak(s) {
+    try { localStorage.setItem(GV_STREAK_KEY, JSON.stringify(s)); } catch (e) {}
+  }
+
+  // Same rules as record_play_day(), so a guest who signs in sees the shape of
+  // number they were already being shown.
+  function bumpLocalStreak() {
+    var s = loadLocalStreak();
+    var today = utcToday();
+    if (s.lastDay === today) return s;
+    if (s.lastDay === utcYesterday()) s.current = s.current + 1;
+    else s.current = 1;
+    s.longest = Math.max(s.longest, s.current);
+    s.lastDay = today;
+    saveLocalStreak(s);
+    return s;
+  }
+
+  var streak = {
+    /**
+     * Count today. Safe to call repeatedly — it acts once per page, and the
+     * server counts once per day regardless.
+     * @returns {Promise<{current, longest, lastDay}>}
+     */
+    record: function() {
+      if (streakRecorded) return streak.get();
+      streakRecorded = true;
+      if (!currentUser || !sb) return Promise.resolve(bumpLocalStreak());
+      return sb.rpc('record_play_day')
+        .then(function(res) {
+          var r = (res && res.data && res.data[0]) ? res.data[0] : null;
+          if (!r) return streak.get();
+          return {
+            current: Number(r.streak_current) || 0,
+            longest: Number(r.streak_longest) || 0,
+            lastDay: r.streak_last_day || null
+          };
+        })
+        .catch(function() { return { current: 0, longest: 0, lastDay: null }; });
+    },
+
+    /**
+     * Read without counting. A chain whose last day is older than yesterday
+     * reports 0 — it is already broken, whatever the stored number says.
+     * @returns {Promise<{current, longest, lastDay}>}
+     */
+    get: function() {
+      if (!currentUser || !sb) {
+        var s = loadLocalStreak();
+        var alive = s.lastDay === utcToday() || s.lastDay === utcYesterday();
+        return Promise.resolve({
+          current: alive ? s.current : 0,
+          longest: s.longest,
+          lastDay: s.lastDay
+        });
+      }
+      return sb.rpc('get_my_streak')
+        .then(function(res) {
+          var r = (res && res.data && res.data[0]) ? res.data[0] : null;
+          if (!r) return { current: 0, longest: 0, lastDay: null };
+          return {
+            current: Number(r.streak_current) || 0,
+            longest: Number(r.streak_longest) || 0,
+            lastDay: r.streak_last_day || null
+          };
+        })
+        .catch(function() { return { current: 0, longest: 0, lastDay: null }; });
     }
   };
 
@@ -2173,6 +2278,7 @@
     achievements: achievements,
     favorites: favorites,
     rating: rating,
+    streak: streak,
     challenge: challenge,
     ui: ui,
     avatar: {

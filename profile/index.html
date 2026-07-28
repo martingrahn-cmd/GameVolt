@@ -1001,6 +1001,10 @@
                     <span class="stat-value" id="stat-best">0</span>
                     <span class="stat-label">Best Score</span>
                 </div>
+                <div class="stat-card" id="stat-streak-card" hidden>
+                    <span class="stat-value" id="stat-streak">0</span>
+                    <span class="stat-label">Day Streak</span>
+                </div>
             </div>
 
             <!-- High Scores -->
@@ -1908,6 +1912,27 @@
                 }
             }
             document.getElementById('stat-best').textContent = bestScore > 0 ? bestScore.toLocaleString() : '—';
+
+            renderStreak();
+        }
+
+        // Consecutive days played, from profiles.current_streak via the SDK.
+        // The card stays hidden until there is a streak worth showing — a
+        // permanent "0 Day Streak" is a reproach, not a stat. It also stays
+        // hidden if the SDK is missing or the request fails, so the grid never
+        // shows a broken tile.
+        function renderStreak() {
+            var card = document.getElementById('stat-streak-card');
+            if (!card) return;
+            if (!(window.GameVolt && GameVolt.streak)) return;
+            GameVolt.streak.get().then(function(s) {
+                if (!s || !s.current) return;
+                document.getElementById('stat-streak').textContent = s.current;
+                card.hidden = false;
+                if (s.longest > s.current) {
+                    card.title = 'Longest streak: ' + s.longest + ' days';
+                }
+            }).catch(function() {});
         }
 
         function renderScores(profile) {
