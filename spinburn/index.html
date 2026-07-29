@@ -489,13 +489,13 @@
   <script src="/js/gv-ga4.js"></script>
   <script>window.GameVoltTracker=window.GameVoltTracker||{start:function(){},play:function(){},track:function(){},end:function(){}};</script>
   <script src="/sdk/gamevolt.js" data-game="spinburn"></script>
-  <script src="tt-core.js?v=0.47.0"></script>
-  <script src="tt-ai.js?v=0.47.0"></script>
-  <script src="sb-net.js?v=0.47.0"></script>
-  <script src="tt-achievements.js?v=0.47.0"></script>
+  <script src="tt-core.js?v=0.48.0"></script>
+  <script src="tt-ai.js?v=0.48.0"></script>
+  <script src="sb-net.js?v=0.48.0"></script>
+  <script src="tt-achievements.js?v=0.48.0"></script>
   <script>
     'use strict';
-    var VERSION = '0.47.2';
+    var VERSION = '0.48.0';
     var K = TTCore.constants;
     var TICK_MS = 1000 * K.DT;
 
@@ -545,11 +545,11 @@
       // synth versions below stay as fallback if a sample fails to load.
       var samples = {};
       var SAMPLE_SRC = {
-        hit: 'assets/hit.mp3?v=0.47.0', bounce: 'assets/bounce.mp3?v=0.47.0',
-        cheer: 'assets/cheer.mp3?v=0.47.0', net: 'assets/net.mp3?v=0.47.0',
-        crowd: 'assets/crowd.mp3?v=0.47.0', winfare: 'assets/winfare.mp3?v=0.47.0',
-        lose: 'assets/lose.mp3?v=0.47.0', matchpoint: 'assets/matchpoint.mp3?v=0.47.0',
-        voMatch: 'assets/vo-matchpoint.mp3?v=0.47.0', voIntro: 'assets/vo-intro.mp3?v=0.47.0'
+        hit: 'assets/hit.mp3?v=0.48.0', bounce: 'assets/bounce.mp3?v=0.48.0',
+        cheer: 'assets/cheer.mp3?v=0.48.0', net: 'assets/net.mp3?v=0.48.0',
+        crowd: 'assets/crowd.mp3?v=0.48.0', winfare: 'assets/winfare.mp3?v=0.48.0',
+        lose: 'assets/lose.mp3?v=0.48.0', matchpoint: 'assets/matchpoint.mp3?v=0.48.0',
+        voMatch: 'assets/vo-matchpoint.mp3?v=0.48.0', voIntro: 'assets/vo-intro.mp3?v=0.48.0'
       };
       var crowdSrc = null, crowdGain = null;
       function loadSamples() {
@@ -692,6 +692,13 @@
       // Portrait squeezes the table long and thin — widen it and compress
       // the depth there; landscape keeps the deeper view.
       var portrait = H > W * 1.15;
+      // Do NOT enlarge the landscape court to fill more of the frame. The
+      // arena is composed around the side barriers: they sit at a fixed
+      // SIDE_X, so scaling the court up drives them off both screen edges and
+      // the surround stops reading as a closed ring — and because the back
+      // wall scales with A, a bigger court makes the sponsor band taller and
+      // louder, which is the opposite of what more table was meant to buy.
+      // Tried 0.56/0.76; the empty floor is the cheaper problem.
       CAM.hor = H * (portrait ? 0.22 : 0.16);
       CAM.A = H * (portrait ? 0.52 : 0.68);
       CAM.S = portrait ? Math.min(W * 0.62, H * 0.46) : Math.min(W * 0.5, H * 0.64);
@@ -812,25 +819,26 @@
       a.beginPath(); a.moveTo(c1.x, c1.y); a.lineTo(c2.x, c2.y); a.lineTo(c3.x, c3.y); a.lineTo(c4.x, c4.y); a.closePath(); a.fill();
       a.strokeStyle = 'rgba(255,255,255,0.13)'; a.lineWidth = 2; a.stroke();
 
-      // event branding painted flat on the floor behind the table
-      a.save();
-      var fb2 = proj(0, 3.45, 0);
-      a.translate(fb2.x, fb2.y);
-      a.scale(1, 0.4);
-      a.fillStyle = 'rgba(255,255,255,0.16)';
-      a.font = '800 ' + ppm(3.45) * 0.34 + 'px "Segoe UI", system-ui, sans-serif';
-      a.textAlign = 'center'; a.textBaseline = 'middle';
-      a.fillText('GAMEVOLT OPEN', 0, 0);
-      a.restore();
+      // No event branding painted on the floor behind the table: the strip of
+      // floor between the end line and the wall is exactly where the rival and
+      // their shadow stand, so the text was always half-occluded by a moving
+      // paddle. Low-contrast letters with a hole punched in them read as a
+      // rendering fault, not as arena dressing. The wall carries the branding.
 
       // FAR BARRIER: a dark back wall with a row of sponsor panels framed
       // neatly BETWEEN the two side barriers, so no ad hides behind a side
       // wall or clips off the screen edge.
+      //
+      // Deliberately muted. These are set dressing sitting DIRECTLY behind the
+      // play area, and at full saturation (a near-white panel and a pillarbox
+      // red one) the band was the brightest thing on screen — brighter than
+      // the table, so the eye went to the advertising instead of the ball.
+      // Stadium boards in a real broadcast sit in shadow; these now do too.
       var ADS = [
-        { t: 'GAMEVOLT.IO', bg: '#101c3a', fg: '#00eaff' },
-        { t: 'SPINTEC', bg: '#12266b', fg: '#ffffff' },
-        { t: 'AEROPONG', bg: '#ece9e2', fg: '#12266b' },
-        { t: 'TOPSPIN PRO', bg: '#c8281e', fg: '#ffffff' }
+        { t: 'GAMEVOLT.IO', bg: '#0d1730', fg: '#3fb8cc' },
+        { t: 'SPINTEC', bg: '#101f4e', fg: '#b9c6e8' },
+        { t: 'AEROPONG', bg: '#9a978f', fg: '#141d33' },
+        { t: 'TOPSPIN PRO', bg: '#8e2019', fg: '#e2cfcd' }
       ];
       var L = Math.max(0, bl.x), R = Math.min(W, br.x);
       // dark base wall across the full visible width (no gaps behind the walls)
@@ -1005,13 +1013,16 @@
       // Nearest panel first. Two per side: the boards only cover ~250 px of
       // screen width, and three panels squeeze every label under the 10 px
       // legibility floor, which the label code then (correctly) drops.
+      // Muted to match the back wall — these run down BOTH sides of the play
+      // area, so a white or pillarbox-red board here frames the table in the
+      // two brightest rectangles on screen and pulls the eye off the ball.
       sidePanels(-SIDE_X, [
-        { t: 'SMASH', bg: '#c8281e', fg: '#ffffff' },
-        { t: 'GRIDBURN', bg: '#0b1226', fg: '#00eaff' }
+        { t: 'SMASH', bg: '#8e2019', fg: '#e2cfcd' },
+        { t: 'GRIDBURN', bg: '#0a1020', fg: '#3fb8cc' }
       ]);
       sidePanels(SIDE_X, [
-        { t: 'VOLT+', bg: '#ece9e2', fg: '#c8281e' },
-        { t: 'HOVERDASH', bg: '#1a0b22', fg: '#ff4dd2' }
+        { t: 'VOLT+', bg: '#9a978f', fg: '#7d211a' },
+        { t: 'HOVERDASH', bg: '#170a1e', fg: '#b8489a' }
       ]);
 
       // floor reflection of the table below its near edge
@@ -1042,6 +1053,27 @@
       vin.addColorStop(0, 'rgba(0,0,0,0)'); vin.addColorStop(1, 'rgba(0,0,0,0.32)');
       a.fillStyle = vin;
       a.fillRect(0, 0, W, H);
+
+      // Sink the foreground floor. The strip in FRONT of the near edge is dead
+      // space — no ball ever lands there — yet on a phone in landscape it is a
+      // quarter of the frame lit the same bright red as the court, so the eye
+      // has nothing telling it where to settle. The radial vignette above
+      // barely touches it: its inner radius is 0.45*min(W,H), which on a short
+      // landscape frame reaches past the bottom edge already.
+      //
+      // This is the answer to "the table only fills 40% of the frame" that
+      // does NOT involve scaling the court up — that drives the side barriers
+      // off both screen edges and inflates the sponsor band with them. The
+      // arena is a pre-rendered backdrop, so the paddle (drawn later, on top)
+      // keeps its full brightness and now reads against a darker floor.
+      var nearEdge = proj(0, 0, 0).y;
+      if (nearEdge < H) {
+        var fg = a.createLinearGradient(0, nearEdge, 0, H);
+        fg.addColorStop(0, 'rgba(0,0,0,0)');
+        fg.addColorStop(1, 'rgba(0,0,0,0.46)');
+        a.fillStyle = fg;
+        a.fillRect(0, nearEdge, W, H - nearEdge);
+      }
     }
 
     // hanging arena screen with the live score (when there's headroom)
@@ -1285,9 +1317,14 @@
       }
 
       var ballBehindNet = b.y > K.NET_Y;
-      // during the player's serve phase the ball renders ON TOP of the near
-      // paddle (it rests/tosses above it) instead of hiding behind it
-      var ballOnTop = game.phase === 'serve' && game.server === 1;
+      // The ball renders ON TOP of the near paddle whenever the two overlap:
+      // while the player serves (it rests and tosses above the blade), and —
+      // the part that matters — through the whole strike. The near blade is
+      // the largest sprite on screen, so drawing it over the ball hid the
+      // contact itself: the ball vanished, then reappeared already leaving.
+      // You could not see your own shot being played.
+      var ballOnTop = (game.phase === 'serve' && game.server === 1) ||
+        b.y < K.PADDLE_Y[1] + 0.55;
       if (ballBehindNet) drawBall();
       drawNet();
       if (!ballBehindNet && !ballOnTop) drawBall();
@@ -1565,7 +1602,11 @@
       var target = Math.max(-1.55, Math.min(1.55, (pad.x / xm) * 1.5 + pointerVX * 0.05));
       padTilt += (target - padTilt) * 0.18;
       padKick *= 0.85;
-      paddleShape(pad.x, K.PADDLE_Y[1], pad.z, 0.15, '#ff4d4d', '#a3122a', padTilt + padKick);
+      // 0.125, not 0.15: the near blade sits at d=0.95, the closest thing to
+      // the camera in the scene, so it projects larger than anything else and
+      // at 0.15 it read as a red disc parked over the near half rather than a
+      // bat. Shrinking it hands the frame back to the table.
+      paddleShape(pad.x, K.PADDLE_Y[1], pad.z, 0.125, '#ff4d4d', '#a3122a', padTilt + padKick);
     }
     function drawFarPaddle() {
       var pad = game.paddles[2];

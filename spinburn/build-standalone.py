@@ -60,14 +60,30 @@ s = s[:i] + '\n\n' + s[j:]
 # D. robots: noindex (the standalone must not compete with the canonical /spinburn/)
 s = s.replace('<meta name="robots" content="index, follow">', '<meta name="robots" content="noindex">')
 
-# E. Remove the GameVolt SDK comment + script tag
+# E. Remove the two GameVolt-hosted scripts: the GA4 tracker and the SDK.
+#    Both are absolute /-paths on gamevolt.io, so on someone else's domain
+#    they 404 — and a portal build must not phone home to our analytics.
+#
+#    KEEP the window.GameVoltTracker no-op line between them. The game calls
+#    GameVoltTracker.start()/.play()/.end() unconditionally now, so with the
+#    real tracker gone that stub is the only thing standing between a portal
+#    build and a ReferenceError on the first rally.
 sdk_block = '''  <!-- GameVolt SDK: loads first, no defer, so window.GameVolt exists when the
        game runs. All SDK use is optional (if (window.GameVolt)) — Spinburn
        plays fine standalone / on other portals with no SDK present. -->
-  <script src="/sdk/gamevolt.js" data-game="spinburn"></script>
+  <!-- GA4 Game Event Tracker (iframe-safe) -->
+  <script src="/js/gv-ga4.js"></script>
 '''
-assert sdk_block in s, 'SDK block not found'
+assert sdk_block in s, 'SDK/GA4 block not found'
 s = s.replace(sdk_block, '')
+sdk_tag = '  <script src="/sdk/gamevolt.js" data-game="spinburn"></script>\n'
+assert sdk_tag in s, 'SDK script tag not found'
+s = s.replace(sdk_tag, '')
+# nothing GameVolt-hosted may survive into a portal build
+for leftover in ['/sdk/gamevolt.js', '/js/gv-ga4.js']:
+    assert leftover not in s, f'GameVolt-hosted script still referenced: {leftover}'
+# ...but the no-op tracker stub MUST survive, or the game throws on first use
+assert 'window.GameVoltTracker=window.GameVoltTracker||' in s, 'tracker no-op stub was removed'
 
 # F. Remove the PWA manifest link (no install/SW on a portal build)
 s = s.replace('  <link rel="manifest" href="manifest.webmanifest">\n', '')
