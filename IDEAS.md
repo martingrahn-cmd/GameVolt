@@ -74,6 +74,22 @@ Allt byggs i `sdk/gamevolt.js` — noll ändringar i spelen. Se även `TODO-logi
 
 ---
 
+## Portal / Discovery
+
+- [ ] **Gamepad-detektering på portalen** (à la CrazyGames) — när en handkontroll
+  är ansluten lyfter portalen fram spelen som stödjer den: en "🎮 Gamepad"-pill i
+  startsidans filterrad (visas eller highlightas när en kontroll upptäcks) +
+  🎮-badge på spelkorten. **Finns:** 5 spel har redan fullt Gamepad API-stöd,
+  inkl. menynavigering — Asteroid Storm (ombindbart via `js/gamepad-bindings.js`),
+  Snake Neo, Axeluga, HoverDash och Gridburn (t.o.m. två pads för lokal 2P) — och
+  spelar-iframen har redan `allow="gamepad"` (`play/index.html`). Kvar: själva
+  detekteringen (`gamepadconnected`-eventet; obs: Chrome exponerar inte pads
+  förrän en knapp tryckts på kontrollen, så CrazyGames-mönstret är "tryck på en
+  knapp"), en `gamepad`-flagga per spel i portalens speldata, pill + badges.
+  Ren frontend på startsidan — ingen backend, inga speländringar.
+
+---
+
 ## Monetization
 
 - [ ] **Rewarded ads** — frivilliga videoannonser för bonusliv/guld (ad-abstraktion redan i Golden Glyphs)
