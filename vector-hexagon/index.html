@@ -100,13 +100,13 @@
   .overlay.on { pointer-events: auto; }
   .hidden { display: none !important; }
 
-  h1 {
+  h1, :where(.ui-title) {
     font-family: 'Orbitron', sans-serif; font-weight: 900;
     font-size: clamp(30px, 9vw, 74px); letter-spacing: 0.14em;
     margin: 0 0 6px; line-height: 0.98;
     color: #fff; text-shadow: 0 0 24px rgba(125,249,255,0.55);
   }
-  h1 .a { color: #7df9ff; }
+  h1 .a, :where(.ui-title) .a { color: #7df9ff; }
   .tag {
     font-family: 'Rajdhani'; font-weight: 700; letter-spacing: 0.34em;
     font-size: clamp(10px, 2.4vw, 14px); color: #8a93b8; margin-bottom: 30px;
@@ -262,7 +262,7 @@
   .go.mfocus { filter: drop-shadow(0 0 16px rgba(125,249,255,0.95)); transform: scale(1.05); }
 
   /* ---- game-over card ---- */
-  #over h1 { font-size: clamp(26px, 8vw, 60px); }
+  #over h1, #over :where(.ui-title) { font-size: clamp(26px, 8vw, 60px); }
   .stat { font-family: 'Rajdhani'; font-weight: 600; letter-spacing: 0.05em; color: #c8d0ee; font-size: clamp(14px, 3.6vw, 19px); margin: 2px 0; }
   .stat .big { font-family: 'Orbitron'; font-weight: 800; color: #7df9ff; font-size: clamp(30px, 9vw, 56px); display: block; }
   .newbest { font-family: 'Orbitron'; font-weight: 800; letter-spacing: 0.18em; color: #ffd166; font-size: clamp(13px, 3.4vw, 18px); margin: 8px 0; text-shadow: 0 0 18px rgba(255,209,102,0.55); }
@@ -337,7 +337,7 @@
 
   <!-- START -->
   <div class="overlay on" id="start">
-    <h1>VECTOR <span class="a">HEXAGON</span></h1>
+    <h2 class="ui-title">VECTOR <span class="a">HEXAGON</span></h2>
     <div class="tag">one hex · six lanes · don't touch the walls</div>
     <div class="diffs" id="diffs"></div>
     <div class="modes" id="modes">
@@ -363,7 +363,7 @@
 
   <!-- TROPHIES -->
   <div class="overlay hidden" id="trophies">
-    <h1>TRO<span class="a">PHIES</span></h1>
+    <h2 class="ui-title">TRO<span class="a">PHIES</span></h2>
     <div class="trophead" id="trophyCount">0 / 0</div>
     <div class="trolist" id="trophyList"></div>
     <button class="go" id="trophyBack" style="margin-top:20px">BACK</button>
@@ -371,7 +371,7 @@
 
   <!-- HIGH SCORES -->
   <div class="overlay hidden" id="hiscores">
-    <h1>HIGH <span class="a">SCORES</span></h1>
+    <h2 class="ui-title">HIGH <span class="a">SCORES</span></h2>
     <div class="hstabs" id="hsTabs">
       <button class="hstab sel" data-tab="local">LOCAL</button>
       <button class="hstab" data-tab="global">GLOBAL</button>
@@ -406,7 +406,7 @@
 
   <!-- GAME OVER -->
   <div class="overlay hidden" id="over">
-    <h1 id="overTitle">GAME <span class="a">OVER</span></h1>
+    <h2 id="overTitle" class="ui-title">GAME <span class="a">OVER</span></h2>
     <div class="clearbanner hidden" id="clearBanner">★ CLEARED ★</div>
     <div class="newbest hidden" id="newbest">◆ NEW BEST ◆</div>
     <div class="stat"><span class="big" id="finalTime">0.00</span>SECONDS SURVIVED</div>

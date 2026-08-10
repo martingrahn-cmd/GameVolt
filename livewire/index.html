@@ -92,8 +92,8 @@
     padding:14px 14px max(18px,env(safe-area-inset-bottom)); gap:12px; overflow-x:hidden;
   }
   header{width:100%; max-width:540px; display:flex; align-items:center; justify-content:space-between; gap:10px;}
-  h1{margin:0; font-size:19px; letter-spacing:.30em; font-weight:600; text-transform:uppercase; white-space:nowrap;}
-  h1 b{color:var(--acc); text-shadow:0 0 16px rgba(74,168,255,.7);}
+  h1, :where(.ui-title){margin:0; font-size:19px; letter-spacing:.30em; font-weight:600; text-transform:uppercase; white-space:nowrap;}
+  h1 b, :where(.ui-title) b{color:var(--acc); text-shadow:0 0 16px rgba(74,168,255,.7);}
   .meta{font-size:11.5px; color:var(--mut); letter-spacing:.14em; text-transform:uppercase; text-align:right; line-height:1.5;}
   .meta b{color:var(--ink); font-weight:600;}
 
@@ -234,7 +234,7 @@
 </head>
 <body>
   <header>
-    <h1>Live<b>wire</b></h1>
+    <h2 class="ui-title">Live<b>wire</b></h2>
     <div class="hright">
       <button id="trophyBtn" title="Trophies">🏆 <span id="trophyCount">0 / 31</span></button>
       <div class="meta"><span id="mTitle">Level 1</span><br><b id="mName">—</b><br><span id="mTime" class="mtime"></span></div>

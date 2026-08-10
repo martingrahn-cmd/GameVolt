@@ -97,7 +97,7 @@
       text-align: center;
       margin-bottom: 10px;
     }
-    .header h1 {
+    .header h1, .header :where(.ui-title) {
       font-family: 'Fredoka', sans-serif;
       font-size: 1.6rem;
       font-weight: 700;
@@ -399,7 +399,7 @@
     /* ── Responsive ── */
     @media (max-width: 420px) {
       :root { --cell-size: 10.2vw; }
-      .header h1 { font-size: 1.3rem; }
+      .header h1, .header :where(.ui-title) { font-size: 1.3rem; }
       .top-bar { font-size: 0.78rem; }
       .numpad button { font-size: 1.05rem; }
       .actions button { padding: 7px 10px; font-size: 0.73rem; }
@@ -407,7 +407,7 @@
 
     @media (max-height: 650px) {
       .header { margin-bottom: 4px; }
-      .header h1 { font-size: 1.1rem; }
+      .header h1, .header :where(.ui-title) { font-size: 1.1rem; }
       .top-bar { margin-bottom: 4px; }
       .numpad { margin-top: 6px; gap: 3px; }
       .actions { margin-top: 6px; gap: 5px; }
@@ -506,7 +506,7 @@
   <!-- Game layout -->
   <div class="game-left">
     <div class="header">
-      <h1>SUDOKU</h1>
+      <h2 class="ui-title">SUDOKU</h2>
       <div class="header-sub">GAMEVOLT.IO</div>
     </div>
 

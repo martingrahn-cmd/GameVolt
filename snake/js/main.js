@@ -613,8 +613,14 @@ window.addEventListener("load", async () => {
         const mode = await menu.show();
         console.log(`🎮 Selected mode: ${mode}`);
 
-        // Unlock audio on menu selection (user gesture)
-        await unlockAudio(mode);
+        // Unlock audio on menu selection (user gesture). A ?mode= deep link skips the
+        // menu, so there may be no gesture yet and the browser can refuse — that must
+        // not stop the game from starting.
+        try {
+            await unlockAudio(mode);
+        } catch (e) {
+            console.warn("🔇 Audio unlock deferred:", e);
+        }
 
         // Configure engine
         patchGameForMode(mode);

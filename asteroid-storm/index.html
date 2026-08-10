@@ -484,7 +484,7 @@
             to   { opacity: 1; }
         }
 
-        #gameOverScreen h1 {
+        #gameOverScreen h1, #gameOverScreen :where(.ui-title) {
             font-size: 28px;
             margin-bottom: 10px;
             color: #ff0040;
@@ -2184,7 +2184,7 @@
         <!-- Game Over -->
         <div id="gameOverScreen">
             <div id="gameOverArtwork"></div>
-            <h1>GAME OVER</h1>
+            <h2 class="ui-title">GAME OVER</h2>
             <div class="go-line"></div>
             <p class="go-score" id="finalScore">0</p>
             <p id="waveReached">LEVEL 1</p>

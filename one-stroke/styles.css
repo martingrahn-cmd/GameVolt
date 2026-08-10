@@ -215,7 +215,7 @@ body::after {
   background: linear-gradient(145deg, #1b3a4b85, #12273485);
 }
 
-.headline h1 {
+.headline h1, .headline :where(.ui-title) {
   margin: 4px 0 6px;
   font-family: var(--display-font);
   font-size: clamp(2rem, 3.7vw, 2.75rem);

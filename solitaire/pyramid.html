@@ -1623,5 +1623,56 @@
     <script src="solitaire-achievements.js"></script>
     <script src="/sdk/gamevolt.js"></script>
     <script>if (window.GameVolt) GameVolt.init('solitaire');</script>
+
+<!-- SEO content — visible standalone, hidden inside the /play/ iframe -->
+<div id="seo-content" style="display:none;">
+<style>
+  body.gv-standalone #seo-content { display:block !important; }
+  #seo-content { max-width:820px; margin:0 auto; padding:2.5rem 1.5rem 3.5rem; color:rgba(255,255,255,0.75); font-family:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; font-size:0.98rem; line-height:1.75; position:relative; z-index:20; }
+  #seo-content h1 { color:var(--text-primary); font-size:1.7rem; line-height:1.3; margin:0 0 0.85rem; }
+  #seo-content h2 { color:var(--text-primary); font-size:1.15rem; margin:2rem 0 0.6rem; }
+  #seo-content p { margin:0 0 1rem; }
+  #seo-content ul { margin:0 0 1rem; padding-left:1.25rem; }
+  #seo-content li { margin-bottom:0.45rem; }
+  #seo-content a { color:var(--gold-light); text-decoration:none; }
+  #seo-content a:hover { text-decoration:underline; }
+  #seo-content .sol-crumb { font-size:0.85rem; color:rgba(255,255,255,0.5); margin-bottom:1.6rem; }
+  #seo-content .sol-crumb a { color:rgba(255,255,255,0.68); }
+  #seo-content .sol-more { display:flex; flex-wrap:wrap; gap:0.5rem; margin:0.8rem 0 0; padding:0; list-style:none; }
+  #seo-content .sol-more a { display:inline-block; padding:0.45rem 0.95rem; border:1px solid rgba(255,255,255,0.18); border-radius:999px; font-size:0.9rem; }
+</style>
+  <nav class="sol-crumb" aria-label="Breadcrumb">
+    <a href="/">Home</a> &rsaquo; <a href="/board-games/">Board &amp; Card Games</a> &rsaquo; <a href="/solitaire/">Solitaire</a> &rsaquo; <span>Pyramid</span>
+  </nav>
+  <h1>Pyramid Solitaire — Play Free Online</h1>
+  <p>Pyramid Solitaire is the arithmetic member of the family: instead of building sequences you take cards away in pairs that add up to thirteen. It is free to play in the browser with no download and no signup, and a deal takes only a few minutes.</p>
+  <h2>How to play Pyramid Solitaire</h2>
+  <p>Twenty-eight cards are dealt into a pyramid of seven rows. Only cards with nothing overlapping them can be selected.</p>
+  <ul>
+    <li>Remove any two exposed cards whose values total thirteen.</li>
+    <li>Aces count 1, Jacks 11, Queens 12, Kings 13.</li>
+    <li>A King is worth thirteen on its own, so it is removed by itself with a single click.</li>
+    <li>The pairs are therefore Queen + Ace, Jack + 2, 10 + 3, 9 + 4, 8 + 5 and 7 + 6.</li>
+    <li>Draw from the stock when the pyramid offers nothing, and clear the whole pyramid to win.</li>
+  </ul>
+  <h2>Tips for solving the pyramid</h2>
+  <p>Pyramid punishes greed more than any other solitaire. A pair that is available now is not always a pair worth taking — check first whether one of those two cards is the only partner for a card still buried in the pyramid. The cards to watch are the ones that appear twice in the lower rows: if both Sixes sit under Sevens you will need both Sevens, so do not spend one early on a Six from the stock. Work the widest row down rather than chasing whichever pair catches your eye, and keep at least one King in reserve, since Kings clear alone and are the safest way to break a deadlock.</p>
+  <h2>More solitaire games</h2>
+  <p>All six are free, run in the browser and share the same stats, trophies and global leaderboards — <a href="/solitaire/">see all solitaire games</a>.</p>
+  <ul class="sol-more">
+    <li><a href="klondike.html">Klondike Solitaire</a></li>
+    <li><a href="spider.html">Spider Solitaire</a></li>
+    <li><a href="freecell.html">FreeCell Solitaire</a></li>
+    <li><a href="tripeaks.html">TriPeaks Solitaire</a></li>
+    <li><a href="golf.html">Golf Solitaire</a></li>
+  </ul>
+</div>
+<script>
+  // Reveal SEO content only when loaded standalone — hidden inside the /play/ iframe.
+  if (window.parent === window) {
+    document.body.classList.add('gv-standalone');
+    document.getElementById('seo-content').style.display = 'block';
+  }
+</script>
 </body>
 </html>

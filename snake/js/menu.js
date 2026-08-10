@@ -23,9 +23,29 @@ export class MenuScreen {
         };
     }
 
+    // Deep link support: /snake/?mode=nokia (or #nokia) names a mode directly, so a
+    // visitor arriving from /snake/nokia-3310/ lands in the game instead of hunting
+    // for it in the menu. Unknown values fall through to the normal menu.
+    static requestedMode() {
+        const ALIASES = {
+            neo: "neo",
+            nokia: "nokia", "nokia-3310": "nokia", "3310": "nokia",
+            "16bit": "16bit", "16-bit": "16bit"
+        };
+        let raw = "";
+        try {
+            raw = (new URLSearchParams(window.location.search).get("mode") || "").toLowerCase();
+        } catch (e) { /* URLSearchParams unavailable — fall back to the hash */ }
+        if (!raw && window.location.hash) raw = window.location.hash.slice(1).toLowerCase();
+        return ALIASES[raw] || null;
+    }
+
     show() {
         return new Promise(resolve => {
             this.resolve = resolve;
+
+            const requested = MenuScreen.requestedMode();
+            if (requested) { resolve(requested); return; }
 
             // Create overlay
             const div = document.createElement("div");

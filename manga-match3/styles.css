@@ -674,7 +674,7 @@ body::before {
     100% 100%;
 }
 
-h1 {
+h1, :where(.ui-title) {
   margin: 0;
   font-family: "Bangers", "Impact", sans-serif;
   font-size: clamp(2.3rem, 4vw, 3.2rem);
@@ -2495,7 +2495,7 @@ button:disabled {
   margin-bottom: 20px;
 }
 
-.level-select__header h1 {
+.level-select__header h1, .level-select__header :where(.ui-title) {
   margin: 0;
   font-family: "Bangers", "Impact", sans-serif;
   font-size: clamp(2.3rem, 4vw, 3.2rem);
@@ -3054,7 +3054,7 @@ button:disabled {
     gap: 8px;
   }
 
-  h1 {
+  h1, :where(.ui-title) {
     font-size: 1.6rem;
   }
 
@@ -3110,7 +3110,7 @@ button:disabled {
     font-size: 0.85rem;
   }
 
-  .level-select__header h1 {
+  .level-select__header h1, .level-select__header :where(.ui-title) {
     font-size: 2rem;
   }
 
@@ -3174,7 +3174,7 @@ button:disabled {
     border-top: none;
   }
 
-  h1 {
+  h1, :where(.ui-title) {
     font-size: 1.6rem;
     text-shadow: 1px 1px #ffffff, 2px 2px #0f1326;
   }

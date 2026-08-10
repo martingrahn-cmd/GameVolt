@@ -109,7 +109,7 @@ body{
 
 /* Title area */
 .menu-title{display:flex;flex-direction:column;align-items:center;gap:0.5rem;margin-bottom:0.25rem}
-.menu-title h1{
+.menu-title h1, .menu-title :where(.ui-title){
   font-family:'Inter',sans-serif;font-size:2rem;font-weight:800;color:var(--text-bright);
   letter-spacing:-0.02em;opacity:0;animation:menuFadeIn 0.5s 0.05s ease-out forwards
 }
@@ -551,7 +551,7 @@ body{
 
 @media(max-width:600px){
   :root{--cell-size:32px}
-  #menu h1{font-size:1.5rem}
+  #menu h1, #menu :where(.ui-title){font-size:1.5rem}
   .hud{font-size:0.9rem;padding:0.4rem 0.75rem;min-width:auto}
   .flag-toggle{display:flex;align-items:center;justify-content:center}
   #game{padding:0.25rem}
@@ -568,7 +568,7 @@ body{
 <div id="menu">
   <div id="menuGrid"></div>
   <div class="menu-title">
-    <h1>Minesweeper</h1>
+    <h2 class="ui-title">Minesweeper</h2>
     <p class="subtitle">Clear the board. Avoid the mines.</p>
     <div class="menu-divider"></div>
   </div>
