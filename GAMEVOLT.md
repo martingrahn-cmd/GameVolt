@@ -81,12 +81,10 @@ Last verified by auditing the code on 2026-07-09.
 | 20 | Vector Hexagon | ✅ Live | ✅ Full (two-tab climb/endless leaderboards) |
 | 21 | Gridburn | ✅ Live | ✅ Full (31 trophies, solo leaderboard, online lockstep multiplayer) |
 | 22 | Spinburn | ✅ Live | ✅ Full (31 trophies, career-points leaderboard, online mirror-per-client multiplayer) |
-| 23 | Manny the Mole | ✅ Live | ⚠️ init + registerMigration + two leaderboards ('score', 'daily-streak'); the game's own 38-trophy cabinet is local-only until it is mapped onto the 31-slot standard (added 2026-08-14) |
+| 23 | Manny the Mole | ✅ Live | ✅ Full (31 trophies synced via cabinet↔SDK, two leaderboards 'score' + 'daily-streak', registerMigration; platinum is 'Twelve Golds' rather than an unlock-all meta trophy — deliberate, the game shipped with exactly 31; added 2026-08-14) |
 
-**Remaining work:** map Manny the Mole's 38 in-game trophies onto the 31-slot
-achievement standard and register the defs (see sql/manny-the-mole-achievements.sql).
-Everything else: the Solitaire leaderboard is on the Supabase SDK path
-(migrated 2026-07-24); every game leaderboard is on Supabase.
+**Remaining work:** none — the Solitaire leaderboard is on the Supabase SDK
+path (migrated 2026-07-24); every game leaderboard is on Supabase.
 
 ---
 
