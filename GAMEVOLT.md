@@ -47,11 +47,11 @@ When writing code for this project, follow these rules:
 
 ## Game Catalog
 
-**Canonical game count: 21 live portal games.** The table below has 22 numbered
+**Canonical game count: 22 live portal games.** The table below has 23 numbered
 rows, but row #7 (Flappy Bird) is the hidden 404-page easter egg — NOT a portal
 game. So the count shown on the site (homepage hero stat + "All Games" pill,
-about-page copy) = catalog rows − Flappy Bird = **21**. Cross-check: 21 game
-folders at repo root, 21 `.game-card` entries on the homepage, 21 `.game-item`
+about-page copy) = catalog rows − Flappy Bird = **22**. Cross-check: 22 game
+folders at repo root, 22 `.game-card` entries on the homepage, 22 `.game-item`
 entries in the about lineup. When you add a game, bump all of these together.
 
 Status legend: ✅ = init + leaderboard + achievements + registerMigration, ⚠️ = partial, ❌ = not yet.
@@ -81,8 +81,12 @@ Last verified by auditing the code on 2026-07-09.
 | 20 | Vector Hexagon | ✅ Live | ✅ Full (two-tab climb/endless leaderboards) |
 | 21 | Gridburn | ✅ Live | ✅ Full (31 trophies, solo leaderboard, online lockstep multiplayer) |
 | 22 | Spinburn | ✅ Live | ✅ Full (31 trophies, career-points leaderboard, online mirror-per-client multiplayer) |
+| 23 | Manny the Mole | ✅ Live | ⚠️ init + registerMigration + two leaderboards ('score', 'daily-streak'); the game's own 38-trophy cabinet is local-only until it is mapped onto the 31-slot standard (added 2026-08-14) |
 
-**Remaining work:** none — the Solitaire leaderboard is now on the Supabase SDK path (migrated 2026-07-24). Every game leaderboard is on Supabase.
+**Remaining work:** map Manny the Mole's 38 in-game trophies onto the 31-slot
+achievement standard and register the defs (see sql/manny-the-mole-achievements.sql).
+Everything else: the Solitaire leaderboard is on the Supabase SDK path
+(migrated 2026-07-24); every game leaderboard is on Supabase.
 
 ---
 

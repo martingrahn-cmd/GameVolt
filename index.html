@@ -274,6 +274,15 @@
                 "url": "https://gamevolt.io/spinburn/",
                 "genre": ["Arcade", "Sports", "Multiplayer"],
                 "gamePlatform": "Web Browser"
+            },
+            {
+                "@type": "VideoGame",
+                "position": 20,
+                "name": "Manny the Mole",
+                "description": "Mr. Driller-style digging arcade — dig down twelve shafts on your air meter, crack the vault's circuit lock at the bottom, and keep the daily-lock streak alive",
+                "url": "https://gamevolt.io/manny-the-mole/",
+                "genre": ["Arcade", "Action", "Puzzle"],
+                "gamePlatform": "Web Browser"
             }
         ]
     }
@@ -1861,7 +1870,7 @@
             <p>GameVolt is a tiny studio portal — free HTML5 games with no ads, no install and no account required. Closer to a maker's shelf than a game dump.</p>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="stat-number">21</span>
+                    <span class="stat-number">22</span>
                     <span class="stat-label">Games I've made</span>
                 </div>
                 <div class="stat">
@@ -2002,12 +2011,12 @@
             <button class="category-pill active" data-filter="all">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
-                <span class="pill-count">21</span>
+                <span class="pill-count">22</span>
             </button>
             <button class="category-pill" data-filter="coffee-break">
                 <span class="pill-icon">☕</span>
                 <span>Coffee Break</span>
-                <span class="pill-count">9</span>
+                <span class="pill-count">10</span>
             </button>
             <button class="category-pill" data-filter="brain-challenge">
                 <span class="pill-icon">🧠</span>
@@ -2017,7 +2026,7 @@
             <button class="category-pill" data-filter="action">
                 <span class="pill-icon">🔥</span>
                 <span>Action</span>
-                <span class="pill-count">8</span>
+                <span class="pill-count">9</span>
             </button>
             <button class="category-pill" data-filter="word">
                 <span class="pill-icon">⌨️</span>
@@ -2049,6 +2058,26 @@
         </div>
 
         <div class="games-grid">
+            <!-- Manny the Mole -->
+            <a href="/play/?game=manny-the-mole" class="game-card" data-category="coffee-break arcade action">
+                <div class="game-thumbnail">
+                    <img src="/manny-the-mole/og-image.png" alt="Play Manny the Mole online free" fetchpriority="high">
+                    <video class="preview-video" muted loop playsinline preload="none"></video>
+                    <span class="game-badge new">NEW</span>
+                    <span class="game-bolt">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Manny the Mole</h3>
+                    <p class="game-description">Mr. Driller-style digging arcade. Dig down twelve shafts on a shrinking air meter — matched blocks crumble, the ceiling follows you down — and crack the vault's circuit lock at the bottom. 24-lock campaign with medal times, and a daily lock that keeps your streak alive. Free in your browser — no download.</p>
+                    <div class="game-tags">
+                        <span class="tag">Arcade</span>
+                        <span class="tag">Digging</span>
+                        <span class="tag">Daily</span>
+                    </div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
+
             <!-- Vector Hexagon -->
             <!-- Spinburn -->
             <a href="/play/?game=spinburn" class="game-card" data-category="coffee-break arcade multiplayer" data-preview="/spinburn/preview.mp4">
@@ -2453,6 +2482,13 @@
                 <a href="/news/" class="section-link" style="font-size:0.85rem;color:var(--text-muted);text-decoration:none;">View all &rarr;</a>
             </div>
             <div class="news-strip-grid">
+                <a href="/news/manny-the-mole-launch/" class="news-strip-card">
+                    <img src="/manny-the-mole/og-image.png" alt="New game: Manny the Mole" loading="lazy">
+                    <div>
+                        <div class="news-strip-date">Aug 14, 2026 · New Game</div>
+                        <div class="news-strip-title">New game: Manny the Mole — dig deep, crack the vault</div>
+                    </div>
+                </a>
                 <a href="/news/spinburn-launch/" class="news-strip-card">
                     <img src="/spinburn/og-image.png" alt="New game: Spinburn" loading="lazy">
                     <div>
@@ -2465,13 +2501,6 @@
                     <div>
                         <div class="news-strip-date">Jul 22, 2026 · Update</div>
                         <div class="news-strip-title">Golden Glyphs polished: clearer puzzles, better daily challenges</div>
-                    </div>
-                </a>
-                <a href="/news/hoverdash-vx9-update/" class="news-strip-card">
-                    <img src="/hoverdash/og-image.png" alt="HoverDash VX-9 Phantom update" loading="lazy">
-                    <div>
-                        <div class="news-strip-date">Jul 20, 2026 · Update</div>
-                        <div class="news-strip-title">HoverDash reborn: the VX-9 Phantom update</div>
                     </div>
                 </a>
             </div>
@@ -2517,6 +2546,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/manny-the-mole/">Manny the Mole</a>
                         <a href="/spinburn/">Spinburn</a>
                         <a href="/gridburn/">Gridburn</a>
                         <a href="/hoverdash/">HoverDash</a>
@@ -2746,6 +2776,7 @@
         if (!window.GVTracker) return;
 
         var GAME_META = {
+            "manny-the-mole": { name: "Manny the Mole", thumb: "/manny-the-mole/og-image.png" },
             snake:     { name: "Snake Neo",  thumb: "/assets/thumbnails/snake.webp", preview: "/snake/preview.mp4" },
             breakout:  { name: "Breakout",   thumb: "/assets/thumbnails/breakout.webp", preview: "/breakout/preview.mp4" },
             taprush:   { name: "Tap Rush",   thumb: "/assets/thumbnails/taprush.webp" },
@@ -2817,6 +2848,7 @@
     // localStorage when guest). Hidden when empty; refreshes on auth state change.
     (function() {
         var FAV_META = {
+            "manny-the-mole": { name: "Manny the Mole", thumb: "/manny-the-mole/og-image.png" },
             snake:           { name: "Snake Neo",     thumb: "/assets/thumbnails/snake.webp", preview: "/snake/preview.mp4" },
             breakout:        { name: "Breakout",      thumb: "/assets/thumbnails/breakout.webp", preview: "/breakout/preview.mp4" },
             taprush:         { name: "Tap Rush",      thumb: "/assets/thumbnails/taprush.webp" },

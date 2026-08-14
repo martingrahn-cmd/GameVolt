@@ -1094,3 +1094,13 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   ('solitaire-score-5000', 'solitaire', 'Card Shark', 'Score 5,000+ in a single game', '🦈', 'gold', 30),
   ('solitaire-master', 'solitaire', 'Solitaire Master', 'Unlock all 30 other trophies', '🏆', 'platinum', 31)
 ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================
+-- Manny the Mole (added 2026-08-14): game row only. The 38-trophy
+-- cabinet maps onto the 31-slot standard in a follow-up; until then
+-- the game submits scores ('score', 'daily-streak') but no
+-- achievements. See sql/manny-the-mole-achievements.sql.
+-- ============================================================
+INSERT INTO games (id, title, thumbnail_url) VALUES
+  ('manny-the-mole', 'Manny the Mole', '/manny-the-mole/og-image.png')
+ON CONFLICT (id) DO NOTHING;

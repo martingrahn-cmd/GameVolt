@@ -6,7 +6,7 @@
 
 This is **GameVolt.io** (rebranded from PulseGames.eu) — a curated HTML5 game portal with original games built by Martin.
 
-**Game count: 21 live portal games** (not 20, not 22). The GAMEVOLT.md catalog has 22 rows but #7 Flappy Bird is the 404 easter egg, not a portal game. See the note under "Game Catalog" in GAMEVOLT.md before quoting or changing any game count.
+**Game count: 22 live portal games** (not 21, not 23). The GAMEVOLT.md catalog has 23 rows but #7 Flappy Bird is the 404 easter egg, not a portal game. See the note under "Game Catalog" in GAMEVOLT.md before quoting or changing any game count.
 
 ## Rules
 

@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Thu, 23 Jul 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 14 Aug 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>New game: Manny the Mole — dig deep, crack the vault</title>
+      <link>https://gamevolt.io/news/manny-the-mole-launch/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/manny-the-mole-launch/</guid>
+      <pubDate>Fri, 14 Aug 2026 12:00:00 GMT</pubDate>
+      <description>Manny the Mole is live — a Mr. Driller-style digging arcade game. Dig twelve shafts on a shrinking air meter, crack the vault's circuit lock at the bottom, chase medal times through a 24-lock campaign, and keep the Daily Lock streak alive — one board a day, the same for everyone. Free in your browser.</description>
+    </item>
 
     <item>
       <title>New game: Spinburn — 2.5D arcade table tennis, online</title>
