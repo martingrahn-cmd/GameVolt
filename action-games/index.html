@@ -238,7 +238,7 @@
         .game-card:nth-child(1) { animation-delay: 0.05s; }
         .game-card:nth-child(2) { animation-delay: 0.1s; }
         .game-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-card-hover); border-color: var(--border-glow); background: var(--bg-card-hover); }
-        .game-thumbnail { aspect-ratio: 4/3; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .game-thumbnail { aspect-ratio: 16/9; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
         .game-thumbnail::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(to top, rgba(25, 30, 55, 0.8), transparent); z-index: 1; pointer-events: none; }
         .game-thumbnail img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
         .game-card:hover .game-thumbnail img { transform: scale(1.08); }
