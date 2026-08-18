@@ -1,4 +1,4 @@
-const CACHE='hoverdash-v7';
+const CACHE='hoverdash-v8';
 const ASSETS=[
   './',
   './index.html',
@@ -10,7 +10,7 @@ const ASSETS=[
   './wave_clear.mp3',
   './wave_start.mp3',
   './select_001.mp3',
-  'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'
+  './lib/three.min.js'
 ];
 
 self.addEventListener('install',e=>{
