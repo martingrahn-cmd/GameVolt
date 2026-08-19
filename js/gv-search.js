@@ -12,7 +12,7 @@
     { id: 'manga-match3',  name: 'Manga Match',   cat: 'Puzzle', thumb: '/assets/thumbnails/manga-match3.webp', tags: 'puzzle match3 anime combo' },
     { id: 'sudoku',        name: 'Sudoku',         cat: 'Puzzle', thumb: '/assets/thumbnails/sudoku.webp', tags: 'puzzle number logic brain' },
     { id: 'blockstorm',    name: 'BlockStorm',     cat: 'Puzzle', thumb: '/assets/thumbnails/blockstorm.webp', tags: 'puzzle tetris block' },
-    { id: 'hoverdash',     name: 'HoverDash',      cat: 'Action', thumb: '/hoverdash/og-image.png', tags: 'action runner neon dodge' },
+    { id: 'hoverdash',     name: 'HoverDash',      cat: 'Action', thumb: '/assets/thumbnails/hoverdash.webp', tags: 'action runner neon dodge' },
     { id: 'vector-hexagon', name: 'Vector Hexagon', cat: 'Arcade', thumb: '/vector-hexagon/og-image.png', tags: 'arcade twitch survival super hexagon reflex dodge neon' },
     { id: 'spinburn',      name: 'Spinburn',       cat: 'Arcade', thumb: '/spinburn/og-image.png', tags: 'table tennis ping pong arcade paddle spin smash multiplayer online sports' },
   { id: 'gridburn',      name: 'Gridburn',       cat: 'Arcade', thumb: '/gridburn/og-image.png', tags: 'arcade tron light cycle multiplayer online duel neon trail' },
