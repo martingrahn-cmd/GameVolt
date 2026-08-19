@@ -283,6 +283,15 @@
                 "url": "https://gamevolt.io/manny-the-mole/",
                 "genre": ["Arcade", "Action", "Puzzle"],
                 "gamePlatform": "Web Browser"
+            },
+            {
+                "@type": "VideoGame",
+                "position": 21,
+                "name": "Short Circuit",
+                "description": "Circuit-lock puzzle — uncover conductors and swap them into a route ahead of the live current, with a daily lock and live 1v1 duels",
+                "url": "https://gamevolt.io/short-circuit/",
+                "genre": ["Puzzle", "Logic", "Multiplayer"],
+                "gamePlatform": "Web Browser"
             }
         ]
     }
@@ -1870,7 +1879,7 @@
             <p>GameVolt is a tiny studio portal — free HTML5 games with no ads, no install and no account required. Closer to a maker's shelf than a game dump.</p>
             <div class="hero-stats">
                 <div class="stat">
-                    <span class="stat-number">22</span>
+                    <span class="stat-number">23</span>
                     <span class="stat-label">Games I've made</span>
                 </div>
                 <div class="stat">
@@ -1893,6 +1902,23 @@
                 <h2 class="section-title">New on GameVolt</h2>
             </div>
             <div class="ec-grid">
+                <!-- Short Circuit (Aug 2026) -->
+                <a href="/play/?game=short-circuit" class="ec-card">
+                    <div class="ec-thumb">
+                        <img src="/short-circuit/og-image.png" alt="Play Short Circuit online free">
+                        <video class="preview-video" muted loop playsinline preload="none"></video>
+                        <div class="ec-play-overlay">
+                            <div class="ec-play-btn">
+                                <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ec-info">
+                        <div class="ec-name">Short Circuit</div>
+                        <div class="ec-desc">Route the current before it routes you — uncover conductors, swap them into a route from IN to OUT, ahead of the live current — with a daily lock and live 1v1 breaker duels</div>
+                        <span class="ec-cta">▶ Play Instantly</span>
+                    </div>
+                </a>
                 <!-- Manny the Mole (Aug 2026) -->
                 <a href="/play/?game=manny-the-mole" class="ec-card">
                     <div class="ec-thumb">
@@ -1982,7 +2008,7 @@
             <button class="category-pill active" data-filter="all">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
-                <span class="pill-count">22</span>
+                <span class="pill-count">23</span>
             </button>
             <button class="category-pill" data-filter="coffee-break">
                 <span class="pill-icon">☕</span>
@@ -2029,6 +2055,25 @@
         </div>
 
         <div class="games-grid">
+            <!-- Short Circuit -->
+            <a href="/play/?game=short-circuit" class="game-card" data-category="coffee-break puzzle multiplayer">
+                <div class="game-thumbnail">
+                    <img src="/short-circuit/og-image.png" alt="Play Short Circuit online free" fetchpriority="high">
+                    <video class="preview-video" muted loop playsinline preload="none"></video>
+                    <span class="game-badge new">NEW</span>
+                    <span class="game-bolt">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Short Circuit</h3>
+                    <p class="game-description">Circuit-lock puzzle born inside Manny the Mole's vault. Uncover hidden conductors and swap them into a route from IN to OUT — while the live current creeps up behind your fingers. 24-lock campaign with medal times, a daily lock that keeps your streak alive, and live 1v1 duels where only slamming the breaker stops your clock. Free in your browser — no download.</p>
+                    <div class="game-tags">
+                        <span class="tag">Puzzle</span>
+                        <span class="tag">Daily</span>
+                        <span class="tag">Multiplayer</span>
+                    </div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
             <!-- Manny the Mole -->
             <a href="/play/?game=manny-the-mole" class="game-card" data-category="coffee-break arcade action">
                 <div class="game-thumbnail">
@@ -2075,7 +2120,6 @@
                 <div class="game-thumbnail">
                     <img src="/gridburn/og-image.png" alt="Play Gridburn online free" fetchpriority="high">
                     <video class="preview-video" muted loop playsinline preload="none"></video>
-                    <span class="game-badge new">NEW</span>
                     <span class="game-bolt">⚡</span>
                 </div>
                 <div class="game-info">
@@ -2505,6 +2549,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/short-circuit/">Short Circuit</a>
                         <a href="/manny-the-mole/">Manny the Mole</a>
                         <a href="/spinburn/">Spinburn</a>
                         <a href="/gridburn/">Gridburn</a>
@@ -2735,6 +2780,7 @@
         if (!window.GVTracker) return;
 
         var GAME_META = {
+            "short-circuit": { name: "Short Circuit", thumb: "/short-circuit/og-image.png" },
             "manny-the-mole": { name: "Manny the Mole", thumb: "/manny-the-mole/og-image.png" },
             snake:     { name: "Snake Neo",  thumb: "/assets/thumbnails/snake.webp", preview: "/snake/preview.mp4" },
             breakout:  { name: "Breakout",   thumb: "/assets/thumbnails/breakout.webp", preview: "/breakout/preview.mp4" },
@@ -2807,6 +2853,7 @@
     // localStorage when guest). Hidden when empty; refreshes on auth state change.
     (function() {
         var FAV_META = {
+            "short-circuit": { name: "Short Circuit", thumb: "/short-circuit/og-image.png" },
             "manny-the-mole": { name: "Manny the Mole", thumb: "/manny-the-mole/og-image.png" },
             snake:           { name: "Snake Neo",     thumb: "/assets/thumbnails/snake.webp", preview: "/snake/preview.mp4" },
             breakout:        { name: "Breakout",      thumb: "/assets/thumbnails/breakout.webp", preview: "/breakout/preview.mp4" },

@@ -6,6 +6,7 @@
   'use strict';
 
   var GAMES = [
+    { id: 'short-circuit', name: 'Short Circuit', cat: 'Puzzle', thumb: '/short-circuit/og-image.png', tags: 'puzzle circuit lock current electric conductors swap wire daily streak duel multiplayer breaker logic' },
     { id: 'manny-the-mole', name: 'Manny the Mole', cat: 'Arcade', thumb: '/manny-the-mole/og-image.png', tags: 'arcade digging mr driller dig vault circuit lock daily streak mole' },
     { id: 'one-stroke',    name: 'One Stroke',    cat: 'Puzzle', thumb: '/assets/thumbnails/one-stroke.webp', tags: 'puzzle logic path hamiltonian daily' },
     { id: 'golden-glyphs', name: 'Golden Glyphs', cat: 'Puzzle', thumb: '/assets/thumbnails/golden-glyphs.webp', tags: 'puzzle block campaign zen' },

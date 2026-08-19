@@ -1046,6 +1046,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/short-circuit/">Short Circuit</a>
                         <a href="/manny-the-mole/">Manny the Mole</a>
                         <a href="/hoverdash/">HoverDash</a>
                         <a href="/vector-hexagon/">Vector Hexagon</a>
@@ -1101,6 +1102,7 @@
         'use strict';
 
         var GAME_NAMES = {
+            'short-circuit': 'Short Circuit',
             'manny-the-mole': 'Manny the Mole',
             'vector-hexagon': 'Vector Hexagon',
             breakout: 'Breakout',
@@ -1124,6 +1126,7 @@
         };
 
         var GAME_THUMBS = {
+            'short-circuit': '/short-circuit/og-image.png',
             'manny-the-mole': '/manny-the-mole/og-image.png',
             'vector-hexagon': '/vector-hexagon/og-image.png',
             breakout: '/assets/thumbnails/breakout.webp',
@@ -1148,6 +1151,39 @@
 
         // Full trophy catalog — all definitions from all games
         var TROPHY_CATALOG = {
+            'short-circuit': [
+                { id:'short-circuit-first-spark', icon:'⚡', name:'First Spark', desc:'Close your first circuit', tier:'bronze' },
+                { id:'short-circuit-three-open', icon:'🔓', name:'Three Open', desc:'Open three campaign locks', tier:'bronze' },
+                { id:'short-circuit-six-open', icon:'🗝️', name:'Six Open', desc:'Open six campaign locks', tier:'bronze' },
+                { id:'short-circuit-day-one', icon:'📅', name:'Day One', desc:'Solve a daily lock', tier:'bronze' },
+                { id:'short-circuit-three-days', icon:'🔥', name:'Three Days Live', desc:'Reach a 3-day daily streak', tier:'bronze' },
+                { id:'short-circuit-podium', icon:'🎖️', name:'On the Podium', desc:'Earn any medal time', tier:'bronze' },
+                { id:'short-circuit-medal-drawer', icon:'🥉', name:'Medal Drawer', desc:'Earn five medal times', tier:'bronze' },
+                { id:'short-circuit-busy-fingers', icon:'👆', name:'Busy Fingers', desc:'Press 100 conductors', tier:'bronze' },
+                { id:'short-circuit-switchboard', icon:'🔀', name:'Switchboard', desc:'Bank 50 swaps', tier:'bronze' },
+                { id:'short-circuit-through-gold', icon:'🔩', name:'Routed Through Gold', desc:'Beat a lock with welded conductors', tier:'bronze' },
+                { id:'short-circuit-big-board', icon:'🗄️', name:'The Big Board', desc:'Solve a 6×6 circuit', tier:'bronze' },
+                { id:'short-circuit-worn-open', icon:'🔧', name:'Worn But Open', desc:'Win a lock after a restart', tier:'bronze' },
+                { id:'short-circuit-hands-on-keys', icon:'⌨️', name:'Hands on Keys', desc:'Solve a lock on the keyboard', tier:'bronze' },
+                { id:'short-circuit-schooled', icon:'🎓', name:'Schooled', desc:'Finish the teaching circuit', tier:'bronze' },
+                { id:'short-circuit-shift-worker', icon:'⏱️', name:'Shift Worker', desc:'15 minutes in the box', tier:'bronze' },
+                { id:'short-circuit-halfway-in', icon:'🚪', name:'Halfway In', desc:'Open twelve campaign locks', tier:'silver' },
+                { id:'short-circuit-deep-panels', icon:'🕳️', name:'Deep Panels', desc:'Open eighteen campaign locks', tier:'silver' },
+                { id:'short-circuit-week-live', icon:'📆', name:'One Week Live', desc:'Reach a 7-day daily streak', tier:'silver' },
+                { id:'short-circuit-golden-touch', icon:'🥇', name:'Golden Touch', desc:'Earn a gold medal time', tier:'silver' },
+                { id:'short-circuit-shinework', icon:'✨', name:'Shinework', desc:'Five silver-or-better medals', tier:'silver' },
+                { id:'short-circuit-ten-flat', icon:'⚡', name:'Ten Flat', desc:'Solve a lock in under 10 seconds', tier:'silver' },
+                { id:'short-circuit-first-blood', icon:'⚔️', name:'First Blood', desc:'Win a live duel', tier:'silver' },
+                { id:'short-circuit-trigger-finger', icon:'🔴', name:'Trigger Finger', desc:'Slam the breaker 25 times', tier:'silver' },
+                { id:'short-circuit-regular', icon:'🌅', name:'Regular', desc:'Solve ten daily locks', tier:'silver' },
+                { id:'short-circuit-long-shift', icon:'🕐', name:'The Long Shift', desc:'An hour in the box', tier:'silver' },
+                { id:'short-circuit-all-panels', icon:'🏆', name:'All Panels Open', desc:'Clear all 24 campaign locks', tier:'gold' },
+                { id:'short-circuit-gilded-dozen', icon:'👑', name:'Gilded Dozen', desc:'Twelve gold medal times', tier:'gold' },
+                { id:'short-circuit-month-live', icon:'🌟', name:'A Month Live', desc:'Reach a 30-day daily streak', tier:'gold' },
+                { id:'short-circuit-duelist', icon:'🤺', name:'Duelist', desc:'Win ten live duels', tier:'gold' },
+                { id:'short-circuit-five-flat', icon:'💨', name:'Five Flat', desc:'Solve a lock in under 5 seconds', tier:'gold' },
+                { id:'short-circuit-master', icon:'💎', name:'Master Electrician', desc:'Unlock every other trophy', tier:'platinum' },
+            ],
             'manny-the-mole': [
                 { id:'manny-the-mole-first-bite',   icon:'⛏️', name:'First Bite',            desc:'Dig your first shaft',                        tier:'bronze' },
                 { id:'manny-the-mole-three-down',   icon:'🕳️', name:'Three Down',            desc:'Clear three levels',                          tier:'bronze' },
