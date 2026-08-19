@@ -42,7 +42,7 @@ Every game runs instantly in any modern browser, works on phone, tablet and desk
 
 ## About
 
-- [GameVolt News](https://gamevolt.io/news/) — Game launches and major updates (RSS: https://gamevolt.io/news/feed.xml). Latest: [Manny the Mole launch](https://gamevolt.io/news/manny-the-mole-launch/) (2026-08-14), [Spinburn launch](https://gamevolt.io/news/spinburn-launch/) (2026-07-23) and [Golden Glyphs polish update](https://gamevolt.io/news/golden-glyphs-polish-update/) (2026-07-22).
+- [GameVolt News](https://gamevolt.io/news/) — Game launches and major updates (RSS: https://gamevolt.io/news/feed.xml). Latest: [Short Circuit launch](https://gamevolt.io/news/short-circuit-launch/) (2026-08-19), [Manny the Mole launch](https://gamevolt.io/news/manny-the-mole-launch/) (2026-08-14) and [Spinburn launch](https://gamevolt.io/news/spinburn-launch/) (2026-07-23).
 - [About GameVolt](https://gamevolt.io/about/) — Independent game studio from Sweden
 - [Privacy policy](https://gamevolt.io/privacy/)
 - [Contact](https://gamevolt.io/contact/)

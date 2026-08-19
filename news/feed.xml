@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Fri, 14 Aug 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 19 Aug 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>New game: Short Circuit — close the route before the current does</title>
+      <link>https://gamevolt.io/news/short-circuit-launch/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/short-circuit-launch/</guid>
+      <pubDate>Wed, 19 Aug 2026 12:00:00 GMT</pubDate>
+      <description>Short Circuit is live — a circuit-board puzzle on a dark junction panel. Uncover the conductors hidden under each tile and swap them into an unbroken route from IN to OUT before the live current arrives. A 24-lock campaign with medal times, a daily lock with streaks, live 1v1 duels and 31 trophies. Free in your browser.</description>
+    </item>
 
     <item>
       <title>New game: Manny the Mole — dig deep, crack the vault</title>

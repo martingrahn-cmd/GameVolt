@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://gamevolt.io/</loc>
-    <lastmod>2026-08-14</lastmod>
+    <lastmod>2026-08-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -11,9 +11,15 @@
   <!-- News -->
   <url>
     <loc>https://gamevolt.io/news/</loc>
-    <lastmod>2026-08-14</lastmod>
+    <lastmod>2026-08-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://gamevolt.io/news/short-circuit-launch/</loc>
+    <lastmod>2026-08-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://gamevolt.io/news/manny-the-mole-launch/</loc>
