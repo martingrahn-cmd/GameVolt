@@ -85,6 +85,9 @@
   <!-- Game pages (canonical URLs at top level) -->
   <url>
     <loc>https://gamevolt.io/manny-the-mole/</loc>
+  </url>
+  <url>
+    <loc>https://gamevolt.io/short-circuit/</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
