@@ -857,6 +857,22 @@ Every game MUST do two things (all `id`s are the BARE id passed to `unlock()`):
 - [ ] SDK: trophies appear in `user_achievements` after unlock (no 409 errors)
 - [ ] SDK: migration works (existing localStorage data syncs on first login)
 
+### 12. Announce it
+
+A launch is not finished until it has been announced. Every game before Short
+Circuit got a news post — Vector Hexagon, Gridburn, Spinburn, Manny the Mole —
+and Short Circuit shipped without one, so RSS subscribers and AI assistants had
+no idea it existed. The steps live in the **News Publishing Checklist** below;
+this entry exists so you hit them while you still have the game fresh in mind.
+
+- [ ] Write `/news/{slug}-launch/index.html` and register it in all six places
+      (news index, `feed.xml`, homepage strip, `sitemap.xml`, `llms.txt`
+      "Latest:" line) — see the News Publishing Checklist for the detail
+- [ ] Fact-check the article against the game's own code. The interesting copy
+      is usually in the trophy conditions and engine comments — that is where
+      Short Circuit's 6×6 boards, welded conductors and 20%-slower-per-retry
+      wear came from, none of which were obvious from playing a few locks
+
 ---
 
 ## News Publishing Checklist
@@ -888,9 +904,13 @@ code (never invent features).
 - [ ] `/news/index.html` — add a news card at the TOP of the list (newest first)
 - [ ] `/news/feed.xml` — add an `<item>` at the top (title, link, guid, pubDate in
   RFC 822 format e.g. `Thu, 09 Jul 2026 12:00:00 GMT`, description); update
-  `<lastBuildDate>`
-- [ ] Homepage `index.html` — update the "Latest News" strip: add the new card,
-  drop the oldest (keep 2)
+  `<lastBuildDate>` to the same date. RFC 822 carries the **weekday**, so check
+  it against a calendar rather than copying the neighbouring item's — a wrong
+  day is still well-formed XML and no validator here will catch it
+- [ ] Homepage `index.html` — update the "Latest News" strip: add the new card at
+  the top, drop the oldest. The grid is `repeat(auto-fit, minmax(300px, 1fr))`
+  and has carried **three** cards in practice, not two — count what is there
+  rather than trusting this line
 - [ ] `sitemap.xml` — add the article URL (`changefreq yearly`), bump `lastmod`
   on `/news/`, the homepage, and the game page the article links to
 - [ ] `llms.txt` — update the "Latest:" line in the News section
