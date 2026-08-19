@@ -47,12 +47,17 @@ When writing code for this project, follow these rules:
 
 ## Game Catalog
 
-**Canonical game count: 22 live portal games.** The table below has 23 numbered
+**Canonical game count: 23 live portal games.** The table below has 24 numbered
 rows, but row #7 (Flappy Bird) is the hidden 404-page easter egg — NOT a portal
 game. So the count shown on the site (homepage hero stat + "All Games" pill,
-about-page copy) = catalog rows − Flappy Bird = **22**. Cross-check: 22 game
-folders at repo root, 22 `.game-card` entries on the homepage, 22 `.game-item`
+about-page copy) = catalog rows − Flappy Bird = **23**. Cross-check: 23 game
+folders at repo root, 23 `.game-card` entries on the homepage, 23 `.game-item`
 entries in the about lineup. When you add a game, bump all of these together.
+
+> Adding the game to the about page's *footer* link column is not the same as
+> adding it to the `.game-list` lineup. Short Circuit shipped in the footer only,
+> leaving the page claiming 23 games above a list of 22. Count `.game-item`, not
+> the footer links.
 
 Status legend: ✅ = init + leaderboard + achievements + registerMigration, ⚠️ = partial, ❌ = not yet.
 Last verified by auditing the code on 2026-07-09.
@@ -82,6 +87,7 @@ Last verified by auditing the code on 2026-07-09.
 | 21 | Gridburn | ✅ Live | ✅ Full (31 trophies, solo leaderboard, online lockstep multiplayer) |
 | 22 | Spinburn | ✅ Live | ✅ Full (31 trophies, career-points leaderboard, online mirror-per-client multiplayer) |
 | 23 | Manny the Mole | ✅ Live | ✅ Full (31 trophies synced via cabinet↔SDK, two leaderboards 'score' + 'daily-streak', registerMigration; platinum is 'Twelve Golds' rather than an unlock-all meta trophy — deliberate, the game shipped with exactly 31; added 2026-08-14) |
+| 24 | Short Circuit | ✅ Live | ✅ Full (31 trophies, 'daily-streak' leaderboard; circuit-lock puzzle from Manny the Mole built out into its own game with a 24-lock campaign, Daily Lock and live 1v1 duels; added 2026-08-19) |
 
 **Remaining work:** none — the Solitaire leaderboard is on the Supabase SDK
 path (migrated 2026-07-24); every game leaderboard is on Supabase.
@@ -566,6 +572,11 @@ Every game should have SEO content (description, breadcrumbs, related games) tha
   }
   </script>
   ```
+> **If `body` is `display:flex`** (Short Circuit is), the SEO block becomes a flex
+> sibling and lands *beside* the game instead of under it. Add `body { flex-wrap:
+> wrap; }` and `#seo-content { flex:0 0 100%; }` inside the block's own `<style>` —
+> it fixes the flow without touching the game's centring.
+
 - [ ] If the game reveals SEO content via JS (like HoverDash), guard it:
   ```javascript
   if (window.parent === window) {
@@ -574,6 +585,28 @@ Every game should have SEO content (description, breadcrumbs, related games) tha
     document.body.style.overflowX = 'hidden';
   }
   ```
+
+### 5a. Head tags every game page needs
+
+Short Circuit shipped with `og:`/`twitter:` tags and a `VideoGame` block but no
+canonical and no breadcrumb, which is the easy half to remember and the easy half
+to forget. Check all four:
+
+- [ ] `<link rel="canonical" href="https://gamevolt.io/{slug}/">` — every other
+      game page has one; without it the `/play/?game=` URL can compete with the
+      canonical page
+- [ ] `og:image` + `twitter:image` pointing at `/assets/thumbnails/{slug}.webp`,
+      with `og:image:width` / `og:image:height` matching the file's real pixels
+- [ ] `VideoGame` JSON-LD — name, description, url, image, genre, offers, publisher
+- [ ] `BreadcrumbList` JSON-LD — Home › {Category} Games › {Game}, mirroring the
+      visible breadcrumb in `#seo-content`
+- [ ] An `<h1>` that reads as a search result, not a logo. `<h1>` wrapping the
+      styled title mark ("Short ⚡Circuit") indexes nothing; the pattern that works
+      is `{Game} — Free Online {Genre} Game`, in `#seo-content`.
+
+> Quick check that beats reading the markup: load the page and count the rendered
+> text — `document.body.innerText.length`. A game with real SEO content lands
+> around 2 000+ characters. Short Circuit shipped at 300.
 
 ### 5b. Describe the aesthetic in words (AI / mood discovery)
 
@@ -648,7 +681,24 @@ When adding a new game to the portal:
 - [ ] Add game card to portal homepage (`/index.html`)
 - [ ] Add game to relevant category page (`/arcade-games/`, `/action-games/`, etc.)
 - [ ] Update GAME_META in portal homepage JS (for "Continue Playing" section)
-- [ ] Update game catalog table in this file (GAMEVOLT.md)
+- [ ] Update game catalog table in this file (GAMEVOLT.md), and bump the canonical
+      game count in its header note **and** in CLAUDE.md
+- [ ] Add the game to `/about/` — both the `.game-list` lineup **and** the footer
+      link column, and update the "lineup of N original browser games" sentence.
+      Footer-only is the mistake Short Circuit made
+- [ ] Add a `<url>` block to `sitemap.xml` with `loc`, `lastmod` (today), `changefreq`
+      and `priority`. Paste the whole block — inserting `</url><url><loc>` in the
+      middle of the neighbouring entry leaves that game without `lastmod` and gives
+      the new one the wrong date. The XML stays well-formed either way, so nothing
+      warns you. Verify: every `<url>` must have all four children
+- [ ] Add a line to `/llms.txt` under "Original games", newest first. This is the
+      file AI assistants actually read, and `robots.txt` explicitly invites GPTBot,
+      ClaudeBot, PerplexityBot and Google-Extended — a game missing here is invisible
+      to them no matter how good the on-page SEO is
+- [ ] Convert the key art to WebP at `/assets/thumbnails/{slug}.webp`. Shipping a
+      PNG inside the game folder is the recurring miss: HoverDash sat at 619 KB and
+      Short Circuit at 1 106 KB, both ~90 % larger than the WebP, and both are
+      preloaded with `fetchpriority="high"` on the homepage
 
 ### 9. Performance Optimization
 
