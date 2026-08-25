@@ -1770,7 +1770,9 @@
           leaderboard.getRank({ mode: mode }).then(function(r) {
             if (r && r.rank && activeMode === mode) {
               var inList = rows.some(function(x) { return x.user_id === myId; });
-              if (!inList) { footEl.style.display = 'block'; footEl.textContent = 'Your rank: #' + r.rank + ' · ' + Number(r.score || 0).toLocaleString(); }
+              // Route through the game's formatter — encoded scores (inverted times) are unreadable raw
+              var fmt = opts.format || function(v) { return Number(v || 0).toLocaleString(); };
+              if (!inList) { footEl.style.display = 'block'; footEl.textContent = 'Your rank: #' + r.rank + ' · ' + fmt(r.score || 0); }
             }
           }).catch(function() {});
         }

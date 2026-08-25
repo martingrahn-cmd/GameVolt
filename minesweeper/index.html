@@ -76,6 +76,45 @@
   ]
 }
 </script>
+<!-- Mirrors the visible FAQ section at the bottom of the page -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is this Minesweeper really free?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. 100% free, no ads, no signup needed. Sign in only if you want cloud-synced trophies and a place on the global leaderboard." }
+    },
+    {
+      "@type": "Question",
+      "name": "What's the difference between no-guess mode and classic mode?",
+      "acceptedAnswer": { "@type": "Answer", "text": "In classic mode, mines are placed randomly (with a safe zone around your first click). That sometimes creates \"50/50\" endgame positions where you must guess. No-guess mode runs a solver during board generation to guarantee a logical, guess-free solution — every board is winnable by pure deduction." }
+    },
+    {
+      "@type": "Question",
+      "name": "How does chording work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Once a numbered cell is revealed, you can double-click it to \"chord\" — if the number of flagged neighbours matches the cell's number, all other neighbours are revealed instantly. This is the fastest way to clear large open areas. On mobile, tap a revealed number to chord." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the daily challenge the same for everyone?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes — every player worldwide gets the same daily board, generated from a date-seeded random number generator. Compare your times on the daily leaderboard." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it work on phones and tablets?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Tap to reveal, long-press to flag, or use the floating flag toggle for one-tap flagging. The board scales to your screen size, even on Hard." }
+    },
+    {
+      "@type": "Question",
+      "name": "What's the world record for Minesweeper Hard?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The current human world record for Hard (Expert) is just under 30 seconds. Beating 5 minutes unlocks the gold \"Hard & Fast\" trophy — a good benchmark for serious players." }
+    }
+  ]
+}
+</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -819,15 +858,12 @@ function mulberry32(seed) {
   };
 }
 
-function getTodaySeed() {
-  const d = new Date();
-  return d.getFullYear() * 10000 + (d.getMonth()+1) * 100 + d.getDate();
-}
-
-function getTodayKey() {
-  const d = new Date();
+function dateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+function getTodayKey() { return dateKey(new Date()); }
+// "2026-08-25" -> 20260825, the seed for that day's board
+function seedFromKey(key) { return Number(key.replace(/-/g, '')); }
 
 // ===== NO-GUESS SOLVER =====
 function solverForNeighbors(r, c, numRows, numCols, fn) {
@@ -1283,10 +1319,13 @@ function stopMenuGridAnim() {
 let grid = [], cols, rows, mineCount, difficulty;
 let revealed = 0, flagCount = 0, totalSafe = 0;
 let gameStarted = false, gameOver = false, won = false;
-let timerInterval = null, seconds = 0;
+let timerInterval = null, seconds = 0, startTime = 0;
 let flagMode = false, usedFlags = false, firstClickDone = false, revealBatch = 0;
 let clickCount = 0, flagsPlaced = 0;
 let isDaily = false, noGuessEnabled = false;
+// The date whose daily board is being played, captured when the run starts —
+// a run that crosses midnight still belongs to the day it started on.
+let dailyKey = null;
 let sfxLastVol = 1, shareData = null;
 
 const SAVE_KEY = 'minesweeper_stats';
@@ -1520,7 +1559,8 @@ function startDaily() {
   // Use center as guaranteed start position
   const startR = Math.floor(rows / 2);
   const startC = Math.floor(cols / 2);
-  const seed = getTodaySeed();
+  dailyKey = getTodayKey();
+  const seed = seedFromKey(dailyKey);
 
   const result = generateNoGuessBoard(rows, cols, mineCount, startR, startC, seed);
   grid = [];
@@ -1775,7 +1815,7 @@ function chordReveal(r, c) {
 function checkWin(){if(revealed>=totalSafe&&!gameOver)win();}
 
 function win() {
-  gameOver=true;won=true;clearInterval(timerInterval);
+  gameOver=true;won=true;stopTimer();
   $faceBtn.textContent='😎';$board.classList.add('win-glow');
   SFX.play('win');
 
@@ -1811,27 +1851,26 @@ function win() {
   if(s.topTimes.length > 10) s.topTimes.length = 10;
   saveStats();
 
-  // Daily streak
+  // Daily streak — credited to the day the run started (dailyKey), so a run
+  // finished past midnight completes the board it was played on, not tomorrow's.
   if(isDaily) {
-    const today = getTodayKey();
-    if(dailyData.lastDate !== today) {
-      // Check if yesterday was completed for streak
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate()-1);
-      const yKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
-      if(dailyData.lastDate === yKey || dailyData.streak === 0) {
+    if(dailyData.lastDate !== dailyKey) {
+      // Streak continues if the previous calendar day's board was completed
+      const prev = new Date(dailyKey+'T00:00:00');
+      prev.setDate(prev.getDate()-1);
+      if(dailyData.lastDate === dateKey(prev) || dailyData.streak === 0) {
         dailyData.streak++;
       } else {
         dailyData.streak = 1;
       }
-      dailyData.lastDate = today;
-      dailyData.completedToday = true;
+      dailyData.lastDate = dailyKey;
+      dailyData.completedToday = dailyData.lastDate === getTodayKey();
       if(!dailyData.bestTime || seconds < dailyData.bestTime) dailyData.bestTime = seconds;
       saveDaily();
     }
   }
 
-  if(isDaily) shareData = { date: getTodayKey(), time: formatTime(seconds), streak: dailyData.streak };
+  if(isDaily) shareData = { date: dailyKey, time: formatTime(seconds), streak: dailyData.streak };
 
   checkAchievements();
   submitScore();
@@ -1854,7 +1893,7 @@ function win() {
 }
 
 function lose(hitR, hitC) {
-  gameOver=true;won=false;clearInterval(timerInterval);
+  gameOver=true;won=false;stopTimer();
   $faceBtn.textContent='💀';
   SFX.play('explode');
 
@@ -1906,13 +1945,22 @@ function lose(hitR, hitC) {
 }
 
 // ===== TIMER =====
+// Wall-clock based (performance.now) so recorded times carry 0.1s precision
+// for speedruns and the leaderboard — a ticking counter can only ever say "14".
 function startTimer(){
-  gameStarted=true;seconds=0;clearInterval(timerInterval);
-  timerInterval=setInterval(()=>{seconds++;$timer.textContent=formatTimer(seconds);if(seconds>=999)clearInterval(timerInterval);},1000);
+  gameStarted=true;seconds=0;startTime=performance.now();clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{seconds=(performance.now()-startTime)/1000;$timer.textContent=formatTimer(seconds);},100);
 }
 
-function formatTimer(s){const min=Math.floor(s/60),sec=s%60;return min>0?`${min}:${sec.toString().padStart(2,'0')}`:`0:${sec.toString().padStart(2,'0')}`;}
-function formatTime(s){const min=Math.floor(s/60),sec=s%60;return min>0?`${min}:${sec.toString().padStart(2,'0')}`:`${s}s`;}
+// Freeze `seconds` at the precise elapsed time, rounded to a tenth.
+function stopTimer(){
+  clearInterval(timerInterval);
+  if(gameStarted) seconds=Math.round((performance.now()-startTime)/100)/10;
+}
+
+// HUD shows whole seconds while playing; results show tenths.
+function formatTimer(s){s=Math.floor(s);const min=Math.floor(s/60),sec=s%60;return min>0?`${min}:${sec.toString().padStart(2,'0')}`:`0:${sec.toString().padStart(2,'0')}`;}
+function formatTime(s){const min=Math.floor(s/60),sec=s-min*60;return min>0?`${min}:${sec<10?'0':''}${sec.toFixed(1)}`:`${sec.toFixed(1)}s`;}
 
 // ===== FLAG TOGGLE =====
 function toggleFlagMode(){flagMode=!flagMode;$flagToggle.classList.toggle('active',flagMode);}
@@ -2239,15 +2287,17 @@ function checkPlatinum(){
 
 // ===== LEADERBOARD =====
 // Minesweeper is a race: lower time wins. The Supabase board always ranks
-// score DESC, so a raw seconds value would put the SLOWEST clear on top.
+// score DESC, so a raw time value would put the SLOWEST clear on top.
 // Store the time inverted instead — same convention Sudoku uses — and decode
-// it for display. The '-v2' modes start the boards fresh: rows submitted under
-// the old raw-seconds encoding are left behind rather than mixed in, where
-// they would rank below every new entry and render as nonsense times.
-const LB_TIME_BASE = 100000;
-const lbEncodeTime = s => Math.max(0, LB_TIME_BASE - Math.round(s));
-const lbDecodeTime = v => Math.max(0, LB_TIME_BASE - Number(v || 0));
-const lbMode = () => (isDaily ? `daily-v2-${getTodayKey()}` : `${difficulty}-v2`);
+// it for display. '-v3' stores TENTHS of a second (base 1,000,000) so equal
+// whole-second times rank by the decimal; earlier encodings can't mix with it,
+// so the modes start the boards fresh — the same pattern the v1→v2 move used.
+// Daily submits go to the board of the day the run STARTED (dailyKey), so a
+// run finished just past midnight lands on the board it was actually played on.
+const LB_TIME_BASE = 1000000;
+const lbEncodeTime = s => Math.max(0, LB_TIME_BASE - Math.round(s * 10));
+const lbDecodeTime = v => Math.max(0, (LB_TIME_BASE - Number(v || 0)) / 10);
+const lbMode = () => (isDaily ? `daily-v3-${dailyKey}` : `${difficulty}-v3`);
 
 async function submitScore(){
   if(!window.GameVolt)return;
@@ -2262,10 +2312,10 @@ function showLeaderboard(){
   GameVolt.ui.leaderboard({
     title: 'Minesweeper',
     tabs: [
-      { label:'Easy', mode:'easy-v2' },
-      { label:'Medium', mode:'medium-v2' },
-      { label:'Hard', mode:'hard-v2' },
-      { label:'Daily', mode:`daily-v2-${getTodayKey()}` }
+      { label:'Easy', mode:'easy-v3' },
+      { label:'Medium', mode:'medium-v3' },
+      { label:'Hard', mode:'hard-v3' },
+      { label:'Daily', mode:`daily-v3-${getTodayKey()}` }
     ],
     accent: '#2de4ff',
     format: v => formatTime(lbDecodeTime(v))
