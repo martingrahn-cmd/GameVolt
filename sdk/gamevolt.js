@@ -321,10 +321,14 @@
   }
 
   // showNudge(score)            -> "You scored 1,234!"
+  // showNudge({ text: '...' })  -> custom title (games whose stored score is
+  //                                an encoding, e.g. inverted times, pass a
+  //                                human-readable line instead)
   // showNudge({ trophy: true }) -> "Trophy unlocked!"
   // Still capped at one nudge per session, whichever fires first.
   function showNudge(score) {
     var isTrophy = !!(score && typeof score === 'object' && score.trophy);
+    var customText = score && typeof score === 'object' && score.text;
     try {
       if (sessionStorage.getItem('gv_nudge_shown')) return;
       sessionStorage.setItem('gv_nudge_shown', '1');
@@ -335,6 +339,9 @@
     if (isTrophy) {
       title.textContent = 'Trophy unlocked!';
       sub.textContent = 'Sign in to keep it forever';
+    } else if (customText) {
+      title.textContent = customText;
+      sub.textContent = 'Sign in to save it to the leaderboard';
     } else if (typeof score === 'number' && score > 0) {
       title.textContent = 'You scored ' + score.toLocaleString() + '!';
       sub.textContent = 'Sign in to save it to the leaderboard';
@@ -607,7 +614,7 @@
           mode: opts.mode || 'default',
           gameId: currentGameId
         };
-        showNudge(score);
+        showNudge(opts.nudgeText ? { text: opts.nudgeText } : score);
         return Promise.resolve();
       }
       return sb.from('scores').insert({
@@ -1605,6 +1612,10 @@
       sfxSlider.value = Math.round(opts.sfxVolume * 100);
       document.getElementById('gv-sfx-val').textContent = sfxSlider.value + '%';
     }
+    // Hide a volume slider when its callback is absent — a game without music
+    // (or without adjustable SFX) shouldn't show a dead slider.
+    musicSlider.closest('.gv-pause-slider-group').style.display = opts.onMusicVolume ? '' : 'none';
+    sfxSlider.closest('.gv-pause-slider-group').style.display = opts.onSfxVolume ? '' : 'none';
     // Hide restart if no callback
     var restartBtn = pauseEl.querySelector('[data-action="restart"]');
     restartBtn.style.display = opts.onRestart ? '' : 'none';
@@ -1847,8 +1858,8 @@
      *   - onRestart: function() — called on restart (hidden if omitted)
      *   - onQuit: function() — called on quit (hidden if omitted)
      *   - onPause: function() — called when pause opens
-     *   - onMusicVolume: function(v) — called with 0-1 when slider changes
-     *   - onSfxVolume: function(v) — called with 0-1 when slider changes
+     *   - onMusicVolume: function(v) — called with 0-1 when slider changes (slider hidden if omitted)
+     *   - onSfxVolume: function(v) — called with 0-1 when slider changes (slider hidden if omitted)
      */
     pauseMenu: function(opts) {
       if (pauseVisible) {
