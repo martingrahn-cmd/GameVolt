@@ -715,22 +715,26 @@
                 : (_gameModes[_activeGame] || (_activeGame === 'blockstorm' ? 'marathon' : 'default'));
         }
 
-        // Minesweeper stores inverted clear times, not points (lower time =
-        // higher stored value so score DESC ranks fastest first). Decode and
-        // show a readable time; every other game shows raw points.
-        // v3 modes: tenths of a second under base 1,000,000.
-        // v2 modes: whole seconds under base 100,000.
+        // Minesweeper and Sudoku store inverted clear times, not points (lower
+        // time = higher stored value so score DESC ranks fastest first). Decode
+        // and show a readable time; every other game shows raw points.
+        // Minesweeper v3 modes: tenths of a second under base 1,000,000.
+        // Minesweeper v2 and all Sudoku modes: whole seconds under base 100,000.
         function formatScoreValue(score) {
+            var t = null, tenths = false;
             if (_activeGame === 'minesweeper') {
-                var v3 = currentScoreMode().indexOf('-v3') !== -1;
-                var t = v3 ? (1000000 - Number(score)) / 10 : 100000 - Number(score);
-                if (t >= 0 && t < 100000) {
-                    var min = Math.floor(t / 60), sec = t - min * 60;
-                    var timeStr = min > 0
-                        ? min + ':' + (sec < 10 ? '0' : '') + sec.toFixed(1)
-                        : sec.toFixed(1) + 's';
-                    return timeStr + '<span class="lb-unit">time</span>';
-                }
+                tenths = currentScoreMode().indexOf('-v3') !== -1;
+                t = tenths ? (1000000 - Number(score)) / 10 : 100000 - Number(score);
+            } else if (_activeGame === 'sudoku') {
+                t = 100000 - Number(score);
+            }
+            if (t !== null && t >= 0 && t < 100000) {
+                var min = Math.floor(t / 60), sec = t - min * 60;
+                var secStr = tenths ? sec.toFixed(1) : String(Math.round(sec));
+                var timeStr = min > 0
+                    ? min + ':' + (sec < 10 ? '0' : '') + secStr
+                    : secStr + 's';
+                return timeStr + '<span class="lb-unit">time</span>';
             }
             return Number(score).toLocaleString() + '<span class="lb-unit">pts</span>';
         }

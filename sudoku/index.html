@@ -15,17 +15,17 @@
   </script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Sudoku — Free Online, Leaderboards & Trophies | GameVolt.io</title>
-  <meta name="description" content="Play Sudoku online for free. Three difficulty levels, pencil marks, undo, trophies, and global leaderboards. No download needed.">
-  <meta name="keywords" content="sudoku, sudoku online, free sudoku, puzzle game, brain game, number puzzle, browser game, gamevolt">
+  <title>Sudoku — Daily Challenge, Leaderboards & Trophies | GameVolt.io</title>
+  <meta name="description" content="Play Sudoku free online — Easy, Medium and Hard plus a daily challenge with streaks. Pencil marks, undo, auto-save, global leaderboards and 31 trophies. No download.">
+  <meta name="keywords" content="sudoku, sudoku online, free sudoku, daily sudoku, sudoku challenge, puzzle game, brain game, number puzzle, browser game, gamevolt">
   <meta name="author" content="GameVolt">
   <meta name="theme-color" content="#7c5cfc">
   <link rel="canonical" href="https://gamevolt.io/sudoku/">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Sudoku — Free Online, Leaderboards & Trophies | GameVolt.io">
-  <meta property="og:description" content="Classic Sudoku with three difficulty levels. Earn trophies, climb global leaderboards. Play free!">
+  <meta property="og:title" content="Sudoku — Daily Challenge, Leaderboards & Trophies | GameVolt.io">
+  <meta property="og:description" content="Classic Sudoku with a daily challenge and streaks. Earn trophies, climb global leaderboards. Play free!">
   <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/sudoku.webp">
   <meta property="og:image:width" content="512">
   <meta property="og:image:height" content="384">
@@ -34,11 +34,63 @@
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Sudoku — Free Online, Leaderboards & Trophies | GameVolt.io">
-  <meta name="twitter:description" content="Classic Sudoku with three difficulty levels. Earn trophies, climb global leaderboards.">
+  <meta name="twitter:title" content="Sudoku — Daily Challenge, Leaderboards & Trophies | GameVolt.io">
+  <meta name="twitter:description" content="Classic Sudoku with a daily challenge and streaks. Earn trophies, climb global leaderboards.">
   <meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/sudoku.webp">
 
   <link rel="icon" type="image/png" href="/assets/favicon.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gamevolt.io/" },
+      { "@type": "ListItem", "position": 2, "name": "Puzzle Games", "item": "https://gamevolt.io/puzzle-games/" },
+      { "@type": "ListItem", "position": 3, "name": "Sudoku", "item": "https://gamevolt.io/sudoku/" }
+    ]
+  }
+  </script>
+  <!-- Mirrors the visible FAQ section at the bottom of the page -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is this Sudoku really free?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. 100% free, no ads, no signup needed. Sign in only if you want cloud-synced trophies and a place on the global leaderboard." }
+      },
+      {
+        "@type": "Question",
+        "name": "Is the daily challenge the same for everyone?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes — every player gets the same daily puzzle, generated from a date-seeded random number generator. Complete it to build your streak and compare times on the daily leaderboard." }
+      },
+      {
+        "@type": "Question",
+        "name": "What do the difficulty levels mean?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Easy starts with 38 given numbers, Medium with 30 and Hard with just 24. Fewer givens mean more empty cells to deduce, longer solving chains and a bigger challenge." }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens if I make three mistakes?",
+        "acceptedAnswer": { "@type": "Answer", "text": "The game ends. Every wrong number you place counts as a mistake, so think before you commit — or use pencil notes to keep track of candidates. Win with zero mistakes to earn the Flawless trophies." }
+      },
+      {
+        "@type": "Question",
+        "name": "How do pencil notes work?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Toggle Notes and tap numbers to jot small candidate marks in a cell. When you place a correct number, that candidate is automatically cleared from the surrounding row, column and box." }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I pause or resume a game?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Yes. Your game auto-saves after every move, so you can close the tab and pick up exactly where you left off. Press Escape during a game for the pause menu." }
+      }
+    ]
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
@@ -320,6 +372,29 @@
     .diff-btn .label { display: block; font-size: 1.05rem; }
     .diff-btn .desc { display: block; font-size: 0.72rem; color: var(--text-dim); font-weight: 600; margin-top: 2px; }
 
+    /* Daily Challenge button */
+    .diff-btn.daily {
+      border-color: rgba(56, 189, 248, 0.35);
+      background: linear-gradient(135deg, rgba(124, 92, 252, 0.12), rgba(56, 189, 248, 0.10));
+    }
+    .diff-btn.daily .streak-badge {
+      display: inline-block; margin-left: 8px; padding: 1px 8px;
+      font-size: 0.62rem; font-weight: 700; vertical-align: middle;
+      color: var(--accent-blue); background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px;
+    }
+    .diff-btn.daily.completed { opacity: 0.55; }
+    .diff-btn.daily.completed .label::after { content: ' ✓'; color: var(--accent); }
+
+    .win-streak {
+      display: none; text-align: center; margin: -8px 0 16px;
+      color: var(--accent-blue); font-size: 0.85rem; font-weight: 700;
+    }
+
+    /* Standalone (not in the portal iframe): let the page scroll so the SEO
+       content below the game is actually reachable. */
+    body.gv-standalone { overflow-y: auto; height: auto; min-height: 100dvh; justify-content: flex-start; padding-top: 5vh; }
+
     /* Win modal stats */
     .win-stats { display: flex; justify-content: center; gap: 24px; margin: 16px 0; }
     .win-stat { text-align: center; }
@@ -438,6 +513,10 @@
       <h2>Sudoku</h2>
       <p>Choose your challenge</p>
       <div class="diff-buttons">
+        <button class="diff-btn daily" id="dailyBtn" onclick="startDaily()">
+          <span class="label">📅 Daily Challenge<span class="streak-badge" id="dailyStreak">New</span></span>
+          <span class="desc">Today's puzzle — same for everyone, every day</span>
+        </button>
         <button class="diff-btn" onclick="startGame('easy')">
           <span class="label">Easy</span>
           <span class="desc">38 clues — perfect for warming up</span>
@@ -494,8 +573,12 @@
           <div class="lbl">Difficulty</div>
         </div>
       </div>
+      <div class="win-streak" id="winStreak"></div>
       <div id="winTrophies"></div>
       <div class="diff-buttons" style="margin-top:16px">
+        <button class="diff-btn" id="shareBtn" style="display:none" onclick="shareDaily()">
+          <span class="label">📤 Share</span>
+        </button>
         <button class="diff-btn" onclick="showDifficultySelect()">
           <span class="label">New Game</span>
         </button>
@@ -531,9 +614,167 @@
     </div>
   </div>
 
-  <div id="seo-content" style="max-width:800px;margin:3rem auto 0;padding:2rem;color:#b0b0b0;font-size:0.95rem;line-height:1.7;">
-    <h1 style="color:#e0e0e0;font-size:1.6rem;margin-bottom:0.5rem;font-family:sans-serif;">Sudoku — Free Online Number Puzzle</h1>
-    <p>Play Sudoku free in your browser. Classic number puzzle with three difficulty levels, pencil marks, undo, auto-save, trophies, and global leaderboards. No download, no ads — just click and play on any device.</p>
+  <div id="seo-content" style="width:100%">
+  <style>
+    #seo-content { background: var(--bg); color: #b0b0b0; font-family: 'Nunito', sans-serif; position: relative; margin-top: 3rem; }
+    #seo-content a { color: #a78bfa; }
+    #seo-content a:hover { color: #7c5cfc; }
+    .su-breadcrumb { max-width: 1200px; margin: 0 auto; padding: 16px 24px; font-size: 0.85rem; color: #626580; }
+    .su-breadcrumb a { color: #a0a4c0; text-decoration: none; }
+    .su-breadcrumb a:hover { color: #a78bfa; }
+    .su-breadcrumb .sep { color: #626580; margin: 0 0.4rem; }
+    .su-breadcrumb .here { color: #f0f0ff; }
+    .su-info { max-width: 800px; margin: 1rem auto 0; padding: 0 24px 2rem; line-height: 1.75; font-size: 0.97rem; }
+    .su-info h1 { color: #f0f0ff; font-size: 1.7rem; margin-bottom: 0.5rem; font-weight: 800; }
+    .su-info h2 { color: #e0e0e0; font-size: 1.2rem; margin: 1.8rem 0 0.5rem; font-weight: 700; }
+    .su-info p { margin-bottom: 1rem; }
+    .su-info ul { margin: 0 0 1rem 1.25rem; padding: 0; }
+    .su-info li { margin-bottom: 0.4rem; }
+    .su-faq { max-width: 800px; margin: 2.5rem auto 0; padding: 0 24px; }
+    .su-faq h2 { color: #f0f0ff; font-size: 1.3rem; font-weight: 800; margin-bottom: 1.2rem; }
+    .su-faq details { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 0.9rem 1.1rem; margin-bottom: 0.6rem; }
+    .su-faq summary { color: #e0e0e0; font-weight: 700; cursor: pointer; font-size: 0.97rem; }
+    .su-faq details[open] summary { color: #a78bfa; }
+    .su-faq details > p { color: #b0b0b0; margin-top: 0.6rem; line-height: 1.7; font-size: 0.92rem; }
+    .su-related { max-width: 1200px; margin: 2.5rem auto 0; padding: 0 24px; }
+    .su-related h2 { color: #f0f0ff; font-size: 1.3rem; font-weight: 800; margin-bottom: 1.2rem; }
+    .su-related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .su-card { text-decoration: none; background: rgba(255,255,255,0.04); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.06); display: block; transition: border-color .2s, transform .2s; }
+    .su-card:hover { border-color: rgba(124,92,252,0.4); transform: translateY(-2px); }
+    .su-card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+    .su-card-body { padding: 12px; }
+    .su-card-title { color: #f0f0ff; font-size: 0.95rem; font-weight: 700; }
+    .su-card-cat { color: #888; font-size: 0.8rem; margin-top: 4px; }
+    .su-footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 32px 24px 24px; margin-top: 3rem; text-align: center; color: #888; font-size: 0.85rem; }
+    .su-footer a { color: #888; text-decoration: none; margin: 0 10px; }
+    .su-footer a:hover { color: #a78bfa; }
+  </style>
+
+  <nav class="su-breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span class="sep">›</span>
+    <a href="/puzzle-games/">Puzzle Games</a>
+    <span class="sep">›</span>
+    <span class="here">Sudoku</span>
+  </nav>
+
+  <section class="su-info">
+    <h1>Sudoku — Free Online Number Puzzle</h1>
+    <p>
+      Play Sudoku free in your browser. The classic number puzzle with three difficulty levels,
+      a <strong>daily challenge</strong> with a global streak, pencil marks, undo, auto-save,
+      31 trophies and global leaderboards. No download, no ads — just click and play on any device.
+    </p>
+
+    <h2>How to Play Sudoku</h2>
+    <p>
+      Fill the 9×9 grid so every row, every column and every 3×3 box contains the digits 1 through 9
+      exactly once. Tap a cell, then tap a number — the puzzle always has a solution you can reach by
+      pure logic. You're allowed three mistakes, so think before you commit.
+    </p>
+    <ul>
+      <li><strong>Pencil notes</strong> — toggle Notes to jot candidate digits in a cell. Correctly placed numbers automatically clear related notes.</li>
+      <li><strong>Undo</strong> — step back through every move, including notes.</li>
+      <li><strong>Auto-save</strong> — close the tab mid-game and resume exactly where you left off.</li>
+      <li><strong>Keyboard play</strong> — arrow keys to move, 1–9 to fill, N for notes, Ctrl+Z to undo.</li>
+    </ul>
+
+    <h2>Daily Challenge &amp; Streaks</h2>
+    <p>
+      Every day there's a new daily puzzle, generated from a date-based seed — so every player in the
+      world solves the same grid. Complete it to keep your streak alive, and compare your time on the
+      daily leaderboard. Miss a day and the streak resets.
+    </p>
+
+    <h2>Three Difficulty Levels</h2>
+    <ul>
+      <li><strong>Easy</strong> — 38 given numbers. Perfect for warming up or learning the ropes.</li>
+      <li><strong>Medium</strong> — 30 givens. The classic newspaper-level challenge.</li>
+      <li><strong>Hard</strong> — 24 givens. Long deduction chains for experienced solvers.</li>
+    </ul>
+
+    <h2>Trophies, Stats &amp; Leaderboards</h2>
+    <p>
+      Earn 31 trophies across four tiers — from your first solved puzzle to a flawless Hard clear and
+      a 10-win streak. Sign in to GameVolt to sync trophies across devices and submit your best times
+      to the global leaderboard for each difficulty and for the daily.
+    </p>
+
+    <h2>Free, Instant, No Download</h2>
+    <p>
+      Sudoku is part of <a href="/">GameVolt</a> — a curated collection of original free browser games.
+      No ads, no installs, no account required to play. Progress saves locally; sign in to sync across devices.
+    </p>
+  </section>
+
+  <section class="su-faq">
+    <h2>Sudoku FAQ</h2>
+    <details>
+      <summary>Is this Sudoku really free?</summary>
+      <p>Yes. 100% free, no ads, no signup needed. Sign in only if you want cloud-synced trophies and a place on the global leaderboard.</p>
+    </details>
+    <details>
+      <summary>Is the daily challenge the same for everyone?</summary>
+      <p>Yes — every player gets the same daily puzzle, generated from a date-seeded random number generator. Complete it to build your streak and compare times on the daily leaderboard.</p>
+    </details>
+    <details>
+      <summary>What do the difficulty levels mean?</summary>
+      <p>Easy starts with 38 given numbers, Medium with 30 and Hard with just 24. Fewer givens mean more empty cells to deduce, longer solving chains and a bigger challenge.</p>
+    </details>
+    <details>
+      <summary>What happens if I make three mistakes?</summary>
+      <p>The game ends. Every wrong number you place counts as a mistake, so think before you commit — or use pencil notes to keep track of candidates. Win with zero mistakes to earn the Flawless trophies.</p>
+    </details>
+    <details>
+      <summary>How do pencil notes work?</summary>
+      <p>Toggle Notes and tap numbers to jot small candidate marks in a cell. When you place a correct number, that candidate is automatically cleared from the surrounding row, column and box.</p>
+    </details>
+    <details>
+      <summary>Can I pause or resume a game?</summary>
+      <p>Yes. Your game auto-saves after every move, so you can close the tab and pick up exactly where you left off. Press Escape during a game for the pause menu.</p>
+    </details>
+  </section>
+
+  <section class="su-related">
+    <h2>You Might Also Like</h2>
+    <div class="su-related-grid">
+      <a href="/minesweeper/" class="su-card">
+        <img src="/assets/thumbnails/minesweeper.webp" alt="Play Minesweeper online free" loading="lazy">
+        <div class="su-card-body">
+          <div class="su-card-title">Minesweeper</div>
+          <div class="su-card-cat">Logic Puzzle</div>
+        </div>
+      </a>
+      <a href="/one-stroke/" class="su-card">
+        <img src="/assets/thumbnails/one-stroke.webp" alt="Play One Stroke online free" loading="lazy">
+        <div class="su-card-body">
+          <div class="su-card-title">One Stroke</div>
+          <div class="su-card-cat">Path Puzzle</div>
+        </div>
+      </a>
+      <a href="/golden-glyphs/" class="su-card">
+        <img src="/assets/thumbnails/golden-glyphs.webp" alt="Play Golden Glyphs online free" loading="lazy">
+        <div class="su-card-body">
+          <div class="su-card-title">Golden Glyphs</div>
+          <div class="su-card-cat">Block Puzzle</div>
+        </div>
+      </a>
+      <a href="/connect4/" class="su-card">
+        <img src="/assets/thumbnails/connect4-thumbnail.webp" alt="Play Connect 4 online free" loading="lazy">
+        <div class="su-card-body">
+          <div class="su-card-title">Connect 4</div>
+          <div class="su-card-cat">Board Game</div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <footer class="su-footer">
+    <div>
+      <a href="/about/">About</a> · <a href="/puzzle-games/">Puzzle Games</a> · <a href="/contact/">Contact</a> · <a href="/privacy/">Privacy Policy</a>
+    </div>
+    <div style="margin-top:12px">© 2026 GameVolt. All rights reserved.</div>
+  </footer>
   </div>
 
   <script src="/sdk/gamevolt.js"></script>
@@ -568,6 +809,53 @@
 
     function saveStats() {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stats)); } catch(e) {}
+    }
+
+    // ── Daily Challenge ──
+    // Same date-seeded approach as Minesweeper: everyone gets the same puzzle,
+    // and the date is captured when the run STARTS (dailyKey) so a game that
+    // crosses midnight still counts for the day it was played on.
+    var isDaily = false, dailyKey = null;
+    var dailyData = loadDaily();
+    var lastDailyWin = null;
+
+    function loadDaily() {
+      try { var d = localStorage.getItem('sudoku_daily'); if (d) return JSON.parse(d); } catch(e) {}
+      return { lastDate: null, streak: 0, bestTime: 0 };
+    }
+    function saveDaily() {
+      try { localStorage.setItem('sudoku_daily', JSON.stringify(dailyData)); } catch(e) {}
+    }
+
+    function dateKey(d) {
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+    function todayKey() { return dateKey(new Date()); }
+    // "2026-08-25" -> 20260825, the seed for that day's puzzle
+    function seedFromKey(key) { return Number(key.replace(/-/g, '')); }
+
+    function mulberry32(seed) {
+      return function() {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function updateDailyButton() {
+      var today = todayKey();
+      // Streak expires when a full calendar day was missed
+      if (dailyData.lastDate && dailyData.lastDate !== today) {
+        var last = new Date(dailyData.lastDate + 'T00:00:00');
+        var now = new Date(today + 'T00:00:00');
+        if ((now - last) / 86400000 > 1) { dailyData.streak = 0; saveDaily(); }
+      }
+      var btn = document.getElementById('dailyBtn');
+      if (!btn) return;
+      document.getElementById('dailyStreak').textContent =
+        dailyData.streak > 0 ? dailyData.streak + ' day streak' : 'New';
+      btn.classList.toggle('completed', dailyData.lastDate === today);
     }
 
     // ── Achievements ──
@@ -723,7 +1011,8 @@
         tabs: [
           { label: 'Easy', mode: 'easy' },
           { label: 'Medium', mode: 'medium' },
-          { label: 'Hard', mode: 'hard' }
+          { label: 'Hard', mode: 'hard' },
+          { label: 'Daily', mode: 'daily-' + todayKey() }
         ],
         accent: '#7c5cfc',
         format: function(v) { return formatTime(Math.max(0, 100000 - Number(v || 0))); }
@@ -849,20 +1138,21 @@
     if(window.parent!==window){var lb=document.getElementById('login-btn');if(lb)lb.style.display='none';}
 
     // ── Generator ──
-    function generateSolution() {
+    // rng is optional: pass a seeded PRNG (daily) or omit for Math.random.
+    function generateSolution(rng) {
       var b = new Array(81).fill(0);
-      fillBoard(b);
+      fillBoard(b, rng);
       return b;
     }
 
-    function fillBoard(b) {
+    function fillBoard(b, rng) {
       var idx = b.indexOf(0);
       if (idx === -1) return true;
-      var nums = shuffle([1,2,3,4,5,6,7,8,9]);
+      var nums = shuffle([1,2,3,4,5,6,7,8,9], rng);
       for (var i = 0; i < nums.length; i++) {
         if (isValid(b, idx, nums[i])) {
           b[idx] = nums[i];
-          if (fillBoard(b)) return true;
+          if (fillBoard(b, rng)) return true;
           b[idx] = 0;
         }
       }
@@ -882,17 +1172,18 @@
       return true;
     }
 
-    function shuffle(arr) {
+    function shuffle(arr, rng) {
+      var rand = rng || Math.random;
       for (var i = arr.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
+        var j = Math.floor(rand() * (i + 1));
         var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
       }
       return arr;
     }
 
-    function createPuzzle(sol, numGiven) {
+    function createPuzzle(sol, numGiven, rng) {
       var puzzle = sol.slice();
-      var indices = shuffle([].concat(Array.from({length:81}, function(_,i){return i;})));
+      var indices = shuffle([].concat(Array.from({length:81}, function(_,i){return i;})), rng);
       var toRemove = 81 - numGiven;
       for (var i = 0; i < indices.length && toRemove > 0; i++) {
         puzzle[indices[i]] = 0;
@@ -903,14 +1194,26 @@
 
     // ── Game Logic ──
     function startGame(diff) {
+      isDaily = false; dailyKey = null;
+      beginGame(diff, null);
+    }
+
+    // The daily is a Medium puzzle seeded from today's date.
+    function startDaily() {
+      isDaily = true;
+      dailyKey = todayKey();
+      beginGame('medium', mulberry32(seedFromKey(dailyKey)));
+    }
+
+    function beginGame(diff, rng) {
       GameVoltTracker.start('Sudoku');
       difficulty = diff;
-      diffLabel.textContent = diff.charAt(0).toUpperCase() + diff.slice(1);
+      diffLabel.textContent = isDaily ? 'Daily' : diff.charAt(0).toUpperCase() + diff.slice(1);
       diffOverlay.classList.add('hidden');
       winOverlay.classList.add('hidden');
 
-      solution = generateSolution();
-      board = createPuzzle(solution, GIVENS[diff]);
+      solution = generateSolution(rng);
+      board = createPuzzle(solution, GIVENS[diff], rng);
       given = board.map(function(v) { return v !== 0; });
       pencilMarks = Array.from({ length: 81 }, function() { return new Set(); });
       selectedCell = -1;
@@ -936,7 +1239,7 @@
 
       renderGrid();
       renderNumpad();
-      gvPost('game_start', { difficulty: diff });
+      gvPost('game_start', { difficulty: isDaily ? 'daily' : diff });
       saveState();
     }
 
@@ -1131,6 +1434,24 @@
       }
       saveStats();
 
+      // Daily streak — credited to the day the run started (dailyKey)
+      if (isDaily) {
+        if (dailyData.lastDate !== dailyKey) {
+          var prevDay = new Date(dailyKey + 'T00:00:00');
+          prevDay.setDate(prevDay.getDate() - 1);
+          if (dailyData.lastDate === dateKey(prevDay) || dailyData.streak === 0) {
+            dailyData.streak++;
+          } else {
+            dailyData.streak = 1;
+          }
+          dailyData.lastDate = dailyKey;
+          if (!dailyData.bestTime || timerSeconds < dailyData.bestTime) dailyData.bestTime = timerSeconds;
+          saveDaily();
+        }
+        lastDailyWin = { date: dailyKey, time: formatTime(timerSeconds), streak: dailyData.streak };
+      }
+      var wonDaily = isDaily, wonDailyKey = dailyKey;
+
       // Flash cells
       setTimeout(function() {
         var cells = gridEl.children;
@@ -1142,20 +1463,28 @@
       }, 100);
 
       setTimeout(function() {
+        document.getElementById('winTitle').textContent = wonDaily ? 'Daily Complete!' : 'Puzzle Complete!';
         document.getElementById('winTime').textContent = formatTime(timerSeconds);
         document.getElementById('winMistakes').textContent = mistakes;
-        document.getElementById('winDiff').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+        document.getElementById('winDiff').textContent = wonDaily ? 'Daily' : difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+        var streakEl = document.getElementById('winStreak');
+        streakEl.style.display = wonDaily ? 'block' : 'none';
+        if (wonDaily) streakEl.textContent = '🔥 ' + dailyData.streak + '-day streak';
+        document.getElementById('shareBtn').style.display = wonDaily ? '' : 'none';
         renderWinTrophies();
         winOverlay.classList.remove('hidden');
 
         // For Sudoku, lower time = better, so we submit as score
         // Leaderboard sorts DESC, so we invert: score = 100000 - seconds
         var score = Math.max(0, 100000 - timerSeconds);
-        gvPost('game_over', { score: score, mode: difficulty, time: timerSeconds, mistakes: mistakes });
+        var mode = wonDaily ? 'daily-' + wonDailyKey : difficulty;
+        gvPost('game_over', { score: score, mode: mode, time: timerSeconds, mistakes: mistakes });
         GameVoltTracker.end({score: score, outcome: 'win'});
 
         if (window.GameVolt) {
-          GameVolt.leaderboard.submit(score, { mode: difficulty });
+          // nudgeText: the stored score is an inverted time — without it the
+          // guest sign-in nudge would read "You scored 99,234!"
+          GameVolt.leaderboard.submit(score, { mode: mode, nudgeText: 'Solved in ' + formatTime(timerSeconds) + '!' });
         }
 
         checkAchievements(difficulty, timerSeconds, mistakes, usedNotesThisGame);
@@ -1181,7 +1510,39 @@
       clearInterval(timerInterval);
       winOverlay.classList.add('hidden');
       diffOverlay.classList.remove('hidden');
+      updateDailyButton();
       clearSavedState();
+    }
+
+    // ── Daily share ──
+    function shareDaily() {
+      if (!lastDailyWin) return;
+      var text = '🔢 Sudoku Daily ' + lastDailyWin.date + '\n⏱ ' + lastDailyWin.time + ' · 🔥 ' + lastDailyWin.streak + '-day streak';
+      var url = 'https://gamevolt.io/sudoku/';
+      GameVoltTracker.track('share', { mode: 'daily', streak: lastDailyWin.streak });
+      if (navigator.share) {
+        navigator.share({ text: text, url: url }).catch(function() {});
+        return;
+      }
+      var label = document.querySelector('#shareBtn .label');
+      var copied = function() {
+        label.textContent = '✓ Copied!';
+        setTimeout(function() { label.textContent = '📤 Share'; }, 2000);
+      };
+      var full = text + '\n' + url;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(full).then(copied).catch(function() { if (legacyCopy(full)) copied(); });
+      } else if (legacyCopy(full)) copied();
+    }
+    function legacyCopy(str) {
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = str; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      } catch(e) { return false; }
     }
 
     // ── Pause (SDK) ──
@@ -1192,9 +1553,8 @@
       if (!window.GameVolt) return;
       paused = true;
       clearInterval(timerInterval);
+      // No audio in Sudoku — passing no volume callbacks hides the sliders
       GameVolt.ui.pauseMenu({
-        musicVolume: 0.5,
-        sfxVolume: 0.5,
         onResume: function() {
           paused = false;
           clearInterval(timerInterval);
@@ -1211,9 +1571,7 @@
         onQuit: function() {
           paused = false;
           showDifficultySelect();
-        },
-        onMusicVolume: function(v) { /* no audio yet */ },
-        onSfxVolume: function(v) { /* no audio yet */ }
+        }
       });
     }
 
@@ -1249,6 +1607,7 @@
       try {
         localStorage.setItem('sudoku_state', JSON.stringify({
           board: board, solution: solution, given: given, difficulty: difficulty,
+          isDaily: isDaily, dailyKey: dailyKey,
           mistakes: mistakes, timerSeconds: timerSeconds, usedNotesThisGame: usedNotesThisGame,
           pencilMarks: pencilMarks.map(function(s) { return Array.from(s); }),
           history: historyStack.map(function(h) { return { idx: h.idx, prevVal: h.prevVal, prevPencil: Array.from(h.prevPencil) }; })
@@ -1265,13 +1624,15 @@
         solution = s.solution;
         given = s.given;
         difficulty = s.difficulty;
+        isDaily = !!s.isDaily;
+        dailyKey = s.dailyKey || null;
         mistakes = s.mistakes;
         timerSeconds = s.timerSeconds;
         usedNotesThisGame = !!s.usedNotesThisGame;
         pencilMarks = s.pencilMarks.map(function(a) { return new Set(a); });
         historyStack = s.history.map(function(h) { return { idx: h.idx, prevVal: h.prevVal, prevPencil: new Set(h.prevPencil) }; });
 
-        diffLabel.textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+        diffLabel.textContent = isDaily ? 'Daily' : difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
         mistakeEl.textContent = mistakes;
         timerEl.textContent = formatTime(timerSeconds);
         gameActive = true;
@@ -1298,20 +1659,25 @@
 
     // ── Expose ──
     window.startGame = startGame;
+    window.startDaily = startDaily;
+    window.shareDaily = shareDaily;
     window.showDifficultySelect = showDifficultySelect;
     window.undo = undo;
     window.togglePencil = togglePencil;
     window.erase = erase;
 
     // ── Init ──
+    updateDailyButton();
     if (!loadState()) {
       // Show difficulty select
     }
 
-    // Hide SEO content in iframe
+    // Hide SEO content in iframe; standalone gets a scrollable page so it's reachable
     if (window.parent !== window) {
       var seo = document.getElementById('seo-content');
       if (seo) seo.style.display = 'none';
+    } else {
+      document.body.classList.add('gv-standalone');
     }
 
   })();
@@ -1322,7 +1688,7 @@
     "@context": "https://schema.org",
     "@type": "VideoGame",
     "name": "Sudoku",
-    "description": "Classic Sudoku puzzle with three difficulty levels, trophies, and global leaderboards. Play free online!",
+    "description": "Classic Sudoku puzzle with three difficulty levels, a daily challenge with streaks, trophies, and global leaderboards. Play free online!",
     "url": "https://gamevolt.io/sudoku/",
     "image": "https://gamevolt.io/assets/thumbnails/sudoku.webp",
     "genre": ["Puzzle", "Brain", "Classic"],
