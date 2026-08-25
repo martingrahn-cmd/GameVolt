@@ -2013,7 +2013,7 @@
             <button class="category-pill" data-filter="coffee-break">
                 <span class="pill-icon">☕</span>
                 <span>Coffee Break</span>
-                <span class="pill-count">10</span>
+                <span class="pill-count">12</span>
             </button>
             <button class="category-pill" data-filter="brain-challenge">
                 <span class="pill-icon">🧠</span>
@@ -2033,7 +2033,7 @@
             <button class="category-pill" data-filter="multiplayer">
                 <span class="pill-icon">🌐</span>
                 <span>Multiplayer</span>
-                <span class="pill-count">2</span>
+                <span class="pill-count">4</span>
             </button>
             <span class="category-pill-sep" aria-hidden="true"></span>
             <button class="category-pill" data-filter="trending">
@@ -2679,6 +2679,19 @@
         var originalOrder = Array.prototype.slice.call(grid.querySelectorAll('.game-card'));
 
         function cards() { return grid.querySelectorAll('.game-card'); }
+
+        // The static pill counts drift when cards are added or retagged —
+        // recount from data-category so the pills always match the grid.
+        filters.querySelectorAll('.category-pill').forEach(function(pill) {
+            var countEl = pill.querySelector('.pill-count');
+            if (!countEl) return;
+            var f = pill.dataset.filter;
+            if (f === 'all') { countEl.textContent = originalOrder.length; return; }
+            if (!CATEGORY_FILTERS[f]) return;
+            countEl.textContent = originalOrder.filter(function(card) {
+                return (card.dataset.category || '').split(' ').indexOf(f) !== -1;
+            }).length;
+        });
 
         function slugOf(card) {
             var href = card.getAttribute('href') || '';
