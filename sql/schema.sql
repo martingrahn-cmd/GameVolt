@@ -575,7 +575,9 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   ('sudoku-note_taker',       'sudoku', 'Note Taker',       'Use pencil notes in 10 games',           '✏️', 'bronze', 13),
   ('sudoku-speed_5_easy',     'sudoku', 'Speed Demon',      'Complete Easy in under 5 minutes',       '⚡', 'bronze', 14),
   ('sudoku-total_25',         'sudoku', 'Puzzle Fan',       'Complete 25 puzzles',                    '🧩', 'bronze', 15),
-  -- Sudoku: Silver (10)
+  ('sudoku-daily_first',      'sudoku', 'Daily Debut',      'Complete your first Daily',              '📅', 'bronze', 32),
+  ('sudoku-daily_3',          'sudoku', 'Three-Peat',       '3-day Daily streak',                     '📆', 'bronze', 33),
+  -- Sudoku: Silver (11)
   ('sudoku-medium_10',        'sudoku', 'Medium Master',    'Complete 10 Medium puzzles',             '🏅', 'silver', 16),
   ('sudoku-hard_5',           'sudoku', 'Hard Hitter',      'Complete 5 Hard puzzles',                '🔥', 'silver', 17),
   ('sudoku-flawless_medium',  'sudoku', 'Flawless Medium',  'Complete Medium with zero mistakes',     '💎', 'silver', 18),
@@ -586,14 +588,16 @@ INSERT INTO achievement_defs (id, game_id, title, description, icon, tier, sort_
   ('sudoku-total_100',        'sudoku', 'Century',          'Complete 100 puzzles',                   '💯', 'silver', 23),
   ('sudoku-hard_10',          'sudoku', 'Hardened',         'Complete 10 Hard puzzles',               '🗿', 'silver', 24),
   ('sudoku-no_notes_medium',  'sudoku', 'Pure Medium',      'Win Medium without pencil notes',        '🧠', 'silver', 25),
-  -- Sudoku: Gold (5)
+  ('sudoku-daily_7',          'sudoku', 'Weekly Ritual',    '7-day Daily streak',                     '🗓️', 'silver', 34),
+  -- Sudoku: Gold (6)
   ('sudoku-flawless_hard',    'sudoku', 'Flawless Hard',    'Complete Hard with zero mistakes',       '👑', 'gold', 26),
   ('sudoku-speed_10_hard',    'sudoku', 'Hard Sprint',      'Complete Hard under 10 minutes',         '⚡', 'gold', 27),
   ('sudoku-total_200',        'sudoku', 'Puzzle Addict',    'Complete 200 puzzles',                   '🏆', 'gold', 28),
   ('sudoku-streak_10',        'sudoku', 'Unstoppable',      'Win 10 games in a row',                  '🌟', 'gold', 29),
   ('sudoku-speed_3_easy',     'sudoku', 'Lightning',        'Complete Easy under 3 minutes',          '⚡', 'gold', 30),
+  ('sudoku-daily_30',         'sudoku', 'Monthly Devotion', '30-day Daily streak',                    '📆', 'gold', 35),
   -- Sudoku: Platinum (1)
-  ('sudoku-sudoku_master',    'sudoku', 'Sudoku Master',    'Unlock all 30 other trophies',           '👑', 'platinum', 31),
+  ('sudoku-sudoku_master',    'sudoku', 'Sudoku Master',    'Unlock all 34 other trophies',           '👑', 'platinum', 31),
 
   -- Axeluga: Bronze (15)
   ('axeluga-first-blood',        'axeluga', 'First Blood',         'Defeat your first enemy',                 '💥', 'bronze', 1),

@@ -16,7 +16,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Sudoku — Daily Challenge, Leaderboards & Trophies | GameVolt.io</title>
-  <meta name="description" content="Play Sudoku free online — Easy, Medium and Hard plus a daily challenge with streaks. Pencil marks, undo, auto-save, global leaderboards and 31 trophies. No download.">
+  <meta name="description" content="Play Sudoku free online — Easy, Medium and Hard plus a daily challenge with streaks. Pencil marks, undo, auto-save, global leaderboards and 35 trophies. No download.">
   <meta name="keywords" content="sudoku, sudoku online, free sudoku, daily sudoku, sudoku challenge, puzzle game, brain game, number puzzle, browser game, gamevolt">
   <meta name="author" content="GameVolt">
   <meta name="theme-color" content="#7c5cfc">
@@ -532,7 +532,7 @@
       </div>
       <button class="diff-btn" style="margin-top:12px;background:transparent;border-color:rgba(124,92,252,0.3)" onclick="openAchievements()">
         <span class="label">🏆 Achievements</span>
-        <span class="desc" id="achCountLabel">0 / 31 unlocked</span>
+        <span class="desc" id="achCountLabel">0 / 35 unlocked</span>
       </button>
       <button class="diff-btn" id="leaderboardBtn" style="margin-top:12px;background:transparent;border-color:rgba(124,92,252,0.3)" onclick="openLeaderboard()">
         <span class="label">🏆 Leaderboard</span>
@@ -545,7 +545,7 @@
   <div class="overlay hidden" id="achOverlay">
     <div class="modal" style="max-width:440px">
       <h2>🏆 Achievements</h2>
-      <p id="achCountHeader">0 / 31 unlocked</p>
+      <p id="achCountHeader">0 / 35 unlocked</p>
       <div id="achGrid" class="ach-grid"></div>
       <div class="diff-buttons" style="margin-top:16px">
         <button class="diff-btn" onclick="closeAchievements()">
@@ -663,7 +663,7 @@
     <p>
       Play Sudoku free in your browser. The classic number puzzle with three difficulty levels,
       a <strong>daily challenge</strong> with a global streak, pencil marks, undo, auto-save,
-      31 trophies and global leaderboards. No download, no ads — just click and play on any device.
+      35 trophies and global leaderboards. No download, no ads — just click and play on any device.
     </p>
 
     <h2>How to Play Sudoku</h2>
@@ -695,9 +695,9 @@
 
     <h2>Trophies, Stats &amp; Leaderboards</h2>
     <p>
-      Earn 31 trophies across four tiers — from your first solved puzzle to a flawless Hard clear and
-      a 10-win streak. Sign in to GameVolt to sync trophies across devices and submit your best times
-      to the global leaderboard for each difficulty and for the daily.
+      Earn 35 trophies across four tiers — from your first solved puzzle to a flawless Hard clear and
+      a 30-day Daily streak. Sign in to GameVolt to sync trophies across devices and submit your best
+      times to the global leaderboard for each difficulty and for the daily.
     </p>
 
     <h2>Free, Instant, No Download</h2>
@@ -876,7 +876,9 @@
       { id: 'note_taker',      title: 'Note Taker',       desc: 'Use pencil notes in 10 games',         icon: '✏️', tier: 'bronze' },
       { id: 'speed_5_easy',    title: 'Speed Demon',      desc: 'Complete Easy in under 5 minutes',     icon: '⚡', tier: 'bronze' },
       { id: 'total_25',        title: 'Puzzle Fan',        desc: 'Complete 25 puzzles',                  icon: '🧩', tier: 'bronze' },
-      // Silver (10)
+      { id: 'daily_first',     title: 'Daily Debut',      desc: 'Complete your first Daily',            icon: '📅', tier: 'bronze' },
+      { id: 'daily_3',         title: 'Three-Peat',       desc: '3-day Daily streak',                   icon: '📆', tier: 'bronze' },
+      // Silver (11)
       { id: 'medium_10',       title: 'Medium Master',     desc: 'Complete 10 Medium puzzles',           icon: '🏅', tier: 'silver' },
       { id: 'hard_5',          title: 'Hard Hitter',       desc: 'Complete 5 Hard puzzles',              icon: '🔥', tier: 'silver' },
       { id: 'flawless_medium', title: 'Flawless Medium',   desc: 'Complete Medium with zero mistakes',   icon: '💎', tier: 'silver' },
@@ -887,14 +889,16 @@
       { id: 'total_100',       title: 'Century',           desc: 'Complete 100 puzzles',                 icon: '💯', tier: 'silver' },
       { id: 'hard_10',         title: 'Hardened',          desc: 'Complete 10 Hard puzzles',              icon: '🗿', tier: 'silver' },
       { id: 'no_notes_medium', title: 'Pure Medium',       desc: 'Win Medium without pencil notes',      icon: '🧠', tier: 'silver' },
-      // Gold (5)
+      { id: 'daily_7',         title: 'Weekly Ritual',     desc: '7-day Daily streak',                   icon: '🗓️', tier: 'silver' },
+      // Gold (6)
       { id: 'flawless_hard',   title: 'Flawless Hard',     desc: 'Complete Hard with zero mistakes',     icon: '👑', tier: 'gold' },
       { id: 'speed_10_hard',   title: 'Hard Sprint',       desc: 'Complete Hard under 10 minutes',       icon: '⚡', tier: 'gold' },
       { id: 'total_200',       title: 'Puzzle Addict',     desc: 'Complete 200 puzzles',                 icon: '🏆', tier: 'gold' },
       { id: 'streak_10',       title: 'Unstoppable',       desc: 'Win 10 games in a row',                icon: '🌟', tier: 'gold' },
       { id: 'speed_3_easy',    title: 'Lightning',         desc: 'Complete Easy under 3 minutes',        icon: '⚡', tier: 'gold' },
+      { id: 'daily_30',        title: 'Monthly Devotion',  desc: '30-day Daily streak',                  icon: '📆', tier: 'gold' },
       // Platinum (1)
-      { id: 'sudoku_master',   title: 'Sudoku Master',     desc: 'Unlock all 30 other trophies',         icon: '👑', tier: 'platinum' }
+      { id: 'sudoku_master',   title: 'Sudoku Master',     desc: 'Unlock all 34 other trophies',         icon: '👑', tier: 'platinum' }
     ];
 
     function tryUnlock(id) {
@@ -913,7 +917,7 @@
       }
     }
 
-    function checkAchievements(diff, time, mistakeCount, usedNotes) {
+    function checkAchievements(diff, time, mistakeCount, usedNotes, wonDaily) {
       // First win
       if (stats.totalWins >= 1) tryUnlock('first_win');
 
@@ -960,9 +964,17 @@
       if (stats.currentStreak >= 5) tryUnlock('streak_5');
       if (stats.currentStreak >= 10) tryUnlock('streak_10');
 
+      // Daily
+      if (wonDaily) {
+        tryUnlock('daily_first');
+        if (dailyData.streak >= 3) tryUnlock('daily_3');
+        if (dailyData.streak >= 7) tryUnlock('daily_7');
+        if (dailyData.streak >= 30) tryUnlock('daily_30');
+      }
+
       // Platinum
       var unlocked = Object.keys(stats.unlocked).length;
-      if (unlocked >= 30) tryUnlock('sudoku_master');
+      if (unlocked >= 34) tryUnlock('sudoku_master');
     }
 
     // ── Achievement Overlay ──
@@ -1487,7 +1499,7 @@
           GameVolt.leaderboard.submit(score, { mode: mode, nudgeText: 'Solved in ' + formatTime(timerSeconds) + '!' });
         }
 
-        checkAchievements(difficulty, timerSeconds, mistakes, usedNotesThisGame);
+        checkAchievements(difficulty, timerSeconds, mistakes, usedNotesThisGame, wonDaily);
       }, 1200);
 
       clearSavedState();
