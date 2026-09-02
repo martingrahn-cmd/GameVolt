@@ -7,7 +7,7 @@
 
 ## Project Overview
 
-**GameVolt.io** is a curated HTML5 game portal featuring original games built by Martin (SmartProc Consulting AB). It is being rebranded from PulseGames.eu.
+**GameVolt.io** is a curated HTML5 game portal featuring original games built by Martin (SmartProc Consulting AB). The rebrand from the previous domain is complete; the old domain was let expire in 2026-09.
 
 **Martin's role:** Creative director, game designer, solo developer. Uses AI (Claude) for implementation. Has a full-time procurement job, so development time is limited — efficiency matters.
 
@@ -25,7 +25,7 @@
 | Games | Vanilla JS / ES6 / Phaser 3 | Single-file HTML games |
 | Game engine | Phaser 3 (some games), vanilla Canvas (others) | No build step, no bundler |
 | Deployment | Git push → GitHub Pages | Automatic |
-| Previous name | PulseGames.eu | Being rebranded to GameVolt.io |
+| Previous domain | expired 2026-09 | Rebrand complete; no redirect, don't link to it |
 
 ---
 
@@ -493,15 +493,15 @@ HoverDash (and future games) target multiple platforms from one codebase:
 ## Migration Checklist
 
 ### Completed ✅
-- Rebrand PulseGames → GameVolt (repo, branding, code, domain, HTTPS, CNAME)
+- Rebrand to GameVolt (repo, branding, code, domain, HTTPS, CNAME)
 - Supabase set up (auth, schema, RLS, magic link)
 - SDK built & integrated in HoverDash (pilot), Breakout, Connect 4
 - All games live on gamevolt.io, auth/cloud save/guest mode verified
 - OG images updated (portal + Axeluga)
 
 ### Remaining
-- [ ] Decide: redirect pulsegames.eu → gamevolt.io, or let it expire
-- [x] Migrate the Solitaire leaderboard from legacy Firebase (`pulsegames-solitaire`) to the Supabase SDK path (done 2026-07-24; scores reset with the fresh Supabase boards)
+- [x] Old domain: let it expire (decided 2026-09-02, renewal not worth it for ~34 referral users/month)
+- [x] Migrate the Solitaire leaderboard from legacy Firebase to the Supabase SDK path (done 2026-07-24; scores reset with the fresh Supabase boards)
 - [ ] Update GameMonetize developer profile with new URL
 - [ ] Update portal submissions / social media with new URL
 
@@ -926,7 +926,6 @@ code (never invent features).
 
 ## Open Questions
 
-- [ ] Keep PulseGames.eu as redirect, or drop the domain?
 - [ ] Transfer GameVolt.io to Cloudflare or keep at One.com?
 - [ ] Avatar system: upload custom vs pick from preset gallery?
 - [ ] Customize Supabase email template
