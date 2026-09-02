@@ -1,0 +1,106 @@
+name: IndexNow
+
+# Tells Bing / DuckDuckGo / Yandex (and Copilot, which reads Bing's index)
+# which pages changed, right after a deploy to main. Google ignores IndexNow;
+# it still gets sitemap.xml the usual way.
+#
+# The key is public by design — the protocol verifies ownership by fetching
+# https://gamevolt.io/<key>.txt, which must contain the key.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.html"
+  workflow_dispatch:
+    inputs:
+      all:
+        description: "Submit every URL in sitemap.xml instead of just the changed pages"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: false
+
+env:
+  HOST: gamevolt.io
+  INDEXNOW_KEY: aefe9aa0173cd23682899787879591db
+
+jobs:
+  submit:
+    name: Submit changed URLs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Collect URLs
+        id: collect
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+          ALL: ${{ inputs.all }}
+        run: |
+          set -euo pipefail
+
+          if [ "$ALL" = "true" ]; then
+            grep -o '<loc>[^<]*</loc>' sitemap.xml | sed 's/<[^>]*>//g' | sort -u > urls.txt
+          else
+            # A manual run, a force-push or a brand-new branch has no usable "before"
+            # commit; fall back to the last commit only.
+            if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+              BEFORE="$AFTER~1"
+            fi
+
+            git diff --name-only --diff-filter=AM "$BEFORE" "$AFTER" -- '*.html' \
+            | while read -r f; do
+                case "$f" in
+                  # Not public pages: the iframe copies, the wrapper, account pages,
+                  # standalone builds for Poki/CrazyGames, build output, the 404.
+                  games/*|play/*|profile/*|auth/*|favorites/*|dist/*|docs/*|404.html|*standalone*) continue ;;
+                esac
+                grep -q 'name="robots" content="noindex' "$f" && continue
+                case "$f" in
+                  index.html)   echo "https://$HOST/" ;;
+                  */index.html) echo "https://$HOST/${f%index.html}" ;;
+                  *)            echo "https://$HOST/$f" ;;
+                esac
+              done | sort -u > urls.txt
+          fi
+
+          echo "count=$(wc -l < urls.txt)" >> "$GITHUB_OUTPUT"
+          echo "URLs to submit:"; cat urls.txt
+
+      - name: Wait for GitHub Pages to publish the commit
+        if: steps.collect.outputs.count != '0' && github.event_name == 'push'
+        run: sleep 90
+
+      - name: Submit to IndexNow
+        if: steps.collect.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg host "$HOST" \
+            --arg key "$INDEXNOW_KEY" \
+            --arg keyLocation "https://$HOST/$INDEXNOW_KEY.txt" \
+            --slurpfile urls <(jq -R . urls.txt) \
+            '{host: $host, key: $key, keyLocation: $keyLocation, urlList: $urls}' > payload.json
+
+          code=$(curl -sS -o response.txt -w '%{http_code}' \
+            -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            --data @payload.json)
+          echo "IndexNow responded HTTP $code"; cat response.txt || true
+          case "$code" in
+            200|202) ;;
+            *) echo "::error::IndexNow rejected the submission (HTTP $code)"; exit 1 ;;
+          esac
