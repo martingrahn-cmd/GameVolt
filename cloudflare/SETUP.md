@@ -2,7 +2,7 @@
 
 These three SEO checklist items live entirely in DNS / Cloudflare, not in the GitHub Pages repo. They have to be configured in the Cloudflare dashboard.
 
-> **Prerequisite:** `gamevolt.io` (and ideally `pulsegames.eu`) are added to Cloudflare and their nameservers point at Cloudflare. If they aren't on Cloudflare yet, do that first ("Add a site" → free plan is fine → update nameservers at your registrar).
+> **Prerequisite:** `gamevolt.io` is added to Cloudflare and its nameservers point at Cloudflare. If they aren't on Cloudflare yet, do that first ("Add a site" → free plan is fine → update nameservers at your registrar).
 
 ---
 
@@ -45,46 +45,9 @@ curl -I https://www.gamevolt.io/snake/
 
 ---
 
-## 1.2 — `pulsegames.eu` → `gamevolt.io` (301, path-preserving)
-
-This one assumes `pulsegames.eu` is also on Cloudflare. If it isn't, the simplest alternative is your registrar's built-in domain forwarding (Loopia, Namecheap, GoDaddy, etc. all have a "forward this domain" toggle — set it to *301 with path forwarding* and you're done; skip the rest of this section).
-
-### Step 1 — DNS
-
-In Cloudflare for the `pulsegames.eu` zone:
-
-- An `A` record at `@` pointing at any IP (Cloudflare needs a target to proxy through; `192.0.2.1` is fine — it's a docs/test IP). Proxy: **on**.
-- A CNAME `www` → `pulsegames.eu`. Proxy: **on**.
-
-The Worker / Redirect Rule below intercepts the request before it reaches that "phantom" IP, so the IP never has to actually answer.
-
-### Step 2 — Redirect Rule
-
-Cloudflare → **Rules** → **Redirect Rules** for the `pulsegames.eu` zone → **Create rule**.
-
-- **Rule name:** `pulsegames.eu → gamevolt.io`
-- **Filter:**
-  - `(http.host eq "pulsegames.eu") or (http.host eq "www.pulsegames.eu")`
-- **Then:**
-  - URL redirect → Dynamic → `concat("https://gamevolt.io", http.request.uri.path)`
-  - Status: `301`
-  - Preserve query string: `On`
-- Deploy
-
-### Step 3 — Verify
-
-```sh
-curl -I https://pulsegames.eu/snake/
-curl -I https://www.pulsegames.eu/
-
-# Both should return 301 with location headers pointing into gamevolt.io.
-```
-
----
-
 ## 3.1 — 410 Gone for legacy `/game/*`, `/tag/*`, `/category/*`
 
-These are leftover URLs from when the site was a third-party game feed (PulseGames era). robots.txt already disallows them, but Google can't see a 410 if the path is blocked from crawling — we need to **stop disallowing them** AND **return 410** so Google can re-crawl, see "permanently gone", and drop them from the index.
+These are leftover URLs from when the site was a third-party game feed (before the rebrand; the old domain was let expire in 2026-09). robots.txt already disallows them, but Google can't see a 410 if the path is blocked from crawling — we need to **stop disallowing them** AND **return 410** so Google can re-crawl, see "permanently gone", and drop them from the index.
 
 The `cloudflare/legacy-paths-410.js` Worker in this repo handles both 1.1 and 3.1 in one deployment. Use this if you want a single Worker; otherwise the Redirect Rule above for 1.1 is fine and you can use a Bulk-Redirect-style approach for 3.1.
 
@@ -191,7 +154,6 @@ After 410s are confirmed:
 2. **+1 day:** edit `robots.txt` in this repo, push, wait for Pages deploy.
 3. **+1 day:** GSC → Sitemaps → resubmit `sitemap.xml`. Removals → submit each ghost URL.
 4. **+1 week:** check GSC Pages report — "Discovered, not indexed" should drop and "Indexed" should climb.
-5. **Optional:** add `pulsegames.eu` to Cloudflare and configure its redirect rule.
 
 ---
 
