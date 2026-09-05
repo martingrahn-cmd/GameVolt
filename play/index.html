@@ -899,6 +899,7 @@
     </aside>
   </div>
 
+  <script src="/js/gv-card-ratings.js?v=2"></script>
   <script>
     const GAMES = {
       "short-circuit": { name: "Short Circuit", category: "Puzzle", path: "/short-circuit/", thumb: "/assets/thumbnails/short-circuit.webp" },
@@ -1049,6 +1050,9 @@
       } else {
         ratingMetaEl.innerHTML = 'Be the first to rate';
       }
+      if (window.GVCardRatings && aggregate.count > 0 && aggregate.count < GVCardRatings.MIN_RATINGS) {
+        ratingMetaEl.appendChild(document.createTextNode(' · Early ratings — fewer than 5 votes'));
+      }
     }
 
     function refreshRatingWidget(gameId) {
@@ -1167,10 +1171,18 @@
           body: JSON.stringify({ p_game_id: key })
         }).catch(function(){});
       } catch (e) {}
-      // Forward challenge param to iframe if present
+      // Entry parameters belong to the requested game, never a sidebar switch.
       var params = new URLSearchParams(window.location.search);
-      var challengeId = params.get('challenge');
-      frame.src = game.path + (challengeId ? '?challenge=' + encodeURIComponent(challengeId) : '');
+      var entry = new URLSearchParams();
+      if (params.get('game') === key) {
+        var challengeId = params.get('challenge');
+        if (challengeId) entry.set('challenge', challengeId);
+        if (params.get('mode') === 'daily' &&
+            ['short-circuit', 'golden-glyphs', 'livewire'].indexOf(key) !== -1) {
+          entry.set('mode', 'daily');
+        }
+      }
+      frame.src = game.path + (entry.toString() ? '?' + entry.toString() : '');
       nameEl.textContent = game.name;
       catEl.textContent = game.category;
       document.title = game.name + ' – Play Free on GameVolt';

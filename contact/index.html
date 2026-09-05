@@ -16,15 +16,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- SEO Meta Tags -->
-    <title>Contact Us - GameVolt</title>
-    <meta name="description" content="Get in touch with GameVolt. Questions, feedback, or business inquiries - we'd love to hear from you!">
+    <title>Contact Martin at GameVolt</title>
+    <meta name="description" content="Get in touch with Martin, the creator of GameVolt. Share game ideas, report a bug, or ask about a collaboration.">
     <meta name="robots" content="index, follow">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://gamevolt.io/contact/">
     <meta property="og:title" content="Contact GameVolt">
-    <meta property="og:description" content="Questions, feedback, or business inquiries - we'd love to hear from you!">
+    <meta property="og:description" content="Get in touch with Martin, the creator of GameVolt. Game ideas, feedback, bug reports and collaborations.">
     <meta property="og:image" content="https://gamevolt.io/assets/og-image.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -32,7 +32,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Contact GameVolt">
-    <meta name="twitter:description" content="Questions, feedback, or business inquiries - we'd love to hear from you!">
+    <meta name="twitter:description" content="Get in touch with Martin, the creator of GameVolt. Game ideas, feedback, bug reports and collaborations.">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://gamevolt.io/contact/">
@@ -44,7 +44,7 @@
       "@type": "ContactPage",
       "name": "Contact GameVolt",
       "url": "https://gamevolt.io/contact/",
-      "description": "Questions, feedback, or business inquiries — get in touch with GameVolt.",
+      "description": "Game ideas, feedback, bug reports and collaborations — get in touch with Martin, the creator of GameVolt.",
       "isPartOf": {
         "@type": "WebSite",
         "name": "GameVolt",
@@ -366,6 +366,11 @@
             display: block;
         }
 
+        html[data-theme="light"] .hero h1 { background-image: var(--bg-gradient); }
+        html[data-theme="light"] .footer-logo-text { color: var(--text-bright); }
+        html[data-theme="light"] .contact-card a,
+        html[data-theme="light"] .faq-answer a { color: var(--primary-dark); }
+
         /* Main Content */
         main {
             max-width: 900px;
@@ -618,6 +623,18 @@
         @media (max-width: 768px) {
             .header-content {
                 padding: 12px 16px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .logo { order: -1; margin-right: auto; }
+            .nav-links {
+                order: 1;
+                flex-basis: 100%;
+                min-width: 0;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 4px;
             }
 
             .logo-text {
@@ -657,8 +674,11 @@
                 flex-direction: column;
             }
 
+            .footer-brand { max-width: 100%; }
             .footer-links {
                 gap: 32px;
+                flex-wrap: wrap;
+                max-width: 100%;
             }
         }
 
@@ -707,7 +727,7 @@
     <section class="hero">
         <div class="hero-content">
             <h1>Get In Touch</h1>
-            <p>Have a question, feedback, or business inquiry? We'd love to hear from you!</p>
+            <p>I'm Martin, the creator of GameVolt. Have a game idea, a question, or feedback? I'd like to hear it.</p>
         </div>
     </section>
 
@@ -730,7 +750,7 @@
             <div class="contact-card">
                 <div class="contact-icon">🐛</div>
                 <h3>Report a Bug</h3>
-                <p>Found something broken? Let us know!</p>
+                <p>Found something broken? Let me know.</p>
                 <a href="mailto:bugs@gamevolt.io">bugs@gamevolt.io</a>
             </div>
         </div>
@@ -750,7 +770,7 @@
 
             <div class="faq-item">
                 <h3 class="faq-question">Can I play on mobile?</h3>
-                <p class="faq-answer">Absolutely! All our games are optimized for mobile devices with touch controls. Works great on phones and tablets.</p>
+                <p class="faq-answer">Yes. The games support touch controls on phones and tablets. Some games work best with your device turned sideways.</p>
             </div>
 
             <div class="faq-item">
@@ -760,17 +780,17 @@
 
             <div class="faq-item">
                 <h3 class="faq-question">Can I suggest a new game?</h3>
-                <p class="faq-answer">We love suggestions! Send your game ideas to <a href="mailto:contact@gamevolt.io">contact@gamevolt.io</a> and we'll consider them for future development.</p>
+                <p class="faq-answer">Yes — send your idea to <a href="mailto:contact@gamevolt.io">contact@gamevolt.io</a>. I'd like to know what you'd enjoy playing next.</p>
             </div>
 
             <div class="response-notice">
-                <p><strong>Response Time:</strong> We typically respond to emails within 24-48 hours. For urgent matters, please include "URGENT" in your subject line.</p>
+                <p><strong>Helpful details:</strong> For bug reports, please include the game name, your device and browser, and what happened.</p>
             </div>
         </div>
 
         <div class="faq-section" style="margin-top: 24px;">
             <h2><span class="icon">⚡</span> About GameVolt</h2>
-            <p style="color: var(--text-medium); line-height: 1.7;">GameVolt is an independent game studio from Sweden. We make original, free-to-play browser games with no advertisements. All our games are built from scratch using modern web technology and work on any device — phone, tablet, or desktop. No downloads, no account required — just click and play.</p>
+            <p style="color: var(--text-medium); line-height: 1.7;">I'm an independent game creator in Sweden, and I've designed and built every game on GameVolt with help from AI. The games are free to play in your browser, with no ads and no account needed.</p>
         </div>
     </main>
 
@@ -782,7 +802,7 @@
                         <div class="footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
                         <span class="footer-logo-text">GameVolt</span>
                     </div>
-                    <p class="footer-tagline">Free browser games for everyone. Made with love in Sweden.</p>
+                    <p class="footer-tagline">Original browser games. Made by Martin in Sweden.</p>
                 </div>
                 <div class="footer-links">
                     <div class="footer-column">

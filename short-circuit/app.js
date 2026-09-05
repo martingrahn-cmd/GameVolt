@@ -2591,6 +2591,10 @@ class ShortCircuit {
     try {
         // On window for the test harness and the console alike.
         window.shortCircuit = new ShortCircuit();
+        if (new URLSearchParams(window.location.search).get('mode') === 'daily') {
+            window.shortCircuit.showSelect();
+            window.shortCircuit.dom.dailyRow.querySelector('button')?.focus({ preventScroll: true });
+        }
     } catch (err) {
         scFault('boot', err);
     }

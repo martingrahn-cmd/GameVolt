@@ -896,6 +896,8 @@ if(window.GameVolt){ try{ GameVolt.init("livewire");
 }catch(e){} }
 checkTrophies(true);   // backfill från tidigare framsteg, utan toast-flod
 
+// A portal daily link selects today's board; its timer still waits for input.
+if (new URLSearchParams(window.location.search).get('mode') === 'daily') mode = 'daily';
 load(); requestAnimationFrame(loop);
 </script>
 
