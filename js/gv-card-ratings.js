@@ -1,4 +1,4 @@
-// GameVolt — average rating badge on game cards.
+// GameVolt — rating badges and confidence-aware catalog ranking.
 //
 // The front page has shown this since the ratings launch; the category pages
 // and Favorites never did, so the same card looked rated on one page and
@@ -17,6 +17,20 @@
 (function () {
     'use strict';
 
+    var MIN_RATINGS = 5;
+
+    function validAggregate(agg) {
+        return !!agg && Number.isFinite(agg.avg) && agg.avg >= 1 && agg.avg <= 5 &&
+            Number.isInteger(agg.count) && agg.count > 0;
+    }
+
+    // Five votes qualify a game. Ten neutral (3/5) prior votes temper small
+    // samples; the displayed average is always the actual player average.
+    function rankScore(agg) {
+        if (!validAggregate(agg) || agg.count < MIN_RATINGS) return null;
+        return (agg.avg * agg.count + 3 * 10) / (agg.count + 10);
+    }
+
     var CSS =
         '.game-rating{display:flex;align-items:center;gap:5px;margin:-4px 0 8px;' +
         'font-size:0.82rem;font-weight:700;line-height:1}' +
@@ -24,7 +38,8 @@
         '.game-rating-avg{color:var(--text-bright)}' +
         '.game-rating-count{color:var(--text-muted);font-weight:600;font-size:0.76rem}';
 
-    var cache = null;   // Map<gameId, {avg, count}>, fetched at most once
+    var cache = null;   // Map<gameId, {avg, count}>
+    var pending = null; // Rendering and sorting share an in-flight request.
 
     function injectCSS() {
         // index.html already carries these rules inline; don't duplicate them.
@@ -43,17 +58,27 @@
     // One request for every game's ratings, not one per game.
     function load() {
         if (cache) return Promise.resolve(cache);
+        if (pending) return pending;
         if (!(window.GameVolt && GameVolt.rating && GameVolt.rating.getAllAggregates)) {
-            cache = {};
-            return Promise.resolve(cache);
+            return Promise.resolve(null);
         }
-        return GameVolt.rating.getAllAggregates().then(function (map) {
+        pending = new Promise(function(resolve, reject) {
+            function fetchRatings() {
+                Promise.resolve().then(function() {
+                    return GameVolt.rating.getAllAggregates();
+                }).then(resolve, reject);
+            }
+            if (GameVolt.onReady) GameVolt.onReady(fetchRatings);
+            else fetchRatings();
+        }).then(function (map) {
             cache = map || {};
             return cache;
         }).catch(function () {
-            cache = {};
-            return cache;
+            return null; // A failed request must not permanently cache an empty map.
+        }).finally(function() {
+            pending = null;
         });
+        return pending;
     }
 
     function needsBadge(card) {
@@ -67,19 +92,28 @@
         for (var i = 0; i < cards.length; i++) {
             var card = cards[i];
             var agg = map[slugOf(card)];
-            if (!agg || !agg.count) continue;          // unrated: show nothing
+            if (!validAggregate(agg)) continue;       // unrated: show nothing
             if (!needsBadge(card)) continue;
             var title = card.querySelector('.game-title');
             if (!title) continue;
             var el = document.createElement('div');
             el.className = 'game-rating';
-            el.setAttribute('aria-label',
-                agg.avg.toFixed(1) + ' out of 5, ' + agg.count +
-                ' rating' + (agg.count === 1 ? '' : 's'));
-            el.innerHTML =
-                '<span class="game-rating-star" aria-hidden="true">★</span>' +
-                '<span class="game-rating-avg">' + agg.avg.toFixed(1) + '</span>' +
-                '<span class="game-rating-count">(' + agg.count + ')</span>';
+            if (agg.count < MIN_RATINGS) {
+                el.classList.add('game-rating-early');
+                el.textContent = agg.count + ' rating' + (agg.count === 1 ? '' : 's') + ' · Early ratings';
+                el.style.color = 'var(--text-medium)';
+                el.style.fontWeight = '400';
+                el.style.fontSize = '0.875rem';
+                el.style.lineHeight = '1.4';
+                el.title = 'At least 5 player ratings are needed for Top Rated.';
+            } else {
+                el.setAttribute('aria-label',
+                    agg.avg.toFixed(1) + ' out of 5, ' + agg.count + ' ratings');
+                el.innerHTML =
+                    '<span class="game-rating-star" aria-hidden="true">★</span>' +
+                    '<span class="game-rating-avg">' + agg.avg.toFixed(1) + '</span>' +
+                    '<span class="game-rating-count">(' + agg.count + ')</span>';
+            }
             title.insertAdjacentElement('afterend', el);
         }
     }
@@ -115,11 +149,17 @@
         }).catch(function () {});
     }
 
-    window.GVCardRatings = { load: load, render: render };
+    window.GVCardRatings = { load: load, render: render, rankScore: rankScore, MIN_RATINGS: MIN_RATINGS };
 
     // The SDK connects to Supabase asynchronously, so wait for onReady when it
     // is present. With no SDK, render() still runs and simply finds nothing.
     function start() {
+        // The play page also imports the policy, but needs no catalog fetch.
+        if (!document.querySelector('a.game-card[href*="game="]')) {
+            // Favorites can build its cards after this script has loaded.
+            // Only the play page has a game iframe and uses the policy alone.
+            if (document.getElementById('gameFrame')) return;
+        }
         if (window.GameVolt && GameVolt.onReady) GameVolt.onReady(render);
         else render();
     }

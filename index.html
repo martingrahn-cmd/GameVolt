@@ -72,7 +72,7 @@
             "name": "GameVolt",
             "url": "https://gamevolt.io",
             "logo": "https://gamevolt.io/assets/logo.png",
-            "description": "Independent game studio from Sweden creating free, ad-free browser games.",
+            "description": "Original, free browser games designed and built by Martin, an independent creator in Sweden, with help from AI. No advertisements.",
             "foundingDate": "2024",
             "foundingLocation": "Sweden",
             "sameAs": [
@@ -575,153 +575,72 @@
 
         .gv-logout-btn:hover { border-color: var(--text-medium); color: #fff; }
 
-        /* Hero Section */
+        /* Compact introduction: keep the first games in the first viewport. */
         .hero {
-            padding: 80px 24px;
-            text-align: center;
+            padding: 24px 24px 0;
             color: var(--text-bright);
-            position: relative;
-            overflow: hidden;
-            background: transparent;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg at 50% 50%,
-                transparent 0deg,
-                rgba(124, 92, 252, 0.05) 60deg,
-                transparent 120deg,
-                rgba(56, 189, 248, 0.04) 180deg,
-                transparent 240deg,
-                rgba(6, 214, 160, 0.03) 300deg,
-                transparent 360deg);
-            animation: heroRotate 30s linear infinite;
-        }
-
-        @keyframes heroRotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(ellipse 50% 80% at 50% 20%, rgba(124, 92, 252, 0.2), transparent);
         }
 
         .hero-content {
-            position: relative;
-            max-width: 700px;
+            max-width: 1152px;
             margin: 0 auto;
-            z-index: 2;
-        }
-
-        .hero-logo {
-            max-width: 480px;
-            margin: 0 auto 24px;
-        }
-
-        .hero-logo svg {
-            width: 100%;
-            height: auto;
-        }
-
-        @media (max-width: 600px) {
-            .hero-logo {
-                max-width: 320px;
-                margin-bottom: 16px;
-            }
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-subtle);
         }
 
         .hero h1 {
             font-family: 'Fredoka', sans-serif;
-            font-size: 3.5rem;
+            font-size: clamp(1.9rem, 4vw, 2.75rem);
             font-weight: 700;
-            line-height: 1.05;
+            line-height: 1.15;
             letter-spacing: -0.01em;
-            margin-bottom: 20px;
-            color: var(--text-bright);
-        }
-
-        .hero h1 .hero-grad {
-            background: linear-gradient(120deg, var(--primary-light) 10%, var(--secondary) 90%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            margin-bottom: 8px;
         }
 
         .hero p {
-            font-size: 1.25rem;
+            font-size: 1rem;
+            line-height: 1.5;
             color: var(--text-medium);
-            margin-bottom: 40px;
         }
 
         .hero-stats {
             display: flex;
-            justify-content: center;
-            gap: 48px;
             flex-wrap: wrap;
-        }
-
-        .stat {
-            text-align: center;
-            padding: 20px 28px;
-            background: var(--bg-glass);
-            border: 1px solid var(--border-subtle);
-            border-radius: var(--radius-lg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .stat-number {
-            font-family: 'Fredoka', sans-serif;
-            font-size: 2.5rem;
-            font-weight: 700;
-            display: block;
-            background: var(--bg-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
+            align-items: center;
+            gap: 8px 20px;
+            list-style: none;
+            margin-top: 14px;
             color: var(--text-medium);
+            font-size: 0.875rem;
         }
 
-        .hero p.hero-maker {
-            margin-top: 28px;
-            margin-bottom: 0;
-            font-size: 0.95rem;
-            color: var(--text-medium);
+        .hero-stats li + li {
+            border-left: 1px solid var(--border-subtle);
+            padding-left: 20px;
         }
 
-        .hero p.hero-maker strong {
+        .hero-stats strong {
             color: var(--text-bright);
-            font-weight: 600;
+            font-weight: 700;
+        }
+
+        #games, #picks-title {
+            scroll-margin-top: 96px;
         }
 
         /* Main Content */
         main {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 48px 24px;
+            padding: 20px 24px 48px;
         }
 
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 32px;
+            margin-bottom: 20px;
+            gap: 16px;
         }
 
         .section-title {
@@ -817,8 +736,15 @@
                 gap: 8px;
             }
             .category-pill {
-                padding: 10px 16px;
-                font-size: 0.85rem;
+                padding: 10px 12px;
+                font-size: 0.875rem;
+                gap: 6px;
+            }
+            .category-pill .pill-icon {
+                font-size: 1rem;
+            }
+            .category-pill .pill-count {
+                padding: 2px 6px;
             }
         }
 
@@ -1162,36 +1088,18 @@
             }
 
             .hero {
-                padding: 50px 16px;
+                padding: 24px 16px 0;
             }
 
-            .hero h1 {
-                font-size: 2.2rem;
-            }
-
-            .hero p {
-                font-size: 1rem;
-            }
-
-            .hero-stats {
-                gap: 16px;
-            }
-
-            .stat {
-                padding: 14px 20px;
-            }
-
-            .stat-number {
-                font-size: 2rem;
+            .hero-content {
+                padding-bottom: 20px;
             }
 
             main {
                 padding: 24px 16px;
             }
 
-            /* Two compact cards per row on phones (21 games — one-at-a-time
-               felt too sparse). Thumbnail + title + Play; the description and
-               tags are kept in the DOM for SEO/desktop but hidden here. */
+            /* Two cards per row, with a short explanation of each game. */
             .games-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
@@ -1206,8 +1114,18 @@
                 margin-bottom: 10px;
             }
 
-            .games-grid .game-description,
+            .games-grid .game-description {
+                display: block;
+                font-size: 0.875rem;
+                line-height: 1.45;
+                margin-bottom: 12px;
+            }
+
             .games-grid .game-tags {
+                display: none;
+            }
+
+            .games-grid .game-leaderboard {
                 display: none;
             }
 
@@ -1256,45 +1174,165 @@
         .game-card:nth-child(8) { animation-delay: 0.4s; }
         .game-card:nth-child(9) { animation-delay: 0.45s; }
 
-        /* ── Editor's Choice ── */
-        .editors-choice {
-            margin-bottom: 40px;
+        /* Three distinct starting points, using the games' existing artwork. */
+        .starter-picks {
+            margin-bottom: 32px;
         }
 
-        .editors-choice .section-title::before {
-            content: '⭐';
-            margin-right: 8px;
+        .section-link {
+            color: var(--primary-light);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 10px 0;
+            flex-shrink: 0;
+        }
+
+        .section-link:hover {
+            text-decoration: underline;
+        }
+
+        .picks-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .pick-card {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            text-decoration: none;
+            color: var(--text-bright);
+            box-shadow: var(--shadow-card);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .pick-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-light);
+        }
+
+        .pick-thumb {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+        }
+
+        .pick-thumb img,
+        .pick-thumb .preview-video {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pick-thumb .preview-video {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .pick-card:hover .preview-video.playing {
+            opacity: 1;
+        }
+
+        .pick-info {
+            padding: 16px;
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .pick-kind {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 4px;
+        }
+
+        .pick-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.35rem;
+            line-height: 1.2;
+            margin-bottom: 6px;
+        }
+
+        .pick-description {
+            color: var(--text-medium);
+            font-size: 1rem;
+            line-height: 1.45;
+            margin-bottom: 14px;
+        }
+
+        .pick-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: auto;
+            color: var(--primary-light);
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        .pick-cta svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+
+        .pick-card:focus-visible,
+        .game-card:focus-visible,
+        .ec-card:focus-visible,
+        .category-pill:focus-visible,
+        .section-link:focus-visible {
+            outline: 3px solid var(--primary-light);
+            outline-offset: 4px;
+        }
+
+        html[data-theme="light"] .pick-cta,
+        html[data-theme="light"] .section-link,
+        html[data-theme="light"] .ec-cta {
+            color: var(--primary-dark);
+        }
+
+        /* Releases stay available below the full catalog in a compact row. */
+        .editors-choice {
+            margin: 40px 0 32px;
         }
 
         .ec-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
         }
 
         .ec-card {
-            position: relative;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            text-decoration: none;
-            color: inherit;
-            background: var(--bg-card);
-            border: 2px solid rgba(255, 193, 7, 0.25);
-            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             display: flex;
             flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            color: var(--text-bright);
         }
 
         .ec-card:hover {
-            border-color: rgba(255, 193, 7, 0.6);
-            transform: translateY(-6px);
-            box-shadow: 0 12px 40px rgba(255, 193, 7, 0.15), var(--shadow-card-hover);
+            border-color: var(--primary-light);
         }
 
         .ec-thumb {
-            position: relative;
+            aspect-ratio: 16 / 9;
             overflow: hidden;
-            aspect-ratio: 16/9;
         }
 
         .ec-thumb img {
@@ -1303,166 +1341,152 @@
             object-fit: cover;
             display: block;
         }
-        /* Vector Hexagon featured art — drawn in the app-icon style */
-        .ec-thumb .vhex-art {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .ec-thumb .preview-video {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .ec-card:hover .preview-video.playing {
-            opacity: 1;
-        }
-
-        /* Big play overlay */
-        .ec-play-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3;
-            background: rgba(0,0,0,0.15);
-            transition: background 0.3s;
-        }
-
-        .ec-card:hover .ec-play-overlay {
-            background: rgba(0,0,0,0.3);
-        }
-
-        .ec-play-btn {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            background: rgba(124, 92, 252, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 24px rgba(124, 92, 252, 0.5);
-            transition: all 0.3s;
-        }
-
-        .ec-card:hover .ec-play-btn {
-            transform: scale(1.12);
-            background: rgba(124, 92, 252, 1);
-            box-shadow: 0 4px 32px rgba(124, 92, 252, 0.7);
-        }
-
-        .ec-play-btn svg {
-            width: 28px;
-            height: 28px;
-            fill: #fff;
-            margin-left: 3px;
-        }
-
-        /* YouTube badge */
-        .ec-yt-badge {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 0, 0, 0.85);
-            color: #fff;
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 4px;
-            z-index: 4;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .ec-yt-badge svg {
-            width: 14px;
-            height: 14px;
-            fill: #fff;
-        }
-
-        /* Editor's pick star badge */
-        .ec-star {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: linear-gradient(135deg, #ffc107, #ff9800);
-            color: #1a1a2e;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: 700;
-            z-index: 4;
-            box-shadow: 0 2px 12px rgba(255, 193, 7, 0.4);
-        }
 
         .ec-info {
-            padding: 16px 18px;
-            flex: 1;
             display: flex;
             flex-direction: column;
+            flex: 1;
             gap: 6px;
+            padding: 12px;
         }
 
         .ec-name {
-            font-weight: 800;
-            font-size: 1.2rem;
+            font-weight: 700;
+            font-size: 1rem;
         }
 
         .ec-desc {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            line-height: 1.4;
+            color: var(--text-medium);
+            font-size: 0.875rem;
+            line-height: 1.45;
+            margin-bottom: 8px;
         }
 
         .ec-cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 8px;
-            padding: 8px 20px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: #fff;
-            border-radius: 24px;
+            margin-top: auto;
+            color: var(--primary-light);
+            font-size: 0.875rem;
             font-weight: 700;
-            font-size: 0.9rem;
-            align-self: flex-start;
-            transition: all 0.3s;
-        }
-
-        .ec-card:hover .ec-cta {
-            box-shadow: 0 4px 20px rgba(124, 92, 252, 0.4);
         }
 
         @media (max-width: 700px) {
-            .ec-grid {
+            .picks-grid {
                 grid-template-columns: 1fr;
+                gap: 10px;
             }
 
-            .ec-play-btn {
-                width: 60px;
-                height: 60px;
+            .pick-card {
+                display: grid;
+                grid-template-columns: 104px minmax(0, 1fr);
+                border-radius: var(--radius-md);
             }
 
-            .ec-play-btn svg {
-                width: 24px;
-                height: 24px;
+            .pick-thumb {
+                height: 100%;
+                aspect-ratio: auto;
             }
+
+            .pick-info {
+                padding: 12px;
+            }
+
+            .pick-kind {
+                font-size: 0.875rem;
+                margin-bottom: 3px;
+            }
+
+            .pick-name {
+                font-size: 1.125rem;
+                margin-bottom: 4px;
+            }
+
+            .pick-description {
+                font-size: 0.875rem;
+                line-height: 1.4;
+                margin-bottom: 8px;
+            }
+
+            .starter-picks .section-header {
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                margin-bottom: 14px;
+            }
+
+            .starter-picks .section-title {
+                font-size: 1.4rem;
+            }
+
+            .ec-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .pick-card,
+            .game-card {
+                animation: none;
+                transition: none;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .logo { gap: 8px; }
+            .logo-icon { width: 32px; height: 32px; }
+            .logo-text { font-size: 1.125rem; }
+            .header-right { gap: 6px; }
+            #gv-user-area { margin-left: 0; }
+            .gv-login-btn { padding: 6px 10px; white-space: nowrap; }
+        }
+
+        /* Keep returning players close to their last game without a tall hero. */
+        #continueSection .continue-card {
+            display: flex;
+            align-items: center;
+            width: 270px;
+        }
+        #continueSection .continue-thumb {
+            width: 82px;
+            align-self: stretch;
+            flex-shrink: 0;
+        }
+        #continueSection .continue-thumb img { height: 100%; object-fit: cover; }
+        #continueSection .continue-info { min-width: 0; padding: 12px; }
+        #continueSection .continue-name { overflow-wrap: anywhere; }
+        #continueSection .continue-meta { color: var(--text-medium); }
+        .continue-resume { display: block; margin-top: 6px; color: var(--primary-light); font-size: 0.875rem; font-weight: 700; }
+
+        .daily-section { margin-bottom: 32px; }
+        .daily-section .section-header { flex-wrap: wrap; gap: 4px 16px; margin-bottom: 16px; }
+        .daily-intro { color: var(--text-medium); font-size: 0.875rem; }
+        .daily-grid {
+            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+            scrollbar-width: thin; scrollbar-color: rgba(124,92,252,0.2) transparent;
+        }
+        .daily-grid::-webkit-scrollbar { height: 4px; }
+        .daily-grid::-webkit-scrollbar-track { background: transparent; }
+        .daily-grid::-webkit-scrollbar-thumb { background: rgba(124,92,252,0.2); border-radius: 4px; }
+        .daily-card {
+            display: flex; align-items: center; gap: 12px; min-width: 0;
+            padding: 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+            background: var(--bg-card); color: var(--text-bright); text-decoration: none;
+        }
+        .daily-card:hover { border-color: var(--primary-light); }
+        .daily-card img { width: 56px; height: 72px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; }
+        .daily-card h3 { font-family: 'Fredoka', sans-serif; font-size: 1rem; margin-bottom: 4px; }
+        .daily-card p { color: var(--text-medium); font-size: 0.875rem; line-height: 1.4; }
+        .daily-card span { display: block; margin-top: 8px; color: var(--primary-light); font-size: 0.875rem; font-weight: 600; }
+        .daily-card:focus-visible, .continue-card:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 3px; }
+        html[data-theme="light"] .daily-card span,
+        html[data-theme="light"] .continue-resume { color: var(--primary-dark); }
+        .sort-note { margin: -12px 0 24px; color: var(--text-medium); font-size: 0.875rem; line-height: 1.5; }
+        @media (max-width: 900px) {
+            .daily-grid { display: flex; overflow-x: auto; gap: 12px; padding: 4px 4px 12px; margin: -4px; }
+            .daily-card { flex: 0 0 270px; }
+        }
+        @media (max-width: 360px) {
+            .daily-card { flex-basis: 245px; }
+            #continueSection .continue-card { width: 250px; }
         }
 
         /* Continue Playing section */
@@ -1562,7 +1586,7 @@
         .news-strip { margin-bottom: 40px; }
         .news-strip-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
             gap: 16px;
         }
         .news-strip-card {
@@ -1806,182 +1830,90 @@
         </div>
     </header>
     
-    <section class="hero">
+    <section class="hero" aria-labelledby="portal-title">
         <div class="hero-content">
-            <div class="hero-logo">
-                <svg viewBox="0 0 700 160" xmlns="http://www.w3.org/2000/svg" aria-label="GameVolt">
-                    <defs>
-                        <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="3" result="blur1"/>
-                            <feGaussianBlur stdDeviation="8" result="blur2"/>
-                            <feMerge>
-                                <feMergeNode in="blur2"/>
-                                <feMergeNode in="blur1"/>
-                                <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                        </filter>
-                        <filter id="boltGlow" x="-50%" y="-50%" width="200%" height="200%">
-                            <feGaussianBlur stdDeviation="4" result="blur1"/>
-                            <feGaussianBlur stdDeviation="8" result="blur2"/>
-                            <feMerge>
-                                <feMergeNode in="blur2"/>
-                                <feMergeNode in="blur1"/>
-                                <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                        </filter>
-                        <filter id="subtleGlow" x="-10%" y="-10%" width="120%" height="120%">
-                            <feGaussianBlur stdDeviation="2" result="blur"/>
-                            <feMerge>
-                                <feMergeNode in="blur"/>
-                                <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                        </filter>
-                        <linearGradient id="boltGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b4a0ff"/>
-                            <stop offset="50%" style="stop-color:#c084fc"/>
-                            <stop offset="100%" style="stop-color:#f472b6"/>
-                        </linearGradient>
-                        <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#9b82ff"/>
-                            <stop offset="60%" style="stop-color:#ffffff"/>
-                            <stop offset="100%" style="stop-color:#38bdf8"/>
-                        </linearGradient>
-                        <linearGradient id="voltGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#c084fc"/>
-                            <stop offset="100%" style="stop-color:#f472b6"/>
-                        </linearGradient>
-                        <linearGradient id="bigGGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#9b82ff"/>
-                            <stop offset="100%" style="stop-color:#38bdf8"/>
-                        </linearGradient>
-                        <linearGradient id="bigVGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#c084fc"/>
-                            <stop offset="100%" style="stop-color:#f472b6"/>
-                        </linearGradient>
-                    </defs>
-                    <g filter="url(#boltGlow)" transform="translate(32, 18)">
-                        <polygon points="55,0 20,58 42,58 28,120 85,48 58,48 75,0" fill="url(#boltGrad)" stroke="#b4a0ff" stroke-width="1.5" stroke-linejoin="round"/>
-                        <polygon points="55,12 28,55 44,55 34,105 75,52 57,52 68,12" fill="white" opacity="0.15"/>
-                    </g>
-                    <text y="100" font-family="'Arial Black','Impact',sans-serif" font-weight="900" filter="url(#neonGlow)">
-                        <tspan x="140" font-size="92" fill="url(#bigGGrad)">G</tspan>
-                        <tspan font-size="70" fill="url(#textGrad)" letter-spacing="2">AME</tspan>
-                    </text>
-                    <text y="100" font-family="'Arial Black','Impact',sans-serif" font-weight="900" filter="url(#neonGlow)">
-                        <tspan x="420" font-size="92" fill="url(#bigVGrad)">V</tspan>
-                        <tspan font-size="70" fill="url(#voltGrad)" letter-spacing="2">OLT</tspan>
-                    </text>
-                    <text x="350" y="138" font-family="'Courier New',monospace" font-size="13" letter-spacing="6" fill="#b4a0ff" text-anchor="middle" opacity="0.75" filter="url(#subtleGlow)">ORIGINAL HTML5 GAMES</text>
-                    <line x1="200" y1="148" x2="500" y2="148" stroke="#f472b6" stroke-width="0.5" opacity="0.35"/>
-                </svg>
-            </div>
-            <h1>Original browser games.<br><span class="hero-grad">Just the ones I make.</span></h1>
-            <p>GameVolt is a tiny studio portal — free HTML5 games with no ads, no install and no account required. Closer to a maker's shelf than a game dump.</p>
-            <div class="hero-stats">
-                <div class="stat">
-                    <span class="stat-number">23</span>
-                    <span class="stat-label">Games I've made</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number">0</span>
-                    <span class="stat-label">Ads, ever</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number">1</span>
-                    <span class="stat-label">Maker behind it all</span>
-                </div>
-            </div>
-            <p class="hero-maker">Made by Martin · one person behind every title on <strong>gamevolt.io</strong></p>
+            <h1 id="portal-title">Original browser games.</h1>
+            <p>Made by Martin in Sweden. No install or account needed.</p>
+            <ul class="hero-stats" aria-label="About GameVolt">
+                <li><strong>23</strong> free games</li>
+                <li><strong>0</strong> ads</li>
+                <li><strong>1</strong> maker</li>
+            </ul>
         </div>
     </section>
-    
+
     <main>
-        <!-- New on GameVolt — the three latest releases, newest first -->
-        <div class="editors-choice">
-            <div class="section-header">
-                <h2 class="section-title">New on GameVolt</h2>
-            </div>
-            <div class="ec-grid">
-                <!-- Short Circuit (Aug 2026) -->
-                <a href="/play/?game=short-circuit" class="ec-card">
-                    <div class="ec-thumb">
-                        <img src="/assets/thumbnails/short-circuit.webp" alt="Play Short Circuit online free">
-                        <video class="preview-video" muted loop playsinline preload="none"></video>
-                        <div class="ec-play-overlay">
-                            <div class="ec-play-btn">
-                                <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ec-info">
-                        <div class="ec-name">Short Circuit</div>
-                        <div class="ec-desc">Route the current before it routes you — uncover conductors, swap them into a route from IN to OUT, ahead of the live current — with a daily lock and live 1v1 breaker duels</div>
-                        <span class="ec-cta">▶ Play Instantly</span>
-                    </div>
-                </a>
-                <!-- Manny the Mole (Aug 2026) -->
-                <a href="/play/?game=manny-the-mole" class="ec-card">
-                    <div class="ec-thumb">
-                        <img src="/manny-the-mole/og-image.png" alt="Play Manny the Mole online free">
-                        <video class="preview-video" muted loop playsinline preload="none"></video>
-                        <div class="ec-play-overlay">
-                            <div class="ec-play-btn">
-                                <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ec-info">
-                        <div class="ec-name">Manny the Mole</div>
-                        <div class="ec-desc">Mr. Driller-style digging arcade — dig deep, crack the vault's circuit lock & keep the daily streak alive</div>
-                        <span class="ec-cta">▶ Play Instantly</span>
-                    </div>
-                </a>
-
-                <!-- Spinburn (Jul 2026) -->
-                <a href="/play/?game=spinburn" class="ec-card" data-preview="/spinburn/preview.mp4">
-                    <div class="ec-thumb">
-                        <img src="/spinburn/og-image.png" alt="Play Spinburn online free">
-                        <video class="preview-video" muted loop playsinline preload="none"></video>
-                        <div class="ec-play-overlay">
-                            <div class="ec-play-btn">
-                                <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ec-info">
-                        <div class="ec-name">Spinburn</div>
-                        <div class="ec-desc">2.5D arcade table tennis — climb the tournament ladder or play a friend online</div>
-                        <span class="ec-cta">▶ Play Instantly</span>
-                    </div>
-                </a>
-
-                <!-- Gridburn (Jul 2026) -->
-                <a href="/play/?game=gridburn" class="ec-card">
-                    <div class="ec-thumb">
-                        <img src="/gridburn/og-image.png" alt="Play Gridburn online free">
-                        <video class="preview-video" muted loop playsinline preload="none"></video>
-                        <div class="ec-play-overlay">
-                            <div class="ec-play-btn">
-                                <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ec-info">
-                        <div class="ec-name">Gridburn</div>
-                        <div class="ec-desc">Tron-style light-cycle duels — online multiplayer with room codes & three AI brains</div>
-                        <span class="ec-cta">▶ Play Instantly</span>
-                    </div>
-                </a>
-
-            </div>
-        </div>
-
         <div id="continueSection" class="continue-section" style="display:none;">
             <div class="section-header">
                 <h2 class="section-title">Continue Playing</h2>
             </div>
             <div class="continue-grid" id="continueGrid"></div>
         </div>
+
+        <section class="starter-picks" aria-labelledby="picks-title">
+            <div class="section-header">
+                <h2 class="section-title" id="picks-title">Martin's picks</h2>
+                <a class="section-link" href="#games">All 23 games &rarr;</a>
+            </div>
+            <div class="picks-grid">
+                <a class="pick-card" href="/play/?game=short-circuit">
+                    <div class="pick-thumb">
+                        <img src="/assets/thumbnails/short-circuit.webp" alt="" width="640" height="360" fetchpriority="high">
+                    </div>
+                    <div class="pick-info">
+                        <span class="pick-kind">Solve a puzzle</span>
+                        <h3 class="pick-name">Short Circuit</h3>
+                        <p class="pick-description">Connect the circuit before the current catches up.</p>
+                        <span class="pick-cta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18l15-9z"/></svg>Play now</span>
+                    </div>
+                </a>
+                <a class="pick-card" href="/play/?game=hoverdash" data-preview="/hoverdash/preview.mp4">
+                    <div class="pick-thumb">
+                        <img src="/assets/thumbnails/hoverdash.webp" alt="" width="640" height="360">
+                        <video class="preview-video" muted loop playsinline preload="none" aria-hidden="true"></video>
+                    </div>
+                    <div class="pick-info">
+                        <span class="pick-kind">Chase a high score</span>
+                        <h3 class="pick-name">HoverDash</h3>
+                        <p class="pick-description">Dodge obstacles and boost through three neon lanes.</p>
+                        <span class="pick-cta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18l15-9z"/></svg>Play now</span>
+                    </div>
+                </a>
+                <a class="pick-card" href="/play/?game=spinburn" data-preview="/spinburn/preview.mp4">
+                    <div class="pick-thumb">
+                        <img src="/spinburn/og-image.png" alt="" width="640" height="360">
+                        <video class="preview-video" muted loop playsinline preload="none" aria-hidden="true"></video>
+                    </div>
+                    <div class="pick-info">
+                        <span class="pick-kind">Challenge a friend</span>
+                        <h3 class="pick-name">Spinburn</h3>
+                        <p class="pick-description">Spin and smash past rivals in arcade table tennis.</p>
+                        <span class="pick-cta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18l15-9z"/></svg>Play now</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <section class="daily-section" aria-labelledby="daily-title">
+            <div class="section-header">
+                <h2 class="section-title" id="daily-title">Today's challenges</h2>
+                <p class="daily-intro">A fresh puzzle every day.</p>
+            </div>
+            <div class="daily-grid">
+                <a class="daily-card" href="/play/?game=short-circuit&amp;mode=daily">
+                    <img src="/assets/thumbnails/short-circuit.webp" alt="" width="96" height="96" loading="lazy">
+                    <div><h3>Short Circuit</h3><p>Route the current. Beat today's lock.</p><span>Open Daily Lock &rarr;</span></div>
+                </a>
+                <a class="daily-card" href="/play/?game=golden-glyphs&amp;mode=daily">
+                    <img src="/assets/thumbnails/golden-glyphs.webp" alt="" width="96" height="96" loading="lazy">
+                    <div><h3>Golden Glyphs</h3><p>Fit every block into today's puzzle.</p><span>Open Daily Challenge &rarr;</span></div>
+                </a>
+                <a class="daily-card" href="/play/?game=livewire&amp;mode=daily">
+                    <img src="/assets/thumbnails/livewire.webp" alt="" width="96" height="96" loading="lazy">
+                    <div><h3>Livewire</h3><p>Join the dots without crossing wires.</p><span>Play Daily Puzzle &rarr;</span></div>
+                </a>
+            </div>
+        </section>
 
         <div id="favoritesSection" class="continue-section" style="display:none;">
             <div class="section-header">
@@ -1991,81 +1923,70 @@
             <div class="continue-grid" id="favoritesGrid"></div>
         </div>
 
-        <!-- Community: Top Players + Activity Feed -->
-        <div class="community-row" id="communityRow" style="display:none">
-            <div class="top-players">
-                <div class="widget-title"><span class="icon">👑</span> Top Players</div>
-                <div id="topPlayersList"></div>
-                <a href="/leaderboards/" class="widget-link">View Full Leaderboard →</a>
-            </div>
-            <div class="activity-feed">
-                <div class="widget-title"><span class="icon">⚡</span> Recent Activity</div>
-                <div class="activity-list" id="activityList"></div>
-            </div>
+        <div class="section-header">
+            <h2 class="section-title" id="games">All Games</h2>
         </div>
 
         <div class="category-filters" id="categoryFilters">
-            <button class="category-pill active" data-filter="all">
+            <button class="category-pill active" data-filter="all" aria-pressed="true">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
                 <span class="pill-count">23</span>
             </button>
-            <button class="category-pill" data-filter="coffee-break">
+            <button class="category-pill" data-filter="coffee-break" aria-pressed="false">
                 <span class="pill-icon">☕</span>
                 <span>Coffee Break</span>
                 <span class="pill-count">12</span>
             </button>
-            <button class="category-pill" data-filter="brain-challenge">
+            <button class="category-pill" data-filter="brain-challenge" aria-pressed="false">
                 <span class="pill-icon">🧠</span>
                 <span>Brain Challenge</span>
                 <span class="pill-count">10</span>
             </button>
-            <button class="category-pill" data-filter="action">
+            <button class="category-pill" data-filter="action" aria-pressed="false">
                 <span class="pill-icon">🔥</span>
                 <span>Action</span>
                 <span class="pill-count">9</span>
             </button>
-            <button class="category-pill" data-filter="word">
+            <button class="category-pill" data-filter="word" aria-pressed="false">
                 <span class="pill-icon">⌨️</span>
                 <span>Word</span>
                 <span class="pill-count">1</span>
             </button>
-            <button class="category-pill" data-filter="multiplayer">
+            <button class="category-pill" data-filter="multiplayer" aria-pressed="false">
                 <span class="pill-icon">🌐</span>
                 <span>Multiplayer</span>
                 <span class="pill-count">4</span>
             </button>
             <span class="category-pill-sep" aria-hidden="true"></span>
-            <button class="category-pill" data-filter="trending">
+            <button class="category-pill" data-filter="most-played" aria-pressed="false">
                 <span class="pill-icon">🔥</span>
-                <span>Trending</span>
+                <span>Your most played</span>
             </button>
-            <button class="category-pill" data-filter="top-rated">
+            <button class="category-pill" data-filter="top-rated" aria-pressed="false">
                 <span class="pill-icon">⭐</span>
                 <span>Top Rated</span>
             </button>
-            <button class="category-pill" data-filter="new">
+            <button class="category-pill" data-filter="new" aria-pressed="false">
                 <span class="pill-icon">🆕</span>
                 <span>New</span>
             </button>
         </div>
 
-        <div class="section-header">
-            <h2 class="section-title" id="games">All Games</h2>
-        </div>
+        <p id="game-sort-note" class="sort-note" role="status" hidden></p>
 
         <div class="games-grid">
             <!-- Short Circuit -->
             <a href="/play/?game=short-circuit" class="game-card" data-category="coffee-break puzzle multiplayer">
                 <div class="game-thumbnail">
-                    <img src="/assets/thumbnails/short-circuit.webp" alt="Play Short Circuit online free" fetchpriority="high">
+                    <img src="/assets/thumbnails/short-circuit.webp" alt="Play Short Circuit online free" loading="lazy">
                     <video class="preview-video" muted loop playsinline preload="none"></video>
                     <span class="game-badge new">NEW</span>
                     <span class="game-bolt">⚡</span>
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Short Circuit</h3>
-                    <p class="game-description">Circuit-lock puzzle born inside Manny the Mole's vault. Uncover hidden conductors and swap them into a route from IN to OUT — while the live current creeps up behind your fingers. 24-lock campaign with medal times, a daily lock that keeps your streak alive, and live 1v1 duels where only slamming the breaker stops your clock. Free in your browser — no download.</p>
+                    <p class="game-description">Connect the circuit before the current catches up.</p>
                     <div class="game-tags">
                         <span class="tag">Puzzle</span>
                         <span class="tag">Daily</span>
@@ -2084,7 +2005,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Manny the Mole</h3>
-                    <p class="game-description">Mr. Driller-style digging arcade. Dig down twelve shafts on a shrinking air meter — matched blocks crumble, the ceiling follows you down — and crack the vault's circuit lock at the bottom. 24-lock campaign with medal times, and a daily lock that keeps your streak alive. Free in your browser — no download.</p>
+                    <p class="game-description">Dig through falling blocks, then crack the vault.</p>
                     <div class="game-tags">
                         <span class="tag">Arcade</span>
                         <span class="tag">Digging</span>
@@ -2105,7 +2026,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Spinburn</h3>
-                    <p class="game-description">2.5D arcade table tennis with a neon tournament feel. Spin, smash and ace your way up a Punch-Out-style ladder against three characterful challengers, or play a friend online with a room code or invite link. First to 11, three AI difficulties, 31 trophies. Free in your browser — no download.</p>
+                    <p class="game-description">Spin and smash past rivals in arcade table tennis.</p>
                     <div class="game-tags">
                         <span class="tag">Arcade</span>
                         <span class="tag">Multiplayer</span>
@@ -2124,7 +2045,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Gridburn</h3>
-                    <p class="game-description">Tron-style light-cycle duels in a neon synthwave arena. Burn a glowing trail into the grid, box in your rival, and be the last one riding. Play a friend online with a room code or invite link, battle three AI difficulties, best of 5 rounds. Free in your browser — no download.</p>
+                    <p class="game-description">Trap your rival with a glowing trail. Last rider wins.</p>
                     <div class="game-tags">
                         <span class="tag">Arcade</span>
                         <span class="tag">Multiplayer</span>
@@ -2142,7 +2063,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Vector Hexagon</h3>
-                    <p class="game-description">A Super Hexagon-style twitch survival game. Orbit the core and slip into the gap as walls close in, while the field morphs between square, pentagon and hexagon and pulses to the music. Climb the tiers or chase an endless high score. Free in your browser — no download.</p>
+                    <p class="game-description">Dodge closing walls and survive one more second.</p>
                     <div class="game-tags">
                         <span class="tag">Arcade</span>
                         <span class="tag">Twitch</span>
@@ -2161,7 +2082,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">HoverDash</h3>
-                    <p class="game-description">Dodge obstacles, collect coins, and boost through neon lanes in this fast-paced endless runner. Three lanes of increasing speed with keyboard and swipe controls. Free to play in your browser — no download needed.</p>
+                    <p class="game-description">Dodge obstacles and boost through three neon lanes.</p>
                     <div class="game-tags">
                         <span class="tag">Runner</span>
                         <span class="tag">Arcade</span>
@@ -2179,7 +2100,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Snake Neo</h3>
-                    <p class="game-description">Classic Snake reimagined with three unique modes — Nokia 3310 nostalgia, synthwave Neo, and 16-bit Fruit Chain. Play this free browser game on desktop or mobile with touch controls.</p>
+                    <p class="game-description">Eat, grow and avoid your tail in three Snake modes.</p>
                     <div class="game-tags">
                         <span class="tag">Arcade</span>
                         <span class="tag">Retro</span>
@@ -2198,7 +2119,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Breakout</h3>
-                    <p class="game-description">Smash bricks with your paddle and ball in this classic brick-breaker arcade game. Grab power-ups, beat levels, and chase high scores. Play free online — no download required.</p>
+                    <p class="game-description">Bounce the ball, smash bricks and grab power-ups.</p>
                     <div class="game-tags">
                         <span class="tag">Arcade</span>
                         <span class="tag">Classic</span>
@@ -2215,7 +2136,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Tap Rush</h3>
-                    <p class="game-description">Test your reaction speed in this fast-paced reflex game. Tap targets, avoid bombs, and race the clock. Play free in your browser on any device — no download needed.</p>
+                    <p class="game-description">Tap the targets, dodge bombs and beat the clock.</p>
                     <div class="game-tags">
                         <span class="tag">Reaction</span>
                         <span class="tag">Speed</span>
@@ -2233,7 +2154,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Solitaire Collection</h3>
-                    <p class="game-description">Six classic card games in one collection — Klondike, FreeCell, Spider, Pyramid, TriPeaks and Golf. Free to play online with global leaderboards. Works on phone, tablet, and desktop.</p>
+                    <p class="game-description">Unwind with six card games, from Klondike to Spider.</p>
                     <div class="game-tags">
                         <span class="tag">Cards</span>
                         <span class="tag">Classic</span>
@@ -2252,7 +2173,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">BlockStorm</h3>
-                    <p class="game-description">Synthwave-styled block puzzle with Marathon, Sprint and Ultra modes. Compete on global leaderboards. Free browser puzzle game — no download, no ads.</p>
+                    <p class="game-description">Stack falling blocks and clear lines to the beat.</p>
                     <div class="game-tags">
                         <span class="tag">Puzzle</span>
                         <span class="tag">Synthwave</span>
@@ -2270,7 +2191,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Connect 4</h3>
-                    <p class="game-description">Classic four-in-a-row strategy game. Play against a friend locally or challenge three difficulty levels of AI. Free to play online in your browser.</p>
+                    <p class="game-description">Line up four discs against a friend or the computer.</p>
                     <div class="game-tags">
                         <span class="tag">Strategy</span>
                         <span class="tag">2 Player</span>
@@ -2288,7 +2209,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Axeluga</h3>
-                    <p class="game-description">Vertical space shooter with 5 worlds, epic boss battles, and power-ups. Gamepad and touch controls supported. Play this free arcade shooter in your browser — no download needed.</p>
+                    <p class="game-description">Blast through five worlds and take on giant bosses.</p>
                     <div class="game-tags">
                         <span class="tag">Space Shooter</span>
                         <span class="tag">Action</span>
@@ -2307,7 +2228,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Gravity Well</h3>
-                    <p class="game-description">Physics-based space arcade game. Control a black hole, absorb cosmic particles, and avoid antimatter across five waves. Free to play in your browser on mobile or desktop.</p>
+                    <p class="game-description">Steer a black hole. Absorb particles, avoid antimatter.</p>
                     <div class="game-tags">
                         <span class="tag">Arcade</span>
                         <span class="tag">Space</span>
@@ -2324,7 +2245,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Sudoku</h3>
-                    <p class="game-description">Classic number puzzle with three difficulty levels. Pencil marks, undo, and auto-save. Play Sudoku free online — no download, works on any device.</p>
+                    <p class="game-description">Fill the grid with logic, one number at a time.</p>
                     <div class="game-tags">
                         <span class="tag">Puzzle</span>
                         <span class="tag">Brain</span>
@@ -2343,7 +2264,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Manga Match</h3>
-                    <p class="game-description">Manga-themed match-3 puzzle with combos, fever mode, and 30 stages across 3 worlds. Daily challenges, power-ups, and trophies. Free to play in your browser.</p>
+                    <p class="game-description">Match gems and set off combos across 30 manga stages.</p>
                     <div class="game-tags">
                         <span class="tag">Match-3</span>
                         <span class="tag">Puzzle</span>
@@ -2362,7 +2283,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Golden Glyphs</h3>
-                    <p class="game-description">Mystical block puzzle with 100 campaign levels across 4 worlds, daily challenges, time attack mode, and zen mode. Unlock cosmetics and climb the leaderboard.</p>
+                    <p class="game-description">Fit blocks, clear lines and solve 100 puzzle levels.</p>
                     <div class="game-tags">
                         <span class="tag">Puzzle</span>
                         <span class="tag">Block</span>
@@ -2381,7 +2302,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">One Stroke</h3>
-                    <p class="game-description">Hamiltonian path puzzle — visit every node exactly once. 200 campaign levels, daily challenges with leaderboards, and 31 trophies to unlock.</p>
+                    <p class="game-description">Find one unbroken path through every dot.</p>
                     <div class="game-tags">
                         <span class="tag">Puzzle</span>
                         <span class="tag">Logic</span>
@@ -2397,7 +2318,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Asteroid Storm</h3>
-                    <p class="game-description">Space arcade shooter — 9 ships, 30 challenge missions, boss battles, local co-op, 31 trophies. Keyboard, gamepad, and mobile touch controls.</p>
+                    <p class="game-description">Dodge asteroids and blast bosses, solo or in co-op.</p>
                     <div class="game-tags">
                         <span class="tag">Action</span>
                         <span class="tag">Arcade</span>
@@ -2415,7 +2336,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Minesweeper</h3>
-                    <p class="game-description">Classic Minesweeper with Easy, Medium and Hard boards, a daily challenge, no-guess mode, global leaderboards and 31 trophies.</p>
+                    <p class="game-description">Read the numbers and uncover every safe square.</p>
                     <div class="game-tags">
                         <span class="tag">Puzzle</span>
                         <span class="tag">Logic</span>
@@ -2433,7 +2354,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Type or Die</h3>
-                    <p class="game-description">A typing zombie game and WPM speed test in one. Type to kill zombies, chase combos, survive boss waves, take the Daily Challenge — server-validated leaderboard and 31 trophies.</p>
+                    <p class="game-description">Type words to stop the zombies before they reach you.</p>
                     <div class="game-tags">
                         <span class="tag">Typing</span>
                         <span class="tag">WPM</span>
@@ -2451,7 +2372,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Chain Reaction</h3>
-                    <p class="game-description">A juiced-up 2048 where every merge can auto-cascade into a combo chain. Slide tiles, trigger chain reactions, reach 2048 and chase high scores — neon visuals, leaderboard and 31 trophies.</p>
+                    <p class="game-description">Merge number tiles and trigger cascading combos.</p>
                     <div class="game-tags">
                         <span class="tag">2048</span>
                         <span class="tag">Merge</span>
@@ -2468,7 +2389,7 @@
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Livewire</h3>
-                    <p class="game-description">A relaxing line-drawing puzzle — connect every pair of same-colored dots without letting the wires cross. Curated levels, a daily puzzle, endless mode, stars and 31 trophies.</p>
+                    <p class="game-description">Connect matching dots without crossing the wires.</p>
                     <div class="game-tags">
                         <span class="tag">Logic</span>
                         <span class="tag">Relaxing</span>
@@ -2477,6 +2398,75 @@
                     <span class="play-btn">▶ Play Now</span>
                 </div>
             </a>
+        </div>
+
+        <!-- Latest releases, newest first -->
+        <div class="editors-choice">
+            <div class="section-header">
+                <h2 class="section-title">New on GameVolt</h2>
+            </div>
+            <div class="ec-grid">
+                <!-- Short Circuit (Aug 2026) -->
+                <a href="/play/?game=short-circuit" class="ec-card">
+                    <div class="ec-thumb">
+                        <img src="/assets/thumbnails/short-circuit.webp" loading="lazy" alt="Play Short Circuit online free">
+                    </div>
+                    <div class="ec-info">
+                        <div class="ec-name">Short Circuit</div>
+                        <div class="ec-desc">Connect the circuit before the current catches up.</div>
+                        <span class="ec-cta">▶ Play Instantly</span>
+                    </div>
+                </a>
+                <!-- Manny the Mole (Aug 2026) -->
+                <a href="/play/?game=manny-the-mole" class="ec-card">
+                    <div class="ec-thumb">
+                        <img src="/manny-the-mole/og-image.png" loading="lazy" alt="Play Manny the Mole online free">
+                    </div>
+                    <div class="ec-info">
+                        <div class="ec-name">Manny the Mole</div>
+                        <div class="ec-desc">Dig through falling blocks, then crack the vault.</div>
+                        <span class="ec-cta">▶ Play Instantly</span>
+                    </div>
+                </a>
+
+                <!-- Spinburn (Jul 2026) -->
+                <a href="/play/?game=spinburn" class="ec-card">
+                    <div class="ec-thumb">
+                        <img src="/spinburn/og-image.png" loading="lazy" alt="Play Spinburn online free">
+                    </div>
+                    <div class="ec-info">
+                        <div class="ec-name">Spinburn</div>
+                        <div class="ec-desc">Spin and smash past rivals in arcade table tennis.</div>
+                        <span class="ec-cta">▶ Play Instantly</span>
+                    </div>
+                </a>
+
+                <!-- Gridburn (Jul 2026) -->
+                <a href="/play/?game=gridburn" class="ec-card">
+                    <div class="ec-thumb">
+                        <img src="/gridburn/og-image.png" loading="lazy" alt="Play Gridburn online free">
+                    </div>
+                    <div class="ec-info">
+                        <div class="ec-name">Gridburn</div>
+                        <div class="ec-desc">Trap your rival with a glowing trail. Last rider wins.</div>
+                        <span class="ec-cta">▶ Play Instantly</span>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+        <!-- Community: Top Players + Activity Feed -->
+        <div class="community-row" id="communityRow" style="display:none">
+            <div class="top-players">
+                <div class="widget-title"><span class="icon">👑</span> Top Players</div>
+                <div id="topPlayersList"></div>
+                <a href="/leaderboards/" class="widget-link">View Full Leaderboard →</a>
+            </div>
+            <div class="activity-feed">
+                <div class="widget-title"><span class="icon">⚡</span> Recent Activity</div>
+                <div class="activity-list" id="activityList"></div>
+            </div>
         </div>
 
         <div class="news-strip">
@@ -2544,7 +2534,7 @@
                         <div class="footer-logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><polygon points="13,2 5,14 11,14 9,22 19,10 13,10 15,2" fill="white"/></svg></div>
                         <span class="footer-logo-text">GameVolt</span>
                     </div>
-                    <p class="footer-tagline">Free browser games for everyone. Made with ❤️ in Sweden.</p>
+                    <p class="footer-tagline">Original browser games. Made by Martin in Sweden.</p>
                 </div>
                 <div class="footer-links">
                     <div class="footer-column">
@@ -2602,7 +2592,7 @@
     <script src="/js/gv-tracker.js"></script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
-    <script src="/js/gv-card-ratings.js" defer></script>
+    <script src="/js/gv-card-ratings.js?v=2" defer></script>
     <script src="/js/gv-search.js"></script>
     <script src="/sdk/gamevolt.js"></script>
     <script>
@@ -2654,7 +2644,7 @@
     initVideoPreview();
 
     // Category filter + sort tabs (All / Coffee Break / Brain Challenge /
-    // Action are filter-mode; Trending / Top Rated / New are sort/view-mode).
+    // Action are filter-mode; Your most played / Top Rated / New are sort/view-mode).
     (function() {
         var filters = document.getElementById('categoryFilters');
         var grid = document.querySelector('.games-grid');
@@ -2668,13 +2658,14 @@
             'action': 'Action',
             'word': 'Word',
             'multiplayer': 'Multiplayer',
-            'trending': '🔥 Trending',
+            'most-played': 'Your most played',
             'top-rated': '⭐ Top Rated',
             'new': '🆕 New'
         };
 
         var CATEGORY_FILTERS = { 'coffee-break':1, 'brain-challenge':1, 'action':1, 'word':1, 'multiplayer':1 };
-        var SORT_TABS = { 'trending':1, 'top-rated':1, 'new':1 };
+        var activeFilter = 'all';
+        var noteEl = document.getElementById('game-sort-note');
 
         // Snapshot the original DOM order so we can restore "All Games".
         var originalOrder = Array.prototype.slice.call(grid.querySelectorAll('.game-card'));
@@ -2721,11 +2712,16 @@
             });
         }
 
-        function applyTrending() {
-            // Uses local GVTracker data: highest totalPlayTimeMs first, then other
-            // games in their original order. Always shows all cards — no hiding.
+        function applyMostPlayed() {
+            // Personal history on this device, explicitly labelled as such.
             showAll();
             restoreOrder();
+            var hasHistory = window.GVTracker && originalOrder.some(function(card) {
+                var d = GVTracker.getGameData(slugOf(card));
+                return d && d.totalPlayTimeMs > 0;
+            });
+            setNote(hasHistory ? 'Based on your time played on this device.' :
+                'Play a game to build your most-played list on this device.');
             if (!window.GVTracker) return;
             reorderBy(function(card) {
                 var d = GVTracker.getGameData(slugOf(card));
@@ -2750,16 +2746,36 @@
             return Promise.resolve({});
         }
 
+        function setNote(text) {
+            if (!noteEl) return;
+            noteEl.textContent = text;
+            noteEl.hidden = !text;
+        }
+
         function applyTopRated() {
             showAll();
             restoreOrder();
+            setNote('Loading player ratings…');
             loadRatingAggregates().then(function(cache) {
-                reorderBy(function(card) {
-                    var agg = cache[slugOf(card)];
-                    // Secondary tiebreak: ratingCount as decimal
-                    if (!agg || !agg.count) return 0;
-                    return agg.avg + Math.min(agg.count, 999) / 10000;
+                // A late response must not override a category chosen meanwhile.
+                if (activeFilter !== 'top-rated') return;
+                if (!cache || !window.GVCardRatings) {
+                    setNote('Ratings are unavailable right now. You can still play every game below.');
+                    return;
+                }
+                var eligible = originalOrder.filter(function(card) {
+                    return GVCardRatings.rankScore(cache[slugOf(card)]) !== null;
                 });
+                if (!eligible.length) {
+                    setNote('No games have 5 player ratings yet. All games are shown below while votes come in.');
+                    return;
+                }
+                reorderBy(function(card) {
+                    return GVCardRatings.rankScore(cache[slugOf(card)]) || 0;
+                });
+                setNote('Ranked after 5 player ratings, with more weight given to games with more votes. Unranked games follow.');
+            }).catch(function() {
+                if (activeFilter === 'top-rated') setNote('Ratings are unavailable right now. You can still play every game below.');
             });
         }
 
@@ -2767,18 +2783,24 @@
             var pill = e.target.closest('.category-pill');
             if (!pill) return;
 
-            filters.querySelectorAll('.category-pill').forEach(function(p) { p.classList.remove('active'); });
+            filters.querySelectorAll('.category-pill').forEach(function(p) {
+                p.classList.remove('active');
+                p.setAttribute('aria-pressed', 'false');
+            });
             pill.classList.add('active');
+            pill.setAttribute('aria-pressed', 'true');
 
             var filter = pill.dataset.filter;
+            activeFilter = filter;
+            setNote('');
             if (filter === 'all') {
                 showAll();
                 restoreOrder();
             } else if (CATEGORY_FILTERS[filter]) {
                 applyFilterByCategory(filter);
                 restoreOrder();
-            } else if (filter === 'trending') {
-                applyTrending();
+            } else if (filter === 'most-played') {
+                applyMostPlayed();
             } else if (filter === 'top-rated') {
                 applyTopRated();
             } else if (filter === 'new') {
@@ -2841,6 +2863,7 @@
                 '<div class="continue-info">' +
                     '<div class="continue-name">' + meta.name + '</div>' +
                     '<div class="continue-meta">' + timeAgo + ' &middot; ' + playTime + ' played</div>' +
+                    '<span class="continue-resume">Play again &rarr;</span>' +
                 '</div>' +
             '</a>';
         }).join('');

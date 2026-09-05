@@ -1487,7 +1487,14 @@ function resetPiecesPosition() {
     }); 
 }
 
-function init() { if (!ctx) return; initSystems(); requestAnimationFrame(loop); }
+function init() {
+    if (!ctx) return;
+    initSystems();
+    if (new URLSearchParams(window.location.search).get('mode') === 'daily') {
+        gameState = 'DAILY_BRIEF';
+    }
+    requestAnimationFrame(loop);
+}
 function loop(timestamp) {
     loopRunning = true;
     if (!lastTime) lastTime = timestamp; const dt = (timestamp - lastTime) / 1000; lastTime = timestamp;
