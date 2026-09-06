@@ -1472,6 +1472,10 @@
             background: var(--bg-card); color: var(--text-bright); text-decoration: none;
         }
         .daily-card:hover { border-color: var(--primary-light); }
+        .daily-card.daily-complete { border-color: var(--primary-light); background: var(--bg-card-hover); }
+        .daily-card .daily-state { margin-top: 10px; font-size: 0.8rem; font-weight: 700; color: var(--text-bright); }
+        .daily-card .daily-result { margin-top: 3px; font-size: 0.78rem; line-height: 1.5; }
+        .daily-summary { margin: -10px 0 14px; font-size: 0.8rem; color: var(--text-medium); }
         .daily-card img { width: 56px; height: 72px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; }
         .daily-card h3 { font-family: 'Fredoka', sans-serif; font-size: 1rem; margin-bottom: 4px; }
         .daily-card p { color: var(--text-medium); font-size: 0.875rem; line-height: 1.4; }
@@ -1899,18 +1903,19 @@
                 <h2 class="section-title" id="daily-title">Today's challenges</h2>
                 <p class="daily-intro">A fresh puzzle every day.</p>
             </div>
+            <p class="daily-summary" id="dailyProgressSummary">Progress in this browser</p>
             <div class="daily-grid">
-                <a class="daily-card" href="/play/?game=short-circuit&amp;mode=daily">
+                <a class="daily-card" data-daily-game="short-circuit" href="/play/?game=short-circuit&amp;mode=daily">
                     <img src="/assets/thumbnails/short-circuit.webp" alt="" width="96" height="96" loading="lazy">
-                    <div><h3>Short Circuit</h3><p>Route the current. Beat today's lock.</p><span>Open Daily Lock &rarr;</span></div>
+                    <div><h3>Short Circuit</h3><p>Route the current. Beat today's lock.</p><p class="daily-state"></p><p class="daily-result"></p><span>Open Daily Lock &rarr;</span></div>
                 </a>
-                <a class="daily-card" href="/play/?game=golden-glyphs&amp;mode=daily">
+                <a class="daily-card" data-daily-game="golden-glyphs" href="/play/?game=golden-glyphs&amp;mode=daily">
                     <img src="/assets/thumbnails/golden-glyphs.webp" alt="" width="96" height="96" loading="lazy">
-                    <div><h3>Golden Glyphs</h3><p>Fit every block into today's puzzle.</p><span>Open Daily Challenge &rarr;</span></div>
+                    <div><h3>Golden Glyphs</h3><p>Fit every block into today's puzzle.</p><p class="daily-state"></p><p class="daily-result"></p><span>Open Daily Challenge &rarr;</span></div>
                 </a>
-                <a class="daily-card" href="/play/?game=livewire&amp;mode=daily">
+                <a class="daily-card" data-daily-game="livewire" href="/play/?game=livewire&amp;mode=daily">
                     <img src="/assets/thumbnails/livewire.webp" alt="" width="96" height="96" loading="lazy">
-                    <div><h3>Livewire</h3><p>Join the dots without crossing wires.</p><span>Play Daily Puzzle &rarr;</span></div>
+                    <div><h3>Livewire</h3><p>Join the dots without crossing wires.</p><p class="daily-state"></p><p class="daily-result"></p><span>Play Daily Puzzle &rarr;</span></div>
                 </a>
             </div>
         </section>
@@ -2591,6 +2596,7 @@
 
     <script src="/js/gv-tracker.js"></script>
     <script src="/js/gv-discovery.js?v=1" defer></script>
+    <script src="/js/gv-daily-progress.js?v=1" defer></script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
     <script src="/js/gv-card-ratings.js?v=2" defer></script>

@@ -132,6 +132,7 @@ test('rotation uses the shared requirements, keeps the exit focused, and restore
     const header = {}, main = {};
     Object.assign(environment, {
         GVGameHints: hints, currentGame: 'breakout', rotating: false,
+        playerSupport: { dialog: { open: true, close() { this.open = false; } } },
         rotateQuery: { matches: true }, rotateBack: { focus: () => backFocused++ },
         rotateOverlay: { classList: { toggle: (_, value) => { active = value; } } },
         frame: { focus: () => frameFocused++ }
@@ -140,6 +141,7 @@ test('rotation uses the shared requirements, keeps the exit focused, and restore
     vm.runInContext(player.slice(player.indexOf('    function syncOrientation()'), player.indexOf("    rotateQuery.addEventListener")), environment);
     environment.syncOrientation();
     assert.equal(active, true); assert.equal(header.inert, true); assert.equal(main.inert, true); assert.equal(backFocused, 1);
+    assert.equal(environment.playerSupport.dialog.open, false);
     environment.rotateQuery.matches = false; environment.syncOrientation();
     assert.equal(active, false); assert.equal(header.inert, false); assert.equal(main.inert, false); assert.equal(frameFocused, 1);
     environment.currentGame = 'short-circuit'; environment.rotateQuery.matches = true; environment.syncOrientation();
