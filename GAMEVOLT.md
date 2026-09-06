@@ -539,8 +539,10 @@ Use this checklist every time a new game is added to GameVolt, or when an existi
 ### 3. Orientation
 
 - [ ] Decide: does this game require **landscape** or work in **portrait**?
-- [ ] If landscape-required: add `landscape: true` to the GAMES config in `/play/index.html`
-  > The player page shows a "Rotate your device" overlay for landscape games in portrait.
+- [ ] If landscape-required: add the game slug to the list in `/js/gv-game-hints.js`
+  > This shared list adds "Landscape on mobile" to portal cards and controls the
+  > player's rotation notice. The notice includes a keyboard-accessible link back
+  > to the catalog and keeps the obscured game/navigation out of the focus order.
   > The game does NOT need its own rotate screen — the player handles it.
 - [ ] If portrait: no flag needed, game plays as-is in portrait
 - [ ] Game canvas resizes responsively to fill available space
@@ -635,6 +637,11 @@ look**; don't invent a vibe the game doesn't have.
 ### 6. postMessage Integration
 
 Games communicate with the player page via `postMessage`. This enables session tracking, high scores, and achievements in the portal.
+
+Homepage entry measurement lives in `/js/gv-discovery.js`. The player adds
+`selection_source`, `game_id` and `entry_mode` to existing GA4 game events and
+accepts them only from its current iframe. See [discovery analytics](docs/discovery-analytics.md)
+for the event contract, GA4 custom-dimension setup and the comparison funnel.
 
 - [ ] Add the `gvPost` helper function:
   ```javascript

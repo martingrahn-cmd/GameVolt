@@ -1847,10 +1847,10 @@
             <div class="section-header">
                 <h2 class="section-title">Continue Playing</h2>
             </div>
-            <div class="continue-grid" id="continueGrid"></div>
+            <div class="continue-grid" id="continueGrid" data-selection-source="continue_playing"></div>
         </div>
 
-        <section class="starter-picks" aria-labelledby="picks-title">
+        <section data-selection-source="martins_picks" class="starter-picks" aria-labelledby="picks-title">
             <div class="section-header">
                 <h2 class="section-title" id="picks-title">Martin's picks</h2>
                 <a class="section-link" href="#games">All 23 games &rarr;</a>
@@ -1894,7 +1894,7 @@
             </div>
         </section>
 
-        <section class="daily-section" aria-labelledby="daily-title">
+        <section data-selection-source="daily_challenges" class="daily-section" aria-labelledby="daily-title">
             <div class="section-header">
                 <h2 class="section-title" id="daily-title">Today's challenges</h2>
                 <p class="daily-intro">A fresh puzzle every day.</p>
@@ -1920,7 +1920,7 @@
                 <h2 class="section-title">Your Favorites</h2>
                 <a href="/favorites/" class="section-link" style="font-size:0.85rem;color:var(--text-muted);text-decoration:none;">View all &rarr;</a>
             </div>
-            <div class="continue-grid" id="favoritesGrid"></div>
+            <div class="continue-grid" id="favoritesGrid" data-selection-source="favorites"></div>
         </div>
 
         <div class="section-header">
@@ -1975,7 +1975,7 @@
 
         <p id="game-sort-note" class="sort-note" role="status" hidden></p>
 
-        <div class="games-grid">
+        <div class="games-grid" data-selection-source="catalog">
             <!-- Short Circuit -->
             <a href="/play/?game=short-circuit" class="game-card" data-category="coffee-break puzzle multiplayer">
                 <div class="game-thumbnail">
@@ -2405,7 +2405,7 @@
             <div class="section-header">
                 <h2 class="section-title">New on GameVolt</h2>
             </div>
-            <div class="ec-grid">
+            <div class="ec-grid" data-selection-source="new_games">
                 <!-- Short Circuit (Aug 2026) -->
                 <a href="/play/?game=short-circuit" class="ec-card">
                     <div class="ec-thumb">
@@ -2590,6 +2590,7 @@
     </footer>
 
     <script src="/js/gv-tracker.js"></script>
+    <script src="/js/gv-discovery.js?v=1" defer></script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
     <script src="/js/gv-card-ratings.js?v=2" defer></script>
@@ -3136,5 +3137,6 @@
     })();
     </script>
     <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
+    <script src="/js/gv-game-hints.js?v=1" defer></script>
 </body>
 </html>
