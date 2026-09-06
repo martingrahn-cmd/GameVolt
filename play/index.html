@@ -734,6 +734,16 @@
       text-align: center;
       line-height: 1.6;
     }
+    .gv-rotate-game { max-width: 320px; padding: 0 20px; color: #b8b4cc; text-align: center; line-height: 1.5; }
+    .gv-rotate-back {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 48px; padding: 12px 24px; margin-top: 12px;
+      border: 1px solid #00eaff; border-radius: 10px;
+      background: #11313d; color: #fff; font-weight: 700; text-decoration: none;
+    }
+    .gv-rotate-back:hover { background: #1b4654; }
+    .gv-rotate-back:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+    @media (prefers-reduced-motion: reduce) { .gv-rotate-icon { animation: none; } }
     @keyframes gvRotateAnim {
       0% { transform: rotate(0deg); }
       50% { transform: rotate(-90deg); }
@@ -783,9 +793,11 @@
 <body>
 
   <!-- Rotate overlay (mobile portrait) -->
-  <div class="gv-rotate-overlay" id="rotateOverlay">
-    <div class="gv-rotate-icon">📱</div>
-    <div class="gv-rotate-text">ROTATE YOUR DEVICE<br>FOR THE BEST EXPERIENCE</div>
+  <div class="gv-rotate-overlay" id="rotateOverlay" role="dialog" aria-modal="true" aria-labelledby="rotateTitle" aria-describedby="rotateGameName">
+    <div class="gv-rotate-icon" aria-hidden="true">📱</div>
+    <div class="gv-rotate-text" id="rotateTitle">Turn your device sideways</div>
+    <p class="gv-rotate-game" id="rotateGameName"></p>
+    <a class="gv-rotate-back" id="rotateBack" href="/#games">← Back to games</a>
   </div>
 
   <!-- Header -->
@@ -900,12 +912,14 @@
   </div>
 
   <script src="/js/gv-card-ratings.js?v=2"></script>
+  <script src="/js/gv-game-hints.js?v=1"></script>
+  <script src="/js/gv-discovery.js?v=1"></script>
   <script>
     const GAMES = {
       "short-circuit": { name: "Short Circuit", category: "Puzzle", path: "/short-circuit/", thumb: "/assets/thumbnails/short-circuit.webp" },
       "manny-the-mole": { name: "Manny the Mole", category: "Arcade", path: "/manny-the-mole/", thumb: "/manny-the-mole/og-image.png" },
       snake:     { name: "Snake Neo",   category: "Arcade", path: "/snake/",      thumb: "/assets/thumbnails/snake.webp" },
-      breakout:  { name: "Breakout",    category: "Arcade", path: "/breakout/",   thumb: "/assets/thumbnails/breakout.webp", landscape: true },
+      breakout:  { name: "Breakout",    category: "Arcade", path: "/breakout/",   thumb: "/assets/thumbnails/breakout.webp" },
       taprush:   { name: "Tap Rush",    category: "Arcade", path: "/taprush/",    thumb: "/assets/thumbnails/taprush.webp" },
       solitaire: { name: "Solitaire",   category: "Board",  path: "/solitaire/",  thumb: "/assets/thumbnails/solitaire.webp" },
       connect4:  { name: "Connect 4",   category: "Board",  path: "/connect4/",   thumb: "/assets/thumbnails/connect4-thumbnail.webp" },
@@ -920,14 +934,14 @@
       "manga-match3": { name: "Manga Match", category: "Puzzle", path: "/manga-match3/", thumb: "/assets/thumbnails/manga-match3.webp" },
       "golden-glyphs": { name: "Golden Glyphs", category: "Puzzle", path: "/golden-glyphs/", thumb: "/assets/thumbnails/golden-glyphs.webp" },
       "one-stroke": { name: "One Stroke", category: "Puzzle", path: "/one-stroke/", thumb: "/assets/thumbnails/one-stroke.webp" },
-      "asteroid-storm": { name: "Asteroid Storm", category: "Action", path: "/asteroid-storm/", thumb: "/assets/thumbnails/asteroid-storm.webp", landscape: true },
+      "asteroid-storm": { name: "Asteroid Storm", category: "Action", path: "/asteroid-storm/", thumb: "/assets/thumbnails/asteroid-storm.webp" },
       minesweeper: { name: "Minesweeper", category: "Puzzle", path: "/minesweeper/", thumb: "/assets/thumbnails/minesweeper.webp" },
-      "type-or-die": { name: "Type or Die", category: "Word", path: "/type-or-die/", thumb: "/assets/thumbnails/type-or-die.webp", landscape: true },
+      "type-or-die": { name: "Type or Die", category: "Word", path: "/type-or-die/", thumb: "/assets/thumbnails/type-or-die.webp" },
       "chain-reaction": { name: "Chain Reaction", category: "Puzzle", path: "/chain-reaction/", thumb: "/assets/thumbnails/chain-reaction.webp" },
       "livewire": { name: "Livewire", category: "Puzzle", path: "/livewire/", thumb: "/assets/thumbnails/livewire.webp" }
     };
 
-    const frame = document.getElementById('gameFrame');
+    let frame = document.getElementById('gameFrame');
     const nameEl = document.getElementById('gameName');
     const catEl = document.getElementById('gameCategory');
     const grid = document.getElementById('sidebarGrid');
@@ -936,6 +950,21 @@
     const gameArea = document.getElementById('gameArea');
     const sessionTimeEl = document.getElementById('sessionTime');
     const rotateOverlay = document.getElementById('rotateOverlay');
+    const rotateBack = document.getElementById('rotateBack');
+    const rotateQuery = window.matchMedia('(max-width: 1024px) and (orientation: portrait)');
+    let rotating = false;
+    let currentEntry = null;
+
+    function syncOrientation() {
+      const required = !!(window.GVGameHints && GVGameHints.requiresLandscape(currentGame) && rotateQuery.matches);
+      rotateOverlay.classList.toggle('active', required);
+      document.querySelector('.gv-header').inert = required;
+      document.querySelector('.gv-main').inert = required;
+      if (required) rotateBack.focus({ preventScroll: true });
+      else if (rotating) frame.focus({ preventScroll: true });
+      rotating = required;
+    }
+    rotateQuery.addEventListener('change', syncOrientation);
 
     // ── Favorites ──
     function refreshFavButton() {
@@ -1147,7 +1176,7 @@
       }, 1000);
     }
 
-    function loadGame(key) {
+    function loadGame(key, sourceOverride) {
       const game = GAMES[key];
       if (!game) {
         document.querySelector('.gv-game-area').innerHTML =
@@ -1160,7 +1189,9 @@
         GVTracker.endSession(currentGame, sessionStart);
       }
 
+      const changingGame = currentGame && currentGame !== key;
       currentGame = key;
+      currentEntry = window.GVDiscovery ? GVDiscovery.context(window.location.href, key, sourceOverride) : { game_id: key };
       // Count a play (server-side aggregate) — fire-and-forget, anon RLS-safe via SECURITY DEFINER RPC
       try {
         var _sbUrl = 'https://nwkjayseuhvvpkdgpivm.supabase.co';
@@ -1182,13 +1213,23 @@
           entry.set('mode', 'daily');
         }
       }
-      frame.src = game.path + (entry.toString() ? '?' + entry.toString() : '');
+      currentEntry.entry_mode = entry.get('mode') === 'daily' ? 'daily' : 'default';
+      const gameUrl = game.path + (entry.toString() ? '?' + entry.toString() : '');
+      if (changingGame) {
+        // A new frame makes queued analytics from the previous game identifiable.
+        const nextFrame = frame.cloneNode(false);
+        nextFrame.src = gameUrl;
+        frame.replaceWith(nextFrame);
+        frame = nextFrame;
+      } else frame.src = gameUrl;
+      frame.title = game.name;
       nameEl.textContent = game.name;
       catEl.textContent = game.category;
       document.title = game.name + ' – Play Free on GameVolt';
 
-      // Show rotate overlay only for landscape-required games
-      rotateOverlay.classList.toggle('active', !!game.landscape);
+      document.getElementById('rotateGameName').textContent = game.name + ' plays in landscape on phones and tablets.';
+      syncOrientation();
+      if (window.GVDiscovery) GVDiscovery.send('game_open', currentEntry);
 
       // Start session tracking
       if (window.GVTracker) {
@@ -1199,7 +1240,10 @@
       }
 
       // Give iframe focus after load
-      frame.onload = function() { frame.focus(); };
+      frame.onload = function() {
+        if (rotating) rotateBack.focus({ preventScroll: true });
+        else frame.focus({ preventScroll: true });
+      };
 
       renderSidebar(key);
       refreshFavButton();
@@ -1208,7 +1252,7 @@
       // Only rewrite the URL when the game actually changed (sidebar navigation) —
       // this keeps extra params like ?challenge= intact on the initial load.
       if (new URLSearchParams(window.location.search).get('game') !== key) {
-        history.pushState({ game: key }, '', '/play/?game=' + key);
+        history.pushState({ game: key }, '', '/play/?game=' + key + (sourceOverride ? '&from=' + sourceOverride : ''));
       }
     }
 
@@ -1248,10 +1292,12 @@
         }
         const card = document.createElement('a');
         card.className = 'gv-sidebar-card';
-        card.href = '/play/?game=' + key;
+        card.href = '/play/?game=' + key + '&from=sidebar';
         card.onclick = (e) => {
+          if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
           e.preventDefault();
-          loadGame(key);
+          if (window.GVDiscovery) GVDiscovery.send('game_select', GVDiscovery.context(card.href, key));
+          loadGame(key, 'sidebar');
         };
         card.innerHTML =
           '<img class="gv-sidebar-thumb" src="' + game.thumb + '" alt="' + game.name + '" loading="lazy">' +
@@ -1308,9 +1354,10 @@
 
     // Forward GA4 events from games in iframe
     window.addEventListener('message', function(event) {
-      if (event.origin !== window.location.origin) return;
+      if (event.origin !== window.location.origin || event.source !== frame.contentWindow) return;
       if (event.data && event.data.type === 'gamevolt_ga4' && typeof gtag === 'function') {
-        gtag('event', event.data.event, event.data.params || {});
+        const params = window.GVDiscovery ? GVDiscovery.enrich(event.data.params, currentEntry) : (event.data.params || {});
+        gtag('event', event.data.event, params);
       }
     });
 
@@ -1479,8 +1526,8 @@
 
     // Hook into loadGame to refresh leaderboard
     var _origLoadGame = loadGame;
-    loadGame = function(key) {
-      _origLoadGame(key);
+    loadGame = function(key, sourceOverride) {
+      _origLoadGame(key, sourceOverride);
       loadSidebarLeaderboard(key);
     };
 
