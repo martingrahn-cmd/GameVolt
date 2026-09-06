@@ -409,6 +409,39 @@
       color: var(--text-bright);
     }
 
+    .gv-help-btn, .gv-support-button {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      min-height: 38px; padding: 7px 12px; border-radius: 8px;
+      border: 1px solid var(--border-subtle); background: var(--bg-card);
+      color: var(--text-bright); font: 600 0.8rem 'DM Sans', sans-serif; cursor: pointer;
+    }
+    .gv-help-btn:hover, .gv-support-button:hover { border-color: var(--primary-light); }
+    .gv-help-btn:focus-visible, .gv-support-button:focus-visible { outline: 3px solid var(--primary-light); outline-offset: 2px; }
+    .gv-help-btn svg { flex-shrink: 0; }
+    .gv-help {
+      margin: auto; padding: 24px; width: min(520px, calc(100% - 24px));
+      max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain;
+      border: 1px solid var(--border-subtle); border-radius: 16px;
+      background: var(--bg-surface); color: var(--text-bright); box-shadow: 0 24px 80px #0008;
+      scrollbar-width: thin; scrollbar-color: var(--text-muted) var(--bg-surface);
+    }
+    .gv-help::backdrop { background: #050010b8; }
+    .gv-help-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .gv-help h2 { font: 500 1.45rem 'Fredoka', sans-serif; }
+    .gv-help h3 { margin: 18px 0 5px; font-size: 0.85rem; color: var(--primary-light); }
+    .gv-help p { font-size: 0.9rem; line-height: 1.6; color: var(--text-medium); }
+    .gv-help-footer { border-top: 1px solid var(--border-subtle); margin-top: 22px; padding-top: 16px; }
+    .gv-help-footer p { margin-bottom: 10px; font-size: 0.8rem; }
+    .gv-load-status {
+      position: absolute; z-index: 5; left: 12px; right: 12px; bottom: 12px;
+      width: fit-content; max-width: min(480px, calc(100% - 24px)); margin: 0 auto;
+      padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border-subtle);
+      background: var(--bg-surface); color: var(--text-bright); box-shadow: 0 4px 24px #0005;
+      font-size: 0.875rem; line-height: 1.5;
+    }
+    .gv-load-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .gv-load-status[hidden], .gv-load-actions[hidden] { display: none; }
+
     /* ── Sidebar ── */
     .gv-sidebar {
       width: var(--sidebar-w);
@@ -696,18 +729,24 @@
         justify-content: center;
       }
       .gv-fullscreen-btn span { display: none; }
+      .gv-help-btn { width: 34px; height: 38px; padding: 6px; }
+      .gv-help-btn span { display: none; }
     }
 
     /* ── Mobile portrait: compact bottom bar ── */
     @media (max-width: 1024px) and (orientation: portrait) {
       /* Extra bottom padding keeps the buttons above the iPhone home indicator */
-      .gv-game-bar { height: calc(32px + var(--safe-bottom)); padding: 0 10px var(--safe-bottom); }
+      .gv-game-bar { height: calc(48px + var(--safe-bottom)); padding: 0 8px var(--safe-bottom); gap: 8px; }
       .gv-bar-home { display: flex; width: 28px; height: 28px; }
       .gv-game-name { font-size: 0.8rem; }
       .gv-category-tag { display: none; }
       .gv-session-time { display: none; }
       .gv-fullscreen-btn span { display: none; }
       .gv-fullscreen-btn { padding: 5px; width: 28px; height: 28px; justify-content: center; }
+      .gv-game-name { min-width: 0; }
+      #gameName { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .gv-bar-right { gap: 5px; flex-shrink: 0; }
+      .gv-help-btn { padding: 6px 8px; }
     }
 
     /* ── Portrait orientation overlay ── */
@@ -861,6 +900,14 @@
     <div class="gv-game-area" id="gameArea">
       <div class="gv-iframe-wrap" id="iframeWrap">
         <iframe id="gameFrame" allow="autoplay; fullscreen; gamepad"></iframe>
+        <div class="gv-load-status" id="gameLoadStatus" hidden>
+          <p id="gameLoadMessage" role="status"></p>
+          <div class="gv-load-actions" id="gameLoadActions" hidden>
+            <button class="gv-support-button" id="gameLoadRetry" type="button">Try again</button>
+            <button class="gv-support-button" id="gameLoadWait" type="button">Keep waiting</button>
+            <a class="gv-support-button" href="/#games">Back to games</a>
+          </div>
+        </div>
       </div>
       <div class="gv-game-bar">
         <a href="/" class="gv-bar-home" title="Back to GameVolt">
@@ -872,6 +919,10 @@
         </div>
         <div class="gv-bar-right">
           <span class="gv-session-time" id="sessionTime"></span>
+          <button class="gv-help-btn" id="helpBtn" type="button" aria-haspopup="dialog" aria-controls="gameHelp" aria-label="How to play" title="How to play">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3v1"/></svg>
+            <span>How to play</span>
+          </button>
           <button class="gv-fav-btn" id="favBtn" title="Add to favorites" aria-label="Add to favorites" aria-pressed="false">
             <svg class="gv-fav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           </button>
@@ -884,6 +935,17 @@
           </button>
         </div>
       </div>
+      <dialog class="gv-help" id="gameHelp" aria-labelledby="gameHelpTitle">
+        <div class="gv-help-header">
+          <h2 id="gameHelpTitle">How to play</h2>
+          <button class="gv-support-button" id="helpClose" type="button" autofocus>Close</button>
+        </div>
+        <div id="gameHelpBody"></div>
+        <div class="gv-help-footer">
+          <p>Game stuck? Reloading restarts the game. Unsaved progress may be lost.</p>
+          <button class="gv-support-button" id="helpReload" type="button">Reload game</button>
+        </div>
+      </dialog>
     </div>
 
     <!-- Sidebar -->
@@ -914,6 +976,7 @@
   <script src="/js/gv-card-ratings.js?v=2"></script>
   <script src="/js/gv-game-hints.js?v=1"></script>
   <script src="/js/gv-discovery.js?v=1"></script>
+  <script src="/js/gv-player-support.js?v=1"></script>
   <script>
     const GAMES = {
       "short-circuit": { name: "Short Circuit", category: "Puzzle", path: "/short-circuit/", thumb: "/assets/thumbnails/short-circuit.webp" },
@@ -954,9 +1017,17 @@
     const rotateQuery = window.matchMedia('(max-width: 1024px) and (orientation: portrait)');
     let rotating = false;
     let currentEntry = null;
+    const playerSupport = GVPlayerSupport.create({
+      retry: function () { if (currentGame) loadGame(currentGame); },
+      ready: function () {
+        if (rotating) rotateBack.focus({ preventScroll: true });
+        else frame.focus({ preventScroll: true });
+      }
+    });
 
     function syncOrientation() {
       const required = !!(window.GVGameHints && GVGameHints.requiresLandscape(currentGame) && rotateQuery.matches);
+      if (required && playerSupport.dialog.open) playerSupport.dialog.close();
       rotateOverlay.classList.toggle('active', required);
       document.querySelector('.gv-header').inert = required;
       document.querySelector('.gv-main').inert = required;
@@ -1189,7 +1260,6 @@
         GVTracker.endSession(currentGame, sessionStart);
       }
 
-      const changingGame = currentGame && currentGame !== key;
       currentGame = key;
       currentEntry = window.GVDiscovery ? GVDiscovery.context(window.location.href, key, sourceOverride) : { game_id: key };
       // Count a play (server-side aggregate) — fire-and-forget, anon RLS-safe via SECURITY DEFINER RPC
@@ -1215,14 +1285,13 @@
       }
       currentEntry.entry_mode = entry.get('mode') === 'daily' ? 'daily' : 'default';
       const gameUrl = game.path + (entry.toString() ? '?' + entry.toString() : '');
-      if (changingGame) {
-        // A new frame makes queued analytics from the previous game identifiable.
-        const nextFrame = frame.cloneNode(false);
-        nextFrame.src = gameUrl;
-        frame.replaceWith(nextFrame);
-        frame = nextFrame;
-      } else frame.src = gameUrl;
-      frame.title = game.name;
+      // Retries also get a fresh frame, so late loads/events cannot affect it.
+      const nextFrame = frame.cloneNode(false);
+      nextFrame.title = game.name;
+      playerSupport.watch(nextFrame, key, game.name);
+      nextFrame.src = gameUrl;
+      frame.replaceWith(nextFrame);
+      frame = nextFrame;
       nameEl.textContent = game.name;
       catEl.textContent = game.category;
       document.title = game.name + ' – Play Free on GameVolt';
@@ -1238,12 +1307,6 @@
         sessionTimeEl.textContent = '0:00';
         startSessionTimer();
       }
-
-      // Give iframe focus after load
-      frame.onload = function() {
-        if (rotating) rotateBack.focus({ preventScroll: true });
-        else frame.focus({ preventScroll: true });
-      };
 
       renderSidebar(key);
       refreshFavButton();
@@ -1363,7 +1426,7 @@
 
     // PostMessage listener for game events
     window.addEventListener('message', function(event) {
-      if (event.origin !== window.location.origin) return;
+      if (event.origin !== window.location.origin || event.source !== frame.contentWindow) return;
       if (!event.data || event.data.type !== 'gamevolt') return;
       if (!currentGame || !window.GVTracker) return;
 

@@ -431,7 +431,8 @@ for(const d of DIFFS){ starsByDiff[d]=store.get("fb_stars_"+d,{}); bestByDiff[d]
 let runStart=0,runMs=0,runActive=false,lastSec=-1,runHinted=false,runErred=false;
 function startRun(){ if(runActive||winning)return; runStart=now(); runActive=true; }
 function updateTimeUI(){ const el=document.getElementById("mTime"); if(!el)return;
-  let best=0; if(mode==="campaign")best=bestByDiff[diff][cIdx]||0; else if(mode==="daily")best=dailyBest||0;
+  let best=0; if(mode==="campaign")best=bestByDiff[diff][cIdx]||0;
+  else if(mode==="daily"){ const result=store.get("fb_daily_result",null); if(result&&result.date===dailyRunKey)best=result.timeMs||0; }
   el.textContent=fmtT(runMs)+(best?("  ·  best "+fmtT(best)):""); }
 
 /* ===== Dagens pussel (deterministiskt seedat på datum) ===== */
@@ -439,9 +440,21 @@ const pad2=n=>String(n).padStart(2,"0");
 const keyOf=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
 const todayKey=()=>keyOf(new Date());
 const yesterKey=()=>{const d=new Date();d.setDate(d.getDate()-1);return keyOf(d);};
-const daySeed=()=>{const d=new Date();return (d.getFullYear()*372+d.getMonth()*31+d.getDate())>>>0;};
+const daySeed=(d=new Date())=>(d.getFullYear()*372+d.getMonth()*31+d.getDate())>>>0;
 let dailyDone=store.get("fb_daily_done",""), dailyStreak=store.get("fb_daily_streak",0);
 let dailyStars=store.get("fb_daily_stars",0), dailyBest=store.get("fb_daily_best",0);
+let dailyRunKey="";
+// Legacy best/stars are all-time achievement stats. Keep a dated result for
+// this board, including when a run is finished after midnight.
+function recordDailyResult(date, timeMs, stars){
+  if(!Number.isFinite(timeMs)||timeMs<0)return;
+  const previous=store.get("fb_daily_result",null);
+  if(previous&&previous.date>date)return;
+  const sameDay=previous&&previous.date===date;
+  store.set("fb_daily_result",{date,
+    timeMs:sameDay&&Number.isFinite(previous.timeMs)?Math.min(previous.timeMs,timeMs):timeMs,
+    stars:Math.max(sameDay?(previous.stars||0):0,stars)});
+}
 
 /* ===== Ångra (snapshot före varje ändring) ===== */
 let undoStack=[];
@@ -627,9 +640,11 @@ function checkWin(){ if(winning||!used.every(Boolean)||conflicts().bP.size>0)ret
     if(stars>(starsByDiff[diff][cIdx]||0)){ starsByDiff[diff][cIdx]=stars; store.set("fb_stars_"+diff,starsByDiff[diff]); }
     const pb=bestByDiff[diff][cIdx]; if(!pb||ms<pb){ bestByDiff[diff][cIdx]=ms; store.set("fb_best_"+diff,bestByDiff[diff]); }
     const p=railEl.querySelector('.pip[data-i="'+cIdx+'"]'); if(p){p.classList.add("done","pop"); setTimeout(()=>p.classList.remove("pop"),460);} }
-  else if(mode==="daily"){ const k=todayKey();
-    if(dailyDone!==k){ dailyStreak=(dailyDone===yesterKey())?dailyStreak+1:1; dailyDone=k;
+  else if(mode==="daily"){ const k=dailyRunKey;
+    const [year,month,day]=k.split('-').map(Number), previousKey=keyOf(new Date(year,month-1,day-1));
+    if(dailyDone!==k&&(!dailyDone||k>dailyDone)){ dailyStreak=(dailyDone===previousKey)?dailyStreak+1:1; dailyDone=k;
       store.set("fb_daily_done",k); store.set("fb_daily_streak",dailyStreak); }
+    recordDailyResult(k,ms,stars);
     if(stars>dailyStars){ dailyStars=stars; store.set("fb_daily_stars",stars); }
     if(!dailyBest||ms<dailyBest){ dailyBest=ms; store.set("fb_daily_best",ms); } }
   else{ endlessBest=Math.max(endlessBest,dots.length/2); store.set("fb_ebest",endlessBest);
@@ -657,7 +672,8 @@ function showHint(){
 
 /* ===== Banhantering ===== */
 function curLevel(){ if(mode==="campaign")return PACKS[diff][cIdx];
-  if(mode==="daily"){ const L=genLevel(5,"weave",mulberry32(daySeed()),5); L.name="Daily · "+todayKey(); return L; }
+  if(mode==="daily"){ const day=new Date(); dailyRunKey=keyOf(day);
+    const L=genLevel(5,"weave",mulberry32(daySeed(day)),5); L.name="Daily · "+dailyRunKey; return L; }
   const pairs=Math.min(6,3+Math.floor(eIdx/2)),m=eIdx<3?"clean":"tangle";const L=genLevel(pairs,m);L.name="Random";return L; }
 function load(){ level=curLevel(); dots=level.dots.map(d=>({...d})); used=dots.map(()=>false);
   paths=[]; draw0=null; ghost=null; parts=[]; pulses=[]; flash=null; winning=false; prevBad=0; hintHi=null;

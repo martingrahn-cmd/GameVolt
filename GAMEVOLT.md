@@ -203,7 +203,8 @@ await GameVolt.streak.get()            // { current: 5, longest: 12, lastDay: '2
 `record()` is called for you from `js/gv-ga4.js` at the moment real play begins,
 so a game does not need to call it — that is the one place on the site that knows
 play started rather than a page loading, for all 21 games. Days are UTC, matching
-the per-game dailies. Guests get the same behaviour from localStorage. A chain
+Golden Glyphs; Short Circuit and Livewire use local calendar days for their own
+daily puzzles. Guests get the same behaviour from localStorage. A chain
 whose last day is older than yesterday reports 0 while the stored `longest`
 survives. Server side: `sql/streaks.sql`.
 
@@ -546,6 +547,10 @@ Use this checklist every time a new game is added to GameVolt, or when an existi
   > The game does NOT need its own rotate screen — the player handles it.
 - [ ] If portrait: no flag needed, game plays as-is in portrait
 - [ ] Game canvas resizes responsively to fill available space
+- [ ] Add or update the goal and touch/desktop controls in `/js/gv-player-support.js`.
+  > The player has a shared How to play dialog and a reload action. Its loading
+  > notice offers retry/back/keep waiting after 15 seconds without an iframe load.
+  > Reloading preserves daily/challenge parameters and replaces the iframe.
 
 ### 4. Canvas & Responsive Sizing
 
@@ -642,6 +647,19 @@ Homepage entry measurement lives in `/js/gv-discovery.js`. The player adds
 `selection_source`, `game_id` and `entry_mode` to existing GA4 game events and
 accepts them only from its current iframe. See [discovery analytics](docs/discovery-analytics.md)
 for the event contract, GA4 custom-dimension setup and the comparison funnel.
+
+Homepage daily cards use `/js/gv-daily-progress.js` to read the games' existing
+browser saves without marking anything complete. Short Circuit reads
+`short-circuit:daily` (local date); Golden Glyphs reads `daily_complete_YYYY-MM-DD`
+and `goldenGlyphsDailyResults` (UTC date); Livewire reads `fb_daily_done`,
+`fb_daily_streak` and the dated `{date, timeMs, stars}` record `fb_daily_result`
+(local date). Livewire's legacy `fb_daily_best` and `fb_daily_stars` are all-time
+stats and must not be displayed as today's result. Cards refresh on return,
+storage changes and local/UTC midnight. This is progress in the current browser,
+not a cross-game cloud daily system. The play streak above remains separate.
+
+Run `node --test js/gv-player-experience.test.js js/gv-discovery.test.js` when
+changing player help, loading/retry behavior or these daily-save contracts.
 
 - [ ] Add the `gvPost` helper function:
   ```javascript
