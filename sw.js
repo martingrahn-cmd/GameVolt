@@ -1,4 +1,4 @@
-const CACHE_NAME = "gamevolt-v15";
+const CACHE_NAME = "gamevolt-v17";
 
 const PRECACHE_URLS = [
   "/",
@@ -6,13 +6,14 @@ const PRECACHE_URLS = [
   "/js/gv-tracker.js",
   "/js/gv-discovery.js?v=1",
   "/js/gv-game-hints.js?v=1",
-  "/js/gv-player-support.js?v=1",
+  "/js/gv-player-support.js?v=2",
   "/js/gv-daily-progress.js?v=1",
   "/js/gv-theme.js",
   "/js/gv-ga4.js",
+  "/js/gv-leaderboard-config.js?v=1",
   "/js/gv-install.js",
   "/js/gv-card-ratings.js?v=2",
-  "/js/gv-search.js",
+  "/js/gv-search.js?v=2",
   "/sdk/gamevolt.js",
   "/assets/favicon.png",
   "/assets/icon-192.png",
@@ -32,7 +33,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+        keys.filter((key) => key.startsWith("gamevolt-") && key !== CACHE_NAME).map((key) => caches.delete(key))
       )
     )
   );
@@ -53,14 +54,14 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.open(CACHE_NAME).then((cache) => cache.match(event.request)))
     );
     return;
   }
 
   // Assets: cache first, update in background
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.open(CACHE_NAME).then((cache) => cache.match(event.request)).then((cached) => {
       const fetchPromise = fetch(event.request).then((response) => {
         if (response && response.status === 200) {
           const clone = response.clone();

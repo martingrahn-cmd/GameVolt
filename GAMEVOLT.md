@@ -47,11 +47,11 @@ When writing code for this project, follow these rules:
 
 ## Game Catalog
 
-**Canonical game count: 23 live portal games.** The table below has 24 numbered
+**Canonical game count: 24 live portal games.** The table below has 25 numbered
 rows, but row #7 (Flappy Bird) is the hidden 404-page easter egg — NOT a portal
 game. So the count shown on the site (homepage hero stat + "All Games" pill,
-about-page copy) = catalog rows − Flappy Bird = **23**. Cross-check: 23 game
-folders at repo root, 23 `.game-card` entries on the homepage, 23 `.game-item`
+about-page copy) = catalog rows − Flappy Bird = **24**. Cross-check: 24 game
+folders at repo root, 24 `.game-card` entries on the homepage, 24 `.game-item`
 entries in the about lineup. When you add a game, bump all of these together.
 
 > Adding the game to the about page's *footer* link column is not the same as
@@ -89,7 +89,9 @@ Last verified by auditing the code on 2026-07-09.
 | 23 | Manny the Mole | ✅ Live | ✅ Full (31 trophies synced via cabinet↔SDK, two leaderboards 'score' + 'daily-streak', registerMigration; platinum is 'Twelve Golds' rather than an unlock-all meta trophy — deliberate, the game shipped with exactly 31; added 2026-08-14) |
 | 24 | Short Circuit | ✅ Live | ✅ Full (31 trophies, 'daily-streak' leaderboard; circuit-lock puzzle from Manny the Mole built out into its own game with a 24-lock campaign, Daily Lock and live 1v1 duels; added 2026-08-19) |
 
-**Remaining work:** none — the Solitaire leaderboard is on the Supabase SDK
+| 25 | INK | ✅ Live | ✅ Full (optional SDK, 31 trophies, migration; game and trophy definitions registered in Supabase 2026-09-06, free and daily-streak boards verified). Imported from `martingrahn-cmd/Black` on 2026-09-06. |
+
+**Remaining work:** none for database registration — INK and its 31 trophies were registered on 2026-09-06. The Solitaire leaderboard is on the Supabase SDK
 path (migrated 2026-07-24); every game leaderboard is on Supabase.
 
 ---
@@ -146,7 +148,7 @@ GameVolt.auth.getUser()            // Returns { id, username, avatar_url } or nu
 GameVolt.auth.onStateChange(fn)    // Callback when login state changes
 
 // Cloud Save (auto-fallback to localStorage for guests)
-await GameVolt.save.set(data)      // Save JSON blob for current game
+await GameVolt.save.set(data)      // { synced, savedLocally, error } for the current game
 await GameVolt.save.get()          // Load save for current game
 await GameVolt.save.migrate()      // Migrate localStorage → cloud (on first login)
 ```
@@ -154,7 +156,7 @@ await GameVolt.save.migrate()      // Migrate localStorage → cloud (on first l
 #### Phase 2 — Leaderboards
 
 ```javascript
-// Submit score (no-op for guests)
+// Submit score (guest score waits for login during the session)
 GameVolt.leaderboard.submit(score, { mode: 'default' })
 
 // Get leaderboard
@@ -228,13 +230,36 @@ GameVolt.ads.showRewarded(callback)    // Optional rewarded video ad
 
 | SDK Method | Guest (no account) | Logged in |
 |---|---|---|
-| `save.set()` | localStorage | Supabase |
-| `save.get()` | localStorage | Supabase |
-| `leaderboard.submit()` | Silently ignored | Submits to global board |
+| `save.set()` | localStorage | Account-scoped local backup + durable outbox → Supabase |
+| `save.get()` | localStorage | Pending local save first, then Supabase; account backup on read failure |
+| `leaderboard.submit()` | Pending score + sign-in prompt | Durable outbox → global board |
 | `achievements.unlock()` | Stored in localStorage | Saved to Supabase |
 | `auth.login()` | Opens login modal | No-op |
 
 When a guest creates an account, `save.migrate()` copies localStorage data to the cloud.
+
+SDK `2026.09.06-1`: signed-in saves, scores, trophies and favorite changes are
+queued under the owning account. `save.set`, `leaderboard.submit` and
+`achievements.unlock` resolve `{ synced, savedLocally, error }` rather than
+throwing into games that do not await the SDK. A visible Retry notice explains
+pending sync; failed writes retry on reconnect, focus, login and every 60 seconds
+while pending. `GameVolt.sync.status()` reads status; `.retry()` flushes the queue.
+A failed trophy is not marked cloud-confirmed. Favorite toggles return `null` if
+the initial read fails, so the UI keeps its previous state. Storage quota errors
+explicitly tell the player to keep the page open.
+
+`sql/score-submission-id.sql` adds a nullable UUID and unique index to scores.
+**Applied and verified in production 2026-09-06, before SDK deployment.** Each
+normal score run retains its UUID across retries, using INSERT ON CONFLICT DO
+NOTHING. Existing SDK clients keep working without the new field. Never drop
+this column while the new SDK is in use.
+
+Profile definitions include all 24 games; additions must also update the profile
+catalog. `js/gv-reliability.test.js` compares INK/Gridburn/Spinburn IDs to SQL and
+checks the catalog size. Primary portal leaderboard modes and score formatting
+live in `js/gv-leaderboard-config.js`; update it when a game's scoring changes.
+INK migration transfers parsed guest stats and trophies; this is not a complete
+cross-device checkpoint restore system.
 
 ---
 
@@ -342,6 +367,7 @@ CREATE TABLE saves (
 -- Highscores
 CREATE TABLE scores (
     id SERIAL PRIMARY KEY,
+    client_submission_id UUID UNIQUE,
     user_id UUID REFERENCES profiles(id),
     game_id TEXT REFERENCES games(id),
     mode TEXT DEFAULT 'default',

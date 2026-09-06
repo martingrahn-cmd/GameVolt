@@ -23,7 +23,8 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="/js/gv-tracker.js"></script>
     <script src="/js/gv-theme.js" defer></script>
-    <script src="/js/gv-search.js"></script>
+    <script src="/js/gv-search.js?v=2"></script>
+  <script src="/js/gv-leaderboard-config.js?v=1"></script>
   <script src="/sdk/gamevolt.js"></script>
 
   <!-- Google Analytics -->
@@ -868,6 +869,7 @@
     <script>
       (function() {
         var names = {
+          'ink': 'INK — Draw Your Way Up',
           'short-circuit': 'Short Circuit — Circuit-Lock Puzzle with Live Duels',
           'manny-the-mole': 'Manny the Mole — Free Digging Arcade Game',
           spinburn: 'Spinburn — 2.5D Arcade Table Tennis',
@@ -976,9 +978,10 @@
   <script src="/js/gv-card-ratings.js?v=2"></script>
   <script src="/js/gv-game-hints.js?v=1"></script>
   <script src="/js/gv-discovery.js?v=1"></script>
-  <script src="/js/gv-player-support.js?v=1"></script>
+  <script src="/js/gv-player-support.js?v=2"></script>
   <script>
     const GAMES = {
+      "ink": { name: "INK", category: "Arcade", path: "/ink/", thumb: "/assets/thumbnails/ink.webp" },
       "short-circuit": { name: "Short Circuit", category: "Puzzle", path: "/short-circuit/", thumb: "/assets/thumbnails/short-circuit.webp" },
       "manny-the-mole": { name: "Manny the Mole", category: "Arcade", path: "/manny-the-mole/", thumb: "/manny-the-mole/og-image.png" },
       snake:     { name: "Snake Neo",   category: "Arcade", path: "/snake/",      thumb: "/assets/thumbnails/snake.webp" },
@@ -1063,6 +1066,7 @@
         setTimeout(function() { favBtn.classList.remove('pulse'); }, 180);
         if (window.GameVolt && GameVolt.favorites) {
           GameVolt.favorites.toggle(currentGame).then(function(newState) {
+            if (newState === null) return;
             favBtn.classList.toggle('favorited', newState);
             favBtn.setAttribute('aria-pressed', newState ? 'true' : 'false');
             favBtn.title = newState ? 'Remove from favorites' : 'Add to favorites';
@@ -1501,7 +1505,7 @@
         }
         // Refresh favorites + rating state when auth changes (cloud <-> local)
         refreshFavButton();
-        if (currentGame) refreshRatingWidget(currentGame);
+        if (currentGame) { refreshRatingWidget(currentGame); loadSidebarLeaderboard(currentGame); }
       });
     }
 
@@ -1510,16 +1514,19 @@
     var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a2pheXNldWh2dnBrZGdwaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzQxMzYsImV4cCI6MjA4Nzk1MDEzNn0.lGCRdYlgxWJlzM6_XpML3f8AKUJG3tLmzNRLTPR0TnU';
 
     var lastLbGame = null;
+    var lbRequest = 0;
 
     function loadSidebarLeaderboard(gameId) {
-      if (!gameId || gameId === lastLbGame) return;
+      if (!gameId) return;
+      var request = ++lbRequest;
+      var userId = gvCurrentUserId;
       lastLbGame = gameId;
-      // BlockStorm submits under 'marathon'/'sprint'/'ultra' (default selected = marathon),
-      // never 'default' — match the leaderboards page so its board isn't empty here.
-      var lbMode = gameId === 'blockstorm' ? 'marathon' : 'default';
+      var lbMode = GVLeaderboardConfig.mode(gameId);
 
       var section = document.getElementById('sidebarLbSection');
       var list = document.getElementById('sidebarLbList');
+      section.style.display = 'none';
+      list.innerHTML = '';
 
       fetch(SB_URL + '/rest/v1/rpc/get_leaderboard', {
         method: 'POST',
@@ -1532,6 +1539,7 @@
       })
       .then(function(r) { return r.ok ? r.json() : []; })
       .then(function(rows) {
+        if (request !== lbRequest) return;
         if (!rows || !rows.length) {
           section.style.display = 'none';
           return;
@@ -1540,19 +1548,20 @@
         section.style.display = '';
         var userInTop = false;
         var html = rows.map(function(r) {
-          var isYou = gvCurrentUserId && r.user_id === gvCurrentUserId;
+          var isYou = userId && r.user_id === userId;
           if (isYou) userInTop = true;
           var rankClass = r.rank === 1 ? 'gold' : r.rank === 2 ? 'silver' : r.rank === 3 ? 'bronze' : '';
           var name = r.username || 'Player';
           return '<div class="gv-lb-row' + (isYou ? ' you' : '') + '">' +
             '<span class="gv-lb-rank ' + rankClass + '">#' + r.rank + '</span>' +
             '<span class="gv-lb-name">' + escHtml(name) + (isYou ? ' (you)' : '') + '</span>' +
-            '<span class="gv-lb-score">' + Number(r.score).toLocaleString() + '</span>' +
+            '<span class="gv-lb-score">' + GVLeaderboardConfig.format(gameId, r.score, lbMode) + '</span>' +
           '</div>';
         }).join('');
 
         // If logged in user not in top 5, fetch their rank
-        if (gvCurrentUserId && !userInTop) {
+        list.innerHTML = html;
+        if (userId && !userInTop) {
           fetch(SB_URL + '/rest/v1/rpc/get_leaderboard', {
             method: 'POST',
             headers: {
@@ -1564,20 +1573,23 @@
           })
           .then(function(r) { return r.ok ? r.json() : []; })
           .then(function(all) {
-            var me = all.find(function(r) { return r.user_id === gvCurrentUserId; });
+            if (request !== lbRequest) return;
+            var me = all.find(function(r) { return r.user_id === userId; });
             if (me) {
               html += '<div class="gv-lb-divider">···</div>';
               html += '<div class="gv-lb-row you">' +
                 '<span class="gv-lb-rank">#' + me.rank + '</span>' +
                 '<span class="gv-lb-name">' + escHtml(me.username || 'Player') + ' (you)</span>' +
-                '<span class="gv-lb-score">' + Number(me.score).toLocaleString() + '</span>' +
+                '<span class="gv-lb-score">' + GVLeaderboardConfig.format(gameId, me.score, lbMode) + '</span>' +
               '</div>';
             }
             list.innerHTML = html;
-          });
+          }).catch(function() { /* Keep the top five if the own-rank request fails. */ });
         } else {
           list.innerHTML = html;
         }
+      }).catch(function() {
+        if (request === lbRequest) section.style.display = 'none';
       });
     }
 

@@ -1,0 +1,19 @@
+{
+  "name": "INK — draw your way up",
+  "short_name": "INK",
+  "description": "A vertical endless climber where you draw the flipper with your finger. The ball bounces once off each stroke, then it is spent.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "portrait",
+  "background_color": "#DCE3E9",
+  "theme_color": "#EEF2F5",
+  "lang": "en",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

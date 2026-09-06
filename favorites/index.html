@@ -271,6 +271,7 @@
     <script>
       (function() {
         var GAMES = {
+          ink: { name: "INK", category: "Arcade", thumb: "/assets/thumbnails/ink.webp" },
           snake:           { name: "Snake Neo",     category: "Arcade",   thumb: "/assets/thumbnails/snake.webp" },
           breakout:        { name: "Breakout",      category: "Arcade",   thumb: "/assets/thumbnails/breakout.webp" },
           taprush:         { name: "Tap Rush",      category: "Arcade",   thumb: "/assets/thumbnails/taprush.webp" },
@@ -331,7 +332,7 @@
             }, 180);
           };
           if (window.GameVolt && GameVolt.favorites) {
-            GameVolt.favorites.toggle(gameId).then(done);
+            GameVolt.favorites.toggle(gameId).then(function(state) { if (state !== null) done(state); });
           } else {
             try {
               var arr = JSON.parse(localStorage.getItem('gv_favorites') || '[]');

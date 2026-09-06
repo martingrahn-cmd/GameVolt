@@ -292,7 +292,8 @@
                 "url": "https://gamevolt.io/short-circuit/",
                 "genre": ["Puzzle", "Logic", "Multiplayer"],
                 "gamePlatform": "Web Browser"
-            }
+            },
+            {"@type": "VideoGame", "position": 22, "name": "INK", "description": "Draw blue ink strokes to bounce the ball up a squared-paper pinball course. Free climb and daily challenges.", "url": "https://gamevolt.io/ink/", "genre": ["Arcade", "Physics"], "gamePlatform": "Web Browser"}
         ]
     }
     </script>
@@ -576,6 +577,27 @@
         .gv-logout-btn:hover { border-color: var(--text-medium); color: #fff; }
 
         /* Compact introduction: keep the first games in the first viewport. */
+        /* INK's graph-paper key art stays true to the game in every portal theme. */
+        .ink-feature { margin: 0 0 32px; }
+        .ink-feature-link { position: relative; display: block; overflow: hidden; min-height: 310px; border-radius: 20px; background: #eef2f5; color: #1e3a8f; text-decoration: none; border: 1px solid #c3d3de; }
+        .ink-feature-link:focus-visible { outline: 3px solid var(--primary); outline-offset: 5px; }
+        .ink-feature-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+        .ink-feature-copy { position: relative; width: 43%; padding: 30px 0 30px 36px; }
+        .ink-feature-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+        .ink-feature-copy h2 { font-family: Georgia, serif; font-style: italic; font-size: clamp(54px, 6vw, 80px); line-height: 1; margin: 12px 0 4px; letter-spacing: -.06em; }
+        .ink-feature-tagline { font-size: clamp(18px, 2.3vw, 27px); font-weight: 700; }
+        .ink-feature-description { font-size: 14px; line-height: 1.5; max-width: 270px; margin: 10px 0 18px; color: #2a3138; }
+        .ink-feature-cta { display: inline-flex; align-items: center; gap: 28px; background: #1e3a8f; color: white; border-radius: 8px; padding: 12px 20px; font-weight: 700; transition: background .15s; }
+        .ink-feature-link:hover .ink-feature-cta { background: #142865; }
+        .ink-feature-detail { display: block; font-size: 11px; margin-top: 10px; color: #455569; }
+        @media (max-width: 640px) {
+            .ink-feature-link { min-height: 0; }
+            .ink-feature-art { position: relative; display: block; height: auto; aspect-ratio: 16/9; }
+            .ink-feature-copy { width: 100%; padding: 20px 24px 24px; }
+            .ink-feature-copy h2 { font-size: 52px; margin-top: 8px; }
+            .ink-feature-description { max-width: 100%; }
+        }
+
         .hero {
             padding: 24px 24px 0;
             color: var(--text-bright);
@@ -1839,7 +1861,7 @@
             <h1 id="portal-title">Original browser games.</h1>
             <p>Made by Martin in Sweden. No install or account needed.</p>
             <ul class="hero-stats" aria-label="About GameVolt">
-                <li><strong>23</strong> free games</li>
+                <li><strong>24</strong> free games</li>
                 <li><strong>0</strong> ads</li>
                 <li><strong>1</strong> maker</li>
             </ul>
@@ -1854,10 +1876,24 @@
             <div class="continue-grid" id="continueGrid" data-selection-source="continue_playing"></div>
         </div>
 
+        <section class="ink-feature" data-selection-source="new_games" aria-labelledby="ink-feature-title">
+            <a class="ink-feature-link" href="/play/?game=ink">
+                <img class="ink-feature-art" src="/assets/thumbnails/ink-hero.webp" alt="" width="1280" height="720" fetchpriority="high">
+                <div class="ink-feature-copy">
+                    <span class="ink-feature-label">Just added · A GameVolt original</span>
+                    <h2 id="ink-feature-title">INK</h2>
+                    <p class="ink-feature-tagline">Draw your way up.</p>
+                    <p class="ink-feature-description">Your pen is the flipper. Draw a bounce, collect ink and keep climbing.</p>
+                    <span class="ink-feature-cta">Play INK <span aria-hidden="true">↗</span></span>
+                    <span class="ink-feature-detail">Touch or mouse · Free to play</span>
+                </div>
+            </a>
+        </section>
+
         <section data-selection-source="martins_picks" class="starter-picks" aria-labelledby="picks-title">
             <div class="section-header">
                 <h2 class="section-title" id="picks-title">Martin's picks</h2>
-                <a class="section-link" href="#games">All 23 games &rarr;</a>
+                <a class="section-link" href="#games">All 24 games &rarr;</a>
             </div>
             <div class="picks-grid">
                 <a class="pick-card" href="/play/?game=short-circuit">
@@ -1936,12 +1972,12 @@
             <button class="category-pill active" data-filter="all" aria-pressed="true">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
-                <span class="pill-count">23</span>
+                <span class="pill-count">24</span>
             </button>
             <button class="category-pill" data-filter="coffee-break" aria-pressed="false">
                 <span class="pill-icon">☕</span>
                 <span>Coffee Break</span>
-                <span class="pill-count">12</span>
+                <span class="pill-count">13</span>
             </button>
             <button class="category-pill" data-filter="brain-challenge" aria-pressed="false">
                 <span class="pill-icon">🧠</span>
@@ -1981,6 +2017,18 @@
         <p id="game-sort-note" class="sort-note" role="status" hidden></p>
 
         <div class="games-grid" data-selection-source="catalog">
+            <a href="/play/?game=ink" class="game-card" data-category="coffee-break arcade">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/ink.webp" alt="INK: a ball bouncing off a blue pen stroke on graph paper" width="480" height="270" loading="lazy">
+                    <span class="game-badge new">NEW</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">INK</h3>
+                    <p class="game-description">Draw a bounce. Save your ink. See how high you can climb.</p>
+                    <div class="game-tags"><span class="tag">Arcade</span><span class="tag">Drawing</span><span class="tag">Daily</span></div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
             <!-- Short Circuit -->
             <a href="/play/?game=short-circuit" class="game-card" data-category="coffee-break puzzle multiplayer">
                 <div class="game-thumbnail">
@@ -2412,6 +2460,10 @@
             </div>
             <div class="ec-grid" data-selection-source="new_games">
                 <!-- Short Circuit (Aug 2026) -->
+                <a href="/play/?game=ink" class="ec-card">
+                    <div class="ec-thumb"><img src="/assets/thumbnails/ink.webp" width="480" height="270" loading="lazy" alt="Play INK online free"></div>
+                    <div class="ec-info"><div class="ec-name">INK</div><div class="ec-desc">Draw a bounce. Save your ink. Keep climbing.</div><span class="ec-cta">▶ Play Instantly</span></div>
+                </a>
                 <a href="/play/?game=short-circuit" class="ec-card">
                     <div class="ec-thumb">
                         <img src="/assets/thumbnails/short-circuit.webp" loading="lazy" alt="Play Short Circuit online free">
@@ -2447,16 +2499,7 @@
                 </a>
 
                 <!-- Gridburn (Jul 2026) -->
-                <a href="/play/?game=gridburn" class="ec-card">
-                    <div class="ec-thumb">
-                        <img src="/gridburn/og-image.png" loading="lazy" alt="Play Gridburn online free">
-                    </div>
-                    <div class="ec-info">
-                        <div class="ec-name">Gridburn</div>
-                        <div class="ec-desc">Trap your rival with a glowing trail. Last rider wins.</div>
-                        <span class="ec-cta">▶ Play Instantly</span>
-                    </div>
-                </a>
+
 
             </div>
         </div>
@@ -2544,6 +2587,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/ink/">INK</a>
                         <a href="/short-circuit/">Short Circuit</a>
                         <a href="/manny-the-mole/">Manny the Mole</a>
                         <a href="/spinburn/">Spinburn</a>
@@ -2600,7 +2644,7 @@
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
     <script src="/js/gv-card-ratings.js?v=2" defer></script>
-    <script src="/js/gv-search.js"></script>
+    <script src="/js/gv-search.js?v=2"></script>
     <script src="/sdk/gamevolt.js"></script>
     <script>
     if (window.GameVolt) {
@@ -2823,6 +2867,7 @@
         if (!window.GVTracker) return;
 
         var GAME_META = {
+            "ink": { name: "INK", thumb: "/assets/thumbnails/ink.webp" },
             "short-circuit": { name: "Short Circuit", thumb: "/assets/thumbnails/short-circuit.webp" },
             "manny-the-mole": { name: "Manny the Mole", thumb: "/manny-the-mole/og-image.png" },
             snake:     { name: "Snake Neo",  thumb: "/assets/thumbnails/snake.webp", preview: "/snake/preview.mp4" },
@@ -2897,6 +2942,7 @@
     // localStorage when guest). Hidden when empty; refreshes on auth state change.
     (function() {
         var FAV_META = {
+            "ink": { name: "INK", thumb: "/assets/thumbnails/ink.webp" },
             "short-circuit": { name: "Short Circuit", thumb: "/assets/thumbnails/short-circuit.webp" },
             "manny-the-mole": { name: "Manny the Mole", thumb: "/manny-the-mole/og-image.png" },
             snake:           { name: "Snake Neo",     thumb: "/assets/thumbnails/snake.webp", preview: "/snake/preview.mp4" },

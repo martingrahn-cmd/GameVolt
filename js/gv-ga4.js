@@ -43,6 +43,7 @@
         ended: false,
         activeMs: 0,          // foreground time since play began
         _lastTick: null,
+        _wasVisible: false,
         hasTracked30s: false,
         hasTracked60s: false,
         timerInterval: null,
@@ -75,6 +76,7 @@
             this.started = true;
             this.startTime = Date.now();
             this._lastTick = this.startTime;
+            this._wasVisible = !document.hidden;
             this._removeFirstInput();
             var params = { game_name: this.gameName };
             if (this.startParams) {
@@ -142,7 +144,9 @@
         _accumulate: function () {
             if (!this.started || this._lastTick == null) return;
             var now = Date.now();
-            if (!document.hidden) this.activeMs += now - this._lastTick;
+            // visibilitychange exposes the NEW state; the elapsed interval used the old one.
+            if (this._wasVisible) this.activeMs += Math.max(0, now - this._lastTick);
+            this._wasVisible = !document.hidden;
             this._lastTick = now;
         },
 
@@ -191,7 +195,7 @@
         }
     };
 
-    document.addEventListener('visibilitychange', function () { T._accumulate(); });
+    document.addEventListener('visibilitychange', function () { if (!T.ended) T._tick(); });
     window.addEventListener('pagehide', function () { T.end({ outcome: 'page_exit' }); });
 
     window.GameVoltTracker = T;

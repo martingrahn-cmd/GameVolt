@@ -1103,6 +1103,7 @@
         'use strict';
 
         var GAME_NAMES = {
+            ink: 'INK', gridburn: 'Gridburn', spinburn: 'Spinburn',
             'short-circuit': 'Short Circuit',
             'manny-the-mole': 'Manny the Mole',
             'vector-hexagon': 'Vector Hexagon',
@@ -1127,6 +1128,7 @@
         };
 
         var GAME_THUMBS = {
+            ink: '/assets/thumbnails/ink.webp', gridburn: '/gridburn/og-image.png', spinburn: '/spinburn/og-image.png',
             'short-circuit': '/assets/thumbnails/short-circuit.webp',
             'manny-the-mole': '/manny-the-mole/og-image.png',
             'vector-hexagon': '/vector-hexagon/og-image.png',
@@ -1152,6 +1154,105 @@
 
         // Full trophy catalog — all definitions from all games
         var TROPHY_CATALOG = {
+            'ink': [
+                {"id": "ink-first-stroke", "name": "First Stroke", "desc": "Draw your first line", "icon": "✏️", "tier": "bronze"},
+                {"id": "ink-contact", "name": "Contact", "desc": "Bounce the ball off a stroke", "icon": "✒️", "tier": "bronze"},
+                {"id": "ink-blotter", "name": "Blotter", "desc": "Soak up an ink blot", "icon": "💧", "tier": "bronze"},
+                {"id": "ink-off-the-margin", "name": "Off the Margin", "desc": "Climb 100 m in one run", "icon": "📏", "tier": "bronze"},
+                {"id": "ink-page-two", "name": "Page Two", "desc": "Climb 200 m in one run", "icon": "📄", "tier": "bronze"},
+                {"id": "ink-breaking-ruled", "name": "Breaking Ruled", "desc": "Break 25 blocks", "icon": "🧱", "tier": "bronze"},
+                {"id": "ink-ping", "name": "Ping", "desc": "Score off 20 bumpers", "icon": "🔶", "tier": "bronze"},
+                {"id": "ink-stargazer", "name": "Stargazer", "desc": "Collect 25 stars", "icon": "⭐", "tier": "bronze"},
+                {"id": "ink-chain-of-thought", "name": "Chain of Thought", "desc": "Reach a ×5 combo", "icon": "🔗", "tier": "bronze"},
+                {"id": "ink-well-marked", "name": "Well Marked", "desc": "Score 2,500 points in one run", "icon": "🧮", "tier": "bronze"},
+                {"id": "ink-warm-pen", "name": "Warm Pen", "desc": "Draw 250 m of line in total", "icon": "🖊️", "tier": "bronze"},
+                {"id": "ink-point-taken", "name": "Point Taken", "desc": "Find out what the red spikes do", "icon": "📌", "tier": "bronze"},
+                {"id": "ink-bookmark", "name": "Bookmark", "desc": "Continue a climb from a checkpoint", "icon": "🔖", "tier": "bronze"},
+                {"id": "ink-doodler", "name": "Doodler", "desc": "Play 10 runs", "icon": "🌀", "tier": "bronze"},
+                {"id": "ink-homework", "name": "Homework", "desc": "Take on the daily challenge", "icon": "📅", "tier": "bronze"},
+                {"id": "ink-page-four", "name": "Page Four", "desc": "Climb 400 m in one run", "icon": "📚", "tier": "silver"},
+                {"id": "ink-train-of-thought", "name": "Train of Thought", "desc": "Reach a ×12 combo", "icon": "🚂", "tier": "silver"},
+                {"id": "ink-straight-as", "name": "Straight A's", "desc": "Score 10,000 points in one run", "icon": "🅰️", "tier": "silver"},
+                {"id": "ink-gilded", "name": "Gilded", "desc": "Break 10 gold blocks", "icon": "🟨", "tier": "silver"},
+                {"id": "ink-star-pupil", "name": "Star Pupil", "desc": "Collect 150 stars", "icon": "🌟", "tier": "silver"},
+                {"id": "ink-kilometre-of-ink", "name": "A Kilometre of Ink", "desc": "Draw 1 km of line in total", "icon": "🖋️", "tier": "silver"},
+                {"id": "ink-deadline-met", "name": "Deadline Met", "desc": "Finish the daily challenge", "icon": "✅", "tier": "silver"},
+                {"id": "ink-three-days-running", "name": "Three Days Running", "desc": "Keep a 3-day daily streak", "icon": "🔥", "tier": "silver"},
+                {"id": "ink-frugal-hand", "name": "Frugal Hand", "desc": "Reach 200 m on 8 strokes or fewer", "icon": "🤏", "tier": "silver"},
+                {"id": "ink-notebook-filled", "name": "Notebook Filled", "desc": "Play 50 runs", "icon": "📓", "tier": "silver"},
+                {"id": "ink-fan-mail", "name": "Fan Mail", "desc": "Climb 600 m in one run", "icon": "🌬️", "tier": "gold"},
+                {"id": "ink-gold-star", "name": "The Gold Star", "desc": "Catch the big gold star", "icon": "🏅", "tier": "gold"},
+                {"id": "ink-runaway-chain", "name": "Runaway Chain", "desc": "Reach a ×20 combo", "icon": "⛓️", "tier": "gold"},
+                {"id": "ink-top-of-the-class", "name": "Top of the Class", "desc": "Score 25,000 points in one run", "icon": "🏆", "tier": "gold"},
+                {"id": "ink-full-marks", "name": "Full Marks", "desc": "Clear the daily under all five rules", "icon": "🎓", "tier": "gold"},
+                {"id": "ink-ink-master", "name": "INK Master", "desc": "Unlock the other 30 trophies", "icon": "👑", "tier": "platinum"}
+            ],
+            'gridburn': [
+                {"id": "gridburn-first-ride", "name": "First Ride", "desc": "Finish your first match", "icon": "🏁", "tier": "bronze"},
+                {"id": "gridburn-first-crash", "name": "Derezzed", "desc": "Crash for the first time", "icon": "💥", "tier": "bronze"},
+                {"id": "gridburn-first-blood", "name": "First Blood", "desc": "Win a round against the AI", "icon": "⚔️", "tier": "bronze"},
+                {"id": "gridburn-easy-rider", "name": "Easy Rider", "desc": "Win a match vs the Easy AI", "icon": "🎮", "tier": "bronze"},
+                {"id": "gridburn-double-trouble", "name": "Double Trouble", "desc": "Be part of a double crash", "icon": "🤝", "tier": "bronze"},
+                {"id": "gridburn-local-hero", "name": "Local Hero", "desc": "Finish a 2-player local match", "icon": "👥", "tier": "bronze"},
+                {"id": "gridburn-solo-debut", "name": "Solo Debut", "desc": "Finish a solo practice run", "icon": "🚦", "tier": "bronze"},
+                {"id": "gridburn-survivor-30", "name": "Half Minute", "desc": "Survive 30 seconds in one solo run", "icon": "⏱️", "tier": "bronze"},
+                {"id": "gridburn-rounds-10", "name": "Warmed Up", "desc": "Play 10 rounds", "icon": "🔄", "tier": "bronze"},
+                {"id": "gridburn-matches-5", "name": "Night Shift", "desc": "Play 5 matches", "icon": "🌙", "tier": "bronze"},
+                {"id": "gridburn-road-trip", "name": "Road Trip", "desc": "Ride 2,500 cells in total", "icon": "🛣️", "tier": "bronze"},
+                {"id": "gridburn-crash-course", "name": "Crash Course", "desc": "Crash 10 times", "icon": "🧨", "tier": "bronze"},
+                {"id": "gridburn-ai-rounds-5", "name": "Round Winner", "desc": "Win 5 rounds against the AI", "icon": "🎖️", "tier": "bronze"},
+                {"id": "gridburn-streak-2", "name": "Back to Back", "desc": "Win 2 AI rounds in a row", "icon": "✌️", "tier": "bronze"},
+                {"id": "gridburn-quick-round", "name": "Lightning Lap", "desc": "Win an AI round in under 15 seconds", "icon": "⚡", "tier": "bronze"},
+                {"id": "gridburn-medium-well", "name": "Medium Well", "desc": "Win a match vs the Medium AI", "icon": "🎯", "tier": "silver"},
+                {"id": "gridburn-streak-4", "name": "On Fire", "desc": "Win 4 AI rounds in a row", "icon": "🔥", "tier": "silver"},
+                {"id": "gridburn-survivor-60", "name": "Full Minute", "desc": "Survive 60 seconds in one solo run", "icon": "⏳", "tier": "silver"},
+                {"id": "gridburn-marathon", "name": "Marathon Rider", "desc": "Ride 10,000 cells in total", "icon": "🚴", "tier": "silver"},
+                {"id": "gridburn-ai-rounds-25", "name": "Round Collector", "desc": "Win 25 rounds against the AI", "icon": "🏅", "tier": "silver"},
+                {"id": "gridburn-rounds-100", "name": "Veteran", "desc": "Play 100 rounds", "icon": "📀", "tier": "silver"},
+                {"id": "gridburn-endurance", "name": "War of Nerves", "desc": "Win an AI round lasting 45+ seconds", "icon": "🕰️", "tier": "silver"},
+                {"id": "gridburn-flawless", "name": "Flawless", "desc": "Beat any AI 3–0", "icon": "✨", "tier": "silver"},
+                {"id": "gridburn-comeback-kid", "name": "Comeback Kid", "desc": "Win a match after trailing 0–2", "icon": "💪", "tier": "silver"},
+                {"id": "gridburn-matches-25", "name": "Regular", "desc": "Play 25 matches", "icon": "🎪", "tier": "silver"},
+                {"id": "gridburn-hard-boiled", "name": "Hard Boiled", "desc": "Win a match vs the Hard AI", "icon": "💀", "tier": "gold"},
+                {"id": "gridburn-survivor-150", "name": "Iron Rider", "desc": "Survive 150 seconds in one solo run", "icon": "⌛", "tier": "gold"},
+                {"id": "gridburn-streak-8", "name": "Unstoppable", "desc": "Win 8 AI rounds in a row", "icon": "🌋", "tier": "gold"},
+                {"id": "gridburn-hard-flawless", "name": "Perfect Circuit", "desc": "Beat the Hard AI 3–0", "icon": "👑", "tier": "gold"},
+                {"id": "gridburn-globetrotter", "name": "Globetrotter", "desc": "Ride 100,000 cells in total", "icon": "🌍", "tier": "gold"},
+                {"id": "gridburn-neon-legend", "name": "Neon Legend", "desc": "Unlock all other 30 trophies", "icon": "🌟", "tier": "platinum"}
+            ],
+            'spinburn': [
+                {"id": "spinburn-first_serve", "name": "First Serve", "desc": "Play your first point", "icon": "🏓", "tier": "bronze"},
+                {"id": "spinburn-first_win", "name": "Table Manners", "desc": "Win your first match", "icon": "🏅", "tier": "bronze"},
+                {"id": "spinburn-first_ace", "name": "Untouchable", "desc": "Serve your first ace", "icon": "🎯", "tier": "bronze"},
+                {"id": "spinburn-rally_8", "name": "Keep It Alive", "desc": "Win a rally of 8 shots or more", "icon": "🔁", "tier": "bronze"},
+                {"id": "spinburn-enter_arena", "name": "Enter the Arena", "desc": "Start a campaign match", "icon": "🏟️", "tier": "bronze"},
+                {"id": "spinburn-beat_q", "name": "Quarterfinalist", "desc": "Knock out Hans in the quarterfinal", "icon": "🥉", "tier": "bronze"},
+                {"id": "spinburn-first_online", "name": "Say Hello", "desc": "Start an online match", "icon": "🌐", "tier": "bronze"},
+                {"id": "spinburn-as_kid", "name": "Represent", "desc": "Play a match as THE KID", "icon": "🧒", "tier": "bronze"},
+                {"id": "spinburn-win_easy", "name": "Warm-Up", "desc": "Win a match on Easy", "icon": "🟢", "tier": "bronze"},
+                {"id": "spinburn-lead_5", "name": "In Control", "desc": "Lead a game by 5 points", "icon": "📈", "tier": "bronze"},
+                {"id": "spinburn-deuce_win", "name": "Down to the Wire", "desc": "Win a match that went to deuce (10–10)", "icon": "😮‍💨", "tier": "bronze"},
+                {"id": "spinburn-points_50", "name": "Point Machine", "desc": "Win 50 points all-time", "icon": "💯", "tier": "bronze"},
+                {"id": "spinburn-matches_5", "name": "Regular", "desc": "Play 5 matches", "icon": "🌙", "tier": "bronze"},
+                {"id": "spinburn-comeback_3", "name": "Not Done Yet", "desc": "Win a match after trailing by 3", "icon": "🔄", "tier": "bronze"},
+                {"id": "spinburn-online_win", "name": "Online Winner", "desc": "Win an online match", "icon": "🤝", "tier": "bronze"},
+                {"id": "spinburn-beat_s", "name": "Semifinalist", "desc": "Knock out General Hummel in the semifinal", "icon": "🥈", "tier": "silver"},
+                {"id": "spinburn-win_medium", "name": "Holding Serve", "desc": "Win a match on Medium", "icon": "🟡", "tier": "silver"},
+                {"id": "spinburn-rally_18", "name": "Marathon Rally", "desc": "Win a rally of 18 shots or more", "icon": "🏃", "tier": "silver"},
+                {"id": "spinburn-love_game", "name": "Love Game", "desc": "Win a match 11–0", "icon": "🧹", "tier": "silver"},
+                {"id": "spinburn-aces_5", "name": "Serving Notice", "desc": "Serve 5 aces in a single match", "icon": "🎯", "tier": "silver"},
+                {"id": "spinburn-comeback_5", "name": "The Comeback", "desc": "Win a match after trailing by 5", "icon": "💪", "tier": "silver"},
+                {"id": "spinburn-streak_3", "name": "On a Roll", "desc": "Win 3 matches in a row", "icon": "🔥", "tier": "silver"},
+                {"id": "spinburn-online_3", "name": "Rival", "desc": "Win 3 online matches", "icon": "⚔️", "tier": "silver"},
+                {"id": "spinburn-points_500", "name": "Grinder", "desc": "Win 500 points all-time", "icon": "📊", "tier": "silver"},
+                {"id": "spinburn-matches_25", "name": "Veteran", "desc": "Play 25 matches", "icon": "🎪", "tier": "silver"},
+                {"id": "spinburn-champion", "name": "Champion", "desc": "Win the campaign — beat Chong Li in the final", "icon": "🏆", "tier": "gold"},
+                {"id": "spinburn-win_hard", "name": "No Mercy", "desc": "Win a match on Hard", "icon": "🔴", "tier": "gold"},
+                {"id": "spinburn-hard_love", "name": "Perfect Game", "desc": "Win a match 11–0 on Hard", "icon": "⛔", "tier": "gold"},
+                {"id": "spinburn-aces_50", "name": "Ace Collector", "desc": "Serve 50 aces all-time", "icon": "🎯", "tier": "gold"},
+                {"id": "spinburn-streak_8", "name": "Untouchable Run", "desc": "Win 8 matches in a row", "icon": "👑", "tier": "gold"},
+                {"id": "spinburn-master", "name": "Spinburn Master", "desc": "Unlock all other 30 trophies", "icon": "🌟", "tier": "platinum"}
+            ],
             'short-circuit': [
                 { id:'short-circuit-first-spark', icon:'⚡', name:'First Spark', desc:'Close your first circuit', tier:'bronze' },
                 { id:'short-circuit-three-open', icon:'🔓', name:'Three Open', desc:'Open three campaign locks', tier:'bronze' },
@@ -2070,7 +2171,12 @@
                 rows.forEach(function(row) {
                     unlockedSet[row.achievement_id] = row.unlocked_at;
                 });
-                return { unlocked: rows.length, unlockedSet: unlockedSet };
+                var catalogIds = new Set();
+                Object.keys(TROPHY_CATALOG).forEach(function(game) {
+                    TROPHY_CATALOG[game].forEach(function(trophy) { catalogIds.add(trophy.id); });
+                });
+                var count = Object.keys(unlockedSet).filter(function(id) { return catalogIds.has(id); }).length;
+                return { unlocked: count, unlockedSet: unlockedSet };
             })
             .catch(function() { return { unlocked: 0, unlockedSet: {} }; });
         }
@@ -2083,7 +2189,7 @@
             if (!achData) return;
 
             var unlockedSet = achData.unlockedSet || {};
-            var totalUnlocked = achData.unlocked || 0;
+            var totalUnlocked = 0; // Count the same definitions as the denominator and tier totals.
             var totalAll = 0;
 
             // Count total trophies across all games + cross-game completion meta
@@ -2099,6 +2205,7 @@
                 for (var _j = 0; _j < _trs.length; _j++) {
                     if (unlockedSet[_trs[_j].id]) {
                         _gu++;
+                        totalUnlocked++;
                         if (tierCounts[_trs[_j].tier] !== undefined) tierCounts[_trs[_j].tier]++;
                     }
                 }

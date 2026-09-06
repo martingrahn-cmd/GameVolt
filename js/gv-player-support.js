@@ -4,6 +4,12 @@
     'use strict';
 
     var guides = {
+        ink: {
+            goal: 'Draw strokes to bounce the ball higher. Collect ink, break blocks and avoid red spikes or falling off the page.',
+            touch: 'Drag a finger below the ball to draw a stroke. Each stroke can bounce the ball once.',
+            desktop: 'Click and drag below the ball to draw. Use the Pause button to take a break.',
+            tip: 'Time slows while you draw. Chain hits without drawing again for a bigger combo. Free climb has checkpoints; the daily course ends at 500 m.'
+        },
         'short-circuit': {
             goal: 'Uncover conductors and swap them into a route from IN to OUT before the current catches up.',
             touch: 'Tap to uncover a tile. Tap two revealed conductors to swap them.',

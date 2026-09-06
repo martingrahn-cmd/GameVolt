@@ -16,7 +16,7 @@
   // footer so you can tell at a glance whether a browser has the latest SDK
   // (Cloudflare caches this file, so an old copy can linger). Also on
   // GameVolt.version and logged to the console on init.
-  var SDK_VERSION = '2026.07.28-1';
+  var SDK_VERSION = '2026.09.06-1';
 
   var sb = null; // Supabase client
   var currentUser = null;
@@ -362,16 +362,172 @@
     if (nudgeTimer) { clearTimeout(nudgeTimer); nudgeTimer = null; }
   }
 
+  // Durable outbox, scoped to the account that earned the result. One key per
+  // operation avoids unrelated tabs overwriting each other's pending writes.
+  var SYNC_PREFIX = 'gv_sync_v1:';
+  var syncMemory = {};
+  var syncTimer = null;
+  var syncRunning = null;
+  var syncNotice = null;
+  var syncFailure = null;
+  var syncSequence = 0;
+
+  function localRead(key) {
+    try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; }
+  }
+  function localWrite(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { return false; }
+  }
+  function pendingWrites(userId) {
+    var entries = {};
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        if (key && key.indexOf(SYNC_PREFIX + userId + ':') === 0) {
+          var job = localRead(key);
+          if (job) entries[key] = job;
+        }
+      }
+    } catch (e) {}
+    Object.keys(syncMemory).forEach(function(key) {
+      if (syncMemory[key].row.user_id === userId) entries[key] = syncMemory[key];
+    });
+    return Object.keys(entries).map(function(key) { return entries[key]; });
+  }
+  function syncStatus() {
+    var jobs = currentUser ? pendingWrites(currentUser.id) : [];
+    return { pending: jobs.length, error: syncFailure,
+      savedLocally: jobs.every(function(job) { return !!localRead(job.key); }) };
+  }
+  function showSyncStatus() {
+    var status = syncStatus();
+    if (!currentUser || (!status.pending && !status.error)) {
+      if (syncNotice) syncNotice.hidden = true;
+      return;
+    }
+    if (!document.body) return;
+    if (!syncNotice) {
+      syncNotice = document.createElement('div');
+      syncNotice.id = 'gv-sync-status';
+      syncNotice.setAttribute('role', 'status');
+      syncNotice.style.cssText = 'position:fixed;z-index:99997;bottom:78px;right:12px;max-width:min(320px,calc(100% - 24px));padding:10px 12px;border:1px solid #e5b95f;border-radius:8px;background:#181824;color:#fff;font:13px system-ui;box-sizing:border-box';
+      var message = document.createElement('span');
+      var retry = document.createElement('button');
+      retry.type = 'button'; retry.textContent = 'Retry';
+      retry.style.cssText = 'margin-left:8px;padding:5px 9px;cursor:pointer';
+      retry.onclick = function() { flushSync().then(function() { return save.migrate(); }); };
+      syncNotice.appendChild(message); syncNotice.appendChild(retry);
+      document.body.appendChild(syncNotice);
+    }
+    syncNotice.hidden = false;
+    syncNotice.firstChild.textContent = status.pending
+      ? (status.savedLocally ? 'Saved on this device. Account sync pending.' : 'Sync failed. Keep this page open to retry.')
+      : 'Account sync failed. Please retry.';
+  }
+  function scheduleSync() {
+    if (syncTimer || !currentUser || !pendingWrites(currentUser.id).length) return;
+    syncTimer = setTimeout(function() { syncTimer = null; flushSync().then(function() { return save.migrate(); }); }, 60000);
+  }
+  function checked(res) {
+    if (!res || res.error) throw (res && res.error) || new Error('No server response');
+    return res;
+  }
+  function writeJob(job) {
+    if (!currentUser || currentUser.id !== job.row.user_id) return Promise.reject(new Error('Account changed'));
+    var row = job.row;
+    if (job.table === 'scores') {
+      function submit() {
+        if (!currentUser || currentUser.id !== row.user_id) throw new Error('Account changed');
+        return sb.from('scores').upsert(row, { onConflict: 'client_submission_id', ignoreDuplicates: true }).then(checked);
+      }
+      if (!job.migration) return submit();
+      // Migration can run again in another session/device. Skip a best score
+      // already present; ordinary runs use the UUID for atomic deduplication.
+      return sb.from('scores').select('id').eq('user_id', row.user_id)
+        .eq('game_id', row.game_id).eq('mode', row.mode).eq('score', row.score).limit(1)
+        .then(checked).then(function(res) { return res.data && res.data.length ? res : submit(); });
+    }
+    if (job.table === 'favorites' && job.remove) {
+      return sb.from('favorites').delete().eq('user_id', row.user_id).eq('game_id', row.game_id).then(checked);
+    }
+    return sb.from(job.table).upsert(row, {
+      onConflict: job.table === 'user_achievements' ? 'user_id,achievement_id' : 'user_id,game_id',
+      ignoreDuplicates: job.table === 'user_achievements'
+    }).then(checked);
+  }
+  function flushSync() {
+    if (syncRunning) return syncRunning;
+    if (!currentUser || !sb) return Promise.resolve(syncStatus());
+    var userId = currentUser.id;
+    function run() {
+      var jobs = pendingWrites(userId);
+      syncFailure = null;
+      return jobs.reduce(function(chain, job) {
+        return chain.then(function() {
+          if (!currentUser || currentUser.id !== userId) return;
+          // A newer save/toggle may have superseded this snapshot while waiting.
+          var latest = syncMemory[job.key] || localRead(job.key);
+          if (!latest || latest.id !== job.id) return;
+          return Promise.resolve().then(function() { return writeJob(job); }).then(function() {
+            var stored = syncMemory[job.key] || localRead(job.key);
+            if (stored && stored.id === job.id) {
+              delete syncMemory[job.key];
+              try { localStorage.removeItem(job.key); } catch (e) {}
+            }
+            if (job.table === 'user_achievements' && currentUser && currentUser.id === userId && currentGameId === job.gameId) {
+              if (!cloudUnlocked) cloudUnlocked = new Set();
+              cloudUnlocked.add(job.row.achievement_id.slice(job.gameId.length + 1));
+            }
+          }).catch(function(e) { if (currentUser && currentUser.id === userId) syncFailure = e.message || 'Account sync failed'; });
+        });
+      }, Promise.resolve());
+    }
+    // Serialize a shared outbox across the parent player and game iframes/tabs.
+    var work = window.navigator && window.navigator.locks
+      ? window.navigator.locks.request('gamevolt-sync:' + userId, run) : run();
+    syncRunning = work.catch(function(e) { syncFailure = e.message || 'Account sync failed'; }).then(function() {
+      syncRunning = null; showSyncStatus(); scheduleSync(); return syncStatus();
+    });
+    return syncRunning;
+  }
+  function queueWrite(table, row, options) {
+    options = options || {};
+    var id = Date.now().toString(36) + '-' + (++syncSequence) + '-' + Math.random().toString(36).slice(2);
+    var gameId = options.gameId || row.game_id || currentGameId;
+    var suffix = table === 'scores' ? id : (row.achievement_id || gameId);
+    var key = SYNC_PREFIX + row.user_id + ':' + table + ':' + suffix;
+    if (table === 'scores') {
+      row.client_submission_id = window.crypto && window.crypto.randomUUID
+        ? window.crypto.randomUUID()
+        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          var r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 3 | 8)).toString(16);
+        });
+    }
+    var job = JSON.parse(JSON.stringify({ id: id, key: key, table: table, row: row, gameId: gameId,
+      remove: !!options.remove, migration: !!options.migration }));
+    var durable = localWrite(key, job);
+    if (!durable) syncMemory[key] = job;
+    else delete syncMemory[key];
+    setTimeout(showSyncStatus, 3000);
+    return flushSync().then(function() {
+      var pending = syncMemory[key] || localRead(key);
+      // A flush already in progress may not have included this new job.
+      if (pending && !syncFailure) return flushSync();
+    }).then(function() {
+      var pending = syncMemory[key] || localRead(key);
+      return { synced: !pending, savedLocally: durable, error: pending ? (syncFailure || 'Sync pending') : null };
+    });
+  }
+  window.addEventListener('online', function() { flushSync().then(function() { return save.migrate(); }); });
+  window.addEventListener('focus', function() { flushSync().then(function() { return save.migrate(); }); });
+
   function flushPendingSubmission() {
     if (!pendingSubmission || !currentUser || !sb) return;
     var p = pendingSubmission;
     pendingSubmission = null;
-    sb.from('scores').insert({
-      user_id: currentUser.id,
-      game_id: p.gameId,
-      mode: p.mode || 'default',
-      score: p.score
-    }).then(function() {}).catch(function() {});
+    queueWrite('scores', { user_id: currentUser.id, game_id: p.gameId,
+      mode: p.mode || 'default', score: p.score, created_at: new Date().toISOString() });
   }
 
   // --------------------------------------------------------
@@ -396,7 +552,8 @@
   // user_achievements (written on every unlock), not the save blob.
   function fetchCloudUnlocked() {
     if (!currentUser || !sb) { cloudUnlocked = new Set(); return Promise.resolve(cloudUnlocked); }
-    var prefix = currentGameId + '-';
+    var userId = currentUser.id, gameId = currentGameId;
+    var prefix = gameId + '-';
     return sb.from('user_achievements')
       .select('achievement_id')
       .eq('user_id', currentUser.id)
@@ -407,7 +564,8 @@
           var id = r.achievement_id;
           if (id && id.indexOf(prefix) === 0) set.add(id.slice(prefix.length));
         });
-        cloudUnlocked = set;
+        if (res.error) throw res.error;
+        if (currentUser && currentUser.id === userId && currentGameId === gameId) cloudUnlocked = set;
         return set;
       })
       .catch(function() { cloudUnlocked = cloudUnlocked || new Set(); return cloudUnlocked; });
@@ -482,120 +640,106 @@
   // SAVE module
   // --------------------------------------------------------
 
+  var migrationWork = {};
+  var saveRevision = {};
   var save = {
     set: function(data) {
       if (!currentUser || !sb) {
-        // Guest: localStorage fallback
-        try { localStorage.setItem('gv_save_' + currentGameId, JSON.stringify(data)); } catch (e) {}
-        return Promise.resolve();
+        var stored = localWrite('gv_save_' + currentGameId, data);
+        return Promise.resolve({ synced: false, savedLocally: stored, error: stored ? null : 'Local storage unavailable' });
       }
-      return sb.from('saves').upsert({
-        user_id: currentUser.id,
-        game_id: currentGameId,
-        save_data: data,
-        updated_at: new Date().toISOString()
-      }).then(function() {});
+      var revisionKey = currentUser.id + ':' + currentGameId;
+      saveRevision[revisionKey] = (saveRevision[revisionKey] || 0) + 1;
+      localWrite('gv_save_user:' + revisionKey, data);
+      return queueWrite('saves', { user_id: currentUser.id, game_id: currentGameId,
+        save_data: data, updated_at: new Date().toISOString() });
     },
 
     get: function() {
-      if (!currentUser || !sb) {
-        // Guest: localStorage fallback
-        try {
-          var raw = localStorage.getItem('gv_save_' + currentGameId);
-          return Promise.resolve(raw ? JSON.parse(raw) : null);
-        } catch (e) {
-          return Promise.resolve(null);
-        }
+      if (!currentUser || !sb) return Promise.resolve(localRead('gv_save_' + currentGameId));
+      var userId = currentUser.id, gameId = currentGameId;
+      var backupKey = 'gv_save_user:' + userId + ':' + gameId;
+      var revision = saveRevision[userId + ':' + gameId];
+      function pendingSave() {
+        return pendingWrites(userId).find(function(job) { return job.table === 'saves' && job.gameId === gameId; });
       }
-      return sb.from('saves').select('save_data').eq('user_id', currentUser.id).eq('game_id', currentGameId).single()
-        .then(function(res) { return res.data ? res.data.save_data : null; })
-        .catch(function() { return null; });
+      var pending = pendingSave();
+      if (pending) return Promise.resolve(pending.row.save_data);
+      return sb.from('saves').select('save_data').eq('user_id', userId).eq('game_id', gameId).maybeSingle()
+        .then(checked).then(function(res) {
+          if (saveRevision[userId + ':' + gameId] !== revision) return localRead(backupKey);
+          var newer = pendingSave();
+          if (newer) return newer.row.save_data;
+          var data = res.data ? res.data.save_data : null;
+          if (data !== null) localWrite(backupKey, data);
+          return data;
+        }).catch(function() { return localRead(backupKey); });
     },
 
     migrate: function() {
       if (!currentUser || !sb || !migrationConfig) return Promise.resolve();
-
-      // Read all local keys
-      var localData = {};
-      var keys = migrationConfig.keys || [];
-      for (var i = 0; i < keys.length; i++) {
-        try {
-          var raw = localStorage.getItem(keys[i]);
-          if (raw) localData[keys[i]] = JSON.parse(raw);
-        } catch (e) {}
+      var userId = currentUser.id, gameId = currentGameId, config = migrationConfig;
+      var migrationKey = 'gv_migrated_v2:' + userId + ':' + gameId;
+      var revision = saveRevision[userId + ':' + gameId];
+      if (migrationWork[migrationKey]) return migrationWork[migrationKey];
+      try { if (sessionStorage.getItem(migrationKey)) return Promise.resolve(); } catch (e) {}
+      var localData = {}, keys = config.keys || [];
+      keys.forEach(function(key) {
+        var value = localRead(key);
+        if (value !== null) localData[key] = value;
+      });
+      if (!Object.keys(localData).length) return Promise.resolve();
+      function sameAccount() {
+        if (!currentUser || currentUser.id !== userId || currentGameId !== gameId) throw new Error('Account or game changed');
       }
-
-      if (Object.keys(localData).length === 0) return Promise.resolve();
-
-      // Fetch existing cloud save (maybeSingle avoids 406 when no save exists)
-      return sb.from('saves').select('save_data').eq('user_id', currentUser.id).eq('game_id', currentGameId).maybeSingle()
-        .then(function(res) {
-          var cloudData = (res.data && res.data.save_data) ? res.data.save_data : null;
-          var merged;
-
-          if (migrationConfig.merge && typeof migrationConfig.merge === 'function') {
-            merged = migrationConfig.merge(localData, cloudData);
-          } else {
-            // Default: prefer local if no cloud data
-            merged = cloudData || localData[keys[0]] || {};
-          }
-
-          // Upsert merged save
-          return sb.from('saves').upsert({
-            user_id: currentUser.id,
-            game_id: currentGameId,
-            save_data: merged,
-            updated_at: new Date().toISOString()
-          });
-        })
-        .then(function() {
-          // Migrate scores
-          if (migrationConfig.getScores) {
-            var scores = migrationConfig.getScores(localData);
-            if (scores && scores.length > 0) {
-              var best = scores[0]; // Already sorted desc
-              return sb.from('scores').upsert({
-                user_id: currentUser.id,
-                game_id: currentGameId,
-                mode: best.mode || 'default',
-                score: best.score
-              }, { ignoreDuplicates: true });
-            }
-          }
-        })
-        .then(function() {
-          // Migrate achievements (raw fetch with ignore-duplicates)
-          if (migrationConfig.getAchievements) {
-            var achs = migrationConfig.getAchievements(localData);
-            if (achs && achs.length > 0) {
-              return sb.auth.getSession().then(function(s) {
-                var token = s.data && s.data.session ? s.data.session.access_token : SUPABASE_KEY;
-                var rows = achs.map(function(a) {
-                  return {
-                    user_id: currentUser.id,
-                    achievement_id: currentGameId + '-' + a.id,
-                    unlocked_at: a.unlocked_at ? new Date(a.unlocked_at).toISOString() : new Date().toISOString()
-                  };
-                });
-                return fetch(SUPABASE_URL + '/rest/v1/user_achievements?on_conflict=user_id,achievement_id', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': 'Bearer ' + token,
-                    'Prefer': 'return=minimal,resolution=ignore-duplicates'
-                  },
-                  body: JSON.stringify(rows)
-                });
-              });
-            }
-          }
-        })
-        .catch(function(e) { console.warn('[GameVolt] Migration error:', e); });
+      function requireStored(result) {
+        // A queued write is safe, but migration must retry until all writes are acknowledged.
+        if (!result.synced) throw new Error(result.error || 'Sync pending');
+      }
+      migrationWork[migrationKey] = sb.from('saves').select('save_data').eq('user_id', userId).eq('game_id', gameId).maybeSingle()
+        .then(checked).then(function(res) {
+          sameAccount();
+          if (saveRevision[userId + ':' + gameId] !== revision) throw new Error('Progress changed during migration; retry needed');
+          var cloud = res.data ? res.data.save_data : null;
+          var pending = pendingWrites(userId).find(function(job) { return job.table === 'saves' && job.gameId === gameId; });
+          if (pending) cloud = pending.row.save_data;
+          var merged = config.merge ? config.merge(localData, cloud) : (cloud || localData[keys[0]] || {});
+          localWrite('gv_save_user:' + userId + ':' + gameId, merged);
+          return queueWrite('saves', { user_id: userId, game_id: gameId,
+            save_data: merged, updated_at: new Date().toISOString() }).then(requireStored);
+        }).then(function() {
+          return (config.getScores ? config.getScores(localData) || [] : []).reduce(function(chain, score) {
+            return chain.then(function() {
+              sameAccount();
+              return queueWrite('scores', { user_id: userId, game_id: gameId,
+                mode: score.mode || 'default', score: score.score, created_at: new Date().toISOString()
+              }, { migration: true }).then(requireStored);
+            });
+          }, Promise.resolve());
+        }).then(function() {
+          return (config.getAchievements ? config.getAchievements(localData) || [] : []).reduce(function(chain, ach) {
+            return chain.then(function() {
+              sameAccount();
+              return queueWrite('user_achievements', { user_id: userId,
+                achievement_id: gameId + '-' + ach.id,
+                unlocked_at: new Date(ach.unlocked_at || Date.now()).toISOString()
+              }, { gameId: gameId }).then(requireStored);
+            });
+          }, Promise.resolve());
+        }).then(function() {
+          sameAccount();
+          try { sessionStorage.setItem(migrationKey, '1'); } catch (e) {}
+          return { synced: true };
+        }).catch(function(e) {
+          if (currentUser && currentUser.id === userId) { syncFailure = e.message || 'Migration failed'; showSyncStatus(); }
+          return { synced: false, error: e.message || 'Migration failed' };
+        }).then(function(result) { delete migrationWork[migrationKey]; return result; });
+      return migrationWork[migrationKey];
     },
 
     registerMigration: function(config) {
       migrationConfig = config;
+      if (currentUser && sb) save.migrate();
     }
   };
 
@@ -617,12 +761,10 @@
         showNudge(opts.nudgeText ? { text: opts.nudgeText } : score);
         return Promise.resolve();
       }
-      return sb.from('scores').insert({
-        user_id: currentUser.id,
-        game_id: currentGameId,
-        mode: opts.mode || 'default',
-        score: score
-      }).then(function() {});
+      return queueWrite('scores', {
+        user_id: currentUser.id, game_id: currentGameId,
+        mode: opts.mode || 'default', score: score, created_at: new Date().toISOString()
+      });
     },
 
     get: function(opts) {
@@ -711,25 +853,9 @@
         return Promise.resolve();
       }
 
-      if (cloudUnlocked) cloudUnlocked.add(id); // keep the cache fresh this session
-
-      return sb.auth.getSession().then(function(s) {
-        var token = s.data && s.data.session ? s.data.session.access_token : SUPABASE_KEY;
-        return fetch(SUPABASE_URL + '/rest/v1/user_achievements?on_conflict=user_id,achievement_id', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_KEY,
-            'Authorization': 'Bearer ' + token,
-            'Prefer': 'return=minimal,resolution=ignore-duplicates'
-          },
-          body: JSON.stringify({
-            user_id: currentUser.id,
-            achievement_id: fullId,
-            unlocked_at: new Date().toISOString()
-          })
-        });
-      });
+      return queueWrite('user_achievements', {
+        user_id: currentUser.id, achievement_id: fullId, unlocked_at: new Date().toISOString()
+      }, { gameId: currentGameId });
     },
 
     // The set of this game's achievement ids the signed-in user has already
@@ -852,6 +978,8 @@
       if (!currentUser || !sb) {
         return Promise.resolve(loadLocalFavorites().indexOf(gameId) !== -1);
       }
+      var pending = pendingWrites(currentUser.id).find(function(job) { return job.table === 'favorites' && job.gameId === gameId; });
+      if (pending) return Promise.resolve(!pending.remove);
       return sb.from('favorites').select('game_id')
         .eq('user_id', currentUser.id).eq('game_id', gameId).maybeSingle()
         .then(function(res) { return !!(res && res.data); })
@@ -868,28 +996,31 @@
         local.splice(idx, 1); saveLocalFavorites(local);
         return Promise.resolve(false);
       }
-      return favorites.is(gameId).then(function(isFav) {
-        if (isFav) {
-          return sb.from('favorites').delete()
-            .eq('user_id', currentUser.id).eq('game_id', gameId)
-            .then(function() { return false; });
-        }
-        return sb.from('favorites').insert({ user_id: currentUser.id, game_id: gameId })
-          .then(function() { return true; });
-      }).catch(function() { return false; });
+      var userId = currentUser.id;
+      return sb.from('favorites').select('game_id').eq('user_id', userId).eq('game_id', gameId).maybeSingle()
+        .then(checked).then(function(res) {
+          if (!currentUser || currentUser.id !== userId) throw new Error('Account changed');
+          var pending = pendingWrites(userId).find(function(job) { return job.table === 'favorites' && job.gameId === gameId; });
+          var isFav = pending ? !pending.remove : !!res.data;
+          return queueWrite('favorites', { user_id: userId, game_id: gameId }, { remove: isFav })
+            .then(function(result) { return result.synced || result.savedLocally ? !isFav : null; });
+        }).catch(function(e) { syncFailure = e.message || 'Favorite update failed'; showSyncStatus(); return null; });
     },
 
     list: function() {
-      if (!currentUser || !sb) {
-        return Promise.resolve(loadLocalFavorites());
+      if (!currentUser || !sb) return Promise.resolve(loadLocalFavorites());
+      var userId = currentUser.id;
+      function withPending(ids) {
+        pendingWrites(userId).filter(function(job) { return job.table === 'favorites'; }).forEach(function(job) {
+          ids = ids.filter(function(id) { return id !== job.gameId; });
+          if (!job.remove) ids.unshift(job.gameId);
+        });
+        return ids;
       }
-      return sb.from('favorites').select('game_id').eq('user_id', currentUser.id)
-        .order('created_at', { ascending: false })
-        .then(function(res) {
-          if (res.error || !res.data) return [];
-          return res.data.map(function(r) { return r.game_id; });
-        })
-        .catch(function() { return []; });
+      return sb.from('favorites').select('game_id').eq('user_id', userId)
+        .order('created_at', { ascending: false }).then(checked)
+        .then(function(res) { return withPending((res.data || []).map(function(r) { return r.game_id; })); })
+        .catch(function() { return withPending([]); });
     }
   };
 
@@ -1953,15 +2084,12 @@
         var prevUser = currentUser;
         currentUser = session ? session.user : null;
 
-        if (currentUser && !prevUser) {
+        if (currentUser && (!prevUser || currentUser.id !== prevUser.id)) {
           // Just signed in — fetch profile and migrate (once per session)
           fetchProfile(currentUser.id).then(function() {
             closeModal();
-            var migratedKey = 'gv_migrated_' + currentGameId;
-            if (migrationConfig && !sessionStorage.getItem(migratedKey)) {
-              sessionStorage.setItem(migratedKey, '1');
-              save.migrate();
-            }
+            cloudUnlocked = null;
+            save.migrate();
             fetchCloudUnlocked().then(notifyStateChange);
           });
         } else if (!currentUser && prevUser) {
@@ -1977,6 +2105,7 @@
         if (res.data && res.data.session) {
           currentUser = res.data.session.user;
           fetchProfile(currentUser.id).then(function() {
+            save.migrate();
             fetchCloudUnlocked().then(notifyStateChange);
           });
         }
@@ -2085,6 +2214,9 @@
 
   function notifyStateChange() {
     updateWidget();
+    syncFailure = null;
+    flushSync();
+    showSyncStatus();
     flushPendingSubmission();
     flushPendingFavorites();
     flushPendingRatings();
@@ -2287,6 +2419,7 @@
     onReady: onReady,
     auth: auth,
     save: save,
+    sync: { retry: flushSync, status: syncStatus },
     leaderboard: leaderboard,
     achievements: achievements,
     favorites: favorites,
