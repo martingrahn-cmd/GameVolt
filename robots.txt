@@ -23,7 +23,9 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
-# Default policy for all other crawlers (Googlebot, Bingbot, DuckDuckBot, ...).
+# OAI-SearchBot powers ChatGPT search; GPTBot above is a separate training crawler.
+# Share the default policy so search keeps the same exclusions as before.
+User-agent: OAI-SearchBot
 User-agent: *
 Allow: /
 # Legacy paths return 410 Gone via Cloudflare Worker — allow crawl so Google sees the 410.

@@ -13,10 +13,12 @@
 <meta property="og:image" content="https://gamevolt.io/assets/thumbnails/ink-hero.webp">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="720">
+<meta property="og:image:alt" content="INK artwork: blue ink strokes, a bouncing ball and orange bumpers on squared notebook paper">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="INK — Draw Your Way Up">
 <meta name="twitter:description" content="Draw, bounce and climb through a blue-ink world on squared notebook paper. Free climb and daily challenges.">
 <meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/ink-hero.webp">
+<meta name="twitter:image:alt" content="INK artwork: blue ink strokes, a bouncing ball and orange bumpers on squared notebook paper">
 <script>
 if(window.self!==window.top)document.documentElement.classList.add('embedded');
 else {
@@ -43,7 +45,46 @@ else {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "VideoGame", "name": "INK", "url": "https://gamevolt.io/ink/", "image": "https://gamevolt.io/assets/thumbnails/ink-hero.webp", "description": "A vertical pinball climber on squared notebook paper. Draw blue ink strokes to bounce the ball upward, collect ink and avoid red spikes. Endless climb and a daily 500 m course.", "genre": ["Arcade", "Physics"], "gamePlatform": ["Web Browser", "Mobile", "Desktop"], "applicationCategory": "GameApplication", "operatingSystem": "Any", "isAccessibleForFree": true, "author": {"@type": "Person", "name": "Martin"}, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "INK",
+  "url": "https://gamevolt.io/ink/",
+  "image": "https://gamevolt.io/assets/thumbnails/ink-hero.webp",
+  "description": "A vertical pinball climber on squared notebook paper. Draw blue ink strokes to bounce the ball upward, collect ink and avoid red spikes. Endless climb and a daily 500 m course.",
+  "genre": [
+    "Arcade",
+    "Physics"
+  ],
+  "gamePlatform": [
+    "Web Browser",
+    "Mobile",
+    "Desktop"
+  ],
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Any",
+  "isAccessibleForFree": true,
+  "author": {
+    "@type": "Person",
+    "name": "Martin",
+    "url": "https://gamevolt.io/about/"
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "@id": "https://gamevolt.io/ink/#game",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Organization",
+    "@id": "https://gamevolt.io/#organization",
+    "name": "GameVolt",
+    "url": "https://gamevolt.io"
+  }
+}
+</script>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://gamevolt.io/"}, {"@type": "ListItem", "position": 2, "name": "Arcade Games", "item": "https://gamevolt.io/arcade-games/"}, {"@type": "ListItem", "position": 3, "name": "INK", "item": "https://gamevolt.io/ink/"}]}</script>
 <style>
   :root{
@@ -81,14 +122,15 @@ else {
   html:not(.embedded) #wrap{height:100svh;min-height:480px;flex:none}
   .embedded #seo-content{display:none}
   #seo-content{width:100%;max-width:780px;padding:32px 24px 48px;font-size:14px;line-height:1.8}
-  #seo-content h2{font-size:24px;margin:20px 0 10px;color:var(--ink)}
+  #seo-content h1{font-size:28px;line-height:1.3;margin:20px 0 12px;color:var(--ink)}
+  #seo-content h2{font-size:21px;line-height:1.4;margin:24px 0 10px;color:var(--ink)}
   #seo-content h3{margin-top:18px}
   #seo-content a{color:var(--ink)}
   @media(max-height:760px){.sheet{justify-content:flex-start;padding-top:24px;padding-bottom:80px}}
 
 
   .eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--pale)}
-  h1{
+  .game-title{
     font-family:"Caveat",cursive;font-weight:700;
     font-size:clamp(58px,20vw,96px);line-height:.86;color:var(--ink);
     letter-spacing:.01em;margin:10px 0 2px;
@@ -256,7 +298,7 @@ else {
 
   <div class="sheet" id="startSheet">
     <div class="eyebrow">a GameVolt original</div>
-    <h1>INK<span class="sr-only"> — Free Online Drawing Arcade Game</span></h1>
+    <div class="game-title">INK<span class="sr-only"> — Free Online Drawing Arcade Game</span></div>
     <div class="tag">draw your way up</div>
     <p class="rules">
       Draw strokes with your finger — the ball bounces off them, <b>one bounce per stroke</b>.
@@ -2220,15 +2262,23 @@ resize();
 requestAnimationFrame(frame);
 })();
 </script>
-<article id="seo-content">
-  <nav aria-label="Breadcrumb"><a href="/">GameVolt</a> / <a href="/arcade-games/">Arcade Games</a> / INK</nav>
-  <h2>Draw your way up in INK</h2>
-  <p>INK is a free arcade game where you draw the flipper yourself. Blue ballpoint strokes, orange bumpers and highlighted green bricks turn a sheet of squared notebook paper into a vertical pinball course.</p>
-  <h3>How to play</h3>
-  <p>Drag with your finger or mouse to draw a stroke below the ball. The ball can bounce off each stroke once. Drawing spends ink and slows time; collect blue ink blots and break green blocks to refill. Avoid red spikes and keep the ball from falling off the bottom of the page. Chain hits without drawing again to build your combo.</p>
-  <h3>Free climb or today's challenge</h3>
-  <p>Climb endlessly with checkpoints every 100 metres, or take on the daily 500-metre course with a changing rule. Records and 31 trophies save in this browser without an account. Use the Pause button whenever you need a break.</p>
-  <p>Created by Martin for <a href="/">GameVolt</a>. Play more <a href="/arcade-games/">original arcade games</a>, including <a href="/play/?game=breakout">Breakout</a> and <a href="/play/?game=gravitywell">Gravity Well</a>.</p>
+<article id="seo-content" aria-labelledby="ink-heading">
+  <nav aria-label="Breadcrumb"><a href="/">GameVolt</a> / <a href="/arcade-games/">Arcade Games</a> / <span aria-current="page">INK</span></nav>
+  <h1 id="ink-heading">INK — Free Online Drawing &amp; Pinball Game</h1>
+  <p>INK is a free, single-player drawing and physics arcade game by GameVolt. Draw the flipper yourself to bounce a ball up a vertical pinball course. Blue ballpoint strokes, orange bumpers and highlighted green bricks turn squared notebook paper into your playground. Play in your browser with no ads, download or account required.</p>
+  <h2>How to play INK</h2>
+  <p>Drag with your finger or mouse to draw a stroke below the ball. The ball can bounce off each stroke once. Drawing spends ink and slows time; collect blue ink blots and break green blocks to refill. Avoid red spikes and keep the ball from falling off the bottom of the page. Chain hits without drawing again to build your combo. Use the Pause button whenever you need a break.</p>
+  <h2>Free climb and daily challenges</h2>
+  <p>Free climb is an endless course with checkpoints every 100 metres. The daily challenge has a 500-metre finish, a course shared by everyone that day and a changing rule. Finish daily courses on consecutive days to build your streak.</p>
+  <h2>INK questions and answers</h2>
+  <h3>Can I play on my phone?</h3>
+  <p>Yes. INK supports touch controls on phones and tablets, and mouse controls on desktop. Open this page in your browser and drag to draw; installation is optional.</p>
+  <h3>Does INK save my progress?</h3>
+  <p>Records, checkpoints and unlocked trophies are saved in this browser without an account. INK has 31 trophies to earn. Sign in to GameVolt to sync earned trophies to your account and submit scores to the global leaderboards. Checkpoints remain local to this browser; signing in does not let you resume a climb on another device.</p>
+  <h3>Who made INK?</h3>
+  <p>INK was designed and built by <a href="/about/">Martin, GameVolt's independent creator in Sweden</a>, with help from AI. Its draw-your-own-flipper mechanic and notebook-paper art are part of GameVolt's collection of original browser games.</p>
+  <h2>More games from GameVolt</h2>
+  <p>Try <a href="/breakout/">Breakout</a> for another ball-and-bounce arcade game, or control a black hole in <a href="/gravitywell/">Gravity Well</a>. Browse all <a href="/arcade-games/">arcade games</a> or return to <a href="/">GameVolt</a>.</p>
 </article>
 </body>
 </html>
