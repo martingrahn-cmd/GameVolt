@@ -1,0 +1,2234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>INK — Free Online Drawing &amp; Pinball Game | GameVolt</title>
+<meta name="description" content="Draw your own flipper in INK, a free arcade climber on squared notebook paper. Bounce the ball, collect blue ink and beat a daily 500 m course. Touch or mouse.">
+<link rel="canonical" href="https://gamevolt.io/ink/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="INK — Draw Your Way Up">
+<meta property="og:description" content="Blue ink, squared paper and one bounce per stroke. Draw your own flipper in this free arcade climber.">
+<meta property="og:url" content="https://gamevolt.io/ink/">
+<meta property="og:image" content="https://gamevolt.io/assets/thumbnails/ink-hero.webp">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="720">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="INK — Draw Your Way Up">
+<meta name="twitter:description" content="Draw, bounce and climb through a blue-ink world on squared notebook paper. Free climb and daily challenges.">
+<meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/ink-hero.webp">
+<script>
+if(window.self!==window.top)document.documentElement.classList.add('embedded');
+else {
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function(){window.dataLayer.push(arguments);};
+  window.gtag('js', new Date());
+  window.gtag('config', 'G-PY073ZX38N');
+  var analytics = document.createElement('script');
+  analytics.async = true;
+  analytics.src = 'https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N';
+  document.head.appendChild(analytics);
+}
+</script>
+<script src="/sdk/gamevolt.js"></script>
+<script src="/js/gv-ga4.js"></script>
+<meta name="theme-color" content="#EEF2F5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="INK">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "VideoGame", "name": "INK", "url": "https://gamevolt.io/ink/", "image": "https://gamevolt.io/assets/thumbnails/ink-hero.webp", "description": "A vertical pinball climber on squared notebook paper. Draw blue ink strokes to bounce the ball upward, collect ink and avoid red spikes. Endless climb and a daily 500 m course.", "genre": ["Arcade", "Physics"], "gamePlatform": ["Web Browser", "Mobile", "Desktop"], "applicationCategory": "GameApplication", "operatingSystem": "Any", "isAccessibleForFree": true, "author": {"@type": "Person", "name": "Martin"}, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Home", "item": "https://gamevolt.io/"}, {"@type": "ListItem", "position": 2, "name": "Arcade Games", "item": "https://gamevolt.io/arcade-games/"}, {"@type": "ListItem", "position": 3, "name": "INK", "item": "https://gamevolt.io/ink/"}]}</script>
+<style>
+  :root{
+    --paper:#EEF2F5;
+    --grid:#C3D3DE;
+    --margin-red:#D8455A;
+    --ink:#1E3A8F;
+    --graphite:#2A3138;
+    --pale:#8C9AA6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+  body{
+    background:#DCE3E9;
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+    color:var(--graphite);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #wrap{position:relative;width:100%;max-width:520px;height:100%;box-shadow:0 0 60px rgba(42,49,56,.22)}
+  canvas{display:block;width:100%;height:100%;touch-action:none;background:var(--paper)}
+
+  .sheet{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;
+    padding:32px 30px 40px 52px;
+    background:rgba(238,242,245,.94);
+    backdrop-filter:blur(2px);
+  }
+  .sheet[hidden]{display:none}
+  .sheet{overflow-y:auto}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  html:not(.embedded),html:not(.embedded) body{height:auto;min-height:100%;overflow:auto;overscroll-behavior:auto}
+  html:not(.embedded) body{flex-direction:column}
+  html:not(.embedded) #wrap{height:100svh;min-height:480px;flex:none}
+  .embedded #seo-content{display:none}
+  #seo-content{width:100%;max-width:780px;padding:32px 24px 48px;font-size:14px;line-height:1.8}
+  #seo-content h2{font-size:24px;margin:20px 0 10px;color:var(--ink)}
+  #seo-content h3{margin-top:18px}
+  #seo-content a{color:var(--ink)}
+  @media(max-height:760px){.sheet{justify-content:flex-start;padding-top:24px;padding-bottom:80px}}
+
+
+  .eyebrow{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--pale)}
+  h1{
+    font-family:"Caveat",cursive;font-weight:700;
+    font-size:clamp(58px,20vw,96px);line-height:.86;color:var(--ink);
+    letter-spacing:.01em;margin:10px 0 2px;
+  }
+  .tag{font-family:"Caveat",cursive;font-size:26px;color:var(--margin-red);transform:rotate(-2.5deg);margin-bottom:26px}
+  p.rules{font-size:13px;line-height:1.75;max-width:34ch;color:var(--graphite)}
+  p.rules b{font-weight:600;color:var(--ink)}
+  .btn{
+    margin-top:30px;border:2px solid var(--ink);background:transparent;color:var(--ink);
+    font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:13px;
+    letter-spacing:.16em;text-transform:uppercase;
+    padding:15px 30px;border-radius:2px;cursor:pointer;
+  }
+  .btn:hover{background:var(--ink);color:var(--paper)}
+  .btn:focus-visible{outline:3px solid var(--margin-red);outline-offset:3px}
+  .btn + .btn{margin-top:12px}
+  .btn.ghost{border-color:var(--pale);color:var(--pale)}
+  .btn.ghost:hover{background:var(--pale);color:var(--paper)}
+
+  .tuneBtn{
+    position:absolute;right:12px;bottom:12px;z-index:3;
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--pale);background:rgba(238,242,245,.8);
+    border:1px solid var(--pale);border-radius:2px;padding:7px 11px;cursor:pointer;
+  }
+  .tuneBtn:hover{color:var(--ink);border-color:var(--ink)}
+  .tuneBtn.snd{right:auto;left:46px}
+  .tuneBtn.mus{right:auto;left:46px;bottom:50px}
+  .tuneBtn.pausebtn{right:auto;left:50%;transform:translateX(-50%)}
+  .tune{
+    position:absolute;right:12px;bottom:48px;z-index:3;width:216px;
+    background:rgba(238,242,245,.96);border:1.5px solid var(--ink);border-radius:2px;
+    padding:14px 14px 6px;display:flex;flex-direction:column;gap:2px;max-height:62vh;overflow-y:auto;
+  }
+  .tune[hidden]{display:none}
+  .tune label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--graphite)}
+  .tune output{color:var(--ink);font-weight:600}
+  .tune input[type=range]{width:100%;accent-color:var(--ink);margin:4px 0 12px}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center;margin-top:24px}
+  .legend .k{display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--pale)}
+  .legend .k::before{content:"";width:16px;height:11px;border:2px solid currentColor}
+  .legend .brk::before{background:rgba(240,206,70,.55);border-color:#2E7D4F;border-radius:3px}
+  .legend .sol::before{background:rgba(42,49,56,.20);border-color:#2A3138}
+  .legend .spk::before{background:none;border:none;width:16px;height:11px;
+    background-image:linear-gradient(135deg,transparent 45%,#D8455A 45%,#D8455A 55%,transparent 55%),
+    linear-gradient(45deg,transparent 45%,#D8455A 45%,#D8455A 55%,transparent 55%)}
+  .legend .inkd::before{background:#1E3A8F;border:none;width:12px;height:12px;border-radius:50%}
+  .score{font-family:"Caveat",cursive;font-size:76px;line-height:1;color:var(--ink);margin:6px 0 0}
+  .best{font-size:12px;letter-spacing:.14em;color:var(--pale);margin-top:10px}
+  .daily-info{margin-top:14px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pale)}
+  .rank{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--margin-red);margin-top:9px}
+  .rank[hidden]{display:none}
+  .links{display:flex;flex-wrap:wrap;justify-content:center;gap:0 6px;margin-top:20px}
+  .lnk{
+    background:none;border:none;border-bottom:1px solid transparent;cursor:pointer;
+    font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--pale);padding:12px 7px 10px;white-space:nowrap;
+  }
+  .lnk:hover{color:var(--ink);border-bottom-color:var(--ink)}
+  .lnk:focus-visible{outline:2px solid var(--margin-red);outline-offset:2px}
+  .lnk[hidden]{display:none}
+
+  /* ---------- trophies: paper slip toast + collection page ---------- */
+  .sheet.scroll{justify-content:flex-start;overflow-y:auto;padding-top:28px;z-index:4}
+  .t-toast{
+    position:absolute;left:50%;top:-150px;z-index:6;
+    display:flex;align-items:center;gap:13px;
+    width:min(304px,80%);padding:10px 15px 10px 16px;
+    background:var(--paper);border:1.5px solid var(--ink);border-left:6px solid var(--margin-red);
+    border-radius:2px;box-shadow:3px 4px 0 rgba(42,49,56,.15);
+    transform:translateX(-50%) rotate(-1.4deg);
+    transition:top .5s cubic-bezier(.34,1.56,.64,1);
+    pointer-events:none;
+  }
+  .t-toast[hidden]{display:none}
+  .t-toast.show{top:72px}
+  .t-toast .ico{font-size:26px;line-height:1}
+  .t-toast .lbl{font-size:8.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--pale)}
+  .t-toast .nm{font-family:"Caveat",cursive;font-weight:700;font-size:27px;line-height:1.1;color:var(--ink)}
+  .t-stamp{
+    display:inline-block;margin-top:3px;
+    font-family:"IBM Plex Mono",monospace;font-size:8px;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--pale);
+    border:1.5px solid currentColor;border-radius:2px;padding:1px 5px;
+    transform:rotate(-3.5deg);
+  }
+  .t-stamp.bronze{color:#A9713F}
+  .t-stamp.silver{color:#7B8896}
+  .t-stamp.gold{color:#C08A1E}
+  .t-stamp.platinum{color:var(--margin-red)}
+  .t-title{font-family:"Caveat",cursive;font-weight:700;font-size:52px;line-height:1;color:var(--ink);margin-top:8px}
+  .t-count{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--pale);margin:8px 0 4px}
+  .t-list{width:100%;max-width:352px;text-align:left}
+  .t-head{
+    display:flex;align-items:center;gap:9px;margin:18px 0 4px;
+    font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--pale);
+  }
+  .t-head::after{content:"";flex:1;height:1px;background:var(--grid)}
+  .t-head.bronze{color:#A9713F}
+  .t-head.silver{color:#7B8896}
+  .t-head.gold{color:#C08A1E}
+  .t-head.platinum{color:var(--margin-red)}
+  .t-row{display:flex;align-items:flex-start;gap:11px;padding:8px 0;border-bottom:1px dashed var(--grid)}
+  .t-row .ic{
+    width:27px;height:27px;flex:0 0 27px;display:flex;align-items:center;justify-content:center;
+    font-size:15px;border:1.5px dashed var(--grid);border-radius:2px;color:var(--pale);
+  }
+  .t-row.got .ic{border-style:solid}
+  .t-row.got.bronze .ic{border-color:#A9713F}
+  .t-row.got.silver .ic{border-color:#7B8896}
+  .t-row.got.gold .ic{border-color:#C08A1E}
+  .t-row.got.platinum .ic{border-color:var(--margin-red)}
+  .t-row .nm{font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--pale)}
+  .t-row.got .nm{color:var(--ink)}
+  .t-row .ds{font-size:10px;line-height:1.5;color:var(--pale);margin-top:2px}
+  .t-row.got .ds{color:var(--graphite)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<script>
+(function(){
+  function show(msg){
+    try{
+      var d = document.getElementById("errNote");
+      if (!d){
+        d = document.createElement("div");
+        d.id = "errNote";
+        d.style.cssText = "position:fixed;left:10px;right:10px;bottom:10px;z-index:99;background:#FFF3F4;border:2px solid #D8455A;color:#D8455A;font:11px/1.5 monospace;padding:10px;border-radius:2px;white-space:pre-wrap;word-break:break-word;";
+        (document.body||document.documentElement).appendChild(d);
+      }
+      d.textContent = msg;
+    }catch(_){}
+  }
+  window.addEventListener("error", function(e){
+    show("FEL: " + (e.message||e.type) + "\nrad " + (e.lineno||"?") + ":" + (e.colno||"?"));
+  }, true);
+  window.addEventListener("unhandledrejection", function(e){
+    show("FEL (promise): " + (e.reason && e.reason.message || e.reason));
+  });
+})();
+</script>
+<div id="wrap">
+  <canvas id="c"></canvas>
+
+  <button class="tuneBtn" id="tuneBtn" aria-label="Show tuning">tuning</button>
+  <button class="tuneBtn snd" id="sndBtn" aria-label="Sound on or off">sound: on</button>
+  <button class="tuneBtn mus" id="musBtn" aria-label="Music on or off">music: on</button>
+  <button class="tuneBtn pausebtn" id="pauseBtn" aria-label="Pause the game" hidden>pause</button>
+  <div class="tune" id="tunePanel" hidden>
+    <label>Gravity <output id="oG">600</output>
+      <input type="range" id="rG" min="250" max="1300" step="25" value="600"></label>
+    <label>Stroke kick <output id="oK">320</output>
+      <input type="range" id="rK" min="150" max="520" step="10" value="320"></label>
+    <label>Ink refill <output id="oR">115</output> px/s
+      <input type="range" id="rR" min="20" max="220" step="5" value="115"></label>
+    <label>World bounce <output id="oB">62</output>%
+      <input type="range" id="rB" min="25" max="100" step="2" value="62"></label>
+    <label>Bumper kick <output id="oBK">40</output>
+      <input type="range" id="rBK" min="0" max="300" step="10" value="40"></label>
+    <label>Slow-mo <output id="oS">34</output>%
+      <input type="range" id="rS" min="10" max="100" step="2" value="34"></label>
+  </div>
+
+  <div class="sheet" id="startSheet">
+    <div class="eyebrow">a GameVolt original</div>
+    <h1>INK<span class="sr-only"> — Free Online Drawing Arcade Game</span></h1>
+    <div class="tag">draw your way up</div>
+    <p class="rules">
+      Draw strokes with your finger — the ball bounces off them, <b>one bounce per stroke</b>.
+      Collect ink, avoid red, and chain hits without new strokes to build <b>combo</b>.
+      You'll learn the rest on the way.
+    </p>
+    <div class="legend">
+      <span class="k brk">breakable</span>
+      <span class="k sol">solid</span>
+      <span class="k spk">spikes</span>
+      <span class="k inkd">ink</span>
+    </div>
+    <button class="btn" id="startBtn">Free climb</button>
+    <button class="btn" id="resumeBtn" hidden>Continue</button>
+    <button class="btn" id="dailyBtn">Daily challenge · 500 m</button>
+    <button class="btn ghost" id="trophyBtn">Trophies</button>
+    <button class="btn" id="updateBtn" hidden>Update to the new version</button>
+    <div class="daily-info" id="dailyInfo"></div>
+    <div class="daily-info" id="saveNote" hidden>note: records are not saved in this preview</div>
+  </div>
+
+  <div class="sheet" id="pauseSheet" hidden>
+    <div class="eyebrow">paused</div>
+    <div class="tag">the ball is waiting</div>
+    <button class="btn" id="resumePlayBtn">Resume</button>
+    <button class="btn ghost" id="restartBtn">Restart</button>
+    <button class="btn ghost" id="quitBtn">Back to start</button>
+  </div>
+
+  <div class="sheet" id="overSheet" hidden>
+    <div class="eyebrow" id="overEyebrow">the ball fell</div>
+    <div class="score" id="finalScore">0 m</div>
+    <div class="best" id="bestScore">BEST 0 M</div>
+    <div class="rank" id="overRank" hidden></div>
+    <button class="btn" id="shareBtn" hidden>Copy result</button>
+    <button class="btn" id="contBtn">Continue</button>
+    <button class="btn ghost" id="againBtn">From the start</button>
+    <div class="links">
+      <button class="lnk" id="lbBtn" hidden>Leaderboard</button>
+      <button class="lnk" id="overTrophyBtn">Trophies</button>
+      <button class="lnk" id="menuBtn">Menu</button>
+      <button class="lnk" id="updateLnk" hidden>Update</button>
+    </div>
+  </div>
+
+  <div class="sheet scroll" id="trophySheet" hidden>
+    <div class="eyebrow">the collection</div>
+    <div class="t-title">trophies</div>
+    <div class="t-count" id="trophyCount">0 / 31</div>
+    <div class="t-list" id="trophyList"></div>
+    <button class="btn ghost" id="trophyBackBtn">Back</button>
+  </div>
+
+  <div class="t-toast" id="tToast" hidden>
+    <div class="ico" id="tToastIcon">✏️</div>
+    <div>
+      <div class="lbl">trophy unlocked</div>
+      <div class="nm" id="tToastName">First Stroke</div>
+      <span class="t-stamp bronze" id="tToastTier">bronze</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const cv = document.getElementById("c");
+const ctx = cv.getContext("2d", {alpha:false});
+const startSheet = document.getElementById("startSheet");
+const overSheet  = document.getElementById("overSheet");
+const startBtn   = document.getElementById("startBtn");
+const againBtn   = document.getElementById("againBtn");
+const contBtn    = document.getElementById("contBtn");
+const dailyBtn   = document.getElementById("dailyBtn");
+const shareBtn   = document.getElementById("shareBtn");
+const overEyebrow = document.getElementById("overEyebrow");
+const dailyInfo  = document.getElementById("dailyInfo");
+const resumeBtn  = document.getElementById("resumeBtn");
+const pauseBtn   = document.getElementById("pauseBtn");
+const pauseSheet = document.getElementById("pauseSheet");
+const resumePlayBtn = document.getElementById("resumePlayBtn");
+const quitBtn    = document.getElementById("quitBtn");
+const finalScore = document.getElementById("finalScore");
+const bestScore  = document.getElementById("bestScore");
+const overRank   = document.getElementById("overRank");
+
+const C = {
+  paper:"#EEF2F5", grid:"#C3D3DE", red:"#D8455A", ink:"#1E3A8F",
+  graphite:"#2A3138", pale:"#8C9AA6",
+  green:"#2E7D4F",                       // grön kulspets: går att krossa
+  high:"rgba(240,206,70,.55)",           // gul överstrykning bakom det krossbara
+  orange:"#DE7B2C",                      // studsknappar
+  inkHalo:"rgba(64,110,205,.30)"         // blå smet bakom bläckplumpar
+};
+
+const MARGIN = 34;          // röd marginal till vänster (även bläckmätare)
+const RWALL  = 28;          // indragen högerkant — fingret slipper skärmens bezel
+const GRID   = 26;
+const REST   = 0.78;        // studs mot ritat streck
+const VMAX   = 900;
+const TUNE   = { g: 600, kick: 320, slow: 0.34, bounce: 0.62, bkick: 40, regen: 115 };  // live-reglage
+const BAND   = 250;         // avstånd mellan genererade band
+const MPX    = 19;          // pixlar per meter — styr hur fort höjden räknas
+const UNLOCKS = {2:"spikes", 3:"stars", 4:"roaming bumpers", 5:"gold blocks",
+                 6:"gates", 7:"fans", 8:"moving stars", 9:"magnets & double gates", 10:"the gold star",
+                 11:"crosswinds", 13:"twin magnets", 15:"narrow gates"};
+const INK_MAX = 360;        // bläck mäts i pixlar streck
+// påfyllningen är generös nere vid marken och stramas åt med höjden
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// The tuning sliders are a development tool — left open they hand out trophies
+// and leaderboard scores for free. Local files and localhost keep them, everyone
+// else needs ?tune=1.
+const DEV_TUNING = (() => {
+  try {
+    if (window.parent !== window && location.search.indexOf("tune=1") === -1) return false;
+    if (location.search.indexOf("tune=1") !== -1) return true;
+    const h = location.hostname;
+    return h === "" || h === "localhost" || h === "127.0.0.1" || h.slice(-6) === ".local";
+  } catch(e){ return false; }
+})();
+let tuned = false;   // sliders touched this session — the run is not comparable
+// ?m=1200 startar en fri klättring på den höjden. Samma grind som reglagen, och
+// rundan räknas inte: det är ett verktyg för att kunna spela det djupa spelet.
+const DEV_START = (() => {
+  if (!DEV_TUNING) return 0;
+  try {
+    const hit = /[?&]m=(\d+)/.exec(location.search);
+    return hit ? Math.min(9000, +hit[1]) : 0;
+  } catch(e){ return 0; }
+})();
+
+/* ---------- dagens utmaning ---------- */
+const DAILY_GOAL = 500;                 // meter till mål
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function todaySeed(){
+  const d = new Date();
+  return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+}
+const RULES = [
+  {name:"Dry ink",     mod:{regen:0.5}},
+  {name:"Starfall",    mod:{starMul:2}},
+  {name:"Windy",       mod:{windy:true}},
+  {name:"Heavy paper", mod:{g:1.25}},
+  {name:"Clean paper", mod:{noSpikes:true, narrow:26}}
+];
+function ruleFor(seed){ return RULES[Math.floor(mulberry32(seed ^ 0x5bf03635)() * RULES.length)]; }
+
+/* ---------- persistens: localStorage när det finns, minne annars ---------- */
+const STORE = (() => {
+  const mem = {};
+  let ok = false;
+  try {
+    localStorage.setItem("__blk_test", "1");
+    localStorage.removeItem("__blk_test");
+    ok = true;
+  } catch(e){ ok = false; }
+  function get(key, fallback){
+    try {
+      if (ok){
+        const v = localStorage.getItem("black:" + key);
+        if (v !== null) return JSON.parse(v);
+      }
+    } catch(e){}
+    return (key in mem) ? mem[key] : fallback;
+  }
+  function set(key, val){
+    mem[key] = val;
+    try { if (ok) localStorage.setItem("black:" + key, JSON.stringify(val)); } catch(e){}
+  }
+  return { get, set, persistent: () => ok };
+})();
+
+/* ---------- trophies: 31 in the GameVolt ladder ---------- */
+// 15 bronze / 10 silver / 5 gold / 1 platinum, exactly as the portal expects.
+// Local-first: everything works offline, the GameVolt SDK is optional and only
+// kicks in when the game runs on gamevolt.io (cloud unlock, cross-device sync).
+const GAME_ID = "ink";
+// Portal bridge — the iframe wrapper on gamevolt.io listens for these.
+function gvPost(action, payload){
+  if (window.parent === window) return;
+  try {
+    window.parent.postMessage({type:"gamevolt", action, gameId:GAME_ID, payload: payload || {}}, window.location.origin);
+  } catch(e){}
+}
+const TROPHIES = (() => {
+  const M = MPX;   // px per metre — ink is measured in pixels of drawn stroke
+  const LIST = [
+    /* ---- bronze (15): turns up while you learn the pen ---- */
+    {id:"first-stroke",     icon:"✏️", name:"First Stroke",     desc:"Draw your first line",               tier:"bronze", cond:s => s.strokes >= 1},
+    {id:"contact",          icon:"✒️", name:"Contact",          desc:"Bounce the ball off a stroke",       tier:"bronze", cond:s => s.bounces >= 1},
+    {id:"blotter",          icon:"💧", name:"Blotter",          desc:"Soak up an ink blot",                tier:"bronze", cond:s => s.orbs >= 1},
+    {id:"off-the-margin",   icon:"📏", name:"Off the Margin",   desc:"Climb 100 m in one run",             tier:"bronze", cond:s => s.bestM >= 100},
+    {id:"page-two",         icon:"📄", name:"Page Two",         desc:"Climb 200 m in one run",             tier:"bronze", cond:s => s.bestM >= 200},
+    {id:"breaking-ruled",   icon:"🧱", name:"Breaking Ruled",   desc:"Break 25 blocks",                    tier:"bronze", cond:s => s.blocks >= 25},
+    {id:"ping",             icon:"🔶", name:"Ping",             desc:"Score off 20 bumpers",               tier:"bronze", cond:s => s.bumps >= 20},
+    {id:"stargazer",        icon:"⭐", name:"Stargazer",        desc:"Collect 25 stars",                   tier:"bronze", cond:s => s.stars >= 25},
+    {id:"chain-of-thought", icon:"🔗", name:"Chain of Thought", desc:"Reach a ×5 combo",                   tier:"bronze", cond:s => s.bestCombo >= 5},
+    {id:"well-marked",      icon:"🧮", name:"Well Marked",      desc:"Score 2,500 points in one run",      tier:"bronze", cond:s => s.bestPts >= 2500},
+    {id:"warm-pen",         icon:"🖊️", name:"Warm Pen",         desc:"Draw 250 m of line in total",        tier:"bronze", cond:s => s.inkPx >= 250*M},
+    {id:"point-taken",      icon:"📌", name:"Point Taken",      desc:"Find out what the red spikes do",    tier:"bronze", cond:s => s.spikeDeaths >= 1},
+    {id:"bookmark",         icon:"🔖", name:"Bookmark",         desc:"Continue a climb from a checkpoint", tier:"bronze", cond:s => s.cpRuns >= 1},
+    {id:"doodler",          icon:"🌀", name:"Doodler",          desc:"Play 10 runs",                       tier:"bronze", cond:s => s.runs >= 10},
+    {id:"homework",         icon:"📅", name:"Homework",         desc:"Take on the daily challenge",        tier:"bronze", cond:s => s.dailyRuns >= 1},
+    /* ---- silver (10): deliberate effort ---- */
+    {id:"page-four",        icon:"📚", name:"Page Four",        desc:"Climb 400 m in one run",             tier:"silver", cond:s => s.bestM >= 400},
+    {id:"train-of-thought", icon:"🚂", name:"Train of Thought", desc:"Reach a ×12 combo",                  tier:"silver", cond:s => s.bestCombo >= 12},
+    {id:"straight-as",      icon:"🅰️", name:"Straight A's",     desc:"Score 10,000 points in one run",     tier:"silver", cond:s => s.bestPts >= 10000},
+    {id:"gilded",           icon:"🟨", name:"Gilded",           desc:"Break 10 gold blocks",               tier:"silver", cond:s => s.goldBlocks >= 10},
+    {id:"star-pupil",       icon:"🌟", name:"Star Pupil",       desc:"Collect 150 stars",                  tier:"silver", cond:s => s.stars >= 150},
+    {id:"kilometre-of-ink", icon:"🖋️", name:"A Kilometre of Ink",desc:"Draw 1 km of line in total",        tier:"silver", cond:s => s.inkPx >= 1000*M},
+    {id:"deadline-met",     icon:"✅", name:"Deadline Met",     desc:"Finish the daily challenge",         tier:"silver", cond:s => s.dailyDone >= 1},
+    {id:"three-days-running",icon:"🔥",name:"Three Days Running",desc:"Keep a 3-day daily streak",         tier:"silver", cond:s => s.dailyStreak >= 3},
+    {id:"frugal-hand",      icon:"🤏", name:"Frugal Hand",      desc:"Reach 200 m on 8 strokes or fewer",  tier:"silver", cond:s => s.thrifty >= 1},
+    {id:"notebook-filled",  icon:"📓", name:"Notebook Filled",  desc:"Play 50 runs",                       tier:"silver", cond:s => s.runs >= 50},
+    /* ---- gold (5): the deep end of the notebook ---- */
+    {id:"fan-mail",         icon:"🌬️", name:"Fan Mail",         desc:"Climb 600 m in one run",             tier:"gold",   cond:s => s.bestM >= 600},
+    {id:"gold-star",        icon:"🏅", name:"The Gold Star",    desc:"Catch the big gold star",            tier:"gold",   cond:s => s.goldStars >= 1},
+    {id:"runaway-chain",    icon:"⛓️", name:"Runaway Chain",    desc:"Reach a ×20 combo",                  tier:"gold",   cond:s => s.bestCombo >= 20},
+    {id:"top-of-the-class", icon:"🏆", name:"Top of the Class", desc:"Score 25,000 points in one run",     tier:"gold",   cond:s => s.bestPts >= 25000},
+    {id:"full-marks",       icon:"🎓", name:"Full Marks",       desc:"Clear the daily under all five rules",tier:"gold",  cond:s => s.rules.length >= 5},
+    /* ---- platinum (1): the completionist ---- */
+    {id:"ink-master",       icon:"👑", name:"INK Master",       desc:"Unlock the other 30 trophies",       tier:"platinum", cond:null}
+  ];
+  const TIERS = ["bronze", "silver", "gold", "platinum"];
+
+  const DEF = {
+    runs:0, dailyRuns:0, cpRuns:0, strokes:0, bounces:0, inkPx:0,
+    blocks:0, goldBlocks:0, orbs:0, stars:0, goldStars:0, bumps:0,
+    spikeDeaths:0, falls:0, bestM:0, bestPts:0, bestCombo:0,
+    dailyDone:0, dailyStreak:0, thrifty:0
+  };
+
+  function freshStats(){
+    const s = {rules:[]};                 // rules: names of daily rules cleared
+    for (const k in DEF) s[k] = DEF[k];
+    return s;
+  }
+  function loadStats(){
+    const s = freshStats();
+    const raw = STORE.get("stats", null);
+    if (raw && typeof raw === "object"){
+      for (const k in DEF) if (typeof raw[k] === "number") s[k] = raw[k];
+      if (Array.isArray(raw.rules)) s.rules = raw.rules.slice();
+    }
+    return s;
+  }
+
+  let stats = loadStats();
+  let unlocked = STORE.get("trophies", []);
+  if (!Array.isArray(unlocked)) unlocked = [];
+  let runStrokes = 0, runCp = false, devRun = false;
+
+  const elToast = document.getElementById("tToast");
+  const elIcon  = document.getElementById("tToastIcon");
+  const elName  = document.getElementById("tToastName");
+  const elTier  = document.getElementById("tToastTier");
+  const elSheet = document.getElementById("trophySheet");
+  const elList  = document.getElementById("trophyList");
+  const elCount = document.getElementById("trophyCount");
+  const btnA    = document.getElementById("trophyBtn");
+  const btnB    = document.getElementById("overTrophyBtn");
+  const btnBack = document.getElementById("trophyBackBtn");
+
+  function save(){ STORE.set("stats", stats); STORE.set("trophies", unlocked); }
+  function has(id){ return unlocked.indexOf(id) !== -1; }
+  function count(){ let n = 0; for (const t of LIST) if (has(t.id)) n++; return n; }
+
+  // Earned on another device? Then it is already persisted — never toast twice.
+  function elsewhere(id){
+    try {
+      return !!(window.GameVolt && GameVolt.achievements &&
+                GameVolt.achievements.isUnlocked && GameVolt.achievements.isUnlocked(id));
+    } catch(e){ return false; }
+  }
+
+  /* ---------- toast: a paper slip that flips up from the sheet ---------- */
+  let queue = [], showing = false;
+  function toast(t){ queue.push(t); if (!showing) popToast(); }
+  function popToast(){
+    if (!elToast || !queue.length){ showing = false; return; }
+    showing = true;
+    const t = queue.shift();
+    elIcon.textContent = t.icon;
+    elName.textContent = t.name;
+    elTier.textContent = t.tier;
+    elTier.className = "t-stamp " + t.tier;
+    elToast.hidden = false;
+    elToast.className = "t-toast show";
+    try { SND.trophy(t.tier); } catch(e){}
+    setTimeout(() => {
+      elToast.className = "t-toast";
+      setTimeout(popToast, 520);
+    }, 2700);
+  }
+
+  function unlock(t, silent){
+    if (has(t.id)) return;
+    unlocked.push(t.id);
+    save();
+    if (!elsewhere(t.id)){
+      if (window.GameVolt && GameVolt.achievements){
+        try { GameVolt.achievements.unlock(t.id); } catch(e){}   // the SDK prefixes the game id
+      }
+      gvPost("achievement", {id: t.id, name: t.name, tier: t.tier});
+      if (!silent) toast(t);
+    }
+    refresh();
+  }
+
+  // Newly earned trophies for the current stats. Platinum lands last, on its own.
+  function check(){
+    for (const t of LIST) if (t.cond && !has(t.id) && t.cond(stats)) unlock(t);
+    const plat = LIST[LIST.length-1];
+    if (!has(plat.id) && count() >= LIST.length-1) unlock(plat);
+  }
+
+  function ev(name, d){
+    d = d || {};
+    if (name === "run") devRun = !!d.dev;
+    if (devRun) return;          // startad mitt på sidan — ingenting i rundan räknas
+    switch(name){
+      case "run":
+        stats.runs++;
+        if (d.daily) stats.dailyRuns++;
+        if (d.cp) stats.cpRuns++;
+        runStrokes = 0; runCp = !!d.cp;
+        break;
+      case "stroke": stats.strokes++; runStrokes++; break;
+      case "bounce": stats.bounces++; break;
+      case "ink":    stats.inkPx += d.px || 0; break;
+      case "block":  stats.blocks++; if (d.gold) stats.goldBlocks++; break;
+      case "orb":    stats.orbs++; break;
+      case "star":   stats.stars++; if (d.gold) stats.goldStars++; break;
+      case "bump":   stats.bumps++; break;
+      case "combo":  if (d.n > stats.bestCombo) stats.bestCombo = d.n; break;
+      case "end":
+        if (d.m > stats.bestM) stats.bestM = d.m;
+        if (d.pts > stats.bestPts) stats.bestPts = d.pts;
+        if (d.cause === "spike") stats.spikeDeaths++; else stats.falls++;
+        break;
+      case "daily-done":
+        stats.dailyDone++;
+        if (d.m > stats.bestM) stats.bestM = d.m;
+        if (d.pts > stats.bestPts) stats.bestPts = d.pts;
+        if (d.streak > stats.dailyStreak) stats.dailyStreak = d.streak;
+        if (d.rule && stats.rules.indexOf(d.rule) === -1) stats.rules.push(d.rule);
+        break;
+    }
+    check();
+    // hot events (ink, bounces) only live in memory — the run boundaries persist
+    if (name === "run" || name === "end" || name === "daily-done") save();
+  }
+
+  // Called every frame: the only trophy that needs to watch a run in progress.
+  function climb(m){
+    if (stats.thrifty || runCp || devRun || m < 200 || runStrokes > 8) return;
+    stats.thrifty = 1;
+    check();
+    save();
+  }
+
+  /* ---------- the collection page ---------- */
+  function render(){
+    if (!elList) return;
+    let html = "";
+    for (const tier of TIERS){
+      const of = LIST.filter(t => t.tier === tier);
+      const got = of.filter(t => has(t.id)).length;
+      html += '<div class="t-head ' + tier + '">' + tier + ' · ' + got + '/' + of.length + '</div>';
+      for (const t of of){
+        const own = has(t.id);
+        html += '<div class="t-row ' + tier + (own ? " got" : "") + '">' +
+                  '<div class="ic">' + (own ? t.icon : "○") + '</div>' +
+                  '<div><div class="nm">' + t.name + '</div>' +
+                       '<div class="ds">' + t.desc + '</div></div>' +
+                '</div>';
+      }
+    }
+    elList.innerHTML = html;
+  }
+
+  let backTo = null;
+  function open(from){
+    backTo = from || null;
+    if (backTo) backTo.hidden = true;
+    render();
+    if (elCount) elCount.textContent = count() + " / " + LIST.length;
+    if (elSheet) elSheet.hidden = false;
+  }
+  function close(){
+    if (elSheet) elSheet.hidden = true;
+    if (backTo) backTo.hidden = false;
+    backTo = null;
+  }
+
+  function refresh(){
+    if (btnA) btnA.textContent = "Trophies · " + count() + " / " + LIST.length;
+    if (btnB) btnB.textContent = "Trophies " + count() + "/" + LIST.length;
+    if (elSheet && !elSheet.hidden){
+      render();
+      if (elCount) elCount.textContent = count() + " / " + LIST.length;
+    }
+  }
+
+  /* ---------- GameVolt SDK (optional, portal only) ---------- */
+  function backfill(){
+    if (!window.GameVolt || !GameVolt.achievements || !GameVolt.achievements.getUnlockedIds) return;
+    try {
+      GameVolt.achievements.getUnlockedIds().then(ids => {
+        if (!ids || !ids.forEach) return;
+        let changed = false;
+        ids.forEach(id => {
+          if (unlocked.indexOf(id) === -1 && LIST.some(t => t.id === id)){ unlocked.push(id); changed = true; }
+        });
+        if (changed){ save(); refresh(); }
+      }).catch(() => {});
+    } catch(e){}
+  }
+
+  function initSDK(){
+    if (!window.GameVolt) return;
+    try {
+      if (GameVolt.init) GameVolt.init(GAME_ID);
+      GameVolt.save.registerMigration({
+        keys: ["black:stats", "black:trophies", "black:best", "black:bestP"],
+        merge: (local, cloud) => {
+          const ls = local["black:stats"] || {}; const cs = cloud || {};
+          const merged = {};
+          for (const k in DEF) merged[k] = Math.max(ls[k] || 0, cs[k] || 0);
+          const rules = Array.isArray(cs.rules) ? cs.rules.slice() : [];
+          if (Array.isArray(ls.rules)) ls.rules.forEach(r => { if (rules.indexOf(r) === -1) rules.push(r); });
+          merged.rules = rules;
+          return merged;
+        },
+        getAchievements: local => {
+          try {
+            const ids = local["black:trophies"] || [];
+            if (Array.isArray(ids)) return ids.map(id => ({id, unlocked_at: Date.now()}));
+          } catch(e){}
+          return [];
+        },
+        getScores: local => {
+          try {
+            const pts = local["black:bestP"] || 0;
+            if (Number.isFinite(pts) && pts > 0) return [{score: pts, mode: "free"}];
+          } catch(e){}
+          return [];
+        }
+      });
+      GameVolt.auth.onStateChange(user => { if (user) backfill(); });
+      if (GameVolt.auth.getUser && GameVolt.auth.getUser()) backfill();
+    } catch(e){}
+  }
+
+  function init(){
+    if (btnA) btnA.addEventListener("click", () => open(startSheet));
+    if (btnB) btnB.addEventListener("click", () => open(overSheet));
+    if (btnBack) btnBack.addEventListener("click", close);
+    refresh();
+    initSDK();
+  }
+
+  return {LIST, ev, climb, open, close, init, refresh, save, count,
+          stats: () => stats};
+})();
+
+function yesterdaySeed(){
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+}
+function saveDaily(done){
+  const key = "daily:" + dailySeed;
+  const prev = STORE.get(key, {score:0, m:0, done:false});
+  STORE.set(key, {
+    score: Math.max(prev.score, score),
+    m: Math.max(prev.m, Math.floor(meters)),
+    done: prev.done || done
+  });
+}
+function bumpStreak(){
+  const info = STORE.get("dailyDone", {seed:0, streak:0});
+  if (info.seed === dailySeed) return info.streak;
+  const streak = (info.seed === yesterdaySeed()) ? info.streak + 1 : 1;
+  STORE.set("dailyDone", {seed: dailySeed, streak});
+  return streak;
+}
+function refreshDailyInfo(){
+  const seed = todaySeed();
+  const ds = new Date().toLocaleDateString("en-GB", {day:"numeric", month:"short"});
+  let txt = ds + " · today\u2019s rule: " + ruleFor(seed).name;
+  const rec = STORE.get("daily:" + seed, null);
+  if (rec && rec.done) txt += " · cleared: " + rec.score.toLocaleString("en-US") + " pts";
+  else if (rec) txt += " · best attempt: " + rec.score.toLocaleString("en-US") + " pts";
+  const info = STORE.get("dailyDone", {seed:0, streak:0});
+  if (info.streak > 1 && (info.seed === seed || info.seed === yesterdaySeed())){
+    txt += " · streak: " + info.streak + " days";
+  }
+  dailyInfo.textContent = txt;
+}
+let mode = "free", dailyRule = null, dailySeed = 0, finished = false;
+let lastRun = {daily:false, m:0, score:0, done:false};
+let tut = 0, tutT = 0, tutY0 = 0;   // handledning: 1 = väntar på första strecket, 2 = bläckhint
+let dying = 0, warnArmed = true;    // dödssekvens: nedräkning i realtid + varningston
+let deathCause = "fall";            // "fall" | "spike" — vilken död rundan slutade med
+let MOD = {regen:1, g:1, starMul:1, noSpikes:false, windy:false, narrow:0};
+let bandRand = Math.random;
+function grnd(a,b){ return a + bandRand()*(b-a); }
+function shareText(){
+  const ds = new Date().toLocaleDateString("en-GB", {day:"numeric", month:"short"});
+  return "INK · daily challenge " + ds +
+    "\n✒️ " + lastRun.score.toLocaleString("en-US") + " pts · " + lastRun.m + "/" + DAILY_GOAL + " m" +
+    (lastRun.done ? " · FINISHED" : "") +
+    "\nrule: " + (dailyRule ? dailyRule.name : "–");
+}
+function fallbackCopy(txt, done){
+  try{
+    const ta = document.createElement("textarea");
+    ta.value = txt;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    done();
+  }catch(e){}
+}
+
+const SND = (() => {
+  let ac=null, master=null, scratchGain=null, dead=false, lastThud=0,
+      musicGain=null, musicFilter=null, nextNote=1.5, melIdx=2;
+  let enabled = STORE.get("snd", true), musicOn = STORE.get("mus", true);
+  function ensure(){
+    if (dead) return;
+    try {
+    if (!ac){
+      ac = new (window.AudioContext||window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = 0.4; master.connect(ac.destination);
+      // pennrasp: loopande brus genom bandpass, volym styrs av ritandet
+      const len = ac.sampleRate;
+      const buf = ac.createBuffer(1, len, ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
+      const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+      const bp = ac.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=2600; bp.Q.value=0.8;
+      scratchGain = ac.createGain(); scratchGain.gain.value = 0;
+      src.connect(bp); bp.connect(scratchGain); scratchGain.connect(master);
+      src.start();
+      // musikbuss: allt musikaliskt går genom ett gemensamt lågpassfilter
+      musicFilter = ac.createBiquadFilter();
+      musicFilter.type = "lowpass"; musicFilter.frequency.value = 7000;
+      musicGain = ac.createGain(); musicGain.gain.value = 0;
+      musicGain.connect(musicFilter); musicFilter.connect(master);
+      // ingen bordun — musiken är enbart det plockade mönstret
+    }
+    if (ac.state === "suspended") ac.resume();
+    } catch(e){ dead = true; ac = null; }
+  }
+  function tone(type, f0, f1, dur, peak, delay){
+    if (dead || !enabled || !ac) return;
+    try {
+    const t0 = ac.currentTime + (delay||0);
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t0);
+    if (f1) o.frequency.exponentialRampToValueAtTime(f1, t0+dur);
+    o.connect(g); g.connect(master);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(peak, t0+0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    o.start(t0); o.stop(t0+dur+0.1);
+    } catch(e){}
+  }
+  function noise(dur, peak, freq){
+    if (dead || !enabled || !ac) return;
+    try {
+    const len = Math.floor(ac.sampleRate*dur);
+    const buf = ac.createBuffer(1, len, ac.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i] = (Math.random()*2-1)*(1-i/len);
+    const src = ac.createBufferSource(); src.buffer = buf;
+    const f = ac.createBiquadFilter(); f.type="lowpass"; f.frequency.value=freq;
+    const g = ac.createGain(); g.gain.value = peak;
+    src.connect(f); f.connect(g); g.connect(master);
+    src.start();
+    } catch(e){}
+  }
+  function pluck(f, delay){
+    const t0 = ac.currentTime + (delay||0);
+    const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = f;
+    const o2 = ac.createOscillator(); o2.type = "triangle"; o2.frequency.value = f*2;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(0.11, t0+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0+1.05);
+    const g2 = ac.createGain(); g2.gain.value = 0.30;
+    o.connect(g); o2.connect(g2); g2.connect(g); g.connect(musicGain);
+    o.start(t0); o2.start(t0); o.stop(t0+1.2); o2.stop(t0+1.2);
+  }
+
+  return {
+    ensure,
+    setScratch(on){ try { if (scratchGain && ac) scratchGain.gain.setTargetAtTime(on && enabled ? 0.10 : 0, ac.currentTime, 0.03); } catch(e){} },
+    stroke(){ tone("triangle", 240, 140, 0.16, 0.30); },
+    bumper(c){
+      const steps = [0,2,4,7,9,12,14,16,19,21,24];
+      const f = 523.25 * Math.pow(2, steps[Math.min(c-1, steps.length-1)]/12);
+      tone("square", f, 0, 0.09, 0.15);
+    },
+    block(){ noise(0.14, 0.5, 1800); tone("triangle", 180, 90, 0.12, 0.22); },
+    thud(k){
+      if (dead || !enabled || !ac) return;
+      if (ac.currentTime - lastThud < 0.05) return;
+      lastThud = ac.currentTime;
+      noise(0.07, 0.10+0.28*k, 650);
+      tone("triangle", 120+50*k, 70, 0.09, 0.08+0.14*k);
+    },
+    spike(){ tone("sawtooth", 160, 55, 0.28, 0.28); },
+    warn(){ tone("sine", 110, 88, 0.3, 0.13); },
+    orb(){ tone("sine", 300, 620, 0.12, 0.26); },
+    star(){ tone("triangle", 1046.5, 0, 0.07, 0.13); tone("triangle", 1568, 0, 0.08, 0.11, 0.055); },
+    level(){ [523,659,784].forEach((f,i)=>tone("triangle", f, 0, 0.16, 0.22, i*0.09)); },
+    trophy(tier){
+      const hi = tier === "gold" || tier === "platinum";
+      (hi ? [523.25,659.25,784,1046.5] : [523.25,784]).forEach((f,i) => {
+        tone("sine", f, 0, 0.5, 0.16, i*0.085);
+        tone("triangle", f*2, 0, 0.18, 0.05, i*0.085+0.02);
+      });
+    },
+    over(){ tone("triangle", 320, 70, 0.7, 0.3); },
+    tick(dt, lvl, isDrawing, playing){
+      if (dead || !ac || !musicFilter) return;
+      try {
+        const on = enabled && musicOn && playing;
+        musicGain.gain.setTargetAtTime(on ? 1 : 0, ac.currentTime, 0.5);
+        musicFilter.frequency.setTargetAtTime(isDrawing ? 950 : 7000, ac.currentTime, 0.08);
+        nextNote -= dt;
+        if (on && nextNote <= 0){
+          // puls först — även om en ton skulle fela hakar inte sekvensen upp sig
+          nextNote = (lvl >= 4 ? 0.34 : lvl >= 2 ? 0.42 : 0.52) + Math.random()*0.08;
+          if (Math.random() < 0.68){
+            const scale = [0,2,4,7,9,12,14,16];
+            const step = [-2,-1,-1,1,1,1,2][Math.floor(Math.random()*7)];
+            melIdx = Math.max(0, Math.min(scale.length-1, melIdx + step));
+            const f = 261.63 * Math.pow(2, scale[melIdx]/12);
+            pluck(f);
+            if (Math.random() < 0.15) pluck(f*2, 0.02);   // glitter en oktav upp
+          }
+        }
+      } catch(e){}
+    },
+    isOn(){ return enabled; },
+    musicIsOn(){ return musicOn; },
+    toggleMusic(){ musicOn = !musicOn; STORE.set("mus", musicOn); return musicOn; },
+    toggle(){ enabled = !enabled; if (!enabled) this.setScratch(false); STORE.set("snd", enabled); return enabled; }
+  };
+})();
+
+let W=0, H=0, dpr=1;
+let state="start";
+let best = STORE.get("best", 0), bestP = STORE.get("bestP", 0), checkpoint = STORE.get("checkpoint", 0);
+
+let ball, strokes, solids, bumpers, spikes, orbs, parts, gates, floats, stars, winds, magnets;
+let camTop, genY, startYRef, ink, meters, shake, timeScale, T, level, levelFlash, score, combo;
+let beatLeft = 0, breather = false;   // rytm: kluster av täta band, sen en öppen sträcka
+let drawing=null;
+
+function resize(){
+  const r = cv.getBoundingClientRect();
+  W = r.width; H = r.height;
+  dpr = Math.min(window.devicePixelRatio||1, 2);
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+window.addEventListener("resize", resize);
+
+function reset(fromCp){
+  MOD = {regen:1, g:1, starMul:1, noSpikes:false, windy:false, narrow:0};
+  finished = false;
+  if (mode === "daily"){
+    dailySeed = todaySeed();
+    bandRand = mulberry32(dailySeed);
+    dailyRule = ruleFor(dailySeed);
+    Object.assign(MOD, dailyRule.mod);
+  } else {
+    bandRand = Math.random;
+    dailyRule = null;
+  }
+  const startM = (fromCp && mode === "free") ? checkpoint*100
+               : (mode === "free" ? DEV_START : 0);
+  ball = {x: W*0.5, y: -startM*MPX, vx: 90*(bandRand()<.5?-1:1), vy: -600, r: 13};
+  strokes=[]; solids=[]; bumpers=[]; spikes=[]; orbs=[]; parts=[]; gates=[]; stars=[]; winds=[]; magnets=[];
+  camTop = ball.y - H*0.58;
+  genY = ball.y - 260;
+  beatLeft = 0; breather = false;
+  startYRef = 0;
+  ink = startM > 0 ? INK_MAX*0.5 : INK_MAX;   // halvt bläck i straff vid checkpoint-start
+  meters = startM; shake = 0; timeScale = 1; T = 0;
+  level = Math.floor(startM/100); levelFlash = 0;
+  score = 0; combo = 1; floats = [];
+  drawing = null;
+  if (mode === "free" && startM === 0 && !STORE.get("tutorialDone", false)){
+    tut = 1; tutY0 = ball.y; ball.vx = 0; ball.vy = 0;
+  } else {
+    tut = 0;
+  }
+  tutT = 0;
+  dying = 0; warnArmed = true;
+  for(let i=0;i<8;i++) generateBand();
+}
+
+/* ---------- banbygge ---------- */
+function rnd(a,b){ return a + Math.random()*(b-a); }
+function diff(){ return Math.min(1, Math.floor(meters/100)/6); }
+// diff() slår i taket på nivå 7 och UNLOCKS tar slut på nivå 10 — över 600 m
+// tar den här kurvan vid istället och drar långsamt åt allt som går att dra åt.
+// Noll under 600 m: allt som multipliceras med den försvinner i det gamla spelet.
+function deep(bh){ return Math.min(1, Math.max(0, (bh - 600)/800)); }
+
+function mkBumper(x, y, r){
+  const bh = (startYRef - y)/MPX;
+  const dd = deep(bh);
+  const b = {x, y, r, x0:x, seed: bandRand()*7, lit:0};
+  if (bh > 300 && bandRand() < 0.4 + 0.25*dd){
+    b.amp = grnd(35, 85) * (1 + 0.35*dd);
+    b.sp  = grnd(0.5, 0.9) * (1 + 0.25*dd);
+    b.ph  = bandRand()*6.28;
+  }
+  return b;
+}
+
+function addB(x, y, r){
+  for (const e of bumpers){
+    if (Math.hypot(e.x - x, e.y - y) < e.r + r + 36) return;   // ingen överlappning → inga fickor
+  }
+  bumpers.push(mkBumper(x, y, r));
+}
+
+function gateWalls(g){
+  const t = (Math.sin(T*g.sp + g.ph)+1)/2;
+  const gap = g.gmin + (g.gmax - g.gmin)*t;
+  return [
+    {x:MARGIN, y:g.y, w:(g.cx-gap/2)-MARGIN, h:g.h},
+    {x:g.cx+gap/2, y:g.y, w:(W-RWALL)-(g.cx+gap/2), h:g.h}
+  ];
+}
+
+function generateBand(){
+  const y = genY;
+  const bh = (startYRef - y)/MPX;         // bandets höjd i meter
+  const d = Math.min(1, Math.floor(bh/100)/6);   // svårigheten kliver per nivå
+  const dd = deep(bh);                    // och fortsätter krypa efter nivå 7
+  const calm = bh < 100;                  // hela nivå 1 är uppvärmning
+  const nv = Math.floor(bh/100) + 1;      // visad nivå för det här bandet
+  const left = MARGIN, right = W - RWALL;
+  const span = right-left;
+
+  // Sidan andas. Tre till fem täta band i rad, sen en öppen sträcka där det
+  // enda som finns är bläck att fylla på med — klättringen får en läsbar puls
+  // istället för ett jämnt band var trettonde meter. Nivå 1-2 lämnas i fred.
+  if (nv >= 3){
+    if (beatLeft <= 0){
+      breather = !breather;
+      beatLeft = breather ? 1 : 3 + Math.floor(bandRand()*3);
+    }
+    beatLeft--;
+  } else {
+    breather = false;
+  }
+
+  if (breather){
+    const side = bandRand()<0.5 ? left+grnd(30,80) : right-grnd(30,80);
+    orbs.push({x:side, y:y - grnd(60,150), r:13, t:bandRand()*6});
+    if (bandRand() < 0.4){                       // ibland en liten stjärnrad att sikta på
+      const n = 2 + Math.floor(bandRand()*2);
+      const cx = grnd(left+70, right-70);
+      for (let i=0;i<n;i++){
+        const sx = cx + (i-(n-1)/2)*34;
+        stars.push({x:sx, x0:sx, y:y - grnd(60,130), r:11, t:bandRand()*6, val:150, gold:false});
+      }
+    }
+    genY -= BAND * grnd(1.55, 1.85) * (1 - 0.12*dd);
+    return;
+  }
+
+  const roll = bandRand();
+
+  if (roll < 0.28){
+    if (nv >= 6 && bandRand() < 0.5){
+      // Grind: port som andas — öppnas och stängs
+      const g0 = {
+        y:y, h:18, cx: grnd(left+120, right-120),
+        gmin: nv >= 15 ? 56 - 10*dd : 56,             // nivå 15: grindarna stänger tätare
+        gmax: Math.max(78, grnd(165,205) - 40*d - 22*dd - MOD.narrow),
+        sp: grnd(0.55, 0.95) + 0.35*d, ph: bandRand()*6.28
+      };
+      gates.push(g0);
+      if (nv >= 9 && bandRand() < 0.5 + 0.3*dd){
+        gates.push({ y:y-64, h:18,
+          cx: Math.max(left+120, Math.min(right-120, g0.cx + grnd(-70,70))),
+          gmin: 56, gmax: g0.gmax, sp: g0.sp, ph: g0.ph + Math.PI });
+      }
+    } else if (nv === 1){
+      // Nivå 1: ingen heltäckande port — bara en kort fristående platta
+      const w1 = grnd(90, 140);
+      solids.push({x: grnd(left+20, right-20-w1), y:y, w:w1, h:16, brk:false});
+    } else {
+      // Port: vägg tvärs över med en glugg (extra bred på nivå 2)
+      const gap = Math.max(74, grnd(170,205) - 58*d - 20*dd - MOD.narrow + (nv === 2 ? 22 : 0));
+      const gx = grnd(left+30, right-30-gap);
+      solids.push({x:left, y:y, w:gx-left, h:18, brk:false});
+      solids.push({x:gx+gap, y:y, w:right-(gx+gap), h:18, brk:false});
+      if (!calm && d > 0.35 && bandRand() < 0.55 + 0.25*dd){
+        const sw = Math.min(70, right-(gx+gap));
+        if (sw > 26 && !MOD.noSpikes) spikes.push({x:gx+gap, y:y-16, w:sw, h:16, dir:-1});  // står på väggen
+      }
+    }
+  } else if (roll < 0.42){
+    // Studsknappar
+    const n = 1 + (bandRand()<0.45?1:0) + (d>0.5 && bandRand()<0.4?1:0);
+    for(let i=0;i<n;i++){
+      addB(grnd(left+40, right-40), y + grnd(-40,40), grnd(20,27));
+    }
+  } else if (roll < 0.56){
+    // Krossbara block (breakout-arvet) — de täpper till passagen
+    const cols = 3 + Math.round(2*d);
+    const bw = (span-24)/cols;
+    const startCol = Math.floor(grnd(0, 1.5));
+    const skip = Math.floor(grnd(0, cols));
+    for(let i=startCol;i<cols;i++){
+      if (i===skip && (d < 0.45 || bandRand() < 0.65-0.45*d)) continue;
+      solids.push({x:left+12+i*bw+3, y:y, w:bw-6, h:22, brk:true, gold: nv >= 5 && bandRand() < 0.10});
+    }
+  } else if (roll < 0.68){
+    // En ensam hylla — oftast krossbar så den aldrig stänger vägen uppåt
+    const w2 = grnd(90,150) * (nv === 1 ? 0.7 : nv === 2 ? 0.85 : 1);
+    const x2 = grnd(left+10, right-10-w2);
+    solids.push({x:x2, y:y, w:w2, h:14, brk:bandRand()<0.65});
+    if (bandRand()<0.5) addB(x2<W/2 ? grnd(x2+w2+40, right-40) : grnd(left+40, x2-40), y+grnd(-30,30), 23);
+  } else if (roll < 0.78){
+    // Taggar (drar bläck och slår ner bollen)
+    const sw = grnd(80,150);
+    const sx = grnd(left+10, right-10-sw);
+    if (calm || MOD.noSpikes){
+      addB(sx+sw/2, y, 24);
+    } else {
+      spikes.push({x:sx, y:y, w:sw, h:16, dir:-1});
+      solids.push({x:sx, y:y+16, w:sw, h:14, brk:false});   // alltid massivt block under
+    }
+  } else if (nv >= 3 && roll < 0.90){
+    // Stjärnband: en båge av poäng att jaga
+    const n = 4 + (bandRand()<0.5?1:0);
+    const cxs = grnd(left+80, right-80);
+    const arcR = grnd(55, 100);
+    for(let i=0;i<n;i++){
+      const a = Math.PI*(0.12 + 0.76*i/(n-1));
+      let sx = cxs + Math.cos(a)*arcR*1.5;
+      sx = Math.max(left+18, Math.min(right-18, sx));
+      const st = {x:sx, x0:sx, y:y - Math.sin(a)*arcR, r:11, t:bandRand()*6, val:150, gold:false};
+      if (nv >= 8 && bandRand() < 0.5){ st.amp = grnd(30,65); st.sp = grnd(0.5,1.0); st.ph = bandRand()*6.28; }
+      stars.push(st);
+    }
+    if (nv >= 10 && bandRand() < 0.22){
+      stars.push({x:cxs, x0:cxs, y:y-150, r:16, t:0, val:1000, gold:true,
+                  amp: grnd(80,120), sp: grnd(0.9,1.4), ph: bandRand()*6.28});
+    }
+  } else if (nv >= 7 && roll < 0.96){
+    // Fläkt: sidvind tvärs över pappret
+    winds.push({x:left, y:y-55, w:span, h:110, fx:(bandRand()<0.5?-1:1)*grnd(70,120)});
+  } else {
+    // Lugnt band med en enslig studsknapp
+    addB(grnd(left+50, right-50), y, 24);
+  }
+
+  if (nv >= 9 && bandRand() < 0.28 + 0.2*dd){
+    magnets.push({x: grnd(left+70, right-70), y: y - grnd(40,140), r: 78,
+                  str: grnd(500,800) * (1 + 0.25*dd)});
+    if (nv >= 13 && bandRand() < 0.45*dd){        // nivå 13: dubbla magneter
+      magnets.push({x: grnd(left+70, right-70), y: y - grnd(150,240), r: 70, str: grnd(450,700)});
+    }
+  }
+
+  if (nv >= 11 && bandRand() < 0.30*dd){          // nivå 11: sidvind över vilket band som helst
+    winds.push({x:left, y:y-55, w:span, h:110, fx:(bandRand()<0.5?-1:1)*grnd(70,120)});
+  }
+
+  if (MOD.windy && nv < 7 && bandRand() < 0.25){
+    winds.push({x:left, y:y-55, w:span, h:110, fx:(bandRand()<0.5?-1:1)*grnd(70,110)});
+  }
+
+  // Bläckplumpar — placeras hellre i kanten/faran än på den trygga vägen
+  if (bandRand() < 0.78 - 0.30*d){
+    const side = bandRand()<0.5 ? left+grnd(24,70) : right-grnd(24,70);
+    orbs.push({x:side, y:y - grnd(60,150), r:13, t:bandRand()*6});
+  }
+
+  genY -= BAND * (nv === 1 ? 1.3 : nv === 2 ? 1.15
+                : (1 - 0.12*dd) * grnd(0.74, 0.84));   // täta band inne i klustret
+}
+
+/* ---------- kollision ---------- */
+function reflect(nx, ny, rest, kick){
+  const vn = ball.vx*nx + ball.vy*ny;
+  if (vn < 0){
+    ball.vx -= (1+rest)*vn*nx;
+    ball.vy -= (1+rest)*vn*ny;
+  }
+  ball.vx += nx*kick; ball.vy += ny*kick;
+  const sp = Math.hypot(ball.vx, ball.vy);
+  if (sp > VMAX){ ball.vx = ball.vx/sp*VMAX; ball.vy = ball.vy/sp*VMAX; }
+}
+
+function hitSegment(x1,y1,x2,y2){
+  const dx=x2-x1, dy=y2-y1;
+  const len2 = dx*dx+dy*dy;
+  let t = len2 ? ((ball.x-x1)*dx + (ball.y-y1)*dy)/len2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  const cx = x1+t*dx, cy = y1+t*dy;
+  let nx = ball.x-cx, ny = ball.y-cy;
+  let dist = Math.hypot(nx,ny);
+  if (dist > ball.r) return null;
+  if (dist < 0.0001){ nx = -dy; ny = dx; dist = Math.hypot(nx,ny)||1; }
+  nx/=dist; ny/=dist;
+  return {nx,ny,cx,cy};
+}
+
+function hitRect(r){
+  const cx = Math.max(r.x, Math.min(ball.x, r.x+r.w));
+  const cy = Math.max(r.y, Math.min(ball.y, r.y+r.h));
+  let nx = ball.x-cx, ny = ball.y-cy;
+  let dist = Math.hypot(nx,ny);
+  if (dist > ball.r) return null;
+  if (dist < 0.0001){
+    // bollen är inne i rektangeln — putta ut åt närmaste kant
+    const dl = ball.x-r.x, dr = r.x+r.w-ball.x, dt = ball.y-r.y, db = r.y+r.h-ball.y;
+    const m = Math.min(dl,dr,dt,db);
+    nx = m===dl?-1:m===dr?1:0; ny = m===dt?-1:m===db?1:0;
+    dist = 0.0001;
+  } else { nx/=dist; ny/=dist; }
+  return {nx,ny,cx,cy,dist};
+}
+
+function pushOut(h){
+  ball.x = h.cx + h.nx*(ball.r+0.5);
+  ball.y = h.cy + h.ny*(ball.r+0.5);
+}
+
+function burst(x,y,n,col,spd){
+  for(let i=0;i<n;i++){
+    const a = Math.random()*Math.PI*2, s = rnd(spd*0.3, spd);
+    parts.push({x,y,vx:Math.cos(a)*s, vy:Math.sin(a)*s, life:rnd(.3,.7), t:0, col, r:rnd(1.5,3.5)});
+  }
+}
+
+function addInk(v){ ink = Math.min(INK_MAX, ink + v); }
+
+function addScore(base, x, y){
+  const pts = base * combo;
+  score += pts;
+  floats.push({x, y, txt: "+"+pts, t: 0, life: 0.9, red: combo > 1});
+  combo++;
+  TROPHIES.ev("combo", {n: combo});
+}
+
+/* ---------- uppdatering ---------- */
+function step(dt){
+  T += dt;
+  if (tut === 1){
+    ball.y = tutY0 + Math.sin(T*2.2)*7;   // bollen svävar tills första strecket är ritat
+    return;
+  }
+  if (tut === 2){
+    tutT += dt;
+    if (tutT > 5.5) tut = 0;
+  }
+  for(const b of bumpers){
+    if (b.amp){
+      b.x = b.x0 + Math.sin(T*b.sp + b.ph)*b.amp;
+      b.x = Math.max(MARGIN + b.r + 6, Math.min(W - RWALL - b.r - 6, b.x));
+    }
+  }
+  // rörelse i delsteg så snabba bollar inte far igenom saker
+  const N = 4, h = dt/N;
+  for(let s=0;s<N;s++){
+    ball.vy += TUNE.g*MOD.g*h;
+    if (ball.vy > 640) ball.vy = 640;   // terminalfart nedåt — fall går att fånga
+    ball.x += ball.vx*h;
+    ball.y += ball.vy*h;
+
+    for(const wz of winds){
+      if (ball.x > wz.x && ball.x < wz.x+wz.w && ball.y > wz.y && ball.y < wz.y+wz.h){
+        ball.vx += wz.fx * h * 2.2;
+      }
+    }
+    for(const m of magnets){
+      const dxm = m.x-ball.x, dym = m.y-ball.y;
+      const dm = Math.hypot(dxm, dym);
+      if (dm < m.r && dm > 1){
+        const a = m.str * (1 - dm/m.r);
+        ball.vx += dxm/dm * a * h;
+        ball.vy += dym/dm * a * h;
+      }
+    }
+
+    // sidoväggar
+    if (ball.x - ball.r < MARGIN){
+      ball.x = MARGIN+ball.r;
+      if (ball.vx < -140) SND.thud(Math.min(1, (-ball.vx-140)/600));
+      ball.vx = Math.abs(ball.vx)*TUNE.bounce;
+    }
+    if (ball.x + ball.r > W - RWALL){
+      ball.x = W - RWALL - ball.r;
+      if (ball.vx > 140) SND.thud(Math.min(1, (ball.vx-140)/600));
+      ball.vx = -Math.abs(ball.vx)*TUNE.bounce;
+    }
+
+    // ritade streck
+    for(let i=strokes.length-1;i>=0;i--){
+      const st = strokes[i];
+      if (!st.alive) continue;
+      let hit = null;
+      for(let p=0;p<st.pts.length-1;p++){
+        const a = st.pts[p], b = st.pts[p+1];
+        const hres = hitSegment(a.x,a.y,b.x,b.y);
+        if (hres){ hit = hres; break; }
+      }
+      if (hit){
+        const approaching = (ball.vx*hit.nx + ball.vy*hit.ny) < 0;
+        pushOut(hit);
+        if (approaching){
+          reflect(hit.nx, hit.ny, REST, TUNE.kick);
+          st.alive = false; st.flash = 1;
+          SND.stroke();
+          TROPHIES.ev("bounce");
+          burst(hit.cx, hit.cy, 10, C.ink, 260);
+          shake = Math.min(shake+3, 8);
+        }
+      }
+    }
+
+    // fasta block
+    for(let i=solids.length-1;i>=0;i--){
+      const r = solids[i];
+      const hres = hitRect(r);
+      if (!hres) continue;
+      const vnImp = ball.vx*hres.nx + ball.vy*hres.ny;
+      pushOut(hres);
+      reflect(hres.nx, hres.ny, r.brk?0.50:TUNE.bounce, r.brk?40:0);
+      if (r.brk){
+        solids.splice(i,1);
+        addInk(r.gold ? 85 : 55);
+        SND.block();
+        if (r.gold) SND.star();
+        addScore(r.gold ? 400 : 100, r.x+r.w/2, r.y);
+        TROPHIES.ev("block", {gold: !!r.gold});
+        burst(r.x+r.w/2, r.y+r.h/2, r.gold ? 22 : 14, r.gold ? C.orange : C.green, 220);
+        shake = Math.min(shake+4, 9);
+      } else if (vnImp < -120){
+        SND.thud(Math.min(1, (-vnImp-120)/600));
+      }
+    }
+
+    // grindar
+    for(const g of gates){
+      for(const r of gateWalls(g)){
+        if (r.w <= 2) continue;
+        const hres = hitRect(r);
+        if (!hres) continue;
+        const vnG = ball.vx*hres.nx + ball.vy*hres.ny;
+        pushOut(hres);
+        reflect(hres.nx, hres.ny, TUNE.bounce, 0);
+        if (vnG < -120) SND.thud(Math.min(1, (-vnG-120)/600));
+      }
+    }
+
+    // studsknappar
+    for(const b of bumpers){
+      const dx = ball.x-b.x, dy = ball.y-b.y;
+      const dist = Math.hypot(dx,dy);
+      if (dist < b.r + ball.r && dist > 0.0001){
+        const nx = dx/dist, ny = dy/dist;
+        ball.x = b.x + nx*(b.r+ball.r+0.5);
+        ball.y = b.y + ny*(b.r+ball.r+0.5);
+        const spBefore = Math.hypot(ball.vx, ball.vy);
+        const canScore = spBefore > 180 && (!b.cool || T - b.cool > 0.8);
+        reflect(nx, ny, TUNE.bounce-0.15, TUNE.bkick);
+        // en studsknapp får aldrig lämna ifrån sig mer fart än den tog emot
+        const spAfter = Math.hypot(ball.vx, ball.vy);
+        if (spAfter > spBefore && spAfter > 0.001){
+          const k = spBefore/spAfter;
+          ball.vx *= k; ball.vy *= k;
+        }
+        if (canScore){
+          b.cool = T;
+          b.lit = 0.35;
+          SND.bumper(combo);
+          addScore(25, b.x, b.y - b.r - 8);
+          TROPHIES.ev("bump");
+          burst(ball.x, ball.y, 8, C.orange, 240);
+          shake = Math.min(shake+3, 8);
+        }
+      }
+    }
+
+    // taggar: dödliga — landar bollen på dem är rundan över
+    for(const sp of spikes){
+      const hres = hitRect(sp);
+      if (!hres) continue;
+      pushOut(hres);
+      if (dying === 0){
+        dying = 1.15;
+        deathCause = "spike";
+        endDraw();
+        sp.lit = 0.6;
+        SND.spike();
+        SND.over();
+        burst(ball.x, ball.y, 26, C.red, 340);
+        shake = Math.min(shake + 9, 13);
+        ball.vx *= 0.3;
+        ball.vy = -240;      // en sista stöt uppåt, sen faller den livlös
+      }
+      break;
+    }
+  }
+
+  // bläckplumpar
+  for(let i=orbs.length-1;i>=0;i--){
+    const o = orbs[i];
+    o.t += dt*3;
+    if (Math.hypot(ball.x-o.x, ball.y-o.y) < o.r + ball.r){
+      addInk(120);
+      SND.orb();
+      addScore(50, o.x, o.y - 18);
+      TROPHIES.ev("orb");
+      burst(o.x, o.y, 16, C.ink, 280);
+      orbs.splice(i,1);
+    }
+  }
+
+  // stjärnor
+  for(let i=stars.length-1;i>=0;i--){
+    const st = stars[i];
+    st.t += dt*3;
+    if (st.amp){
+      st.x = st.x0 + Math.sin(T*st.sp + st.ph)*st.amp;
+      st.x = Math.max(MARGIN + st.r + 4, Math.min(W - RWALL - st.r - 4, st.x));
+    }
+    if (Math.hypot(ball.x-st.x, ball.y-st.y) < st.r + ball.r){
+      addScore(st.val * MOD.starMul, st.x, st.y - 14);
+      TROPHIES.ev("star", {gold: !!st.gold});
+      if (st.gold){ SND.level(); burst(st.x, st.y, 26, C.orange, 320); shake = Math.min(shake+5, 10); }
+      else { SND.star(); burst(st.x, st.y, 12, C.ink, 240); }
+      stars.splice(i,1);
+    }
+  }
+
+  // bläck fylls på — snabbt i början, långsammare ju högre man kommer
+  addInk(TUNE.regen * MOD.regen * (1 - 0.45*diff() - 0.12*deep(meters)) * dt);
+
+  // partiklar
+  for(let i=parts.length-1;i>=0;i--){
+    const p = parts[i];
+    p.t += dt;
+    if (p.t > p.life){ parts.splice(i,1); continue; }
+    p.vy += 620*dt;
+    p.x += p.vx*dt; p.y += p.vy*dt;
+  }
+
+  for(let i=floats.length-1;i>=0;i--){
+    const f = floats[i];
+    f.t += dt;
+    if (f.t > f.life) floats.splice(i,1);
+  }
+
+  // streck bleknar
+  for(let i=strokes.length-1;i>=0;i--){
+    const st = strokes[i];
+    st.age += dt;
+    if (st.flash) st.flash = Math.max(0, st.flash - dt*4);
+    if ((!st.alive && st.flash<=0) || st.age > 6) strokes.splice(i,1);
+  }
+
+  // kamera — följer bara uppåt
+  const target = ball.y - H*0.58;
+  if (target < camTop) camTop += (target-camTop)*Math.min(1, dt*9);
+  if (ball.y - camTop < H*0.22) camTop = ball.y - H*0.22;
+
+  meters = Math.max(meters, (startYRef - ball.y)/MPX);
+  TROPHIES.climb(meters);
+  if (mode === "daily" && !finished && meters >= DAILY_GOAL){ finishDaily(); return; }
+  const lv = Math.floor(meters/100);
+  if (lv > level){
+    level = lv;
+    if (mode === "free"){ checkpoint = Math.max(checkpoint, level); STORE.set("checkpoint", checkpoint); }
+    addInk(INK_MAX);
+    score += 500;
+    SND.level();
+    floats.push({x: ball.x, y: ball.y - 34, txt: "+500", t: 0, life: 1.1});
+    levelFlash = 1;
+    burst(ball.x, ball.y, 22, C.red, 300);
+    TROPHIES.save();
+  }
+  if (levelFlash > 0) levelFlash = Math.max(0, levelFlash - dt*0.8);
+  while (genY > camTop - 900) generateBand();
+
+  // städa bort saker under kameran
+  const cut = camTop + H + 400;
+  solids  = solids.filter(o => o.y < cut);
+  bumpers = bumpers.filter(o => o.y < cut);
+  gates   = gates.filter(o => o.y < cut);
+  stars   = stars.filter(o => o.y < cut);
+  winds   = winds.filter(o => o.y < cut);
+  magnets = magnets.filter(o => o.y < cut);
+  spikes  = spikes.filter(o => o.y < cut);
+  orbs    = orbs.filter(o => o.y < cut);
+
+  if (shake > 0) shake = Math.max(0, shake - dt*22);
+
+  const dngS = Math.max(0, Math.min(1, (ball.y - (camTop + H*0.72)) / (H*0.28 + 20)));
+  if (warnArmed && dngS > 0.6){ warnArmed = false; SND.warn(); }
+  if (dngS < 0.25) warnArmed = true;
+
+  if (dying === 0 && ball.y > camTop + H + 20){
+    dying = 1.15;          // sekunder realtid av slow motion-fall
+    deathCause = "fall";
+    endDraw();
+    SND.over();
+    shake = Math.min(shake + 6, 10);
+  }
+}
+
+// Världsplaceringen för den bana rundan spelades på. Utan SDK säger raden
+// ingenting och förblir gömd.
+function showRank(board){
+  overRank.hidden = true;
+  overRank.textContent = "";
+  if (!window.GameVolt || !GameVolt.leaderboard || !GameVolt.leaderboard.getRank) return;
+  try {
+    GameVolt.leaderboard.getRank({mode: board}).then(r => {
+      if (state === "over" && r && r.rank){
+        overRank.textContent = "world rank #" + r.rank;
+        overRank.hidden = false;
+      }
+    }).catch(() => {});
+  } catch(e){}
+}
+
+function gameOver(){
+  if (window.GameVoltTracker) window.GameVoltTracker.end({score, mode, outcome: "fall"});
+  state = "over";
+  SND.setScratch(false);
+  const devRun = DEV_START > 0 && mode === "free";   // startad mitt på sidan — räknas inte
+  if (!devRun){
+    best = Math.max(best, Math.floor(meters));
+    bestP = Math.max(bestP, score);
+    STORE.set("best", best);
+    STORE.set("bestP", bestP);
+    TROPHIES.ev("end", {m: Math.floor(meters), pts: score, cause: deathCause});
+    gvPost("game_over", {score, mode, stats: {meters: Math.floor(meters)}});
+    if (window.GameVolt && mode === "free" && score > 0 && !tuned){
+      try { GameVolt.leaderboard.submit(score, {mode: "free"}); } catch(e){}
+    }
+    if (mode === "free") showRank("free"); else overRank.hidden = true;
+  } else {
+    overRank.hidden = true;
+  }
+  overEyebrow.textContent = "the ball fell";
+  finalScore.textContent = score.toLocaleString("en-US") + " pts";
+  if (mode === "daily"){
+    bestScore.textContent = Math.floor(meters) + " / " + DAILY_GOAL + " M · RULE: " + (dailyRule ? dailyRule.name.toUpperCase() : "–");
+    lastRun = {daily:true, m: Math.floor(meters), score: score, done:false};
+    saveDaily(false);
+    refreshDailyInfo();
+    contBtn.hidden = true;
+    shareBtn.hidden = false; shareBtn.textContent = "Copy result";
+  } else {
+    bestScore.textContent = Math.floor(meters) + " M · LEVEL " + (level+1) + " · BEST " + bestP.toLocaleString("en-US") + " PTS";
+    shareBtn.hidden = true;
+    if (checkpoint > 0){
+      contBtn.hidden = false;
+      contBtn.textContent = "Continue from " + (checkpoint*100) + " m";
+    } else {
+      contBtn.hidden = true;
+    }
+  }
+  pauseBtn.hidden = true;
+  overSheet.hidden = false;
+}
+
+function finishDaily(){
+  if (window.GameVoltTracker) window.GameVoltTracker.end({score, mode: "daily", outcome: "complete"});
+  finished = true;
+  state = "over";
+  SND.setScratch(false);
+  SND.level();
+  bestP = Math.max(bestP, score);
+  STORE.set("bestP", bestP);
+  saveDaily(true);
+  const streak = bumpStreak();
+  TROPHIES.ev("daily-done", {m: DAILY_GOAL, pts: score,
+                             rule: dailyRule ? dailyRule.name : "", streak});
+  gvPost("game_over", {score, mode, stats: {meters: DAILY_GOAL, completed: true}});
+  if (window.GameVolt && !tuned){
+    // days, not points — a daily score only compares within one seed
+    try { GameVolt.leaderboard.submit(streak, {mode: "daily-streak"}); } catch(e){}
+  }
+  showRank("daily-streak");
+  refreshDailyInfo();
+  overEyebrow.textContent = "made it!";
+  finalScore.textContent = score.toLocaleString("en-US") + " pts";
+  bestScore.textContent = "STREAK: " + streak + (streak === 1 ? " DAY" : " DAYS") + " · RULE: " + (dailyRule ? dailyRule.name.toUpperCase() : "–");
+  lastRun = {daily:true, m: DAILY_GOAL, score: score, done:true};
+  contBtn.hidden = true;
+  shareBtn.hidden = false; shareBtn.textContent = "Copy result";
+  pauseBtn.hidden = true;
+  overSheet.hidden = false;
+}
+
+/* ---------- ritande ---------- */
+function toWorld(ev){
+  const r = cv.getBoundingClientRect();
+  return { x: ev.clientX - r.left, y: ev.clientY - r.top + camTop };
+}
+
+cv.addEventListener("pointerdown", e => {
+  if (state !== "play" || dying > 0) return;
+  cv.setPointerCapture(e.pointerId);
+  SND.ensure();
+  SND.setScratch(true);
+  const p = toWorld(e);
+  p.x = Math.max(MARGIN+2, Math.min(W-RWALL-2, p.x));
+  drawing = {pts:[p], alive:true, age:0, flash:0};
+  strokes.push(drawing);
+  combo = 1;
+});
+
+cv.addEventListener("pointermove", e => {
+  if (state !== "play" || !drawing) return;
+  if (!drawing.alive){                                                     // bollen hann studsa på det
+    if (drawing.pts.length >= 2) TROPHIES.ev("stroke");
+    drawing = null; SND.setScratch(false); return;
+  }
+  const p = toWorld(e);
+  p.x = Math.max(MARGIN+2, Math.min(W-RWALL-2, p.x));
+  const last = drawing.pts[drawing.pts.length-1];
+  const d = Math.hypot(p.x-last.x, p.y-last.y);
+  if (d < 5) return;
+  if (ink < d){ endDraw(); return; }        // bläcket tog slut mitt i draget
+  ink -= d;
+  TROPHIES.ev("ink", {px: d});
+  drawing.pts.push(p);
+  if (drawing.pts.length > 240) endDraw();
+});
+
+function endDraw(){
+  SND.setScratch(false);
+  if (drawing && drawing.pts.length >= 2) TROPHIES.ev("stroke");
+  if (drawing && drawing.pts.length < 2) drawing.alive = false;
+  if (tut === 1 && drawing && drawing.pts.length >= 2){
+    tut = 2; tutT = 0;
+    STORE.set("tutorialDone", true);
+    ball.vy = 40;   // bollen släpps mjukt ner mot spelarens streck
+  }
+  drawing = null;
+}
+cv.addEventListener("pointerup", endDraw);
+cv.addEventListener("pointercancel", endDraw);
+
+/* ---------- rendering ---------- */
+function paper(){
+  ctx.fillStyle = C.paper;
+  ctx.fillRect(0,0,W,H);
+
+  // rutnät som skrollar med kameran
+  const off = ((-camTop) % GRID + GRID) % GRID;
+  ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.globalAlpha = .55;
+  ctx.beginPath();
+  for(let y = off - GRID; y < H+GRID; y += GRID){
+    ctx.moveTo(0, Math.round(y)+.5); ctx.lineTo(W, Math.round(y)+.5);
+  }
+  for(let x = MARGIN; x < W+GRID; x += GRID){
+    ctx.moveTo(Math.round(x)+.5, 0); ctx.lineTo(Math.round(x)+.5, H);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // röd marginal
+  ctx.strokeStyle = C.red; ctx.lineWidth = 1.5; ctx.globalAlpha = .5;
+  ctx.beginPath(); ctx.moveTo(MARGIN+.5, 0); ctx.lineTo(MARGIN+.5, H);
+  ctx.moveTo(W-RWALL+.5, 0); ctx.lineTo(W-RWALL+.5, H); ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+function hatch(x,y,w,h,col,gap){
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip();
+  ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.globalAlpha = .45;
+  ctx.beginPath();
+  for(let i=-h; i<w+h; i+=gap){ ctx.moveTo(x+i, y+h); ctx.lineTo(x+i+h, y); }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function starPath(x, y, R, rot){
+  ctx.beginPath();
+  for(let i=0;i<10;i++){
+    const rr = i%2 ? R*0.45 : R;
+    const a = rot + i*Math.PI/5 - Math.PI/2;
+    const px = x+Math.cos(a)*rr, py = y+Math.sin(a)*rr;
+    if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+  }
+  ctx.closePath();
+}
+
+function drawWorld(){
+  ctx.save();
+  let sx=0, sy=0;
+  if (shake > 0 && !reduceMotion){ sx = rnd(-shake,shake); sy = rnd(-shake,shake); }
+  ctx.translate(sx, -camTop + sy);
+
+  // nivålinjer var 100:e meter
+  {
+    const nLo = Math.max(1, Math.ceil((startYRef - (camTop+H))/MPX/100));
+    const nHi = Math.floor((startYRef - camTop)/MPX/100);
+    for(let n=nLo; n<=nHi; n++){
+      const ly = startYRef - n*100*MPX;
+      ctx.strokeStyle = C.red; ctx.lineWidth = 2; ctx.globalAlpha = .6;
+      ctx.setLineDash([14,10]);
+      ctx.beginPath(); ctx.moveTo(MARGIN, ly); ctx.lineTo(W-RWALL, ly); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = C.red;
+      ctx.font = "700 24px 'Caveat', cursive";
+      ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+      ctx.save(); ctx.translate(MARGIN+10, ly-4); ctx.rotate(-0.03);
+      ctx.fillText("level " + (n+1) + " — " + (n*100) + " m", 0, 0);
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // mållinje i dagens utmaning
+  if (mode === "daily"){
+    const gy = startYRef - DAILY_GOAL*MPX;
+    if (gy > camTop - 60 && gy < camTop + H + 60){
+      ctx.strokeStyle = C.red; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(MARGIN, gy); ctx.lineTo(W-RWALL, gy); ctx.stroke();
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(MARGIN, gy-8); ctx.lineTo(W-RWALL, gy-8); ctx.stroke();
+      ctx.fillStyle = C.red;
+      ctx.font = "700 32px 'Caveat', cursive";
+      ctx.textAlign = "left"; ctx.textBaseline = "bottom";
+      ctx.save(); ctx.translate(MARGIN+10, gy-12); ctx.rotate(-0.03);
+      ctx.fillText("FINISH", 0, 0);
+      ctx.restore();
+    }
+  }
+
+  // fläktar: drivande pilar
+  for(const wz of winds){
+    ctx.strokeStyle = C.pale; ctx.globalAlpha = .55; ctx.lineWidth = 1.6;
+    const dir = Math.sign(wz.fx);
+    const sp = 46;
+    const off = ((T*40*dir) % sp + sp) % sp;
+    ctx.beginPath();
+    for(let ry2=0; ry2<3; ry2++){
+      const yy = wz.y + 22 + ry2*((wz.h-44)/2);
+      for(let xx = wz.x; xx < wz.x + wz.w; xx += sp){
+        const ax = xx + off;
+        if (ax < wz.x+6 || ax > wz.x+wz.w-16) continue;
+        ctx.moveTo(ax, yy); ctx.lineTo(ax+12*dir, yy);
+        ctx.moveTo(ax+12*dir, yy); ctx.lineTo(ax+7*dir, yy-4);
+        ctx.moveTo(ax+12*dir, yy); ctx.lineTo(ax+7*dir, yy+4);
+      }
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // fasta block
+  for(const r of solids){
+    if (r.brk){
+      // gul överstrykning + kulspets + rundade hörn = går att krossa (guld = jackpott)
+      const pen = r.gold ? C.orange : C.green;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(r.x, r.y, r.w, r.h, 5); else ctx.rect(r.x, r.y, r.w, r.h);
+      ctx.fillStyle = r.gold ? "rgba(240,190,60,.8)" : C.high; ctx.fill();
+      hatch(r.x, r.y, r.w, r.h, pen, r.gold ? 8 : 12);
+      ctx.strokeStyle = pen; ctx.lineWidth = r.gold ? 2.8 : 2.4; ctx.stroke();
+    } else {
+      // hårt itryckt grafit, tät skraffering, dubbel ram = massivt
+      ctx.fillStyle = "rgba(42,49,56,.20)";
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      hatch(r.x, r.y, r.w, r.h, C.graphite, 4.5);
+      ctx.strokeStyle = C.graphite; ctx.lineWidth = 2.6;
+      ctx.strokeRect(r.x+.5, r.y+.5, r.w-1, r.h-1);
+      ctx.globalAlpha = .55; ctx.lineWidth = 1;
+      ctx.strokeRect(r.x+4.5, r.y+4.5, r.w-9, r.h-9);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // grindar
+  for(const g of gates){
+    const walls = gateWalls(g);
+    for(const r of walls){
+      if (r.w <= 2) continue;
+      ctx.fillStyle = "rgba(42,49,56,.20)";
+      ctx.fillRect(r.x, r.y, r.w, r.h);
+      hatch(r.x, r.y, r.w, r.h, C.graphite, 4.5);
+      ctx.strokeStyle = C.graphite; ctx.lineWidth = 2.6;
+      ctx.strokeRect(r.x+.5, r.y+.5, r.w-1, r.h-1);
+    }
+    // röda käftar markerar de rörliga kanterna
+    ctx.strokeStyle = C.red; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(walls[0].x+walls[0].w, g.y-5); ctx.lineTo(walls[0].x+walls[0].w, g.y+g.h+5);
+    ctx.moveTo(walls[1].x, g.y-5); ctx.lineTo(walls[1].x, g.y+g.h+5);
+    ctx.stroke();
+  }
+
+  // taggar
+  for(const sp of spikes){
+    const teeth = Math.max(3, Math.round(sp.w/14));
+    const tw = sp.w/teeth;
+    ctx.strokeStyle = C.red; ctx.lineWidth = sp.lit ? 3.5 : 2.2;
+    ctx.beginPath();
+    for(let i=0;i<teeth;i++){
+      const x0 = sp.x + i*tw;
+      if (sp.dir < 0){ ctx.moveTo(x0, sp.y+sp.h); ctx.lineTo(x0+tw/2, sp.y); ctx.lineTo(x0+tw, sp.y+sp.h); }
+      else { ctx.moveTo(x0, sp.y); ctx.lineTo(x0+tw/2, sp.y+sp.h); ctx.lineTo(x0+tw, sp.y); }
+    }
+    ctx.stroke();
+    if (sp.lit) sp.lit = Math.max(0, sp.lit-0.03);
+  }
+
+  // studsknappar
+  for(const b of bumpers){
+    const lit = b.lit || 0;
+    const wob = a => 1 + Math.sin(a*5 + b.seed)*0.05;
+    // ljus tvätt i botten
+    ctx.fillStyle = "rgba(222,123,44,.12)";
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
+    // skraffering inuti
+    ctx.save();
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r-2, 0, Math.PI*2); ctx.clip();
+    ctx.strokeStyle = C.orange; ctx.globalAlpha = .3; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for(let i=-b.r*2; i<b.r*2; i+=6){
+      ctx.moveTo(b.x+i, b.y+b.r*2); ctx.lineTo(b.x+i+b.r*2, b.y-b.r*2);
+    }
+    ctx.stroke();
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    // handritad dubbelring (lätt darr, unik per knapp)
+    ctx.strokeStyle = C.orange;
+    for(const ring of [[b.r, lit>0 ? 3.6 : 2.6], [b.r-4.5, 1.3]]){
+      ctx.lineWidth = ring[1];
+      ctx.beginPath();
+      for(let a=0; a<=6.42; a+=0.18){
+        const rr2 = ring[0]*wob(a);
+        const px = b.x+Math.cos(a)*rr2, py = b.y+Math.sin(a)*rr2;
+        if (a===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.closePath(); ctx.stroke();
+    }
+    // strålar — långa och korta växelvis, sträcker sig vid träff
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    for(let i=0;i<12;i++){
+      const a = i*Math.PI/6 + b.seed*0.3;
+      const len = (i%2 ? 5 : 9) + lit*10;
+      ctx.moveTo(b.x+Math.cos(a)*(b.r+3), b.y+Math.sin(a)*(b.r+3));
+      ctx.lineTo(b.x+Math.cos(a)*(b.r+3+len), b.y+Math.sin(a)*(b.r+3+len));
+    }
+    ctx.stroke();
+    // mittprick
+    ctx.fillStyle = C.orange;
+    ctx.beginPath(); ctx.arc(b.x, b.y, 2.6+lit*2.5, 0, Math.PI*2); ctx.fill();
+    // expanderande stämpelring vid träff
+    if (lit > 0){
+      ctx.globalAlpha = lit;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.r + (0.35-lit)*50, 0, Math.PI*2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      b.lit = Math.max(0, b.lit-0.02);
+    }
+  }
+
+  // magneter
+  for(const m of magnets){
+    ctx.strokeStyle = C.red; ctx.globalAlpha = .7; ctx.lineWidth = 1.6;
+    ctx.setLineDash([6,6]);
+    ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(m.x, m.y, m.r*0.55, 0, Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = C.red;
+    ctx.beginPath(); ctx.arc(m.x, m.y, 4, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // stjärnor
+  for(const st of stars){
+    const rot = Math.sin(st.t)*0.15;
+    starPath(st.x, st.y, st.r + (st.gold ? 3 : 0), rot);
+    ctx.fillStyle = st.gold ? "rgba(240,190,60,.85)" : "rgba(240,206,70,.45)";
+    ctx.fill();
+    ctx.strokeStyle = st.gold ? C.orange : C.ink;
+    ctx.lineWidth = st.gold ? 2.6 : 2;
+    ctx.stroke();
+  }
+
+  // bläckplumpar
+  for(const o of orbs){
+    const pulse = 1 + Math.sin(o.t)*0.07;
+    ctx.fillStyle = C.inkHalo;
+    ctx.beginPath(); ctx.arc(o.x, o.y, o.r*1.9*pulse, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = C.ink;
+    ctx.beginPath(); ctx.arc(o.x, o.y, o.r*pulse, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = .5;
+    ctx.beginPath(); ctx.arc(o.x+o.r*1.3, o.y-o.r*0.9, 3.2, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(o.x-o.r*1.2, o.y+o.r*1.1, 2.4, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // ritade streck
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for(const st of strokes){
+    if (st.pts.length < 2) continue;
+    const fade = st.alive ? Math.max(0.35, 1 - st.age/6) : st.flash;
+    ctx.globalAlpha = fade;
+    ctx.strokeStyle = st.alive ? C.ink : C.red;
+    ctx.lineWidth = st.alive ? 6.5 : 8;
+    ctx.beginPath();
+    ctx.moveTo(st.pts[0].x, st.pts[0].y);
+    for(let i=1;i<st.pts.length;i++) ctx.lineTo(st.pts[i].x, st.pts[i].y);
+    ctx.stroke();
+    ctx.globalAlpha = fade*0.35; ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // partiklar
+  for(const p of parts){
+    ctx.globalAlpha = 1 - p.t/p.life;
+    ctx.fillStyle = p.col;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // poängtext som stiger
+  for(const f of floats){
+    const k = f.t/f.life;
+    ctx.globalAlpha = 1-k;
+    ctx.fillStyle = f.red ? C.red : C.ink;
+    ctx.font = "700 22px 'Caveat', cursive";
+    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    ctx.fillText(f.txt, f.x, f.y - 8 - 46*k);
+  }
+  ctx.globalAlpha = 1;
+
+  // bollen (röd när den är döende)
+  ctx.fillStyle = dying > 0 ? C.red : C.graphite;
+  ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = C.paper; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.arc(ball.x-ball.r*0.3, ball.y-ball.r*0.35, ball.r*0.32, 0, Math.PI*2); ctx.stroke();
+
+  // handledning: streckad förebild + vandrande fingertopp
+  if (tut === 1){
+    const gy = ball.y + 95;
+    ctx.strokeStyle = C.ink; ctx.globalAlpha = .6;
+    ctx.lineWidth = 4; ctx.setLineDash([10,9]);
+    ctx.beginPath();
+    ctx.moveTo(ball.x-70, gy+12);
+    ctx.quadraticCurveTo(ball.x, gy-14, ball.x+70, gy+12);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    const pp = (T*0.7) % 1;
+    const fx = ball.x - 70 + 140*pp;
+    const fy = gy + 12 - 26*Math.sin(Math.PI*pp);
+    ctx.globalAlpha = .45;
+    ctx.fillStyle = C.ink;
+    ctx.beginPath(); ctx.arc(fx, fy, 9 + Math.sin(T*5)*1.5, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = C.ink;
+    ctx.font = "700 27px 'Caveat', cursive";
+    ctx.textAlign = "center"; ctx.textBaseline = "top";
+    ctx.save(); ctx.translate(ball.x, gy+34); ctx.rotate(-0.03);
+    ctx.fillText("draw a stroke under the ball", 0, 0);
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+function hud(){
+  // farozon: nedre kanten rodnar och pulserar när bollen närmar sig botten
+  const dng = dying > 0 ? 1 : Math.max(0, Math.min(1, (ball.y - (camTop + H*0.72)) / (H*0.28 + 20)));
+  if (dng > 0.03){
+    const pulse = reduceMotion ? 1 : 0.8 + 0.2*Math.sin(T*10);
+    const gh = H*0.3;
+    const grad = ctx.createLinearGradient(0, H, 0, H-gh);
+    grad.addColorStop(0, "rgba(216,69,90," + (0.42*dng*pulse).toFixed(3) + ")");
+    grad.addColorStop(1, "rgba(216,69,90,0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, H-gh, W, gh);
+  }
+
+  // bläckmätaren bor i den röda marginalen
+  const pad = 14, top = pad, bot = H - pad;
+  const h = (bot-top) * (ink/INK_MAX);
+  ctx.fillStyle = "rgba(30,58,143,.10)";
+  ctx.fillRect(8, top, MARGIN-16, bot-top);
+  ctx.fillStyle = C.ink;
+  ctx.fillRect(8, bot-h, MARGIN-16, h);
+  ctx.strokeStyle = C.ink; ctx.globalAlpha=.5; ctx.lineWidth = 1;
+  ctx.strokeRect(8.5, top+.5, MARGIN-17, bot-top-1);
+  ctx.globalAlpha=1;
+
+  ctx.save();
+  ctx.translate(MARGIN/2+1, H/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.fillStyle = ink/INK_MAX > 0.55 ? C.paper : C.ink;
+  ctx.font = "500 9px 'IBM Plex Mono', monospace";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("INK", 0, 0);
+  ctx.restore();
+
+  if (tut === 2){
+    ctx.globalAlpha = Math.max(0, Math.min(1, 1 - (tutT - 4)/1.2));
+    ctx.fillStyle = C.ink;
+    ctx.font = "700 24px 'Caveat', cursive";
+    ctx.textAlign = "left"; ctx.textBaseline = "middle";
+    ctx.fillText("← your ink", MARGIN + 10, H*0.5);
+    ctx.globalAlpha = 1;
+  }
+
+  // poäng och kombo
+  ctx.fillStyle = C.graphite;
+  ctx.font = "600 15px 'IBM Plex Mono', monospace";
+  ctx.textAlign = "left"; ctx.textBaseline = "top";
+  ctx.fillText(score.toLocaleString("en-US") + " pts", MARGIN+12, 16);
+  if (combo > 1){
+    ctx.fillStyle = C.red;
+    ctx.font = "700 27px 'Caveat', cursive";
+    ctx.fillText("×" + combo, MARGIN+12, 36);
+  }
+
+  // höjd
+  ctx.fillStyle = C.graphite;
+  ctx.font = "600 15px 'IBM Plex Mono', monospace";
+  ctx.textAlign = "right"; ctx.textBaseline = "top";
+  ctx.fillText(mode === "daily" ? (Math.floor(meters) + " / " + DAILY_GOAL + " m") : (Math.floor(meters) + " m"), W-RWALL-10, 16);
+  ctx.fillStyle = C.pale;
+  ctx.font = "500 11px 'IBM Plex Mono', monospace";
+  ctx.fillText("LEVEL " + (level+1), W-RWALL-10, 38);
+
+  if (levelFlash > 0){
+    ctx.globalAlpha = Math.min(1, levelFlash*1.6);
+    ctx.fillStyle = C.red;
+    ctx.font = "700 60px 'Caveat', cursive";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.save(); ctx.translate(W/2, H*0.3); ctx.rotate(-0.05);
+    ctx.fillText("level " + (level+1), 0, 0);
+    if (UNLOCKS[level+1]){
+      ctx.font = "700 27px 'Caveat', cursive";
+      ctx.fillText("new: " + UNLOCKS[level+1], 0, 46);
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* ---------- loop ---------- */
+let last = performance.now();
+function frame(now){
+  let dt = (now-last)/1000; last = now;
+  dt = Math.min(dt, 0.05);
+
+  if (state === "play"){
+    const wanted = (dying > 0) ? 0.22 : (drawing ? TUNE.slow : 1);
+    timeScale += (wanted - timeScale) * Math.min(1, dt*12);
+    step(dt*timeScale);
+    if (dying > 0){
+      dying -= dt;                       // nedräkning i realtid
+      if (dying <= 0){ dying = 0; gameOver(); }
+    }
+  }
+  try { SND.tick(dt, level || 0, !!drawing, state === "play"); } catch(e){}
+  paper();
+  if (state !== "start") { drawWorld(); hud(); }
+  requestAnimationFrame(frame);
+}
+
+function pause(){
+  if (state !== "play") return;
+  endDraw();
+  SND.setScratch(false);
+  state = "paused";
+  TROPHIES.save();
+  pauseSheet.hidden = false;
+}
+function resumeGame(){
+  if (state !== "paused") return;
+  pauseSheet.hidden = true;
+  state = "play";
+}
+function quitToStart(){
+  if (window.GameVoltTracker) window.GameVoltTracker.end({outcome: "quit"});
+  TROPHIES.close();
+  pauseSheet.hidden = true;
+  overSheet.hidden = true;
+  pauseBtn.hidden = true;
+  state = "start";
+  if (checkpoint > 0){
+    resumeBtn.hidden = false;
+    resumeBtn.textContent = "Continue from " + (checkpoint*100) + " m";
+  }
+  refreshDailyInfo();
+  startSheet.hidden = false;
+}
+
+function play(opt){
+  TROPHIES.close();
+  startSheet.hidden = true;
+  overSheet.hidden = true;
+  pauseSheet.hidden = true;
+  pauseBtn.hidden = false;
+  mode = opt.daily ? "daily" : "free";
+  gvPost("game_start", {mode});
+  if (window.GameVoltTracker) {
+    window.GameVoltTracker.start("INK", {mode});
+    window.GameVoltTracker.play();
+  }
+  tuneBtn.hidden = opt.daily || !DEV_TUNING;
+  if (opt.daily || !DEV_TUNING) tunePanel.hidden = true;
+  resize();
+  reset(opt.cp === true);
+  TROPHIES.ev("run", {daily: mode === "daily", cp: opt.cp === true,
+                      dev: DEV_START > 0 && mode === "free"});
+  state = "play";
+  SND.ensure();
+}
+const sndBtn = document.getElementById("sndBtn");
+sndBtn.textContent = "sound: " + (SND.isOn() ? "on" : "off");
+sndBtn.addEventListener("click", () => {
+  SND.ensure();
+  sndBtn.textContent = "sound: " + (SND.toggle() ? "on" : "off");
+});
+const musBtn = document.getElementById("musBtn");
+musBtn.textContent = "music: " + (SND.musicIsOn() ? "on" : "off");
+musBtn.addEventListener("click", () => {
+  SND.ensure();
+  musBtn.textContent = "music: " + (SND.toggleMusic() ? "on" : "off");
+});
+const tuneBtn = document.getElementById("tuneBtn");
+const tunePanel = document.getElementById("tunePanel");
+tuneBtn.hidden = !DEV_TUNING;
+tuneBtn.addEventListener("click", () => { tunePanel.hidden = !tunePanel.hidden; });
+function bind(id, out, key, scale){
+  const el = document.getElementById(id), o = document.getElementById(out);
+  el.addEventListener("input", () => {
+    TUNE[key] = (+el.value) * scale;
+    o.textContent = el.value;
+    tuned = true;
+  });
+}
+bind("rG","oG","g",1);
+bind("rK","oK","kick",1);
+bind("rR","oR","regen",1);
+bind("rB","oB","bounce",0.01);
+bind("rBK","oBK","bkick",1);
+bind("rS","oS","slow",0.01);
+
+const lbBtn = document.getElementById("lbBtn");
+if (window.GameVolt && GameVolt.ui && GameVolt.ui.leaderboard){
+  lbBtn.hidden = false;
+  lbBtn.addEventListener("click", () => {
+    try {
+      GameVolt.ui.leaderboard(mode === "daily"
+        ? {title:"INK — daily streak", mode:"daily-streak", accent:"#1E3A8F",
+           format: v => v + (v === 1 ? " day" : " days")}
+        : {title:"INK — free climb", mode:"free", accent:"#1E3A8F", scoreLabel:"pts"});
+    } catch(e){}
+  });
+}
+document.getElementById("menuBtn").addEventListener("click", quitToStart);
+document.getElementById("restartBtn").addEventListener("click", () => play({daily: mode === "daily"}));
+
+startBtn.addEventListener("click", () => play({daily:false}));
+dailyBtn.addEventListener("click", () => play({daily:true}));
+againBtn.addEventListener("click", () => play({daily: mode === "daily"}));
+contBtn.addEventListener("click", () => play({daily:false, cp:true}));
+resumeBtn.addEventListener("click", () => play({daily:false, cp:true}));
+pauseBtn.addEventListener("click", pause);
+resumePlayBtn.addEventListener("click", resumeGame);
+quitBtn.addEventListener("click", quitToStart);
+document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); });
+window.addEventListener("blur", () => pause());
+shareBtn.addEventListener("click", () => {
+  const txt = shareText();
+  const done = () => { shareBtn.textContent = "Copied!"; };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(() => fallbackCopy(txt, done));
+  } else {
+    fallbackCopy(txt, done);
+  }
+});
+
+refreshDailyInfo();
+TROPHIES.init();
+if (!STORE.persistent()) document.getElementById("saveNote").hidden = false;
+if (checkpoint > 0){
+  resumeBtn.hidden = false;
+  resumeBtn.textContent = "Continue from " + (checkpoint*100) + " m";
+}
+
+/* ---------- service worker ---------- */
+// Dokumentet hämtas network-first, så en ny version syns direkt vid omladdning
+// när man är online. Den här knappen finns för det installerade läget: den tar
+// in en redan nedladdad version, och bara när spelaren själv trycker — aldrig
+// mitt i en runda.
+let swUpdating = false;
+function offerUpdate(worker){
+  for (const id of ["updateBtn", "updateLnk"]){
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.hidden = false;
+    el.addEventListener("click", () => {
+      swUpdating = true;
+      el.textContent = "updating…";
+      try { worker.postMessage("skip-waiting"); } catch(e){ location.reload(); }
+    }, {once:true});
+  }
+}
+if (window.parent === window && typeof navigator !== "undefined" && navigator.serviceWorker){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").then(reg => {
+      if (reg.waiting) offerUpdate(reg.waiting);
+      reg.addEventListener("updatefound", () => {
+        const sw = reg.installing;
+        if (!sw) return;
+        sw.addEventListener("statechange", () => {
+          // en ny version finns bara om det redan fanns en gammal
+          if (sw.state === "installed" && navigator.serviceWorker.controller) offerUpdate(sw);
+        });
+      });
+      setInterval(() => { reg.update().catch(() => {}); }, 3600000);
+    }).catch(() => {});
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (swUpdating){ swUpdating = false; location.reload(); }
+    });
+  });
+}
+
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+<article id="seo-content">
+  <nav aria-label="Breadcrumb"><a href="/">GameVolt</a> / <a href="/arcade-games/">Arcade Games</a> / INK</nav>
+  <h2>Draw your way up in INK</h2>
+  <p>INK is a free arcade game where you draw the flipper yourself. Blue ballpoint strokes, orange bumpers and highlighted green bricks turn a sheet of squared notebook paper into a vertical pinball course.</p>
+  <h3>How to play</h3>
+  <p>Drag with your finger or mouse to draw a stroke below the ball. The ball can bounce off each stroke once. Drawing spends ink and slows time; collect blue ink blots and break green blocks to refill. Avoid red spikes and keep the ball from falling off the bottom of the page. Chain hits without drawing again to build your combo.</p>
+  <h3>Free climb or today's challenge</h3>
+  <p>Climb endlessly with checkpoints every 100 metres, or take on the daily 500-metre course with a changing rule. Records and 31 trophies save in this browser without an account. Use the Pause button whenever you need a break.</p>
+  <p>Created by Martin for <a href="/">GameVolt</a>. Play more <a href="/arcade-games/">original arcade games</a>, including <a href="/play/?game=breakout">Breakout</a> and <a href="/play/?game=gravitywell">Gravity Well</a>.</p>
+</article>
+</body>
+</html>

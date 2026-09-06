@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS saves (
 -- Highscores / leaderboard entries
 CREATE TABLE IF NOT EXISTS scores (
     id SERIAL PRIMARY KEY,
+    client_submission_id UUID UNIQUE, -- SDK outbox idempotency (existing DBs: score-submission-id.sql)
     user_id UUID REFERENCES profiles(id),
     game_id TEXT REFERENCES games(id),
     mode TEXT DEFAULT 'default',

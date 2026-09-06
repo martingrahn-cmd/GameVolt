@@ -132,8 +132,9 @@
                     "url": "https://gamevolt.io/manny-the-mole/",
                     "genre": ["Arcade", "Action", "Puzzle"], "gamePlatform": "Web Browser",
                     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-                }
-            ]
+                },
+            {"@type": "VideoGame", "position": 12, "name": "INK", "description": "Draw blue ink strokes to bounce the ball up a squared-paper pinball course. Free climb and daily challenges.", "url": "https://gamevolt.io/ink/", "genre": ["Arcade", "Physics"], "gamePlatform": "Web Browser"}
+        ]
         }
     }
     </script>
@@ -380,6 +381,19 @@
         </div>
         <h2 class="grid-section-title"><span class="grid-section-icon">🕹️</span> Classic Arcade</h2>
         <div class="games-grid">
+            <a href="/play/?game=ink" class="game-card" data-category="coffee-break arcade">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/ink.webp" alt="INK: a ball bouncing off a blue pen stroke on graph paper" width="480" height="270" loading="lazy">
+                    <span class="game-badge new">NEW</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">INK</h3>
+                    <p class="game-description">Draw a bounce. Save your ink. See how high you can climb.</p>
+                    <div class="game-tags"><span class="tag">Arcade</span><span class="tag">Drawing</span><span class="tag">Daily</span></div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
+
             <a href="/play/?game=spinburn" class="game-card">
                 <div class="game-thumbnail">
                     <img src="/spinburn/og-image.png" alt="Play Spinburn Online Free" fetchpriority="high">
@@ -665,7 +679,7 @@
     </script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
-    <script src="/js/gv-search.js"></script>
+    <script src="/js/gv-search.js?v=2"></script>
     <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
     <script src="/js/gv-game-hints.js?v=1" defer></script>
 </body>

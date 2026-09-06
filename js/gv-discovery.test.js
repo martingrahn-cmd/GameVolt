@@ -98,9 +98,11 @@ test('the actual iframe relay attaches the same source to game_start and 60 seco
     tracker.play();
     now += 30000; tick();
     game.environment.document.hidden = true;
+    game.listeners.visibilitychange.forEach(fn => fn());
     now += 90000; tick();
     assert.equal(events.filter(e => e[1] === 'game_play_60s').length, 0);
     game.environment.document.hidden = false;
+    game.listeners.visibilitychange.forEach(fn => fn());
     now += 30000; tick(); tick();
     assert.deepEqual(events.map(e => e[1]), ['game_start', 'game_play_30s', 'game_play_60s']);
     for (const event of events) {

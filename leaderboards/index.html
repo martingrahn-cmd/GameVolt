@@ -563,6 +563,7 @@
             <button class="filter-pill" data-game="one-stroke">One Stroke</button>
             <button class="filter-pill" data-game="taprush">Tap Rush</button>
             <button class="filter-pill" data-game="manny-the-mole">Manny the Mole</button>
+            <button class="filter-pill" data-game="ink">INK</button>
             <button class="filter-pill" data-game="short-circuit">Short Circuit</button>
         </div>
 
@@ -589,6 +590,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/ink/">INK</a>
                         <a href="/short-circuit/">Short Circuit</a>
                         <a href="/manny-the-mole/">Manny the Mole</a>
                         <a href="/hoverdash/">HoverDash</a>
@@ -637,6 +639,7 @@
     </footer>
 
     <!-- SDK (optional) -->
+    <script src="/js/gv-leaderboard-config.js?v=1"></script>
     <script src="/sdk/gamevolt.js" defer></script>
 
     <script>
@@ -650,7 +653,6 @@
         var _activeTab = 'trophies';
         var _activePeriod = 'all';
         var _activeGame = 'hoverdash';
-        var _gameModes = {};
         var _currentUser = null;
 
         function escHtml(s) {
@@ -706,38 +708,13 @@
             });
         }
 
-        // The mode whose rows the active game's board shows — special cases
-        // first, then whatever mode buildGamePills() found data under.
+        // Use the same current scoring version and units as the player sidebar.
         function currentScoreMode() {
-            return _activeGame === 'breakout'
-                ? 'neon-drift-v2'
-                : _activeGame === 'hoverdash'
-                ? 'vx9'
-                : (_gameModes[_activeGame] || (_activeGame === 'blockstorm' ? 'marathon' : 'default'));
+            return GVLeaderboardConfig.mode(_activeGame);
         }
 
-        // Minesweeper and Sudoku store inverted clear times, not points (lower
-        // time = higher stored value so score DESC ranks fastest first). Decode
-        // and show a readable time; every other game shows raw points.
-        // Minesweeper v3 modes: tenths of a second under base 1,000,000.
-        // Minesweeper v2 and all Sudoku modes: whole seconds under base 100,000.
         function formatScoreValue(score) {
-            var t = null, tenths = false;
-            if (_activeGame === 'minesweeper') {
-                tenths = currentScoreMode().indexOf('-v3') !== -1;
-                t = tenths ? (1000000 - Number(score)) / 10 : 100000 - Number(score);
-            } else if (_activeGame === 'sudoku') {
-                t = 100000 - Number(score);
-            }
-            if (t !== null && t >= 0 && t < 100000) {
-                var min = Math.floor(t / 60), sec = t - min * 60;
-                var secStr = tenths ? sec.toFixed(1) : String(Math.round(sec));
-                var timeStr = min > 0
-                    ? min + ':' + (sec < 10 ? '0' : '') + secStr
-                    : secStr + 's';
-                return timeStr + '<span class="lb-unit">time</span>';
-            }
-            return Number(score).toLocaleString() + '<span class="lb-unit">pts</span>';
+            return escHtml(GVLeaderboardConfig.format(_activeGame, score, currentScoreMode()));
         }
 
         // ─── Render rows ───
@@ -840,6 +817,7 @@
         });
 
         var GAME_NAMES = {
+            'ink': 'INK',
             'asteroid-storm': 'Asteroid Storm', 'axeluga': 'Axeluga', 'blockstorm': 'BlockStorm',
             'breakout': 'Breakout', 'chain-reaction': 'Chain Reaction', 'connect4': 'Connect 4',
             'golden-glyphs': 'Golden Glyphs', 'gravitywell': 'Gravity Well', 'hoverdash': 'HoverDash',
@@ -857,6 +835,7 @@
         // Type or Die (own board) are deliberately excluded — they have no rows
         // in the Supabase scores table.
         var LEADERBOARD_GAMES = [
+            'ink',
             'hoverdash', 'vector-hexagon', 'gridburn', 'spinburn', 'asteroid-storm', 'snake', 'breakout',
             'blockstorm', 'gravitywell', 'connect4', 'sudoku', 'minesweeper',
             'chain-reaction', 'manga-match3', 'golden-glyphs', 'axeluga',
@@ -872,8 +851,8 @@
             document.getElementById('score-filters').innerHTML = html;
         }
 
-        // Reorder the pills so games with scores come first (most first), and map
-        // each of those to the mode where its data actually lives. Games without
+        // Reorder the pills so games with scores come first (most first).
+        // Primary scoring modes come from the shared configuration. Games without
         // scores keep their default order and fall back to a default mode.
         function buildGamePills() {
             fetch(SB_URL + '/rest/v1/scores?select=game_id,mode', {
@@ -893,15 +872,6 @@
                 var rest = LEADERBOARD_GAMES.filter(function(g) { return !byGame[g]; });
                 var ordered = withScores.concat(rest);
 
-                _gameModes = {};
-                withScores.forEach(function(g) {
-                    var modes = byGame[g].modes;
-                    _gameModes[g] = Object.keys(modes).sort(function(a, b) { return modes[b] - modes[a]; })[0];
-                });
-                // Breakout scoring v2 removed the active-ball multiplier, so
-                // old "default" scores are intentionally kept on a legacy board.
-                _gameModes.breakout = 'neon-drift-v2';
-                _gameModes.hoverdash = 'vx9'; // post-overhaul fair scoring — old multiplier-era scores stay archived under 'default'
                 _activeGame = ordered.indexOf(_activeGame) !== -1 ? _activeGame : ordered[0];
                 renderGamePills(ordered);
                 if (_activeTab === 'scores') loadData();
@@ -955,7 +925,7 @@
     </script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
-    <script src="/js/gv-search.js"></script>
+    <script src="/js/gv-search.js?v=2"></script>
     <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
 </body>
 </html>
