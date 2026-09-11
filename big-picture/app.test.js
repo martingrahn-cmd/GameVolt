@@ -103,6 +103,16 @@ test('featured carousel swaps gameplay videos including Gridburn', () => {
     assert.equal(env.elements.selectedVideo.src, '/gridburn/preview.mp4');
 });
 
+test('both outer ring cards animate instead of replacing their artwork in place', () => {
+    const css = fs.readFileSync(path.join(__dirname, 'style.css'), 'utf8');
+    assert.match(css, /ring-next \.hero-peek-far-prev \{ animation:ring-left-to-far-left/);
+    assert.match(css, /ring-next \.hero-peek-far-next \{ animation:ring-enter-far-right/);
+    assert.match(css, /ring-previous \.hero-peek-far-next \{ animation:ring-right-to-far-right/);
+    assert.match(css, /ring-previous \.hero-peek-far-prev \{ animation:ring-enter-far-left/);
+    assert.match(css, /@keyframes ring-enter-far-right \{ from \{ opacity:0;/);
+    assert.match(css, /@keyframes ring-enter-far-left \{ from \{ opacity:0;/);
+});
+
 test('launch reuses the normal player and holding View unloads it without a duplicate launch', () => {
     const env = setup();
     env.pad([0]); env.step(0);
