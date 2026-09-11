@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Approve screen sign-in — GameVolt</title>
+  <meta name="description" content="Securely approve a GameVolt sign-in on another screen.">
+  <meta name="robots" content="noindex,nofollow">
+  <script>
+    // Opening this file directly cannot load the root-relative GameVolt assets.
+    // Send local desktop previews through the development web server instead.
+    if (window.location.protocol === 'file:') {
+      window.location.replace('http://127.0.0.1:8000/auth/device/' + window.location.search + window.location.hash);
+    }
+  </script>
+  <link rel="icon" href="/assets/favicon.png">
+  <link rel="stylesheet" href="/auth/device/style.css?v=1">
+  <script src="/sdk/gamevolt.js?v=2026.09.08-1" defer></script>
+  <script src="/auth/device/app.js?v=4" defer></script>
+</head>
+<body>
+  <main class="device-card">
+    <a class="device-brand" href="/"><img src="/assets/gv-icon.svg" width="38" height="38" alt="">GameVolt</a>
+    <div id="deviceLoading" class="device-state" role="status"><span class="spinner" aria-hidden="true"></span>Checking this sign-in request…</div>
+    <section id="deviceInvalid" hidden>
+      <p class="eyebrow">DEVICE SIGN-IN</p>
+      <h1>This request is no longer available</h1>
+      <p class="copy">Return to the other screen and create a new QR code.</p>
+      <a class="secondary-action" href="/">Go to GameVolt</a>
+    </section>
+    <section id="deviceApproval" hidden>
+      <p class="eyebrow">DEVICE SIGN-IN</p>
+      <h1>Sign in another screen</h1>
+      <p class="copy">Make sure this code matches the one shown on your TV or computer.</p>
+      <strong id="deviceCode" class="device-code">—— ——</strong>
+      <div id="deviceSignedOut" hidden>
+        <p class="copy small">This phone is not signed in yet. Sign in here and the matching screen will be approved automatically.</p>
+        <button id="gv-login-btn" class="primary-action" type="button">Sign in on this phone</button>
+      </div>
+      <div id="deviceSignedIn" hidden>
+        <p class="signed-in-as">Signed in as <strong id="deviceUser">Player</strong></p>
+        <button id="deviceApprove" class="primary-action" type="button">Approve this screen</button>
+        <p class="security-note">Only approve a screen you can see. This request expires after five minutes.</p>
+      </div>
+      <p id="deviceMessage" class="device-message" role="status"></p>
+    </section>
+    <section id="deviceSuccess" hidden>
+      <div class="success-icon" aria-hidden="true">✓</div>
+      <p class="eyebrow">APPROVED</p>
+      <h1>The other screen is signing in</h1>
+      <p class="copy">You can close this page and continue with your controller.</p>
+    </section>
+  </main>
+</body>
+</html>

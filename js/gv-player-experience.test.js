@@ -104,11 +104,11 @@ function support() {
     return { api, elements, timers, env, counts: () => ({ ready, retries }) };
 }
 
-test('all 24 player games have help, and loading recovery ignores replaced frames', () => {
+test('all 25 player games have help, and loading recovery ignores replaced frames', () => {
     const { api, env, elements, timers, counts } = support();
     const player = read('../play/index.html');
     vm.runInNewContext(player.slice(player.indexOf('    const GAMES ='), player.indexOf("    let frame =")) + '\nthis.catalog = GAMES;', env);
-    assert.equal(Object.keys(env.catalog).length, 24);
+    assert.equal(Object.keys(env.catalog).length, 25);
     for (const [key, game] of Object.entries(env.catalog)) {
         api.watch({}, key, game.name);
         assert.ok(elements.gameHelpBody.children.length >= 6, key);

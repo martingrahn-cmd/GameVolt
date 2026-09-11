@@ -1,4 +1,5 @@
-const CACHE='hoverdash-v8';
+const CACHE='hoverdash-v9';
+const CACHE_PREFIX='hoverdash-';
 const ASSETS=[
   './',
   './index.html',
@@ -22,7 +23,9 @@ self.addEventListener('install',e=>{
 });
 
 self.addEventListener('activate',e=>{
-  e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks=>Promise.all(
+    ks.filter(k=>k.startsWith(CACHE_PREFIX)&&k!==CACHE).map(k=>caches.delete(k))
+  )).then(()=>self.clients.claim()));
 });
 
 self.addEventListener('fetch',e=>{

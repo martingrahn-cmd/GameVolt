@@ -1,3 +1,9 @@
 # Minimal Supabase CLI config so `supabase functions deploy` targets the
 # GameVolt project without a separate `supabase link` step.
 project_id = "nwkjayseuhvvpkdgpivm"
+
+# Device creation and TV polling are intentionally anonymous. The function
+# validates strong per-request secrets itself; mobile approval still verifies
+# the signed-in user's JWT inside the handler.
+[functions.device-auth]
+verify_jwt = false

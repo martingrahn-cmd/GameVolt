@@ -5,6 +5,8 @@
 export class Snake {
   constructor(startX, startY, dir) {
     this.dir = dir;
+    this.nextDir = dir;
+    this.turnQueued = false;
     this.stepTime = 0.12;
     this.acc = 0;
 
@@ -12,8 +14,12 @@ export class Snake {
 
     // GRID-body (start with 5 segments)
     this.gridCells = [];
+    const startVector = this._dirVec() || { x: 1, y: 0 };
     for (let i = 0; i < 5; i++) {
-      this.gridCells.push({ x: startX - i, y: startY });
+      this.gridCells.push({
+        x: startX - startVector.x * i,
+        y: startY - startVector.y * i
+      });
     }
 
     // for interpolation
@@ -36,13 +42,15 @@ export class Snake {
   // Change direction (no reverse)
   // ------------------------------------------------------------
   setDir(d) {
+    if (!d || this.turnQueued || d === this.dir) return;
     if ((this.dir === "up" && d === "down") ||
         (this.dir === "down" && d === "up") ||
         (this.dir === "left" && d === "right") ||
         (this.dir === "right" && d === "left"))
       return;
 
-    this.dir = d;
+    this.nextDir = d;
+    this.turnQueued = true;
   }
 
   // ------------------------------------------------------------
@@ -61,6 +69,8 @@ export class Snake {
   // One grid step (internal logic)
   // ------------------------------------------------------------
   _stepOnce() {
+    this.dir = this.nextDir;
+    this.turnQueued = false;
     this.prev = this.gridCells.map(c => ({ x: c.x, y: c.y }));
 
     const v = this._dirVec();

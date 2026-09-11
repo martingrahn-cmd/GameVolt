@@ -23,7 +23,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="/js/gv-tracker.js"></script>
     <script src="/js/gv-theme.js" defer></script>
-    <script src="/js/gv-search.js?v=2"></script>
+    <script src="/js/gv-search.js?v=3"></script>
   <script src="/js/gv-leaderboard-config.js?v=1"></script>
   <script src="/sdk/gamevolt.js"></script>
 
@@ -829,6 +829,23 @@
     }
     .gv-error a:hover { background: rgba(124, 92, 252, 0.25); }
   </style>
+  <script>
+    // The Big Picture shell owns navigation and fullscreen while this player
+    // retains the normal SDK, tracking, help and game-loading lifecycle.
+    if (window.parent !== window && new URLSearchParams(location.search).get('big-picture') === '1') {
+      document.documentElement.classList.add('big-picture-player');
+    }
+  </script>
+  <style>
+    .big-picture-player .gv-header,
+    .big-picture-player .gv-sidebar,
+    .big-picture-player .gv-bar-home,
+    .big-picture-player .gv-fullscreen-btn { display: none !important; }
+    .big-picture-player .gv-main { position: fixed; inset: 0; margin: 0; padding: 0; width: 100%; max-width: none; height: 100%; }
+    .big-picture-player .gv-game-area { width: 100%; height: 100%; min-height: 0; margin: 0; padding: 0; border: 0; border-radius: 0; display: flex; flex-direction: column; }
+    .big-picture-player .gv-iframe-wrap { flex: 1; width: 100%; height: auto; min-height: 0; aspect-ratio: auto; }
+    .big-picture-player .gv-game-bar { position: static; width: 100%; height: auto; flex: 0 0 auto; flex-direction: row; padding: 6px 12px; border-radius: 0; }
+  </style>
 </head>
 <body>
 
@@ -869,6 +886,7 @@
     <script>
       (function() {
         var names = {
+          'slipstream-vector': 'Slipstream Vector — Anti-Gravity Arcade Racing',
           'ink': 'INK — Draw Your Way Up',
           'short-circuit': 'Short Circuit — Circuit-Lock Puzzle with Live Duels',
           'manny-the-mole': 'Manny the Mole — Free Digging Arcade Game',
@@ -976,11 +994,12 @@
   </div>
 
   <script src="/js/gv-card-ratings.js?v=2"></script>
-  <script src="/js/gv-game-hints.js?v=1"></script>
+  <script src="/js/gv-game-hints.js?v=2"></script>
   <script src="/js/gv-discovery.js?v=1"></script>
-  <script src="/js/gv-player-support.js?v=2"></script>
+  <script src="/js/gv-player-support.js?v=3"></script>
   <script>
     const GAMES = {
+      "slipstream-vector": { name: "Slipstream Vector", category: "Racing", path: "/slipstream-vector/", thumb: "/assets/thumbnails/slipstream-vector.png" },
       "ink": { name: "INK", category: "Arcade", path: "/ink/", thumb: "/assets/thumbnails/ink.webp" },
       "short-circuit": { name: "Short Circuit", category: "Puzzle", path: "/short-circuit/", thumb: "/assets/thumbnails/short-circuit.webp" },
       "manny-the-mole": { name: "Manny the Mole", category: "Arcade", path: "/manny-the-mole/", thumb: "/manny-the-mole/og-image.png" },

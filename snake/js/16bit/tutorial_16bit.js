@@ -2,12 +2,20 @@
 // Tutorial16bit.js — First-time player tutorial
 // ============================================================
 
+import { claimSnakeGamepad, getSnakeGamepad, readSnakeGamepadState, releaseSnakeGamepadWhenNeutral, snakeGamepadIsNeutral } from "../gamepad.js?v=1.9";
+import { safeStorageGet, safeStorageSet, safeStorageRemove } from "../storage.js?v=1.9";
+
 export class Tutorial16bit {
     constructor() {
         this.storageKey = 'snake16bit_tutorialSeen';
         this.overlay = null;
         this.currentStep = 0;
         this.onComplete = null;
+        this.selectedButton = 1;
+        this._gamepadPollId = null;
+        this._lastGamepad = {};
+        this._gamepadReady = false;
+        this._completing = false;
         
         this.steps = [
             {
@@ -50,17 +58,17 @@ export class Tutorial16bit {
 
     // Check if tutorial should be shown
     shouldShow() {
-        return !localStorage.getItem(this.storageKey);
+        return !safeStorageGet(this.storageKey);
     }
 
     // Mark tutorial as seen
     markAsSeen() {
-        localStorage.setItem(this.storageKey, 'true');
+        safeStorageSet(this.storageKey, 'true');
     }
 
     // Reset tutorial (for testing)
     resetTutorial() {
-        localStorage.removeItem(this.storageKey);
+        safeStorageRemove(this.storageKey);
     }
 
     // Show the tutorial
@@ -205,6 +213,20 @@ export class Tutorial16bit {
                 transform: scale(1.05);
                 box-shadow: 0 0 15px rgba(68, 255, 136, 0.5);
             }
+
+            #tutorial-16bit button.pad-selected {
+                outline: 3px solid #ffff44;
+                outline-offset: 3px;
+                transform: scale(1.05);
+                box-shadow: 0 0 18px rgba(255, 255, 68, 0.6);
+            }
+
+            .tutorial-gamepad-hint {
+                margin-top: 18px;
+                color: #8dbfff;
+                font-size: 8px;
+                line-height: 1.6;
+            }
             
             @media (max-width: 500px) {
                 .tutorial-card {
@@ -229,6 +251,7 @@ export class Tutorial16bit {
         `;
         
         document.head.appendChild(style);
+        this.overlay.querySelector('.tutorial-card').insertAdjacentHTML('beforeend', '<div class="tutorial-gamepad-hint">D-PAD SELECT · A NEXT · B SKIP</div>');
         document.body.appendChild(this.overlay);
 
         // Event listeners
@@ -255,6 +278,14 @@ export class Tutorial16bit {
             }
         };
         window.addEventListener('keydown', this._keyHandler);
+
+        this.selectedButton = 1;
+        this._gamepadReady = false;
+        this._lastGamepad = {};
+        this._completing = false;
+        claimSnakeGamepad(this);
+        this._updateGamepadFocus();
+        this._pollGamepad();
 
         // Touch support - tap anywhere to advance
         this.overlay.querySelector('.tutorial-card').addEventListener('click', (e) => {
@@ -284,6 +315,42 @@ export class Tutorial16bit {
         nextBtn.textContent = index === this.steps.length - 1 ? "LET'S GO!" : "Next";
     }
 
+    _updateGamepadFocus() {
+        if (!this.overlay) return;
+        const buttons = Array.from(this.overlay.querySelectorAll('.tutorial-buttons button'));
+        this.selectedButton = Math.max(0, Math.min(buttons.length - 1, this.selectedButton));
+        buttons.forEach((button, index) => button.classList.toggle('pad-selected', index === this.selectedButton));
+    }
+
+    _moveGamepadSelection(direction) {
+        const buttons = this.overlay ? Array.from(this.overlay.querySelectorAll('.tutorial-buttons button')) : [];
+        if (!buttons.length) return;
+        this.selectedButton = (this.selectedButton + direction + buttons.length) % buttons.length;
+        this._updateGamepadFocus();
+        if (window.audioNeoSFX) window.audioNeoSFX.menuClick();
+    }
+
+    _activateGamepadSelection() {
+        const buttons = this.overlay ? Array.from(this.overlay.querySelectorAll('.tutorial-buttons button')) : [];
+        buttons[this.selectedButton]?.click();
+    }
+
+    _pollGamepad() {
+        if (!this.overlay || this._completing) return;
+        const gamepad = getSnakeGamepad();
+        const state = gamepad ? readSnakeGamepadState(gamepad) : {};
+        if (!this._gamepadReady) {
+            if (snakeGamepadIsNeutral(state)) this._gamepadReady = true;
+        } else {
+            if ((state.left || state.up) && !(this._lastGamepad.left || this._lastGamepad.up)) this._moveGamepadSelection(-1);
+            if ((state.right || state.down) && !(this._lastGamepad.right || this._lastGamepad.down)) this._moveGamepadSelection(1);
+            if (state.confirm && !this._lastGamepad.confirm) this._activateGamepadSelection();
+            if (state.back && !this._lastGamepad.back) { this._complete(); return; }
+        }
+        this._lastGamepad = { ...state };
+        this._gamepadPollId = requestAnimationFrame(() => this._pollGamepad());
+    }
+
     _nextStep() {
         this.currentStep++;
         
@@ -295,7 +362,12 @@ export class Tutorial16bit {
     }
 
     _complete() {
+        if (this._completing) return;
+        this._completing = true;
         this.markAsSeen();
+        if (this._gamepadPollId) cancelAnimationFrame(this._gamepadPollId);
+        this._gamepadPollId = null;
+        releaseSnakeGamepadWhenNeutral(this);
         
         window.removeEventListener('keydown', this._keyHandler);
         
@@ -316,6 +388,9 @@ export class Tutorial16bit {
 
     // Hide tutorial if showing
     hide() {
+        if (this._gamepadPollId) cancelAnimationFrame(this._gamepadPollId);
+        this._gamepadPollId = null;
+        releaseSnakeGamepadWhenNeutral(this);
         if (this.overlay) {
             this.overlay.remove();
             this.overlay = null;

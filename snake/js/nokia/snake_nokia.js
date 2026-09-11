@@ -1,7 +1,7 @@
 // js/nokia/snake_nokia.js
 // Blockig Nokia-orm – ärver all logik men ritar utan smoothing
 
-import { Snake } from "../snake.js";
+import { Snake } from "../snake.js?v=1.9";
 
 export class SnakeNokia extends Snake {
   constructor(startX, startY, dir) {

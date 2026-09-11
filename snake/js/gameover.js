@@ -1,5 +1,5 @@
 // ============================================================
-// GameOver.js — Game Over Screen with Continue (Rewarded Ad)
+// GameOver.js — Game Over Screen with one-use Continue
 // ============================================================
 
 export class GameOverScreen {
@@ -12,8 +12,6 @@ export class GameOverScreen {
         this.buttons = [];
         this.continueUsed = false; // Track if continue was used this session
         
-        // Ad configuration
-        this.adEnabled = true; // Set to true when ad SDK is ready
         this.isShowingAd = false;
     }
 
@@ -30,7 +28,7 @@ export class GameOverScreen {
         div.id = "gameOverScreen";
         div.innerHTML = `
             <div class="gameover-container">
-                <h1 class="gameover-title glitch" data-text="GAME OVER">GAME OVER</h1>
+                <h1 class="gameover-title glitch" data-text="${stats.boardCleared ? 'BOARD CLEARED' : 'GAME OVER'}">${stats.boardCleared ? 'BOARD CLEARED' : 'GAME OVER'}</h1>
                 
                 <div class="gameover-stats">
                     <div class="stat-row">
@@ -60,7 +58,7 @@ export class GameOverScreen {
                     <button class="gameover-btn continue" data-action="continue">
                         <span class="btn-icon">▶</span>
                         CONTINUE
-                        <span class="btn-hint">Watch Ad · Score Reset</span>
+                        <span class="btn-hint">One use · Score reset</span>
                     </button>
                     ` : ''}
                     <button class="gameover-btn primary" data-action="restart">
@@ -148,7 +146,7 @@ export class GameOverScreen {
         if (!this.element) return;
 
         if (action === "continue") {
-            this._showRewardedAd();
+            this._useContinue();
             return;
         }
 
@@ -167,68 +165,18 @@ export class GameOverScreen {
     }
 
     // --------------------------------------------------------
-    // REWARDED AD FOR CONTINUE
+    // ONE CONTINUE PER RUN
     // --------------------------------------------------------
     
-    _showRewardedAd() {
-        this.isShowingAd = true;
-        
-        // Update button to show loading
-        const continueBtn = this.element.querySelector('[data-action="continue"]');
-        if (continueBtn) {
-            continueBtn.innerHTML = `
-                <span class="btn-loading">LOADING AD...</span>
-            `;
-            continueBtn.classList.add("loading");
-        }
-        
-        // TODO: Replace with real ad SDK
-        // Example for AdMob/Unity Ads:
-        // if (window.adSDK && window.adSDK.showRewardedAd) {
-        //     window.adSDK.showRewardedAd({
-        //         onRewarded: () => this._onAdComplete(true),
-        //         onClosed: () => this._onAdComplete(false),
-        //         onError: () => this._onAdComplete(false)
-        //     });
-        // }
-        
-        // Simulate ad (remove this when real ads are integrated)
-        this._simulateAd();
-    }
-
-    _simulateAd() {
-        // Simulate watching an ad (1.5 seconds)
-        // Replace this with real ad SDK integration
+    _useContinue() {
+        if (this.continueUsed || !this.onContinue) return;
+        this.continueUsed = true;
+        this.element.classList.remove("visible");
         setTimeout(() => {
-            this._onAdComplete(true);
-        }, 1500);
-    }
-
-    _onAdComplete(rewarded) {
-        this.isShowingAd = false;
-        
-        if (rewarded && this.onContinue) {
-            this.continueUsed = true;
-            
-            this.element.classList.remove("visible");
-            
-            setTimeout(() => {
-                this.element.remove();
-                this.element = null;
-                this.onContinue();
-            }, 300);
-        } else {
-            // Ad was skipped or failed - restore button
-            const continueBtn = this.element.querySelector('[data-action="continue"]');
-            if (continueBtn) {
-                continueBtn.innerHTML = `
-                    <span class="btn-icon">▶</span>
-                    CONTINUE
-                    <span class="btn-hint">Watch Ad · Score Reset</span>
-                `;
-                continueBtn.classList.remove("loading");
-            }
-        }
+            this.element.remove();
+            this.element = null;
+            this.onContinue();
+        }, 300);
     }
 
     // Reset continue availability (call at game start)

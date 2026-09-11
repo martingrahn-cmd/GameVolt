@@ -399,9 +399,6 @@ resize() {
         // 2. HUD inside LCD
         if (game.hud && game.hud.setPosition) {
             game.hud.setPosition(this.lcdX, this.lcdY, this.lcdW, this.lcdH);
-            // Use scoring system score, not game.score
-            const score = game.scoring?.score || 0;
-            game.hud.update(score);
             game.hud.draw();
         }
 

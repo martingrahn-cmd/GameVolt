@@ -5,18 +5,18 @@
 
 import { Renderer } from "./renderer.js";
 import { Grid } from "./grid.js";
-import { Snake } from "./snake.js";
-import { Food } from "./food.js";
-import { Input } from "./input.js";
-import { loadLevel } from "./levels.js";
+import { Snake } from "./snake.js?v=1.9";
+import { Food } from "./food.js?v=1.9";
+import { Input } from "./input.js?v=1.9";
+import { loadLevel } from "./levels.js?v=1.9";
 import { Scoring } from "./scoring.js";
 import { Hud } from "./hud.js";
-import { GameOverScreen } from "./gameover.js";
+import { GameOverScreen } from "./gameover.js?v=1.9";
 import { PauseScreen } from "./pause.js";
-import { LevelCompleteScreen } from "./levelcomplete.js";
-import { OptionsScreen } from "./options.js";
-import { recordRun, HighScoresScreen } from "./achievements.js";
-import { HighscoreManager } from "./highscore.js";
+import { LevelCompleteScreen } from "./levelcomplete.js?v=1.9";
+import { OptionsScreen } from "./options.js?v=1.9";
+import { recordRun, HighScoresScreen } from "./achievements.js?v=1.9";
+import { HighscoreManager } from "./highscore.js?v=1.9";
 
 export class Game {
     constructor() {
@@ -27,6 +27,7 @@ export class Game {
         this.renderer = null;
         this.snake = null;
         this.food = null;
+        this.initialLevel = null;
         this.input = null;
 
         // UI
@@ -49,6 +50,7 @@ export class Game {
         // Mode flags
         this.endlessMode = false;  // No level progression (Nokia/16-bit)
         this.wraparoundMode = false; // No wall collision, snake wraps (16-bit)
+        this.gameMode = "neo";
 
         // Screens
         this.levelCompleteScreen = new LevelCompleteScreen();
@@ -58,6 +60,7 @@ export class Game {
         // Highscore system — local storage layer + the modern LOCAL/GLOBAL board
         this.highscoreManager = new HighscoreManager();
         this.highScoresScreen = new HighScoresScreen();
+        this._sdkPauseSelection = 0;
         
         // Sound hooks are set on prototype by patchGameForMode in main.js
     }
@@ -87,6 +90,7 @@ export class Game {
     async init(canvas) {
         this.canvas = canvas;
         this.level = await loadLevel("level01");
+        this.initialLevel = JSON.parse(JSON.stringify(this.level));
 
         // Grid
         this.grid = new Grid(this.level.gridWidth, this.level.gridHeight);
@@ -188,11 +192,10 @@ export class Game {
             return;
         }
 
-        // Handle pause menu navigation (SDK pause handles its own input)
+        // Handle pause menu navigation
         if (this.state === "paused") {
-            if (!this._sdkPause) {
-                this.pauseScreen.handleDirection(dir);
-            }
+            if (this._sdkPause) this._moveSdkPauseSelection(dir);
+            else this.pauseScreen.handleDirection(dir);
             return;
         }
 
@@ -230,12 +233,9 @@ export class Game {
 
         // Pause screen
         if (this.state === "paused") {
-            // SDK pause menu handles its own input (ESC/P/click)
             if (this._sdkPause) {
-                // Start button (gamepad) toggles SDK pause
-                if (action === "start") {
-                    if (window.GameVolt) window.GameVolt.ui.pauseMenu();
-                }
+                if (action === "start" || action === "back") this._closeSdkPause();
+                else if (action === "confirm") this._activateSdkPauseSelection();
                 return;
             }
             // Fallback PauseScreen
@@ -341,8 +341,7 @@ export class Game {
         // FOOD
         if (h.x === this.food.x && h.y === this.food.y) {
             this.snake.grow(3);
-            this.food.respawn(this.snake);
-            
+
             // Scoring
             const result = this.scoring.eat();
             this.foodEatenThisLevel++;
@@ -365,6 +364,11 @@ export class Game {
                 if (result.combo >= 2) {
                     window.audioNeoSFX.combo(result.combo);
                 }
+            }
+
+            if (!this.food.respawn(this.snake)) {
+                this._gameOver(true);
+                return;
             }
 
             // Check level progression (skip if endless mode)
@@ -416,9 +420,9 @@ export class Game {
             score: this.scoring.score,
             nextLevelNum: nextLevelIndex,
             nextLevelName: nextLevel?.name || "Final Challenge"
-        }, () => {
+        }, async () => {
             // On continue - advance to next level
-            this._advanceLevel();
+            await this._advanceLevel(nextLevel);
             this.state = "playing";
             this.last = performance.now();
         });
@@ -427,14 +431,14 @@ export class Game {
     // ------------------------------------------------------------
     // LEVEL PROGRESSION
     // ------------------------------------------------------------
-    async _advanceLevel() {
+    async _advanceLevel(preloadedLevel = null) {
         this.currentLevelIndex++;
         this.foodEatenThisLevel = 0;
         this.scoring.advanceLevel();
 
         // Try to load next level, or stay on current with harder params
         const nextLevelName = `level${this.currentLevelIndex.toString().padStart(2, '0')}`;
-        const nextLevel = await loadLevel(nextLevelName);
+        const nextLevel = preloadedLevel || await loadLevel(nextLevelName);
         
         if (nextLevel && nextLevel.name !== "Fallback") {
             this.level = nextLevel;
@@ -442,6 +446,7 @@ export class Game {
             this.renderer.grid = this.grid;
             this.renderer.size = this.grid.w;
             if (this.renderer.resize) this.renderer.resize();
+            this.food.grid = this.grid;
             
             // Setup HUD forbidden zone and walls for new grid
             this.food.clearForbiddenZones();
@@ -569,6 +574,8 @@ export class Game {
                     this.optionsScreen.setSetting("soundEffects", v > 0);
                 }
             });
+            this._sdkPauseSelection = 0;
+            this._updateSdkPauseSelection();
         } else {
             // Fallback: old PauseScreen
             this._sdkPause = false;
@@ -582,6 +589,53 @@ export class Game {
         }
     }
 
+    _sdkPauseItems() {
+        const pause = document.getElementById("gv-pause");
+        if (!pause?.classList.contains("open")) return [];
+        return Array.from(pause.querySelectorAll(".gv-pause-btn, .gv-pause-slider"))
+            .filter(item => item.offsetParent !== null);
+    }
+
+    _updateSdkPauseSelection() {
+        const pause = document.getElementById("gv-pause");
+        if (!pause) return;
+        if (!document.getElementById("snake-sdk-pause-gamepad-style")) {
+            const style = document.createElement("style");
+            style.id = "snake-sdk-pause-gamepad-style";
+            style.textContent = "#gv-pause .snake-pad-selected{outline:3px solid #38f5e1;outline-offset:3px;box-shadow:0 0 18px rgba(56,245,225,.55)}";
+            document.head.appendChild(style);
+        }
+        pause.querySelectorAll(".snake-pad-selected").forEach(item => item.classList.remove("snake-pad-selected"));
+        const items = this._sdkPauseItems();
+        if (!items.length) return;
+        this._sdkPauseSelection = Math.max(0, Math.min(items.length - 1, this._sdkPauseSelection));
+        items[this._sdkPauseSelection].classList.add("snake-pad-selected");
+    }
+
+    _moveSdkPauseSelection(dir) {
+        const items = this._sdkPauseItems();
+        if (!items.length) return;
+        const current = items[this._sdkPauseSelection];
+        if ((dir === "left" || dir === "right") && current?.matches("input[type=range]")) {
+            const step = dir === "left" ? -10 : 10;
+            current.value = Math.max(Number(current.min), Math.min(Number(current.max), Number(current.value) + step));
+            current.dispatchEvent(new Event("input", { bubbles: true }));
+        } else if (dir === "up" || dir === "down") {
+            this._sdkPauseSelection = (this._sdkPauseSelection + (dir === "up" ? -1 : 1) + items.length) % items.length;
+        }
+        this._updateSdkPauseSelection();
+        if (window.audioNeoSFX) window.audioNeoSFX.menuClick();
+    }
+
+    _activateSdkPauseSelection() {
+        const item = this._sdkPauseItems()[this._sdkPauseSelection];
+        if (item?.matches("button")) item.click();
+    }
+
+    _closeSdkPause() {
+        if (window.GameVolt?.ui?.isPaused()) window.GameVolt.ui.pauseMenu();
+    }
+
     _showOptionsFromPause() {
         this.optionsScreen.show(
             () => {}, // onClose - stay in pause
@@ -592,7 +646,7 @@ export class Game {
     _showHighscoresFromPause() {
         this.highScoresScreen.show(() => {
             // Return to pause menu (already showing)
-        }, this.endlessMode ? "nokia" : "neo");
+        }, this._highscoreBoardKey());
     }
 
     _resume() {
@@ -611,13 +665,14 @@ export class Game {
     // ------------------------------------------------------------
     // GAME OVER
     // ------------------------------------------------------------
-    _gameOver() {
+    _gameOver(boardCleared = false) {
         this.state = "gameover";
         const stats = this.scoring.getFinalStats();
+        stats.boardCleared = boardCleared;
 
         // Trophies + global leaderboard. This method serves Neo and Nokia;
         // Nokia earns only the nostalgia trophy but still submits to its own board.
-        const _mode = this.endlessMode ? "nokia" : "neo";
+        const _mode = this._highscoreBoardKey();
         try { recordRun(_mode, stats); } catch (e) { /* ignore */ }
         if (stats.score > 0 && window.GameVolt && window.GameVolt.leaderboard) {
             const _board = _mode === "neo" ? "default" : "nokia";
@@ -640,7 +695,7 @@ export class Game {
             if (window.audioNeoSFX) window.audioNeoSFX.newHighscore();
             this.highScoresScreen.show(() => {
                 this._showGameOverScreen(stats);
-            }, _mode === "neo" ? "neo" : "nokia");
+            }, _mode);
         } else {
             // No highscore — game over directly
             if (window.audioNeoSFX) window.audioNeoSFX.gameOver();
@@ -650,7 +705,7 @@ export class Game {
 
     _showGameOverScreen(stats) {
         // In endless mode, don't show continue option
-        const continueCallback = this.endlessMode ? null : () => this._continue();
+        const continueCallback = this.endlessMode || stats.boardCleared ? null : () => this._continue();
         
         this.gameOverScreen.show(
             stats,
@@ -704,13 +759,22 @@ export class Game {
         this.highScoresScreen.show(() => {
             this.state = prevState;
             this.last = performance.now();
-        }, this.endlessMode ? "nokia" : "neo");
+        }, this._highscoreBoardKey());
+    }
+
+    _highscoreBoardKey() {
+        return this.gameMode === "16bit" ? "16bit" : (this.gameMode === "nokia" ? "nokia" : "neo");
     }
 
     // ------------------------------------------------------------
     // RESTART
     // ------------------------------------------------------------
     _restart() {
+        if (this.mode16bit && this._restart16bit) {
+            this._restart16bit();
+            return;
+        }
+
         // Reset everything
         this.scoring.reset();
         this.currentLevelIndex = 1;
@@ -718,6 +782,18 @@ export class Game {
         
         // Reset continue availability
         this.gameOverScreen.resetContinue();
+
+        // A new run always starts on the original first level, including its
+        // grid, walls and food constraints.
+        if (this.initialLevel) this.level = JSON.parse(JSON.stringify(this.initialLevel));
+        this.grid = new Grid(this.level.gridWidth, this.level.gridHeight);
+        this.renderer.grid = this.grid;
+        this.renderer.size = this.grid.w;
+        if (this.renderer.resize) this.renderer.resize();
+        this.food.grid = this.grid;
+        if (this.food.clearForbiddenZones) this.food.clearForbiddenZones();
+        if (this.food.setWalls) this.food.setWalls(this.level.walls || []);
+        if (this.hud?.setupForbiddenZone) this.hud.setupForbiddenZone(this.food);
 
         const [sx, sy] = this.level.start;
         this.snake = this.createSnake(sx, sy, this.level.startDir);
@@ -747,9 +823,13 @@ export class Game {
             window.__snakeLoopId = null;
         }
 
-        // Reset started flag and reload
+        // Reset started flag and return to the mode picker, including from a
+        // direct ?mode= deep link.
         window.__snakeGameStarted = false;
-        window.location.reload();
+        const url = new URL(window.location.href);
+        url.searchParams.delete("mode");
+        if (["neo", "nokia", "16bit"].includes(url.hash.slice(1).toLowerCase())) url.hash = "";
+        window.location.replace(`${url.pathname}${url.search}${url.hash}`);
     }
 
     // ------------------------------------------------------------

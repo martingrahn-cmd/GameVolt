@@ -1,11 +1,13 @@
 // ============================================================
+
+import { safeStorageGet, safeStorageSet } from "../storage.js?v=1.9";
 // HUD16bit.js — Minimal HUD (renderer handles most UI)
 // ============================================================
 
 export class Hud16bit {
     constructor(game) {
         this.game = game;
-        this.high = Number(localStorage.getItem("snake_16bit_highscore")) || 0;
+        this.high = Number(safeStorageGet("snake_16bit_highscore")) || 0;
     }
 
     update(dt) {
@@ -13,7 +15,7 @@ export class Hud16bit {
         const score = this.game.scoring?.score || 0;
         if (score > this.high) {
             this.high = score;
-            localStorage.setItem("snake_16bit_highscore", this.high);
+            safeStorageSet("snake_16bit_highscore", this.high);
         }
     }
 

@@ -164,8 +164,10 @@
           <button id="loginBtn" class="reroll-btn" onclick="if(window.GameVolt)GameVolt.auth.login()">🔑 Log In</button>
         </div>
         
-        <div class="keyboard-hints">
-          ↑↓ Mode &nbsp;•&nbsp; ←→ Level
+        <div class="keyboard-hints" id="controllerHint">
+          ↑↓ Mode &nbsp;•&nbsp; ←→ Level<br>
+          Controller: D-pad to choose &nbsp;•&nbsp; A / × to play<br>
+          X / □ Guide &nbsp;•&nbsp; Y / △ Achievements &nbsp;•&nbsp; LB Leaderboard
         </div>
       </div>
     </div>
@@ -196,13 +198,12 @@
 
         <div class="guide-scroll">
           <div class="guide-section">CONTROLS</div>
-          <div class="guide-row"><span class="gl">Move left</span><span class="gv">← / A</span></div>
-          <div class="guide-row"><span class="gl">Move right</span><span class="gv">→ / D</span></div>
-          <div class="guide-row"><span class="gl">Soft drop</span><span class="gv">↓ / S</span></div>
-          <div class="guide-row"><span class="gl">Hard drop</span><span class="gv">SPACE</span></div>
-          <div class="guide-row"><span class="gl">Rotate CW</span><span class="gv">↑ / W / X</span></div>
-          <div class="guide-row"><span class="gl">Rotate CCW</span><span class="gv">Z</span></div>
-          <div class="guide-row"><span class="gl">Pause</span><span class="gv">P / ESC</span></div>
+          <div class="guide-row"><span class="gl">Move</span><span class="gv">← → / D-pad / Left stick</span></div>
+          <div class="guide-row"><span class="gl">Soft drop</span><span class="gv">↓ / D-pad down</span></div>
+          <div class="guide-row"><span class="gl">Hard drop</span><span class="gv">SPACE / D-pad up / Y / △</span></div>
+          <div class="guide-row"><span class="gl">Rotate CW</span><span class="gv">↑ / X / A / ×</span></div>
+          <div class="guide-row"><span class="gl">Rotate CCW</span><span class="gv">Z / B / ○ / X / □</span></div>
+          <div class="guide-row"><span class="gl">Pause</span><span class="gv">P / ESC / Menu / Options</span></div>
           <div class="guide-note">Swipe on mobile: left/right to move, down to soft drop, up to hard drop, tap to rotate</div>
 
           <div class="guide-section">SCORING</div>
@@ -331,6 +332,9 @@
   <!-- GameVolt SDK -->
   <script src="/sdk/gamevolt.js"></script>
 
+  <!-- GAMEPAD INPUT -->
+  <script src="src/js/gamepad.js"></script>
+
   <!-- GAME BOOT -->
   <script type="module" src="src/js/game.js"></script>
 
@@ -388,6 +392,7 @@
     
     // Track which screen is active
     let currentScreen = 'start'; // 'start', 'game', 'pause', 'gameover', 'leaderboard'
+    window.setBlockstormScreen = function(screen) { currentScreen = screen; };
     
     function updateModeSelection() {
       modeBtns.forEach((btn, i) => {
@@ -961,6 +966,15 @@
         }
         return;
       }
+
+      // ACHIEVEMENTS SCREEN
+      if (currentScreen === 'trophies') {
+        if (key === "Escape" || key === "Enter") {
+          e.preventDefault();
+          document.getElementById('closeTrophyBtn').click();
+        }
+        return;
+      }
     });
     
     // ==========================================
@@ -1036,6 +1050,141 @@
         loadLeaderboard(tab.dataset.mode);
       });
     });
+
+    // ==========================================
+    // GAMEPAD NAVIGATION + GAMEPLAY
+    // ==========================================
+    let pauseFocusIndex = 0;
+
+    function toggleGameOverSelection() {
+      if (restartBtn.classList.contains("selected")) {
+        restartBtn.classList.remove("selected");
+        menuBtn.classList.add("selected");
+      } else {
+        menuBtn.classList.remove("selected");
+        restartBtn.classList.add("selected");
+      }
+    }
+
+    function activateGameOverSelection() {
+      if (menuBtn.classList.contains("selected")) goToMenu();
+      else restartBtn.click();
+    }
+
+    function sdkPauseItems() {
+      const pause = document.getElementById('gv-pause');
+      if (!pause || !pause.classList.contains('open')) return [];
+      return Array.from(pause.querySelectorAll('.gv-pause-btn, .gv-pause-slider'))
+        .filter(item => item.offsetParent !== null);
+    }
+
+    function focusSdkPause(delta) {
+      const items = sdkPauseItems();
+      if (!items.length) return;
+      pauseFocusIndex = (pauseFocusIndex + delta + items.length) % items.length;
+      items[pauseFocusIndex].focus({ preventScroll: true });
+    }
+
+    function adjustSdkSlider(delta) {
+      const items = sdkPauseItems();
+      const focused = items[pauseFocusIndex];
+      if (!focused || focused.type !== 'range') return;
+      focused.value = Math.max(Number(focused.min), Math.min(Number(focused.max), Number(focused.value) + delta * 5));
+      focused.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function handleGamepad(action, repeated) {
+      const g = window.PULSE_TETRIS;
+
+      if (currentScreen === 'game') {
+        if (!g || !g.running || g.paused || g.gameOver) return;
+        if (action === 'left') g.moveLeft();
+        else if (action === 'right') g.moveRight();
+        else if (action === 'down') g.softDrop();
+        else if (action === 'up' || action === 'aux') g.hardDrop();
+        else if (action === 'accept') g.rotateCW();
+        else if (action === 'back' || action === 'alt') g.rotateCCW();
+        else if (action === 'menu') {
+          pauseFocusIndex = 0;
+          g.togglePause();
+          requestAnimationFrame(function() {
+            const items = sdkPauseItems();
+            if (items[0]) items[0].focus({ preventScroll: true });
+          });
+        }
+        return;
+      }
+
+      if (currentScreen === 'start') {
+        if (action === 'up' && !repeated) {
+          selectedModeIndex = (selectedModeIndex - 1 + modes.length) % modes.length;
+          updateModeSelection();
+        } else if (action === 'down' && !repeated) {
+          selectedModeIndex = (selectedModeIndex + 1) % modes.length;
+          updateModeSelection();
+        } else if (action === 'left' && selectedLevel > 0) {
+          selectedLevel--; levelDisplay.textContent = selectedLevel;
+        } else if (action === 'right' && selectedLevel < maxLevel) {
+          selectedLevel++; levelDisplay.textContent = selectedLevel;
+        } else if ((action === 'accept' || action === 'menu') && !repeated) startGame();
+        else if (action === 'alt') openGuide();
+        else if (action === 'aux') document.getElementById('trophyBtn').click();
+        else if (action === 'lb') openLeaderboard();
+        return;
+      }
+
+      if (currentScreen === 'pause') {
+        const usingSdkPause = !!(window.GameVolt && GameVolt.ui && GameVolt.ui.isPaused());
+        if (usingSdkPause) {
+          if ((action === 'up' || action === 'down') && !repeated) focusSdkPause(action === 'up' ? -1 : 1);
+          else if (action === 'left' || action === 'right') adjustSdkSlider(action === 'left' ? -1 : 1);
+          else if (action === 'accept') {
+            const items = sdkPauseItems();
+            const focused = items[pauseFocusIndex];
+            if (focused && focused.type !== 'range') focused.click();
+          } else if (action === 'back' || action === 'menu') g.togglePause();
+        } else {
+          if ((action === 'up' || action === 'down') && !repeated) {
+            resumeBtn.classList.toggle('selected'); quitBtn.classList.toggle('selected');
+          } else if (action === 'accept') {
+            if (quitBtn.classList.contains('selected')) quitBtn.click(); else resumeBtn.click();
+          } else if (action === 'back' || action === 'menu') resumeBtn.click();
+        }
+        return;
+      }
+
+      if (currentScreen === 'gameover') {
+        if (["left", "right", "up", "down"].includes(action) && !repeated) toggleGameOverSelection();
+        else if (action === 'accept') activateGameOverSelection();
+        else if (action === 'back') goToMenu();
+        return;
+      }
+
+      if (currentScreen === 'leaderboard') {
+        if (["left", "right", "lb", "rb"].includes(action) && !repeated) {
+          let index = modes.indexOf(currentLeaderboardMode);
+          index = (index + (action === 'left' || action === 'lb' ? -1 : 1) + modes.length) % modes.length;
+          loadLeaderboard(modes[index]);
+        } else if (action === 'back' || action === 'accept') closeLeaderboard();
+        return;
+      }
+
+      if (currentScreen === 'guide' && (action === 'back' || action === 'accept' || action === 'alt')) closeGuide();
+      if (currentScreen === 'trophies' && (action === 'back' || action === 'accept' || action === 'aux')) document.getElementById('closeTrophyBtn').click();
+    }
+
+    if (window.BlockStormGamepad) {
+      const gamepad = new BlockStormGamepad({
+        onAction: handleGamepad,
+        onStatus: function(connected) {
+          const hint = document.getElementById('controllerHint');
+          if (hint) hint.classList.toggle('controller-connected', connected);
+        },
+        isHidden: function() { return document.hidden; }
+      });
+      gamepad.start();
+      window.BLOCKSTORM_GAMEPAD = gamepad;
+    }
     
     // Legacy submit function (no longer used, kept for compatibility)
     window.submitGameScore = function() {};
@@ -1355,18 +1504,22 @@
       trophyBtn.addEventListener('click', function() {
         renderTrophyGrid();
         trophyOverlay.classList.add('visible');
+        if (window.setBlockstormScreen) window.setBlockstormScreen('trophies');
       });
       trophyBtn.addEventListener('touchend', function(e) {
         e.preventDefault();
         renderTrophyGrid();
         trophyOverlay.classList.add('visible');
+        if (window.setBlockstormScreen) window.setBlockstormScreen('trophies');
       });
       closeTrophyBtn.addEventListener('click', function() {
         trophyOverlay.classList.remove('visible');
+        if (window.setBlockstormScreen) window.setBlockstormScreen('start');
       });
       closeTrophyBtn.addEventListener('touchend', function(e) {
         e.preventDefault();
         trophyOverlay.classList.remove('visible');
+        if (window.setBlockstormScreen) window.setBlockstormScreen('start');
       });
     })();
   </script>

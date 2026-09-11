@@ -300,6 +300,17 @@ kbd {
   margin-top: 10px;
 }
 
+.keyboard-hints.controller-connected {
+  color: #45d9c8;
+  text-shadow: 0 0 12px rgba(69, 217, 200, 0.35);
+}
+
+#gv-pause .gv-pause-btn:focus-visible,
+#gv-pause .gv-pause-slider:focus-visible {
+  outline: 3px solid #45d9c8;
+  outline-offset: 3px;
+}
+
 /* Game Over overlay */
 #gameOverlay {
   position: fixed;

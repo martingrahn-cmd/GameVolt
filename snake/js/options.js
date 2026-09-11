@@ -2,6 +2,8 @@
 // Options.js — Settings menu
 // ============================================================
 
+import { claimSnakeGamepad, getSnakeGamepad, readSnakeGamepadState, releaseSnakeGamepadWhenNeutral, snakeGamepadIsNeutral } from "./gamepad.js?v=1.9";
+
 export class OptionsScreen {
     constructor() {
         this.overlay = null;
@@ -33,6 +35,7 @@ export class OptionsScreen {
         this._boundKeyHandler = this._handleKey.bind(this);
         this._gamepadPollId = null;
         this._lastDpadState = { up: false, down: false, a: false, b: false };
+        this._gamepadReady = false;
     }
 
     _createOverlay() {
@@ -70,7 +73,7 @@ export class OptionsScreen {
                     margin-top: 50px;
                     font-size: 0.9em;
                     color: #666;
-                ">↑↓ SELECT · ENTER/SPACE TOGGLE · ESC BACK</div>
+                ">↑↓ / D-PAD SELECT · ENTER/A TOGGLE · ESC/B BACK</div>
             </div>
         `;
         
@@ -180,15 +183,20 @@ export class OptionsScreen {
     _pollGamepad() {
         if (!this.isShowing) return;
         
-        const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-        for (const gp of gamepads) {
-            if (!gp) continue;
-            
-            // D-pad
-            const up = gp.buttons[12]?.pressed || gp.axes[1] < -0.5;
-            const down = gp.buttons[13]?.pressed || gp.axes[1] > 0.5;
-            const a = gp.buttons[0]?.pressed;
-            const b = gp.buttons[1]?.pressed;
+        const gp = getSnakeGamepad();
+        if (gp) {
+            const state = readSnakeGamepadState(gp);
+            const up = state.up;
+            const down = state.down;
+            const a = state.confirm;
+            const b = state.back;
+
+            if (!this._gamepadReady) {
+                if (snakeGamepadIsNeutral(state)) this._gamepadReady = true;
+                this._lastDpadState = { up, down, a, b };
+                this._gamepadPollId = requestAnimationFrame(() => this._pollGamepad());
+                return;
+            }
             
             // Up
             if (up && !this._lastDpadState.up) {
@@ -213,7 +221,8 @@ export class OptionsScreen {
             }
             
             this._lastDpadState = { up, down, a, b };
-            break;
+        } else {
+            this._lastDpadState = { up: false, down: false, a: false, b: false };
         }
         
         this._gamepadPollId = requestAnimationFrame(() => this._pollGamepad());
@@ -231,17 +240,20 @@ export class OptionsScreen {
         
         this.overlay.style.display = "flex";
         this.isShowing = true;
+        claimSnakeGamepad(this);
         
         window.addEventListener("keydown", this._boundKeyHandler);
         
         // Start gamepad polling
         this._lastDpadState = { up: false, down: false, a: false, b: false };
+        this._gamepadReady = false;
         this._pollGamepad();
     }
 
     hide() {
         this.overlay.style.display = "none";
         this.isShowing = false;
+        releaseSnakeGamepadWhenNeutral(this);
         
         window.removeEventListener("keydown", this._boundKeyHandler);
         

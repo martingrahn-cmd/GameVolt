@@ -41,7 +41,8 @@ export class Food16bit {
         
         // Spawn one of each fruit type
         for (const type of this.fruitTypes) {
-            this.fruits.push(this._spawnFruit(type, snake));
+            const fruit = this._spawnFruit(type, snake);
+            if (fruit) this.fruits.push(fruit);
         }
         
         // Generate initial queue
@@ -50,20 +51,17 @@ export class Food16bit {
         }
         
         this.currentTarget = this.queue[0];
+        return this.fruits.length === this.fruitTypes.length;
     }
 
     _spawnFruit(type, snake) {
-        let x, y;
-        let attempts = 0;
-        const maxAttempts = 100;
-        
-        do {
-            x = Math.floor(Math.random() * this.grid.w);
-            y = Math.floor(Math.random() * this.grid.h);
-            attempts++;
-        } while (attempts < maxAttempts && !this._isValidPosition(x, y, snake));
-        
-        return { type, x, y };
+        const candidates = [];
+        for (let y = 0; y < this.grid.h; y++) {
+            for (let x = 0; x < this.grid.w; x++) {
+                if (this._isValidPosition(x, y, snake)) candidates.push({ type, x, y });
+            }
+        }
+        return candidates.length ? candidates[(Math.random() * candidates.length) | 0] : null;
     }
 
     _isValidPosition(x, y, snake) {
@@ -122,7 +120,9 @@ export class Food16bit {
         // Respawn this fruit type at new location
         const index = this.fruits.findIndex(f => f === fruit);
         if (index !== -1) {
-            this.fruits[index] = this._spawnFruit(fruit.type, snake);
+            this.fruits.splice(index, 1);
+            const replacement = this._spawnFruit(fruit.type, snake);
+            if (replacement) this.fruits.splice(index, 0, replacement);
         }
         
         if (isCorrect) {
@@ -132,7 +132,7 @@ export class Food16bit {
             this.currentTarget = this.queue[0];
         }
         
-        return { correct: isCorrect, type: fruit.type };
+        return { correct: isCorrect, type: fruit.type, boardFull: this.fruits.length < this.fruitTypes.length };
     }
 
     // Reset for new round (after lock-in)
@@ -140,11 +140,13 @@ export class Food16bit {
         // Respawn all fruits
         this.fruits = [];
         for (const type of this.fruitTypes) {
-            this.fruits.push(this._spawnFruit(type, snake));
+            const fruit = this._spawnFruit(type, snake);
+            if (fruit) this.fruits.push(fruit);
         }
         
         // Keep the queue going (don't reset it)
         this.currentTarget = this.queue[0];
+        return this.fruits.length === this.fruitTypes.length;
     }
 
     // Get the current target fruit type

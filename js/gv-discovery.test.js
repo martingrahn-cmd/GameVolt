@@ -34,7 +34,7 @@ function link(source, href = '/play/?game=short-circuit&mode=daily&challenge=a%2
 
 test('entry labels survive normal/daily links, while unknown sources and another game fall back to direct', () => {
     const { api } = setup();
-    for (const source of ['martins_picks', 'daily_challenges', 'catalog', 'continue_playing', 'favorites', 'new_games']) {
+    for (const source of ['martins_picks', 'daily_challenges', 'catalog', 'continue_playing', 'favorites', 'new_games', 'big_picture']) {
         const card = link(source);
         api.prepare(card);
         const url = new URL(card.href);

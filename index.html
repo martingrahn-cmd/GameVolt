@@ -293,7 +293,8 @@
                 "genre": ["Puzzle", "Logic", "Multiplayer"],
                 "gamePlatform": "Web Browser"
             },
-            {"@type": "VideoGame", "position": 22, "name": "INK", "description": "Draw blue ink strokes to bounce the ball up a squared-paper pinball course. Free climb and daily challenges.", "url": "https://gamevolt.io/ink/", "genre": ["Arcade", "Physics"], "gamePlatform": "Web Browser"}
+            {"@type": "VideoGame", "position": 22, "name": "INK", "description": "Draw blue ink strokes to bounce the ball up a squared-paper pinball course. Free climb and daily challenges.", "url": "https://gamevolt.io/ink/", "genre": ["Arcade", "Physics"], "gamePlatform": "Web Browser"},
+            {"@type": "VideoGame", "position": 23, "name": "Slipstream Vector", "description": "Anti-gravity arcade racing across four worlds and twelve circuits, with weapons, rivals, loops, corkscrews and full gamepad support.", "url": "https://gamevolt.io/slipstream-vector/", "genre": ["Racing", "Arcade", "Action"], "gamePlatform": "Web Browser"}
         ]
     }
     </script>
@@ -575,6 +576,197 @@
         }
 
         .gv-logout-btn:hover { border-color: var(--text-medium); color: #fff; }
+
+        /* Controller invitation: only revealed by gv-big-picture-prompt.js. */
+        .gamepad-bp-prompt {
+            padding: 18px 24px 0;
+            animation: gamepad-prompt-in 0.38s ease-out both;
+        }
+
+        .gamepad-bp-prompt[hidden] { display: none; }
+
+        .gamepad-bp-shell {
+            max-width: 1152px;
+            margin: 0 auto;
+            padding: 22px 24px;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 20px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(52, 211, 153, 0.42);
+            border-radius: var(--radius-lg);
+            background:
+                radial-gradient(circle at 88% 10%, rgba(56, 189, 248, 0.2), transparent 34%),
+                linear-gradient(120deg, rgba(52, 211, 153, 0.13), rgba(155, 130, 255, 0.12)),
+                var(--bg-surface);
+            box-shadow: 0 14px 38px rgba(0, 0, 0, 0.18), var(--glow-accent);
+        }
+
+        .gamepad-bp-icon {
+            width: 58px;
+            height: 58px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            border: 1px solid rgba(52, 211, 153, 0.38);
+            border-radius: 16px;
+            color: var(--accent);
+            background: rgba(52, 211, 153, 0.1);
+        }
+
+        .gamepad-bp-kicker {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 3px;
+            color: var(--accent);
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .gamepad-bp-kicker::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 12px currentColor;
+        }
+
+        .gamepad-bp-copy h2 {
+            margin: 0;
+            font-family: 'Fredoka', sans-serif;
+            font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+            line-height: 1.2;
+        }
+
+        .gamepad-bp-copy p {
+            margin-top: 4px;
+            color: var(--text-medium);
+            font-size: 0.92rem;
+            line-height: 1.45;
+        }
+
+        .gamepad-bp-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gamepad-bp-open,
+        .gamepad-bp-dismiss {
+            min-height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-radius: 10px;
+            font: inherit;
+            font-weight: 750;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+        }
+
+        .gamepad-bp-open {
+            padding: 0 17px;
+            border: 1px solid transparent;
+            background: var(--bg-gradient);
+            color: #08120f;
+            box-shadow: 0 8px 24px rgba(52, 211, 153, 0.2);
+        }
+
+        .gamepad-bp-dismiss {
+            padding: 0 14px;
+            border: 1px solid var(--border-subtle);
+            background: var(--bg-glass);
+            color: var(--text-medium);
+        }
+
+        .gamepad-bp-open:hover,
+        .gamepad-bp-dismiss:hover,
+        .gamepad-bp-open:focus-visible,
+        .gamepad-bp-dismiss:focus-visible {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.18), 0 10px 28px rgba(0, 0, 0, 0.2);
+        }
+
+        .gamepad-bp-key {
+            min-width: 25px;
+            height: 25px;
+            padding: 0 5px;
+            display: inline-grid;
+            place-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            border-radius: 6px;
+            background: rgba(8, 12, 22, 0.2);
+            font-size: 0.7rem;
+            line-height: 1;
+        }
+
+        .gamepad-bp-hint {
+            display: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        @keyframes gamepad-prompt-in {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 820px) {
+            .gamepad-bp-shell {
+                grid-template-columns: auto minmax(0, 1fr);
+            }
+            .gamepad-bp-actions {
+                grid-column: 1 / -1;
+                padding-left: 78px;
+            }
+        }
+
+        @media (max-width: 540px) {
+            .gamepad-bp-prompt { padding: 12px 16px 0; }
+            .gamepad-bp-shell { padding: 18px; gap: 14px; }
+            .gamepad-bp-icon { width: 48px; height: 48px; border-radius: 13px; }
+            .gamepad-bp-copy p { font-size: 0.84rem; }
+            .gamepad-bp-actions { padding-left: 0; }
+            .gamepad-bp-open { flex: 1; }
+            .gamepad-bp-dismiss .gamepad-bp-dismiss-label { display: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .gamepad-bp-prompt { animation: none; }
+        }
+
+        /* Slipstream Vector is the portal's flagship: a full-width playable release. */
+        .flagship-feature { margin: 0 0 32px; }
+        .flagship-link { position: relative; display: block; min-height: 480px; overflow: hidden; border: 1px solid rgba(0,240,255,.35); border-radius: 22px; background: #09031b; color: #fff; text-decoration: none; box-shadow: 0 24px 70px rgba(0,0,0,.32), 0 0 42px rgba(0,240,255,.08); }
+        .flagship-link:focus-visible { outline: 3px solid #00f0ff; outline-offset: 5px; }
+        .flagship-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; transition: transform .7s cubic-bezier(.2,.75,.2,1), filter .4s; }
+        .flagship-link::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0 47%, rgba(7,3,22,.68) 65%, rgba(7,3,22,.98) 100%); pointer-events: none; }
+        .flagship-copy { position: relative; z-index: 1; width: 43%; min-height: 480px; margin-left: auto; padding: 56px 48px 42px 24px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+        .flagship-label { display: inline-flex; align-items: center; gap: 9px; padding: 7px 10px; border: 1px solid rgba(0,240,255,.45); color: #61f7ff; background: rgba(0,240,255,.08); font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+        .flagship-copy h2 { margin: 18px 0 8px; font-family: 'Fredoka', sans-serif; font-size: clamp(42px,5vw,70px); line-height: .92; letter-spacing: -.04em; text-transform: uppercase; }
+        .flagship-tagline { margin: 0; color: #ff59cf; font-size: clamp(18px,2vw,26px); font-weight: 700; }
+        .flagship-description { max-width: 430px; margin: 16px 0 24px; color: #d5d5e8; font-size: 14px; line-height: 1.6; }
+        .flagship-cta { display: inline-flex; align-items: center; gap: 20px; padding: 13px 20px; border-radius: 8px; background: linear-gradient(135deg,#00f0ff,#ff2ec8); color: #09031b; font-weight: 800; box-shadow: 0 10px 30px rgba(0,240,255,.2); }
+        .flagship-detail { margin-top: 12px; color: #a9acc3; font-size: 11px; letter-spacing: .04em; }
+        .flagship-link:hover .flagship-art { transform: scale(1.025); filter: saturate(1.08); }
+        .flagship-link:hover .flagship-cta { box-shadow: 0 12px 36px rgba(255,46,200,.28); }
+        @media (max-width: 760px) {
+            .flagship-link { min-height: 0; }
+            .flagship-art { position: relative; display: block; height: auto; aspect-ratio: 16/9; }
+            .flagship-link::after { background: linear-gradient(0deg,#09031b 0 42%,transparent 72%); }
+            .flagship-copy { width: 100%; min-height: 0; margin-top: -40px; padding: 24px; }
+            .flagship-copy h2 { font-size: 42px; }
+        }
 
         /* Compact introduction: keep the first games in the first viewport. */
         /* INK's graph-paper key art stays true to the game in every portal theme. */
@@ -1839,6 +2031,7 @@
             <div class="header-right">
                 <nav class="nav-links">
                     <a href="#games" class="nav-link">Games</a>
+                    <a href="/big-picture/" class="nav-link">Big Picture</a>
                     <a href="/news/" class="nav-link">News</a>
                     <a href="/leaderboards/" class="nav-link">Leaderboards</a>
                     <a href="/about/" class="nav-link">About</a>
@@ -1855,13 +2048,39 @@
             </div>
         </div>
     </header>
+
+    <section id="gamepadBpPrompt" class="gamepad-bp-prompt" aria-labelledby="gamepadBpTitle" aria-live="polite" hidden>
+        <div class="gamepad-bp-shell">
+            <div class="gamepad-bp-icon" aria-hidden="true">
+                <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+                    <path d="M15.5 14h17c5.7 0 10.2 4.8 9.6 10.5l-1 9.2a4.8 4.8 0 0 1-8.3 2.7l-4.3-4.6h-9l-4.3 4.6a4.8 4.8 0 0 1-8.3-2.7l-1-9.2C5.3 18.8 9.8 14 15.5 14Z" stroke="currentColor" stroke-width="2.7" stroke-linejoin="round"/>
+                    <path d="M15 21v8M11 25h8" stroke="currentColor" stroke-width="2.7" stroke-linecap="round"/>
+                    <circle cx="33.5" cy="22.5" r="2" fill="currentColor"/><circle cx="37.5" cy="27" r="2" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="gamepad-bp-copy">
+                <span class="gamepad-bp-kicker">Controller detected</span>
+                <h2 id="gamepadBpTitle">Want to leave the mouse behind?</h2>
+                <p>Try Big Picture — browse, launch and leave our controller-ready games using only your gamepad.</p>
+            </div>
+            <div class="gamepad-bp-actions">
+                <a id="gamepadBpOpen" class="gamepad-bp-open" href="/big-picture/?from=gamepad_prompt">
+                    Open Big Picture <span class="gamepad-bp-key" aria-hidden="true">A / ×</span>
+                </a>
+                <button id="gamepadBpDismiss" class="gamepad-bp-dismiss" type="button">
+                    <span class="gamepad-bp-dismiss-label">Not now</span> <span class="gamepad-bp-key" aria-hidden="true">B / ○</span>
+                </button>
+            </div>
+            <span class="gamepad-bp-hint" aria-hidden="true">Press A to open · B to hide</span>
+        </div>
+    </section>
     
     <section class="hero" aria-labelledby="portal-title">
         <div class="hero-content">
             <h1 id="portal-title">Original browser games.</h1>
             <p>Made by Martin in Sweden. No install or account needed.</p>
             <ul class="hero-stats" aria-label="About GameVolt">
-                <li><strong>24</strong> free games</li>
+                <li><strong>25</strong> free games</li>
                 <li><strong>0</strong> ads</li>
                 <li><strong>1</strong> maker</li>
             </ul>
@@ -1875,6 +2094,20 @@
             </div>
             <div class="continue-grid" id="continueGrid" data-selection-source="continue_playing"></div>
         </div>
+
+        <section class="flagship-feature" data-selection-source="flagship" aria-labelledby="flagship-title">
+            <a class="flagship-link" href="/play/?game=slipstream-vector">
+                <img class="flagship-art" src="/assets/thumbnails/slipstream-vector-hero.png" alt="" width="1920" height="1080" fetchpriority="high">
+                <div class="flagship-copy">
+                    <span class="flagship-label">GameVolt flagship · Full game</span>
+                    <h2 id="flagship-title">Slipstream Vector</h2>
+                    <p class="flagship-tagline">No rubber-banding. Ever.</p>
+                    <p class="flagship-description">Race twelve anti-gravity circuits across four worlds. Master loops, corkscrews, weapons and a rival field that wins by driving better—not by cheating.</p>
+                    <span class="flagship-cta">Start racing <span aria-hidden="true">▶</span></span>
+                    <span class="flagship-detail">Gamepad or keyboard · 12 circuits · Free to play</span>
+                </div>
+            </a>
+        </section>
 
         <section class="ink-feature" data-selection-source="new_games" aria-labelledby="ink-feature-title">
             <a class="ink-feature-link" href="/play/?game=ink">
@@ -1893,7 +2126,7 @@
         <section data-selection-source="martins_picks" class="starter-picks" aria-labelledby="picks-title">
             <div class="section-header">
                 <h2 class="section-title" id="picks-title">Martin's picks</h2>
-                <a class="section-link" href="#games">All 24 games &rarr;</a>
+                <a class="section-link" href="#games">All 25 games &rarr;</a>
             </div>
             <div class="picks-grid">
                 <a class="pick-card" href="/play/?game=short-circuit">
@@ -1969,10 +2202,11 @@
         </div>
 
         <div class="category-filters" id="categoryFilters">
+            <a href="/big-picture/" class="category-pill" data-big-picture><span class="pill-icon" aria-hidden="true">🎮</span> Big Picture <span class="pill-count">8</span></a>
             <button class="category-pill active" data-filter="all" aria-pressed="true">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
-                <span class="pill-count">24</span>
+                <span class="pill-count">25</span>
             </button>
             <button class="category-pill" data-filter="coffee-break" aria-pressed="false">
                 <span class="pill-icon">☕</span>
@@ -1987,7 +2221,7 @@
             <button class="category-pill" data-filter="action" aria-pressed="false">
                 <span class="pill-icon">🔥</span>
                 <span>Action</span>
-                <span class="pill-count">9</span>
+                <span class="pill-count">10</span>
             </button>
             <button class="category-pill" data-filter="word" aria-pressed="false">
                 <span class="pill-icon">⌨️</span>
@@ -2017,6 +2251,19 @@
         <p id="game-sort-note" class="sort-note" role="status" hidden></p>
 
         <div class="games-grid" data-selection-source="catalog">
+            <a href="/play/?game=slipstream-vector" class="game-card" data-category="action arcade">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/slipstream-vector.png" alt="Play Slipstream Vector online free" width="480" height="270" loading="lazy">
+                    <span class="game-badge new">FLAGSHIP</span>
+                    <span class="game-bolt">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Slipstream Vector</h3>
+                    <p class="game-description">Anti-gravity racing across four worlds and twelve circuits.</p>
+                    <div class="game-tags"><span class="tag">Racing</span><span class="tag">3D</span><span class="tag">Gamepad</span></div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
             <a href="/play/?game=ink" class="game-card" data-category="coffee-break arcade">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/ink.webp" alt="INK: a ball bouncing off a blue pen stroke on graph paper" width="480" height="270" loading="lazy">
@@ -2587,6 +2834,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/slipstream-vector/">Slipstream Vector</a>
                         <a href="/ink/">INK</a>
                         <a href="/short-circuit/">Short Circuit</a>
                         <a href="/manny-the-mole/">Manny the Mole</a>
@@ -2643,9 +2891,10 @@
     <script src="/js/gv-daily-progress.js?v=1" defer></script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
+    <script src="/js/gv-big-picture-prompt.js?v=2" defer></script>
     <script src="/js/gv-card-ratings.js?v=2" defer></script>
-    <script src="/js/gv-search.js?v=2"></script>
-    <script src="/sdk/gamevolt.js"></script>
+    <script src="/js/gv-search.js?v=3"></script>
+    <script src="/sdk/gamevolt.js?v=2026.09.08-1"></script>
     <script>
     if (window.GameVolt) {
         GameVolt.init('portal');
@@ -2832,7 +3081,7 @@
 
         filters.addEventListener('click', function(e) {
             var pill = e.target.closest('.category-pill');
-            if (!pill) return;
+            if (!pill || (pill.dataset && Object.prototype.hasOwnProperty.call(pill.dataset, 'bigPicture'))) return;
 
             filters.querySelectorAll('.category-pill').forEach(function(p) {
                 p.classList.remove('active');
@@ -2867,6 +3116,7 @@
         if (!window.GVTracker) return;
 
         var GAME_META = {
+            "slipstream-vector": { name: "Slipstream Vector", thumb: "/assets/thumbnails/slipstream-vector.png" },
             "ink": { name: "INK", thumb: "/assets/thumbnails/ink.webp" },
             "short-circuit": { name: "Short Circuit", thumb: "/assets/thumbnails/short-circuit.webp" },
             "manny-the-mole": { name: "Manny the Mole", thumb: "/manny-the-mole/og-image.png" },
@@ -2942,6 +3192,7 @@
     // localStorage when guest). Hidden when empty; refreshes on auth state change.
     (function() {
         var FAV_META = {
+            "slipstream-vector": { name: "Slipstream Vector", thumb: "/assets/thumbnails/slipstream-vector.png" },
             "ink": { name: "INK", thumb: "/assets/thumbnails/ink.webp" },
             "short-circuit": { name: "Short Circuit", thumb: "/assets/thumbnails/short-circuit.webp" },
             "manny-the-mole": { name: "Manny the Mole", thumb: "/manny-the-mole/og-image.png" },

@@ -1,4 +1,6 @@
 // ============================================================
+
+import { claimSnakeGamepad, getSnakeGamepad, readSnakeGamepadState, releaseSnakeGamepadWhenNeutral, snakeGamepadIsNeutral } from "../gamepad.js?v=1.9";
 // GameOver16bit.js — Stats-rich game over screen
 // ============================================================
 
@@ -9,6 +11,8 @@ export class GameOver16bit {
         this.onMenu = null;
         this.selectedIndex = 0;
         this.buttons = [];
+        this._gamepadOwner = this;
+        this._gamepadReady = false;
     }
 
     show(stats, onRestart, onMenu) {
@@ -147,6 +151,10 @@ export class GameOver16bit {
                 e.preventDefault();
                 this._handleAction(this.buttons[this.selectedIndex].dataset.action);
             }
+            if (e.key === 'Escape' || e.key === 'Backspace') {
+                e.preventDefault();
+                this._handleAction('menu');
+            }
         };
         window.addEventListener('keydown', this._keyHandler);
 
@@ -177,22 +185,18 @@ export class GameOver16bit {
     }
 
     _startGamepadPolling() {
-        this._lastGamepadState = { up: false, down: false, confirm: false };
+        claimSnakeGamepad(this._gamepadOwner);
+        this._lastGamepadState = {};
+        this._gamepadReady = false;
         
         const poll = () => {
             if (!this.overlay) return;
             
-            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            
-            for (const gp of gamepads) {
-                if (!gp) continue;
-                
-                const state = {
-                    up: gp.buttons[12]?.pressed || gp.axes[1] < -0.5,
-                    down: gp.buttons[13]?.pressed || gp.axes[1] > 0.5,
-                    confirm: gp.buttons[0]?.pressed
-                };
-                
+            const gp = getSnakeGamepad();
+            const state = readSnakeGamepadState(gp);
+            if (!this._gamepadReady) {
+                this._gamepadReady = snakeGamepadIsNeutral(state);
+            } else {
                 if (state.up && !this._lastGamepadState.up) {
                     this._selectButton(this.selectedIndex - 1);
                 }
@@ -202,10 +206,11 @@ export class GameOver16bit {
                 if (state.confirm && !this._lastGamepadState.confirm) {
                     this._handleAction(this.buttons[this.selectedIndex].dataset.action);
                 }
-                
-                this._lastGamepadState = state;
-                break;
+                if (state.back && !this._lastGamepadState.back) {
+                    this._handleAction('menu');
+                }
             }
+            this._lastGamepadState = state;
             
             this._gamepadPollId = requestAnimationFrame(poll);
         };
@@ -218,7 +223,9 @@ export class GameOver16bit {
         
         if (this._gamepadPollId) {
             cancelAnimationFrame(this._gamepadPollId);
+            this._gamepadPollId = null;
         }
+        releaseSnakeGamepadWhenNeutral(this._gamepadOwner);
         
         if (this.overlay) {
             this.overlay.classList.remove('visible');

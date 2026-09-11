@@ -2,7 +2,7 @@
 (function () {
     'use strict';
 
-    var sources = ['martins_picks', 'daily_challenges', 'catalog', 'continue_playing', 'favorites', 'new_games', 'sidebar'];
+    var sources = ['martins_picks', 'daily_challenges', 'catalog', 'continue_playing', 'favorites', 'new_games', 'sidebar', 'big_picture'];
     function normalizeSource(value) { return sources.indexOf(value) !== -1 ? value : 'direct'; }
 
     function context(href, gameId, sourceOverride) {

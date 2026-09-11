@@ -1,4 +1,6 @@
 // ============================================================
+
+import { safeStorageGet, safeStorageSet } from "../storage.js?v=1.9";
 // HUDNokia.js – Pixel HUD (score + highscore) inside LCD
 // v1.2 — left/right alignment + retro font
 // ============================================================
@@ -10,7 +12,7 @@ export class HudNokia {
         this.ctx = canvas.getContext("2d");
 
         this.score = 0;
-        this.high = Number(localStorage.getItem("snake_nokia_highscore")) || 0;
+        this.high = Number(safeStorageGet("snake_nokia_highscore")) || 0;
 
         this.lcdX = 0;
         this.lcdY = 0;
@@ -25,11 +27,12 @@ export class HudNokia {
         this.lcdH = lcdH;
     }
 
-    update(score) {
+    update() {
+        const score = Math.max(0, Math.floor(Number(this.game?.scoring?.score) || 0));
         this.score = score;
         if (score > this.high) {
             this.high = score;
-            localStorage.setItem("snake_nokia_highscore", this.high);
+            safeStorageSet("snake_nokia_highscore", this.high);
         }
     }
 

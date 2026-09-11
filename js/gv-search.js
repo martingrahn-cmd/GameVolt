@@ -6,6 +6,7 @@
   'use strict';
 
   var GAMES = [
+    { id: 'slipstream-vector', name: 'Slipstream Vector', cat: 'Racing', thumb: '/assets/thumbnails/slipstream-vector.png', tags: 'racing race anti gravity antigrav futuristic arcade 3d controller gamepad wipeout slipstream' },
     { id: 'ink', name: 'INK', cat: 'Arcade', thumb: '/assets/thumbnails/ink.webp', tags: 'ink black bläck drawing pen paper pinball bounce climb daily arcade' },
     { id: 'short-circuit', name: 'Short Circuit', cat: 'Puzzle', thumb: '/assets/thumbnails/short-circuit.webp', tags: 'puzzle circuit lock current electric conductors swap wire daily streak duel multiplayer breaker logic' },
     { id: 'manny-the-mole', name: 'Manny the Mole', cat: 'Arcade', thumb: '/manny-the-mole/og-image.png', tags: 'arcade digging mr driller dig vault circuit lock daily streak mole' },

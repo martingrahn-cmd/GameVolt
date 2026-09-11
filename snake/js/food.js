@@ -53,45 +53,47 @@ export class Food {
     }
 
     respawn(snake) {
-        let tries = 0;
+        const head = snake.gridHead();
+        const reachable = this._reachableCells(head.x, head.y);
+        const occupied = new Set((snake.gridCells || []).map(cell => `${cell.x},${cell.y}`));
+        const candidates = reachable.filter(cell =>
+            !occupied.has(`${cell.x},${cell.y}`) &&
+            !this._isInForbiddenZone(cell.x, cell.y)
+        );
 
-        while (tries < 200) {
-            this.x = (Math.random() * this.grid.w) | 0;
-            this.y = (Math.random() * this.grid.h) | 0;
-
-            let ok = true;
-
-            // Check forbidden zones (HUD area)
-            if (this._isInForbiddenZone(this.x, this.y)) {
-                ok = false;
-            }
-
-            // Check walls
-            if (ok && this._isOnWall(this.x, this.y)) {
-                ok = false;
-            }
-
-            // blockera huvudcellen
-            if (ok) {
-                const head = snake.gridHead();
-                if (this.x === head.x && this.y === head.y) {
-                    ok = false;
-                }
-            }
-
-            // blockera alla kroppsceller
-            if (ok && snake.gridCells) {
-                for (let c of snake.gridCells) {
-                    if (c.x === this.x && c.y === this.y) {
-                        ok = false;
-                        break;
-                    }
-                }
-            }
-
-            if (ok) return; // hittade en säker cell
-            tries++;
+        if (!candidates.length) {
+            this.x = -1;
+            this.y = -1;
+            return false;
         }
-        // om vi mot förmodan inte hittar något: låt den stå kvar
+
+        const selected = candidates[(Math.random() * candidates.length) | 0];
+        this.x = selected.x;
+        this.y = selected.y;
+        return true;
+    }
+
+    // Flood-fill from the snake head so food can never appear in a sealed room.
+    _reachableCells(startX, startY) {
+        if (startX < 0 || startY < 0 || startX >= this.grid.w || startY >= this.grid.h || this._isOnWall(startX, startY)) {
+            return [];
+        }
+        const cells = [];
+        const queue = [{ x: startX, y: startY }];
+        const seen = new Set([`${startX},${startY}`]);
+        for (let index = 0; index < queue.length; index++) {
+            const cell = queue[index];
+            cells.push(cell);
+            for (const next of [
+                { x: cell.x + 1, y: cell.y }, { x: cell.x - 1, y: cell.y },
+                { x: cell.x, y: cell.y + 1 }, { x: cell.x, y: cell.y - 1 }
+            ]) {
+                const key = `${next.x},${next.y}`;
+                if (next.x < 0 || next.y < 0 || next.x >= this.grid.w || next.y >= this.grid.h || seen.has(key) || this._isOnWall(next.x, next.y)) continue;
+                seen.add(key);
+                queue.push(next);
+            }
+        }
+        return cells;
     }
 }

@@ -29,9 +29,11 @@ class AudioNokia {
     // ------------------------------------------------------------
     // iOS unlock – must be triggered by user gesture
     // ------------------------------------------------------------
-    unlock() {
-        if (this.unlocked) return;
+    async unlock() {
         const ctx = this._ctx();
+
+        if (ctx.state === "suspended") await ctx.resume();
+        if (this.unlocked && ctx.state === "running") return;
 
         // create a silent buffer to unlock
         const buffer = ctx.createBuffer(1, 1, 22050);
@@ -40,7 +42,7 @@ class AudioNokia {
         source.connect(ctx.destination);
         source.start(0);
 
-        this.unlocked = true;
+        this.unlocked = ctx.state === "running";
         console.log("🔓 Audio unlocked");
     }
 

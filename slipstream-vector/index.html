@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SLIPSTREAM VECTOR</title>
+  <meta name="description" content="Race twelve anti-gravity circuits across four worlds in GameVolt's flagship arcade racer. Free in your browser with keyboard or gamepad.">
+  <link rel="canonical" href="https://gamevolt.io/slipstream-vector/">
+  <!-- Inline SVG favicon: a cyan delta-ship on ink — no file, no 404. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2312052e'/%3E%3Cpath d='M32 8 L54 50 L32 40 L10 50 Z' fill='%2300f0ff'/%3E%3Cpath d='M32 20 L44 46 L32 40 L20 46 Z' fill='%23ff2ec8'/%3E%3C/svg%3E" />
+  <link href="./vendor/fonts/fonts.css" rel="stylesheet" />
+  <!-- Installable: "Add to Dock" / "Install" gives the game an icon that stays
+       put and its own chrome-less window. A player on r/WipeOut asked what a
+       Steam release would give them that the browser does not, and answered
+       "permanency, and ease of use" — this is the half of that answer which
+       does not need a store. -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#060214" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png" />
+  <link rel="stylesheet" href="./styles/main.css" />
+</head>
+<body>
+  <div id="game"></div>
+
+  <div class="hud" id="lap-block">
+    <div id="position"></div>
+    <div id="lap">LAP 1 / 3</div>
+    <div id="lap-time">0:00.000</div>
+    <div id="last-lap"></div>
+    <div id="best-lap"></div>
+    <div id="ghost-delta"></div>
+  </div>
+
+  <div class="hud hidden" id="results"></div>
+  <div class="hud hidden" id="trophies"></div>
+  <div class="hud hidden" id="trophy-toast"></div>
+
+  <div class="hud" id="speed-block">
+    <!-- Segment arc over the number. Geometry is generated in ui/hud.js so the
+         segment count and the sweep live in one place, not split across two. -->
+    <svg id="speed-gauge" viewBox="0 40 300 104" aria-hidden="true"></svg>
+    <span id="speed">0</span>
+    <div id="speed-unit">KM/H</div>
+  </div>
+
+  <div class="hud" id="boost-meter">
+    <div id="boost-ghost"></div>
+    <div id="boost-fill"></div>
+  </div>
+  <div class="hud hidden" id="weapon-slot"></div>
+  <div class="hud" id="comms-feed"></div>
+
+  <canvas class="hud" id="minimap"></canvas>
+
+  <div class="hud" id="slipstream">&raquo;&raquo;&nbsp; SLIPSTREAM &nbsp;&laquo;&laquo;</div>
+  <div class="hud" id="lock-warn"><span class="tri">&#9650;</span> MISSILE</div>
+
+  <div class="hud hidden" id="center-msg"></div>
+  <div class="hud hidden" id="countdown"><span id="cd-digit"></span></div>
+  <div class="hud hidden pilot-intro" id="pilot-intro"></div>
+  <div class="hud hidden" id="center-sub"></div>
+  <div class="hud" id="stats"></div>
+
+  <div class="hud intro" id="overlay">
+    <h1>SLIPSTREAM VECTOR</h1>
+
+    <div class="intro-prompt" id="intro-prompt">PRESS START</div>
+
+    <div id="console">
+      <aside id="nav-rail">
+        <div class="os-word">SLIPSTREAM<span>//</span>OS</div>
+        <nav id="nav-list">
+          <button class="navitem" data-sec="championship"><span class="ix">01</span><span class="nl">CHAMPIONSHIP</span><span class="ns" id="ns-championship">6 ROUNDS</span></button>
+          <button class="navitem" data-sec="single"><span class="ix">02</span><span class="nl">SINGLE RACE</span><span class="ns" id="ns-single">—</span></button>
+          <button class="navitem" data-sec="time"><span class="ix">03</span><span class="nl">TIME TRIAL</span><span class="ns" id="ns-time">SOLO</span></button>
+          <button class="navitem" data-sec="garage"><span class="ix">04</span><span class="nl">GARAGE</span><span class="ns" id="ns-garage">VEKTOR</span></button>
+          <button class="navitem" data-sec="options"><span class="ix">05</span><span class="nl">OPTIONS</span><span class="ns" id="ns-options">AUDIO</span></button>
+          <button class="navitem" data-sec="controls"><span class="ix">06</span><span class="nl">CONTROLS</span><span class="ns" id="ns-controls">REBIND</span></button>
+          <button class="navitem" data-sec="records"><span class="ix">07</span><span class="nl">RECORDS</span><span class="ns" id="ns-records">—</span></button>
+          <button class="navitem" data-sec="trophies"><span class="ix">08</span><span class="nl">TROPHIES</span><span class="ns" id="ns-trophies">—</span></button>
+          <button class="navitem" data-sec="credits"><span class="ix">09</span><span class="nl">CREDITS</span><span class="ns" id="ns-credits">STAFF ROLL</span></button>
+        </nav>
+        <div class="rail-caret" id="rail-caret"></div>
+      </aside>
+
+      <header id="status-rail">
+        <span class="crumb">SYS / <b id="crumb-sec">GARAGE</b></span>
+        <span class="telemetry" id="status-tele"></span>
+      </header>
+
+      <div id="bay">
+        <div class="ghostnum" id="ghostnum">04</div>
+
+        <section class="section" data-sec="championship">
+          <div class="col mid">
+            <div class="boot" data-boot="&gt;&gt; CHAMPIONSHIP CUP"></div>
+            <div class="ctl-row" data-row="cup"><label>CUP</label><span class="arrow l">&#9664;</span><span class="value" id="menu-cup"></span><span class="arrow r">&#9654;</span></div>
+            <div class="cup-ladder" id="cup-ladder"></div>
+            <div class="ctl-row" data-row="class"><label>CLASS</label><span class="arrow l">&#9664;</span><span class="value" id="menu-class"></span><span class="arrow r">&#9654;</span><span class="lock-note hidden" id="menu-class-lock"></span></div>
+            <div class="ctl-row" data-row="difficulty"><label>RIVALS</label><span class="arrow l">&#9664;</span><span class="value" id="menu-difficulty"></span><span class="arrow r">&#9654;</span></div>
+            <div class="opt-grp">YOUR ENTRY</div>
+            <div class="entry-card" id="champ-entry"></div>
+            <button class="go-btn" data-row="go" id="champ-go">START CUP</button>
+            <button class="go-btn alt hidden" data-row="newcup" id="champ-newcup">&#8635; NEW CUP</button>
+          </div>
+          <div class="col right"><div class="vp-frame"><div class="vp-slot" data-vp="champ"><div class="vp-scan" aria-hidden="true"><span class="vp-tag">CIRCUIT SURVEY</span></div><div class="vp-dossier" id="champ-dossier"></div></div></div><div class="vp-note">10-8-6-5-4-3-2-1 PTS &middot; GRAND CHAMPION AT OVERDRIVE</div></div>
+        </section>
+
+        <section class="section" data-sec="single">
+          <div class="col mid">
+            <div class="boot" data-boot="&gt;&gt; SINGLE RACE"></div>
+            <div class="ctl-row" data-row="track"><label>TRACK</label><span class="arrow l">&#9664;</span><span class="value" id="menu-track"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="class"><label>CLASS</label><span class="arrow l">&#9664;</span><span class="value" id="s-class"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="difficulty"><label>RIVALS</label><span class="arrow l">&#9664;</span><span class="value" id="s-diff"></span><span class="arrow r">&#9654;</span></div>
+            <div class="opt-grp">YOUR ENTRY</div>
+            <div class="entry-card" id="single-entry"></div>
+            <button class="go-btn" data-row="go">RACE</button>
+          </div>
+          <div class="col right"><div class="vp-frame"><div class="vp-slot" data-vp="track"><div class="vp-scan" aria-hidden="true"><span class="vp-tag">CIRCUIT SURVEY</span></div><div class="vp-dossier" id="single-dossier"></div></div></div><div class="vp-note" id="menu-best">NO RECORD</div></div>
+        </section>
+
+        <section class="section" data-sec="time">
+          <div class="col mid">
+            <div class="boot" data-boot="&gt;&gt; TIME TRIAL"></div>
+            <div class="badge">SOLO &middot; NO RIVALS</div>
+            <div class="ctl-row" data-row="track"><label>TRACK</label><span class="arrow l">&#9664;</span><span class="value" id="t-track"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="class"><label>CLASS</label><span class="arrow l">&#9664;</span><span class="value" id="t-class"></span><span class="arrow r">&#9654;</span></div>
+            <div class="opt-grp">YOUR ENTRY</div>
+            <div class="entry-card" id="time-entry"></div>
+            <button class="go-btn" data-row="go">SET A TIME</button>
+          </div>
+          <div class="col right"><div class="vp-frame"><div class="vp-slot" data-vp="tt"><div class="vp-scan" aria-hidden="true"><span class="vp-tag">CIRCUIT SURVEY</span></div><div class="vp-dossier" id="tt-dossier"></div></div></div><div class="vp-note" id="tt-best">NO RECORD &mdash; SET ONE</div></div>
+        </section>
+
+        <section class="section garage" data-sec="garage">
+          <div class="col gleft">
+            <div class="boot" data-boot="&gt;&gt; GARAGE ONLINE"></div>
+            <div class="ctl-row big" data-row="team"><span class="arrow l">&#9664;</span><span class="value" id="menu-team"></span><span class="arrow r">&#9654;</span></div>
+            <div id="menu-stats"></div>
+            <div id="menu-blurb"></div>
+            <div class="garage-foot">TEAM SHIP &mdash; applies to you and the field</div>
+          </div>
+          <div class="stage">
+            <div class="bay-pillar l"></div><div class="bay-pillar r"></div>
+            <div class="bay-beam b1"></div><div class="bay-beam b2"></div>
+            <div class="vp-slot stage-slot" data-vp="garage"></div>
+            <div class="bay-tick tl"></div><div class="bay-tick tr"></div><div class="bay-tick bl"></div><div class="bay-tick br"></div>
+            <div class="bay-label">BAY 01</div>
+          </div>
+          <div class="col gright">
+            <div class="ctl-row readonly"><label>LIVERY</label><span class="value" id="menu-livery"></span></div>
+            <div class="ctl-row" data-row="pilot"><label>PILOT</label><span class="arrow l">&#9664;</span><span class="value" id="menu-pilot"></span><span class="arrow r">&#9654;</span></div>
+            <div class="opt-grp">TEAM DRIVERS</div>
+            <div class="pilot-roster" id="pilot-roster"></div>
+          </div>
+        </section>
+
+        <section class="section" data-sec="options">
+          <div class="col mid">
+            <div class="boot" data-boot="&gt;&gt; OPTIONS"></div>
+            <div class="opt-grp">GRAPHICS</div>
+            <div class="ctl-row" data-row="quality"><label>QUALITY</label><span class="arrow l">&#9664;</span><span class="value" id="opt-quality"></span><span class="arrow r">&#9654;</span></div>
+            <div class="opt-grp">AUDIO</div>
+            <div class="ctl-row" data-row="music"><label>MUSIC</label><span class="arrow l">&#9664;</span><span class="value" id="opt-music"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="sfx"><label>SFX</label><span class="arrow l">&#9664;</span><span class="value" id="opt-sfx"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="voice"><label>VOICE</label><span class="arrow l">&#9664;</span><span class="value" id="opt-voice"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="avoffset"><label>AV OFFSET</label><span class="arrow l">&#9664;</span><span class="value" id="opt-avoffset"></span><span class="arrow r">&#9654;</span></div>
+            <div class="opt-grp">GAMEPAD</div>
+            <div class="ctl-row" data-row="deadzone"><label>DEADZONE</label><span class="arrow l">&#9664;</span><span class="value" id="opt-dz"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="rumble"><label>RUMBLE</label><span class="arrow l">&#9664;</span><span class="value" id="opt-rumble"></span><span class="arrow r">&#9654;</span></div>
+            <div class="opt-grp">DISPLAY</div>
+            <div class="ctl-row" data-row="fullscreen"><label>FULLSCREEN</label><span class="arrow l">&#9664;</span><span class="value" id="opt-fs"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="motion"><label>MOTION FX</label><span class="arrow l">&#9664;</span><span class="value" id="opt-motion"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="perf"><label>PERF READOUT</label><span class="arrow l">&#9664;</span><span class="value" id="opt-perf"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="pilotintro"><label>PILOT INTRO</label><span class="arrow l">&#9664;</span><span class="value" id="opt-pilotintro"></span><span class="arrow r">&#9654;</span></div>
+            <div class="ctl-row" data-row="banter"><label>RIVAL BANTER</label><span class="arrow l">&#9664;</span><span class="value" id="opt-banter"></span><span class="arrow r">&#9654;</span></div>
+          </div>
+          <div class="col right"><div class="vp-frame"><div class="legend" id="opt-legend"></div></div><div class="vp-note" id="opt-gp">GAMEPAD: <span id="opt-gp-state">—</span></div></div>
+        </section>
+
+        <section class="section" data-sec="controls">
+          <div class="col mid">
+            <div class="boot" data-boot="&gt;&gt; CONTROLS"></div>
+            <div class="kb-head"><span class="rt"></span><span class="leader"></span><span class="kb-key">KEYBOARD</span><span class="pad-key">GAMEPAD</span></div>
+            <div class="rec-list" id="ctl-list"></div>
+          </div>
+          <div class="col right">
+            <div class="vp-frame"><div class="legend">
+              <div class="lg-row"><span>REBIND</span><b>ENTER a row</b></div>
+              <div class="lg-row"><span>CANCEL</span><b>&#9003;</b></div>
+              <div class="lg-row"><span>RESET</span><b>last row</b></div>
+            </div></div>
+            <div class="opt-grp">GAMEPAD</div>
+            <div class="vp-frame"><div class="legend">
+              <div class="lg-row sub">Bind a row, then press the key <i>or</i> the controller button you want.</div>
+              <div class="lg-row sub">MENU CONFIRM / BACK are pad-only &mdash; bind them so a generic controller can navigate.</div>
+              <div class="lg-row sub">Steer/throttle/brake also accept a stick or trigger.</div>
+            </div></div>
+          </div>
+          <div id="rebind-capture" class="kb-capture hidden">
+            <div class="kb-cap-tag" id="rebind-action">BIND</div>
+            <div class="prompt" id="rebind-prompt">PRESS A KEY OR BUTTON</div>
+            <div class="cancel-hint"><b>&#9003;</b> to cancel</div>
+          </div>
+        </section>
+
+        <section class="section" data-sec="records">
+          <div class="col mid"><div class="boot" data-boot="&gt;&gt; RECORDS"></div><div class="rec-list" id="rec-list"></div></div>
+          <div class="col right"><div class="vp-frame"><div class="vp-slot" data-vp="rec"></div></div><div class="vp-note" id="rec-detail">SELECT A TRACK</div></div>
+        </section>
+
+        <section class="section" data-sec="trophies">
+          <div class="col mid"><div class="boot" data-boot="&gt;&gt; TROPHIES"></div><div class="ctl-row" data-row="tier"><label>TIER</label><span class="arrow l">&#9664;</span><span class="value" id="tro-tier">ALL</span><span class="arrow r">&#9654;</span></div><div class="tro-count" id="tro-count"></div></div>
+          <div class="col right wide"><div class="tro-gallery" id="tro-gallery"></div></div>
+        </section>
+
+        <!-- CREDITS: a slow staff roll in the mid column (main.js drives it off
+             the render clock), with the tech + licence notices held still on
+             the right so they can actually be read. -->
+        <section class="section" data-sec="credits">
+          <div class="col mid">
+            <div class="boot" data-boot="&gt;&gt; CREDITS"></div>
+            <div class="cred-view"><div class="cred-roll" id="cred-roll"></div></div>
+          </div>
+          <div class="col right">
+            <div class="opt-grp">BUILT WITH</div>
+            <div class="vp-frame"><div class="legend" id="cred-tech"></div></div>
+            <div class="opt-grp">NOTICES</div>
+            <div class="vp-frame"><div class="legend" id="cred-legal"></div></div>
+            <div class="vp-note" id="cred-hint"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- hidden canvases reparented into the active section's viewport -->
+    <div id="canvas-pool" class="hidden">
+      <canvas id="env-thumb"></canvas>
+      <canvas id="menu-thumb"></canvas>
+      <canvas id="menu-profile"></canvas>
+      <canvas id="podium"></canvas>
+    </div>
+    <span id="menu-world" class="hidden"></span>
+
+    <div class="keys-hint">&uarr;&darr; navigate &nbsp; ENTER open &nbsp; &larr;&rarr; change &nbsp; &#9003; back &nbsp; F fullscreen &nbsp; &#127918; gamepad ready</div>
+  </div>
+
+  <canvas id="podium-scene" class="hidden"></canvas>
+  <div id="podium-title" class="hidden">
+    <div class="pt-tag"></div>
+    <div class="pt-title"></div>
+    <div class="pt-sub"></div>
+  </div>
+
+  <div class="hud hidden" id="pause-menu">
+    <div class="pause-panel">
+      <div class="pause-title">PAUSED</div>
+      <div class="pause-list" id="pause-list">
+        <div class="prow focus" id="prow-resume"><span class="play">&#9656;</span><span class="value">RESUME</span></div>
+        <div class="prow" id="prow-restart"><span class="play">&#9656;</span><span class="value">RESTART</span></div>
+        <div class="prow" id="prow-options"><span class="play">&#9656;</span><span class="value">OPTIONS</span></div>
+        <div class="prow" id="prow-quit"><span class="play">&#9656;</span><span class="value">QUIT TO MENU</span></div>
+      </div>
+      <div class="pause-options hidden" id="pause-options">
+        <div class="prow small" id="popt-quality">
+          <label>GRAPHICS</label>
+          <span class="arrow">&#9664;</span><span class="value" id="pause-quality"></span><span class="arrow">&#9654;</span>
+        </div>
+        <div class="prow small" id="popt-audio">
+          <label>AUDIO</label>
+          <span class="arrow">&#9664;</span><span class="value" id="pause-volume"></span><span class="arrow">&#9654;</span>
+        </div>
+        <div class="prow small" id="popt-fullscreen">
+          <label>FULLSCREEN</label><span class="value" id="pause-fullscreen">OFF</span>
+        </div>
+      </div>
+      <div class="pause-hint">&uarr;&darr; select &nbsp; &larr;&rarr; change &nbsp; ENTER confirm &nbsp; &#9003; back &nbsp; P resume</div>
+    </div>
+  </div>
+
+  <button class="hud hidden" id="pause-btn" type="button" title="Pause (P)" aria-label="Pause">&#10074;&#10074;</button>
+  <button class="hud" id="fs-btn" type="button" title="Fullscreen (F)" aria-label="Toggle fullscreen">&#9974;</button>
+
+  <div id="touch-controls" aria-label="Touch driving controls">
+    <div class="touch-steer" id="touch-steer" aria-label="Steer">
+      <span class="touch-steer-label">STEER</span>
+      <span class="touch-stick" id="touch-stick"></span>
+    </div>
+    <div class="touch-actions">
+      <button type="button" class="touch-button touch-fire" data-touch-action="fire">FIRE</button>
+      <button type="button" class="touch-button touch-drift" data-touch-hold="airbrake">DRIFT</button>
+      <button type="button" class="touch-button touch-brake" data-touch-hold="brake">BRAKE</button>
+      <button type="button" class="touch-button touch-thrust" data-touch-hold="throttle">THRUST</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.js",
+        "three/addons/": "./vendor/three/addons/"
+      }
+    }
+  </script>
+  <script src="/sdk/gamevolt.js?v=2026.09.08-1" data-game="slipstream-vector"></script>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

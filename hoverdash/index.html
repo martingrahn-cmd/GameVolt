@@ -120,6 +120,34 @@
   #air-score.show{opacity:1}
   #countdown-pop{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:120px;font-weight:900;color:#00e5ff;text-shadow:0 0 60px #00e5ff,0 0 120px #00e5ffaa;pointer-events:none;z-index:15;opacity:0;transition:opacity .2s;letter-spacing:-4px}
   #bonus-pop.show{opacity:1;transform:translate(-50%,-60%)}
+  #risk-choice{position:fixed;inset:0;z-index:18;display:flex;align-items:center;justify-content:center;padding:86px 18px 24px;background:radial-gradient(ellipse at center,#07101ae6 0%,#020306d9 68%);opacity:0;pointer-events:none;transform:scale(.97);transition:opacity .2s,transform .25s}
+  #risk-choice.show{opacity:1;pointer-events:auto;transform:scale(1)}
+  #risk-choice-shell{width:min(760px,94vw);text-align:center}
+  #risk-kicker{font-size:10px;font-weight:900;letter-spacing:5px;color:#55ffe0;text-shadow:0 0 12px #00ffaa88}
+  #risk-title{margin-top:7px;font-size:clamp(25px,5vw,43px);font-weight:950;letter-spacing:4px;color:#fff;text-shadow:0 0 24px #00e5ff55}
+  #risk-subtitle{margin:6px 0 17px;font-size:11px;letter-spacing:2px;color:#718095}
+  #risk-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+  .risk-card{position:relative;min-height:174px;padding:19px 17px 16px;overflow:hidden;border:1px solid #ffffff20;border-radius:10px;background:linear-gradient(150deg,#111827f0,#060912f2);color:#fff;font-family:inherit;text-align:left;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s,background .18s}
+  .risk-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 12% 0%,var(--risk-color,#00e5ff) 0%,transparent 47%);opacity:.11;pointer-events:none}
+  .risk-card:hover,.risk-card.selected{transform:translateY(-4px);border-color:var(--risk-color,#00e5ff);background:linear-gradient(150deg,#142133f5,#070b15f5);box-shadow:0 0 0 2px color-mix(in srgb,var(--risk-color,#00e5ff) 30%,transparent),0 15px 38px #0009,0 0 32px color-mix(in srgb,var(--risk-color,#00e5ff) 22%,transparent)}
+  .risk-card.selected::after{content:'SELECTED';position:absolute;top:10px;right:10px;padding:3px 7px;border:1px solid var(--risk-color,#00e5ff);border-radius:3px;color:var(--risk-color,#00e5ff);font-size:8px;font-weight:900;letter-spacing:1.5px}
+  .risk-card:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  .risk-icon{position:relative;font-size:27px;line-height:1;color:var(--risk-color,#00e5ff);text-shadow:0 0 15px var(--risk-color,#00e5ff)}
+  .risk-name{position:relative;margin-top:10px;font-size:20px;font-weight:950;letter-spacing:2.5px}
+  .risk-detail{position:relative;margin-top:9px;font-size:11px;line-height:1.45;color:#8794a8}
+  .risk-reward{position:relative;margin-top:10px;font-size:11px;font-weight:900;letter-spacing:1.5px;color:var(--risk-color,#00e5ff)}
+  #risk-footer{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;color:#677488;font-size:10px;letter-spacing:1.5px}
+  #risk-timer-track{width:110px;height:4px;overflow:hidden;border-radius:3px;background:#ffffff17}
+  #risk-timer-bar{width:100%;height:100%;background:linear-gradient(90deg,#55ffe0,#00aaff);box-shadow:0 0 10px #00e5ff;transform-origin:left}
+  #risk-choice.confirmed #risk-title{color:#55ffe0;text-shadow:0 0 26px #00ffaa88}
+  #risk-choice.confirmed .risk-card:not(.selected){opacity:.22;transform:scale(.97)}
+  @media(max-width:580px){
+    #risk-choice{padding:72px 12px 18px}
+    #risk-cards{gap:8px}
+    .risk-card{min-height:158px;padding:14px 11px 12px}
+    .risk-name{font-size:15px;letter-spacing:1.5px}.risk-detail,.risk-reward{font-size:9px}
+    #risk-footer{gap:7px;font-size:8px;letter-spacing:1px}
+  }
 
   #pause-overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:25;background:radial-gradient(ellipse at center,#050508cc 0%,#050508ee 70%);opacity:0;pointer-events:none;transition:opacity .25s}
   #pause-overlay.show{opacity:1;pointer-events:auto}
@@ -127,7 +155,7 @@
   #pause-resume{padding:14px 44px;font-size:16px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#00e5ff;background:transparent;border:2px solid #00e5ff;cursor:pointer;transition:all .2s;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);font-family:inherit}
   #pause-resume:hover{background:#fff;color:#050508;border-color:#fff;transform:scale(1.05)}
   #pause-hint{margin-top:16px;font-size:12px;color:#556;letter-spacing:2px}
-  #pause-btn{position:fixed;top:12px;right:12px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#00e5ff;background:#0a0a1899;border:1px solid #00e5ff44;border-radius:6px;cursor:pointer;z-index:12;opacity:0;pointer-events:none;transition:opacity .3s}
+  #pause-btn{position:fixed;top:12px;right:12px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;color:#00e5ff;background:#0a0a1899;border:1px solid #00e5ff44;border-radius:6px;cursor:pointer;z-index:19;opacity:0;pointer-events:none;transition:opacity .3s}
   #pause-btn.show{opacity:.7;pointer-events:auto}
   #pause-btn:hover{opacity:1;background:#0a0a28}
   #pause-btn[data-state="playing"]::before,#pause-btn[data-state="playing"]::after{content:'';display:block;width:3px;height:14px;background:#00e5ff;border-radius:2px;box-shadow:0 0 6px #00e5ff99}
@@ -344,6 +372,18 @@
 <div id="theme-banner"><div id="theme-name"></div><div id="theme-rule"></div></div>
 <div id="air-score"></div>
 <div id="countdown-pop"></div>
+<div id="risk-choice" aria-hidden="true" inert>
+  <div id="risk-choice-shell">
+    <div id="risk-kicker">WAVE CLEARED · NEXT WAVE</div>
+    <div id="risk-title">CHOOSE YOUR RISK</div>
+    <div id="risk-subtitle">Higher danger multiplies every point earned in the next wave.</div>
+    <div id="risk-cards">
+      <button class="risk-card selected" data-risk-index="0"><span class="risk-icon"></span><div class="risk-name"></div><div class="risk-detail"></div><div class="risk-reward"></div></button>
+      <button class="risk-card" data-risk-index="1"><span class="risk-icon"></span><div class="risk-name"></div><div class="risk-detail"></div><div class="risk-reward"></div></button>
+    </div>
+    <div id="risk-footer"><span>← → / D-PAD</span><span>ENTER / A TO LOCK IN</span><div id="risk-timer-track"><div id="risk-timer-bar"></div></div><span id="risk-time">5</span></div>
+  </div>
+</div>
 <div id="lane-dots"><div class="lane-dot" id="ld-0"></div><div class="lane-dot" id="ld-1"></div><div class="lane-dot" id="ld-2"></div></div>
 <div id="velocity-vignette"></div>
 
@@ -445,6 +485,11 @@
       <div class="guide-row"><span class="gl">Ramp grinding</span><span class="gv">30 pts/sec</span></div>
       <div class="guide-note">Combo builds per coin and multiplies style bonuses. Perfect Dodges charge Overdrive; while active it doubles style and freezes the combo timer.</div>
 
+      <div class="guide-section">RISK WAVES</div>
+      <div class="guide-row"><span class="gl">Between waves</span><span class="gv">choose 1 of 2 risks</span></div>
+      <div class="guide-row"><span class="gl">Choose</span><span class="gv">← → + Enter / D-pad + A</span></div>
+      <div class="guide-note">Each risk changes only the next wave and multiplies every point earned during it. If time runs out, the highlighted risk is selected automatically.</div>
+
       <div class="guide-section">BONUS POINTS</div>
       <div class="guide-row"><span class="gl">Near miss</span><span class="gv">+5 × combo</span></div>
       <div class="guide-row"><span class="gl">Perfect Dodge phrase</span><span class="gv">+50 → 100 style</span></div>
@@ -503,6 +548,7 @@ const LW=2.8,LANES=3,MARGIN=5;
 const TW=LW*LANES+MARGIN*2,HW=TW/2,WH=8;
 const TLEN=200,SEG=25,NSEGS=Math.ceil(TLEN/SEG)+1;
 const SPAWN_Z=-190,DESPAWN_Z=18,SHIP_Z=2,SHIP_Y0=0.6;
+const WALL_GATE_DEPTH=38,WALL_GATE_COLLISION_HALF_DEPTH=WALL_GATE_DEPTH/2+1;
 const SPD0=22,SPD_MAX=130,SPD_INC=0.28,SPD_SLOW=95; // slower increase after ~75% max
 const BASE_FOV=62,MAX_FOV=82;
 const RAMP_H=1.2,RAMP_LEN=24;
@@ -551,14 +597,14 @@ const ACHIEVEMENTS=[
   {id:'shield_up',name:'Shield Up',desc:'Pick up 3 Shields in one game',tier:'bronze',icon:'\uD83D\uDEE1\uFE0F',check:'endgame',stat:'pgShieldsUsed',target:3},
   {id:'magnet_hands',name:'Magnet Hands',desc:'Pick up 3 Magnets in one game',tier:'bronze',icon:'\uD83E\uDDF2',check:'endgame',stat:'pgMagnetsUsed',target:3},
   {id:'nitro',name:'Nitro',desc:'Pick up 3 Boosts in one game',tier:'bronze',icon:'\u26A1',check:'endgame',stat:'pgBoostsUsed',target:3},
-  {id:'wave_rider',name:'Wave Rider',desc:'Clear Wave 3',tier:'bronze',icon:'\uD83C\uDF0A',check:'instant',stat:'waveNum',target:3},
+  {id:'wave_rider',name:'Wave Rider',desc:'Clear Wave 3',tier:'bronze',icon:'\uD83C\uDF0A',check:'instant',stat:'clearedWaveNum',target:3},
   {id:'close_call',name:'Close Call',desc:'Get 3 Near Misses in one game',tier:'bronze',icon:'\uD83D\uDE2C',check:'endgame',stat:'pgNearMisses',target:3},
   {id:'pad_surfer',name:'Pad Surfer',desc:'Hit 3 Boost Pads in one game',tier:'bronze',icon:'\uD83C\uDFC4',check:'endgame',stat:'pgBoostPadsHit',target:3},
   {id:'shield_wall',name:'Shield Wall',desc:'Pick up 100 Shields total',tier:'bronze',icon:'\uD83E\uDDF1',check:'lifetime',stat:'totalShields',target:100},
   {id:'magnet_master',name:'Magnet Master',desc:'Pick up 100 Magnets total',tier:'bronze',icon:'\uD83E\uDDF2',check:'lifetime',stat:'totalMagnets',target:100},
   {id:'boost_junkie',name:'Boost Junkie',desc:'Pick up 100 Boosts total',tier:'bronze',icon:'\uD83D\uDD25',check:'lifetime',stat:'totalBoosts',target:100},
   {id:'ramp_rat',name:'Ramp Rat',desc:'Ride 200 ramps total',tier:'bronze',icon:'\uD83D\uDEF9',check:'lifetime',stat:'totalRamps',target:200},
-  {id:'wave_5',name:'Wave 5',desc:'Clear Wave 5',tier:'bronze',icon:'\uD83C\uDF0A',check:'instant',stat:'waveNum',target:5},
+  {id:'wave_5',name:'Wave 5',desc:'Clear Wave 5',tier:'bronze',icon:'\uD83C\uDF0A',check:'instant',stat:'clearedWaveNum',target:5},
   // SILVER (10 — dedication + moderate skill)
   {id:'veteran_pilot',name:'Veteran Pilot',desc:'Play 100 games',tier:'silver',icon:'\u2B50',check:'lifetime',stat:'totalGames',target:100},
   {id:'addicted',name:'Addicted',desc:'Play 500 games',tier:'silver',icon:'\uD83C\uDFAE',check:'lifetime',stat:'totalGames',target:500},
@@ -574,7 +620,7 @@ const ACHIEVEMENTS=[
   {id:'untouchable',name:'Untouchable',desc:'Reach 1,000m without a shield hit',tier:'gold',icon:'\uD83D\uDC7B',check:'endgame',stat:'pgMaxMetersNoShield',target:1000},
   {id:'five_k_legend',name:'5K Legend',desc:'Reach 5,000 meters',tier:'gold',icon:'\uD83C\uDFC6',check:'endgame',stat:'meters',target:5000},
   {id:'combo_demon',name:'Combo Demon',desc:'Reach x10 combo',tier:'gold',icon:'\uD83D\uDD17',check:'instant',stat:'pgMaxCombo',target:10},
-  {id:'wave_10',name:'Wave 10',desc:'Clear Wave 10',tier:'gold',icon:'\u26A1',check:'instant',stat:'waveNum',target:10},
+  {id:'wave_10',name:'Wave 10',desc:'Clear Wave 10',tier:'gold',icon:'\u26A1',check:'instant',stat:'clearedWaveNum',target:10},
   {id:'score_crusher',name:'Score Crusher',desc:'Reach 25,000 total score',tier:'gold',icon:'\uD83D\uDCAF',check:'endgame',stat:'finalScore',target:25000},
   // PLATINUM (1 — completionist)
   {id:'hover_master',name:'Hover Master',desc:'Unlock all 30 other trophies',tier:'platinum',icon:'\uD83D\uDC51',check:'none',stat:'',target:0},
@@ -582,19 +628,62 @@ const ACHIEVEMENTS=[
 
 // Achievement data persistence
 const HD_KEY='hd_data';
+const hdMemoryStorage={};
+function safeStorageGet(key){
+  try{
+    const value=localStorage.getItem(key);
+    if(value!==null){hdMemoryStorage[key]=value;return value;}
+  }catch(e){}
+  return Object.prototype.hasOwnProperty.call(hdMemoryStorage,key)?hdMemoryStorage[key]:null;
+}
+function safeStorageSet(key,value){
+  const stored=String(value);hdMemoryStorage[key]=stored;
+  try{localStorage.setItem(key,stored);return true;}catch(e){return false;}
+}
 function defaultHDData(){
   const d={totalGames:0,totalCoins:0,totalCoinsCollected:0,totalShields:0,totalMagnets:0,totalBoosts:0,totalRamps:0,bestMeters:0,bestScore:0,scores:[],dailyCount:0,lastDailyDate:'',unlocked:{}};
   for(const a of ACHIEVEMENTS) d.unlocked[a.id]=0;
   return d;
 }
 function loadHDData(){
-  try{const raw=localStorage.getItem(HD_KEY);if(raw){const d=JSON.parse(raw);if(!d.scores) d.scores=[];if(!d.unlocked)d.unlocked={};for(const a of ACHIEVEMENTS){if(!(a.id in d.unlocked)) d.unlocked[a.id]=0;}if(!('totalCoinsCollected' in d)) d.totalCoinsCollected=0;if(!('dailyCount' in d)) d.dailyCount=0;if(!('lastDailyDate' in d)) d.lastDailyDate='';return d;}}catch(e){}
+  try{const raw=safeStorageGet(HD_KEY);if(raw){const d=JSON.parse(raw);if(!d.scores) d.scores=[];if(!d.unlocked)d.unlocked={};for(const a of ACHIEVEMENTS){if(!(a.id in d.unlocked)) d.unlocked[a.id]=0;}if(!('totalCoinsCollected' in d)) d.totalCoinsCollected=0;if(!('dailyCount' in d)) d.dailyCount=0;if(!('lastDailyDate' in d)) d.lastDailyDate='';return d;}}catch(e){}
   const d=defaultHDData();
-  try{const old=parseInt(localStorage.getItem('hd_best'))||0;if(old>0) d.bestScore=old;}catch(e){}
+  const old=parseInt(safeStorageGet('hd_best'))||0;if(old>0) d.bestScore=old;
   return d;
 }
-function saveHDData(){try{localStorage.setItem(HD_KEY,JSON.stringify(hdData));}catch(e){}}
+function saveHDData(){safeStorageSet(HD_KEY,JSON.stringify(hdData));}
 let hdData=loadHDData();
+
+function mergeHDScores(localScores,cloudScores){
+  const merged=[],seen=new Set();
+  const add=function(entry){
+    if(!entry||!Number.isFinite(Number(entry.score))) return;
+    const key=[Number(entry.score),Number(entry.meters)||0,Number(entry.date)||0].join('|');
+    if(seen.has(key)) return;
+    seen.add(key);merged.push(entry);
+  };
+  (Array.isArray(localScores)?localScores:[]).forEach(add);
+  (Array.isArray(cloudScores)?cloudScores:[]).forEach(add);
+  merged.sort(function(a,b){
+    return (Number(b.score)||0)-(Number(a.score)||0)
+      ||(Number(b.meters)||0)-(Number(a.meters)||0)
+      ||(Number(b.date)||0)-(Number(a.date)||0);
+  });
+  return merged.slice(0,10);
+}
+function latestHDDailyDate(localDate,cloudDate){
+  const valid=/^\d{4}-\d{2}-\d{2}$/;
+  const l=valid.test(localDate||'')?localDate:'';
+  const c=valid.test(cloudDate||'')?cloudDate:'';
+  return l>=c?l:c;
+}
+function mergeHDUnlocks(localUnlocked,cloudUnlocked){
+  const l=localUnlocked&&typeof localUnlocked==='object'?localUnlocked:{};
+  const c=cloudUnlocked&&typeof cloudUnlocked==='object'?cloudUnlocked:{};
+  const merged={},ids=new Set(Object.keys(c).concat(Object.keys(l)));
+  ids.forEach(function(id){merged[id]=Math.max(Number(c[id])||0,Number(l[id])||0);});
+  return merged;
+}
 
 // GameVolt SDK integration
 if(window.GameVolt){
@@ -615,15 +704,15 @@ if(window.GameVolt){
         bestMeters:Math.max(l.bestMeters||0,c.bestMeters||0),
         bestScore:Math.max(l.bestScore||0,c.bestScore||0),
         dailyCount:Math.max(l.dailyCount||0,c.dailyCount||0),
-        lastDailyDate:l.lastDailyDate||c.lastDailyDate||'',
-        scores:(l.scores&&l.scores.length>0)?l.scores:(c.scores||[]),
-        unlocked:Object.assign({},c.unlocked||{},l.unlocked||{})
+        lastDailyDate:latestHDDailyDate(l.lastDailyDate,c.lastDailyDate),
+        scores:mergeHDScores(l.scores,c.scores),
+        unlocked:mergeHDUnlocks(l.unlocked,c.unlocked)
       };
     },
     getScores:function(local){
       var d=local['hd_data'];
       if(!d||!d.scores||d.scores.length===0) return[];
-      return[{score:d.scores[0].score,mode:'default'}];
+      return[{score:d.scores[0].score,mode:'vx9'}];
     },
     getAchievements:function(local){
       var d=local['hd_data'];
@@ -758,7 +847,7 @@ const DAILY_POOL=[
   {goal:'Collect 50 coins', stat:'coinsCollected', target:50},
   {goal:'Reach x3 Combo',   stat:'pgMaxCombo', target:3},
   {goal:'Get 3 Near Misses',stat:'pgNearMisses',target:3},
-  {goal:'Clear Wave 3',  stat:'waveNum',       target:3},
+  {goal:'Clear Wave 3',  stat:'clearedWaveNum',target:3},
   {goal:'Ride 3 Ramps',  stat:'pgRampsRidden', target:3},
   {goal:'Hit 3 Boost Pads',stat:'pgBoostPadsHit',target:3},
 ];
@@ -790,19 +879,46 @@ let paused=false,musicWasPlaying=false;
 let firstPlay=true;
 let jumping=false,jumpY=0,jumpPhase='none',jumpVelY=0,holdingJump=false;
 let hasDoubleJump=false,spinActive=false,spinTimer=0,spinAngle=0;
-const SPIN_DUR=0.35,SPIN_INVULN=0.3,SPIN_BOOST=4.5;
-let ducking=false,duckTimer=0,fastFalling=false,diveDuckQueued=false;
+const SPIN_DUR=0.35,SPIN_BOOST=4.5;
+let ducking=false,duckTimer=0,duckScaleRatio=1,fastFalling=false,diveDuckQueued=false;
 const DUCK_DUR=0.85,FAST_FALL_SPEED=-12,FAST_FALL_GRAV=28;
-const SAW_MIN_JUMP_CLEARANCE=1.05,SAW_INPUT_GRACE=.18;
+const SAW_TOOTH_SCALE=1.16;
+const LOW_SAW_RADIUS=.85,LOW_SAW_BLADE_Y=LOW_SAW_RADIUS+.05;
+const HIGH_SAW_RADIUS=1.42,HIGH_SAW_BLADE_Y=3.35;
+const SAW_MIN_JUMP_CLEARANCE=LOW_SAW_BLADE_Y+LOW_SAW_RADIUS*SAW_TOOTH_SCALE-SHIP_Y0+.1;
+const SAW_DUCK_CLEAR_RATIO=.62,SAW_MAX_DUCK_JUMP=.35;
+function sawActionClears(type,jumpHeight,visibleDuckScale){
+  if(type===OT.LOW_SAW) return jumpHeight>=SAW_MIN_JUMP_CLEARANCE;
+  if(type===OT.HIGH_SAW) return jumpHeight<SAW_MAX_DUCK_JUMP&&visibleDuckScale<=SAW_DUCK_CLEAR_RATIO;
+  return false;
+}
+function advanceDuckScale(current,isDucking,seconds){
+  const target=isDucking?.45:1;
+  return target+(current-target)*Math.exp(-12*Math.max(0,seconds));
+}
 let onRamp=false,rampRef=null,launchCD=0;
 let landShake=0,landWobble=0;
 let colTimer=0,puTimer=0,elapsed=0,dt=0;
 let flashTimer=0,screenShake=0,diff=0;
 let aObs=[],aCol=[],aPU=[],gameT0=0;
 let waveTimer=0,wavePhase='action';
-let countdownN=3,countdownT=0,waveNum=0;
-const WAVE_REST_MIN=2.5,WAVE_REST_MAX=3.5;
+let countdownN=3,countdownT=0,waveNum=0,clearedWaveNum=0;
 let waveRestDur=0;
+const RISK_CHOICE_TIMEOUT=5;
+const RISK_MODIFIERS=Object.freeze([
+  {id:'hyperdrive',icon:'⚡',name:'HYPERDRIVE',detail:'+6 speed. Less time to read each obstacle.',reward:'×1.50 ALL POINTS',color:'#00e5ff',scoreMultiplier:1.5,speedBonus:6},
+  {id:'sawstorm',icon:'✹',name:'SAWSTORM',detail:'An extra jump-and-duck saw phrase joins the wave.',reward:'×1.60 ALL POINTS',color:'#ffcc33',scoreMultiplier:1.6,extraSawPhrase:true},
+  {id:'glass-run',icon:'◇',name:'GLASS RUN',detail:'Shields are disabled for the entire wave.',reward:'×2.00 ALL POINTS',color:'#ff4466',scoreMultiplier:2,noShield:true},
+  {id:'coin-rush',icon:'◉',name:'COIN RUSH',detail:'Twice the coin traffic at +2 speed.',reward:'×1.35 ALL POINTS',color:'#44ff99',scoreMultiplier:1.35,speedBonus:2,coinIntervalMultiplier:.5}
+]);
+const RISK_MAX_SPEED_BONUS=Math.max(...RISK_MODIFIERS.map(modifier=>modifier.speedBonus||0));
+function riskChoicesForWave(nextWave){
+  const first=(Math.max(2,nextWave)-2)%RISK_MODIFIERS.length;
+  const offset=nextWave%2?2:1;
+  return [RISK_MODIFIERS[first],RISK_MODIFIERS[(first+offset)%RISK_MODIFIERS.length]];
+}
+function riskBonusFor(points,modifier){return points*Math.max(0,(modifier?.scoreMultiplier||1)-1);}
+let activeRiskModifier=null,pendingRiskModifier=null,riskChoiceOptions=[],riskChoiceIndex=0,riskChoiceOpen=false,riskBonusScore=0;
 const WAVE_THEMES=[
   {id:'lane-lock',name:'LANE LOCK',rule:'READ THE OPEN LANE',color:'#00e5ff'},
   {id:'altitude',name:'ALTITUDE',rule:'JUMP · DUCK · COMMIT',color:'#ffcc33'},
@@ -833,7 +949,8 @@ const OBSTACLE_PHRASES={
   slalom:[
     {name:'RED CANYON',steps:[
       {type:OT.WALL_GATE,open:0,gap:2.35},{type:OT.WALL_GATE,open:2,gap:2.35},
-      {type:OT.WALL_GATE,open:1,gap:1.4}
+      // The center channel needs a full tunnel exit before the next phrase can begin.
+      {type:OT.WALL_GATE,open:1,gap:2.35}
     ]},
     {name:'CHICANE',steps:[
       {type:OT.DUAL_LASER,open:2,gap:1.15},{type:OT.V_LASER,lane:2,gap:.95},
@@ -895,7 +1012,7 @@ function recommendedAutoTier(){
   const cores=navigator.hardwareConcurrency||4;
   return coarse||memory<=4||cores<=4?'medium':'high';
 }
-let effectsMode=localStorage.getItem('hd_effects')||'auto';
+let effectsMode=safeStorageGet('hd_effects')||'auto';
 if(!EFFECT_MODES.includes(effectsMode)) effectsMode='auto';
 let adaptiveTier=recommendedAutoTier();
 function activeEffectTier(){return effectsMode==='auto'?adaptiveTier:effectsMode;}
@@ -2475,8 +2592,8 @@ function mkBlade(R,color,nTeeth){
 // LOW_SAW — 3 small blades rising from the floor (jump over!)
 function mkFloorSaws(){
   const g=new THREE.Group();g.userData={type:OT.LOW_SAW,active:false,lane:-1,lanes:[0,1,2],mt:0,bladeEmitters:[]};
-  const color=C.red,R=.85;
-  const bladeY=R+0.05; // sit on floor
+  const color=C.red,R=LOW_SAW_RADIUS;
+  const bladeY=LOW_SAW_BLADE_Y; // sit on floor
 
   // One blade per lane
   for(let li=0;li<3;li++){
@@ -2514,8 +2631,8 @@ function mkFloorSaws(){
 // HIGH_SAW — wall of blades hanging from ceiling (duck under!)
 function mkCeilingSaws(){
   const g=new THREE.Group();g.userData={type:OT.HIGH_SAW,active:false,lane:-1,lanes:[0,1,2],mt:0,bladeEmitters:[]};
-  const color=C.yellow,R=1.42;
-  const bladeY=3.35; // generous duck opening while preserving a dangerous silhouette
+  const color=C.yellow,R=HIGH_SAW_RADIUS;
+  const bladeY=HIGH_SAW_BLADE_Y; // generous duck opening while preserving a dangerous silhouette
 
   // 3 overlapping blades for "wall" effect, tighter spacing
   const xPos=[-1.9,0,1.9];
@@ -2657,7 +2774,7 @@ function mkDualLaser(){
 
 function mkWallGate(){
   const g=new THREE.Group();g.userData={type:OT.WALL_GATE,active:false,lane:-1,lanes:[],mt:0,runLights:[]};
-  const wallH=7,wallD=38,wallW=LW*1.1;
+  const wallH=7,wallD=WALL_GATE_DEPTH,wallW=LW*1.1;
   const wc=C.red;
   for(let wi=0;wi<2;wi++){
     const wall=new THREE.Group();wall.userData={wallIndex:wi};
@@ -2927,7 +3044,7 @@ function initPools(){
 function gp(pool,type){for(const o of pool) if(!o.userData.active&&(type===undefined||o.userData.type===type||o.userData.puType===type)) return o;return null;}
 function rp(o){
   o.userData.active=false;o.visible=false;o.scale.setScalar(1);
-  o.userData.spawnReveal=1;o.userData.sawPendingHit=false;o.userData.sawCrossedContact=false;
+  o.userData.spawnReveal=1;o.userData.sawCrossedContact=false;
 }
 
 // ═══════════════════════════════════════════════════
@@ -3020,7 +3137,7 @@ function spawnObstacleSpec(spec,phraseId=0,spawnZ=SPAWN_Z){
   }
   o.userData.mt=0;o.userData.whooshPlayed=false;o.userData.whooshExited=false;
   o.userData.nearMissed=false;o.userData.phraseId=phraseId;o.userData.phrasePassed=false;
-  o.userData.sawPendingHit=false;o.userData.sawHitTimer=0;o.userData.sawCrossedContact=false;
+  o.userData.sawCrossedContact=false;
   o.userData.prevZ=spawnZ;
   const isSaw=t===OT.LOW_SAW||t===OT.HIGH_SAW;
   o.userData.spawnReveal=isSaw?0:1;o.scale.setScalar(isSaw?.72:1);
@@ -3029,7 +3146,8 @@ function spawnObstacleSpec(spec,phraseId=0,spawnZ=SPAWN_Z){
 function themeForWave(n){return WAVE_THEMES[(Math.max(1,n)-1)%WAVE_THEMES.length];}
 function startNextPhrase(){
   if(wavePhrasesSpawned>=wavePhraseTarget||phraseQueue.length) return false;
-  const templates=OBSTACLE_PHRASES[currentWaveTheme.id];
+  const useSawPhrase=!!activeRiskModifier?.extraSawPhrase&&wavePhrasesSpawned===wavePhraseTarget-1;
+  const templates=OBSTACLE_PHRASES[useSawPhrase?'altitude':currentWaveTheme.id];
   const template=templates[(waveNum-1+wavePhrasesSpawned)%templates.length];
   const id=++phraseCounter;
   const total=template.steps.reduce((n,step)=>n+(isPhraseHazard(step.type)?1:0),0);
@@ -3045,7 +3163,10 @@ function startNextPhrase(){
     queuedZ-=phraseSpeed*(step.gap||1);
     return item;
   });
-  phraseCooldown=template.steps.slice(0,-1).reduce((sum,step)=>sum+(step.gap||1),0)+1.05;
+  // Every step's gap describes the time before the following obstacle. Honouring
+  // the final step is essential for long WALL_GATE meshes: otherwise the first
+  // hazard of the next phrase can sit inside the tunnel exit.
+  phraseCooldown=template.steps.reduce((sum,step)=>sum+(step.gap||1.05),0);
   phraseDelay=0;wavePhrasesSpawned++;
   return true;
 }
@@ -3068,9 +3189,15 @@ function wavePhrasesResolved(){
 }
 function beginWave(n){
   waveNum=n;wavePhase='action';waveTimer=0;
+  activeRiskModifier=pendingRiskModifier;pendingRiskModifier=null;closeRiskChoice();riskChoiceOptions=[];
   currentWaveTheme=themeForWave(waveNum);
-  wavePhrasesSpawned=0;wavePhraseTarget=waveNum>=6?3:2;
+  wavePhrasesSpawned=0;wavePhraseTarget=(waveNum>=6?3:2)+(activeRiskModifier?.extraSawPhrase?1:0);
   phraseQueue=[];phraseDelay=0;phraseCooldown=0;
+  if(activeRiskModifier?.noShield){
+    shieldActive=false;shieldTimer=0;shieldBubble.visible=false;
+    document.getElementById('pu-shield').classList.remove('active');setPURing(puRingShield,0);
+    for(let i=aPU.length-1;i>=0;i--) if(aPU[i].userData.puType===PU.SHIELD){rp(aPU[i]);aPU.splice(i,1);}
+  }
   startNextPhrase();announceWaveTheme();
 }
 function spawnC(){
@@ -3095,7 +3222,7 @@ function spawnC(){
   }
   o.position.set((l-1)*LW,coinY,SPAWN_Z);o.userData.active=true;o.userData.lane=l;o.visible=true;aCol.push(o);
 }
-function spawnPU(){const t=Math.floor(Math.random()*3),o=gp(puPool,t);if(!o) return;const l=Math.floor(Math.random()*LANES);o.position.set((l-1)*LW,0,SPAWN_Z);o.userData.active=true;o.userData.lane=l;o.visible=true;aPU.push(o);}
+function spawnPU(){const types=activeRiskModifier?.noShield?[PU.MAGNET,PU.BOOST]:[PU.SHIELD,PU.MAGNET,PU.BOOST],t=types[Math.floor(Math.random()*types.length)],o=gp(puPool,t);if(!o) return;const l=Math.floor(Math.random()*LANES);o.position.set((l-1)*LW,0,SPAWN_Z);o.userData.active=true;o.userData.lane=l;o.visible=true;aPU.push(o);}
 
 // ═══════════════════════════════════════════════════
 // BONUS
@@ -3104,20 +3231,73 @@ let bonusTO=null;
 function showBonus(t){
   const e=document.getElementById('bonus-pop');e.textContent=t;e.classList.add('show');clearTimeout(bonusTO);bonusTO=setTimeout(()=>e.classList.remove('show'),600);
 }
+function updateRiskChoiceUI(){
+  const cards=Array.from(document.querySelectorAll('.risk-card'));
+  cards.forEach((card,index)=>{
+    const modifier=riskChoiceOptions[index];if(!modifier) return;
+    card.classList.toggle('selected',index===riskChoiceIndex);
+    card.setAttribute('aria-pressed',index===riskChoiceIndex?'true':'false');
+    card.style.setProperty('--risk-color',modifier.color);
+    card.querySelector('.risk-icon').textContent=modifier.icon;
+    card.querySelector('.risk-name').textContent=modifier.name;
+    card.querySelector('.risk-detail').textContent=modifier.detail;
+    card.querySelector('.risk-reward').textContent=modifier.reward;
+  });
+}
+function openRiskChoice(nextWave){
+  riskChoiceOptions=riskChoicesForWave(nextWave);riskChoiceIndex=0;riskChoiceOpen=true;
+  const panel=document.getElementById('risk-choice');
+  panel.inert=false;panel.classList.remove('confirmed');panel.classList.add('show');panel.setAttribute('aria-hidden','false');
+  document.getElementById('risk-kicker').textContent='WAVE '+waveNum+' CLEARED · NEXT WAVE '+nextWave;
+  document.getElementById('risk-title').textContent='CHOOSE YOUR RISK';
+  document.getElementById('risk-subtitle').textContent='Higher danger multiplies every point earned in the next wave.';
+  updateRiskChoiceUI();updateRiskChoiceTimer();
+}
+function closeRiskChoice(){
+  riskChoiceOpen=false;
+  const panel=document.getElementById('risk-choice');
+  panel.inert=true;panel.classList.remove('show','confirmed');panel.setAttribute('aria-hidden','true');
+}
+function moveRiskChoice(direction){
+  if(!riskChoiceOpen||riskChoiceOptions.length<2) return;
+  riskChoiceIndex=(riskChoiceIndex+(direction<0?-1:1)+riskChoiceOptions.length)%riskChoiceOptions.length;
+  updateRiskChoiceUI();playMenuMove();
+}
+function confirmRiskChoice(index=riskChoiceIndex){
+  if(!riskChoiceOpen) return;
+  riskChoiceIndex=Math.max(0,Math.min(riskChoiceOptions.length-1,index));
+  pendingRiskModifier=riskChoiceOptions[riskChoiceIndex];riskChoiceOpen=false;updateRiskChoiceUI();
+  const panel=document.getElementById('risk-choice');panel.inert=true;panel.classList.add('confirmed');
+  document.getElementById('risk-title').textContent=pendingRiskModifier.name+' LOCKED';
+  document.getElementById('risk-subtitle').textContent=pendingRiskModifier.detail+' '+pendingRiskModifier.reward+'.';
+  document.getElementById('risk-time').textContent='READY';
+  document.getElementById('risk-timer-bar').style.transform='scaleX(0)';
+  waveRestDur=Math.min(waveRestDur,waveTimer+.9);playSFXSample('menu_click',.65);
+}
+function updateRiskChoiceTimer(){
+  if(!riskChoiceOpen) return;
+  const remaining=Math.max(0,RISK_CHOICE_TIMEOUT-waveTimer);
+  document.getElementById('risk-time').textContent=Math.ceil(remaining)+'s';
+  document.getElementById('risk-timer-bar').style.transform='scaleX('+(remaining/RISK_CHOICE_TIMEOUT)+')';
+}
+document.querySelectorAll('.risk-card').forEach(card=>{
+  card.addEventListener('mouseenter',()=>{if(riskChoiceOpen){riskChoiceIndex=Number(card.dataset.riskIndex)||0;updateRiskChoiceUI();}});
+  card.addEventListener('click',()=>confirmRiskChoice(Number(card.dataset.riskIndex)||0));
+});
 let themeTO=null;
 function announceWaveTheme(){
   const banner=document.getElementById('theme-banner');
   document.getElementById('theme-name').textContent=currentWaveTheme.name;
-  document.getElementById('theme-rule').textContent='WAVE '+waveNum+' · '+currentWaveTheme.rule;
+  document.getElementById('theme-rule').textContent='WAVE '+waveNum+' · '+currentWaveTheme.rule+(activeRiskModifier?' · '+activeRiskModifier.name+' '+activeRiskModifier.reward.replace(' ALL POINTS',''):'');
   banner.style.setProperty('--theme-color',currentWaveTheme.color);
   banner.classList.add('show');clearTimeout(themeTO);
   themeTO=setTimeout(()=>banner.classList.remove('show'),1700);
 }
-function effectiveSpeed(){return spd+boostSpd+(overdriveActive?OVERDRIVE_SPEED:0);}
+function effectiveSpeed(){return spd+boostSpd+(overdriveActive?OVERDRIVE_SPEED:0)+(activeRiskModifier?.speedBonus||0);}
 function awardStyle(points){
-  const awarded=points*(overdriveActive?2:1);
-  styleScore+=awarded;
-  return Math.floor(awarded);
+  const baseAwarded=points*(overdriveActive?2:1),riskBonus=riskBonusFor(baseAwarded,activeRiskModifier);
+  styleScore+=baseAwarded;riskBonusScore+=riskBonus;
+  return Math.floor(baseAwarded+riskBonus);
 }
 function activateOverdrive(){
   if(overdriveActive) return;
@@ -3168,7 +3348,9 @@ function resolvePhraseObstacle(o,clean=true){
   chargeOverdrive(35);
 }
 function getStylePoints(){return Math.floor(styleScore);}
-function getFinalScore(){return Math.floor(meters)+coinPoints+getStylePoints();}
+function getFinalScore(){return Math.floor(meters)+coinPoints+getStylePoints()+Math.floor(riskBonusScore);}
+function isNewHighScore(finalScore,previousBest){return finalScore>previousBest;}
+function isSpinCollisionSafe(active,timer){return Boolean(active)&&timer>0;}
 function registerShieldHit(){
   const m=Math.floor(meters);
   pgMaxMetersNoShield=Math.max(pgMaxMetersNoShield,m-pgNoShieldStreakStartMeters);
@@ -3184,7 +3366,7 @@ function shipOverLane(lane,width=LW*.4){return Math.abs(ship.position.x-laneCent
 function shipOverAnyLane(lanes,width=LW*.4){return lanes.some(lane=>shipOverLane(lane,width));}
 
 function collide(){
-  const sx=ship.position.x,air=jumpY>0.8,isDuck=ducking&&!air;
+  const sx=ship.position.x,air=jumpY>0.8;
   const slopeLen=2.5,slopeFront=1+slopeLen;
   if(launchCD>0) launchCD-=dt; // countdown
   if(onRamp&&rampRef){
@@ -3206,16 +3388,6 @@ function collide(){
   }
   for(let i=aObs.length-1;i>=0;i--){
     const o=aObs[i],oz=o.position.z,t=o.userData.type;
-    let sawGraceExpired=false;
-    if(o.userData.sawPendingHit){
-      const corrected=t===OT.LOW_SAW
-        ?jumpY>=SAW_MIN_JUMP_CLEARANCE
-        :(ducking&&jumpY<.35);
-      if(corrected){o.userData.sawPendingHit=false;continue;}
-      o.userData.sawHitTimer-=dt;
-      if(o.userData.sawHitTimer>0) continue;
-      o.userData.sawPendingHit=false;sawGraceExpired=true;
-    }
     if(t===OT.RAMP){
       if(!shipOverAnyLane(obstacleLanes(o),LW*.45)) continue;
       if(launchCD>0) continue; // skip ramp attach during cooldown!
@@ -3253,7 +3425,7 @@ function collide(){
         const beamX=o.userData.sweepPos;
         if(Math.abs(ship.position.x-beamX)<LW*.4){
           if(jumping&&jumpY>2) continue; // can jump over
-          if(spinActive){failPhraseForObstacle(o);continue;}
+          if(isSpinCollisionSafe(spinActive,spinTimer)){failPhraseForObstacle(o);continue;}
           if(boostActive){failPhraseForObstacle(o);resolvePhraseObstacle(o,false);screenShake=.1;emitDeathExplosion(beamX,1.5,oz);rp(o);aObs.splice(i,1);const pts=awardStyle(25);showBonus('+'+pts+' SMASH!');playSFXSample('boost_smash',0.8);pgBoostSmashes++;continue;}
           if(shieldActive){failPhraseForObstacle(o);resolvePhraseObstacle(o,false);shieldActive=false;shieldTimer=0;shieldBubble.visible=false;screenShake=.15;emitPUBurst(ship.position.x,1,SHIP_Z,C.shield);rp(o);aObs.splice(i,1);document.getElementById('pu-shield').classList.remove('active');setPURing(puRingShield,0);playShieldHitSFX();registerShieldHit();continue;}
           failPhraseForObstacle(o);return die();
@@ -3263,10 +3435,10 @@ function collide(){
     }
     // Saw rotors are judged at their real contact plane. Other hazards keep their wider body depth.
     const isSaw=t===OT.LOW_SAW||t===OT.HIGH_SAW;
-    const zFront=t===OT.WALL_GATE?SHIP_Z+20:isSaw?SHIP_Z+.65:SHIP_Z+1.5;
-    const zBack=t===OT.WALL_GATE?SHIP_Z-20:isSaw?SHIP_Z-.75:SHIP_Z-2;
+    const zFront=t===OT.WALL_GATE?SHIP_Z+WALL_GATE_COLLISION_HALF_DEPTH:isSaw?SHIP_Z:SHIP_Z+1.5;
+    const zBack=t===OT.WALL_GATE?SHIP_Z-WALL_GATE_COLLISION_HALF_DEPTH:isSaw?SHIP_Z:SHIP_Z-2;
     if(isSaw){
-      if(!sawGraceExpired&&!o.userData.sawCrossedContact) continue;
+      if(!o.userData.sawCrossedContact) continue;
     } else if(oz>zFront||oz<zBack) continue;
     if(onRamp&&t!==OT.WALL_GATE) continue; // WALL_GATE is too tall to ramp over
     if(t===OT.V_LASER){
@@ -3279,21 +3451,13 @@ function collide(){
       if(!shipOverAnyLane(obstacleLanes(o),LW*.5)) continue;
     }
     else if(t===OT.LOW_SAW){
-      if(!shipOverAnyLane(obstacleLanes(o),LW*.4)||jumpY>=SAW_MIN_JUMP_CLEARANCE) continue;
-      if(!sawGraceExpired){
-        o.userData.sawPendingHit=true;o.userData.sawHitTimer=SAW_INPUT_GRACE;
-        showBonus('▲ JUMP NOW');screenShake=.04;continue;
-      }
+      if(!shipOverAnyLane(obstacleLanes(o),LW*.4)||sawActionClears(t,jumpY,duckScaleRatio)) continue;
     }
     else if(t===OT.HIGH_SAW){
-      if(!shipOverAnyLane(obstacleLanes(o),LW*.4)||isDuck) continue;
-      if(!sawGraceExpired){
-        o.userData.sawPendingHit=true;o.userData.sawHitTimer=SAW_INPUT_GRACE;
-        showBonus('▼ DUCK NOW');screenShake=.04;continue;
-      }
+      if(!shipOverAnyLane(obstacleLanes(o),LW*.4)||sawActionClears(t,jumpY,duckScaleRatio)) continue;
     }
     else if(!shipOverAnyLane(obstacleLanes(o),LW*.4)) continue;
-    if(spinActive){failPhraseForObstacle(o);continue;} // invincible, but not a Perfect Dodge
+    if(isSpinCollisionSafe(spinActive,spinTimer)){failPhraseForObstacle(o);continue;} // safe for the full visible roll, but not a Perfect Dodge
     if(boostActive){failPhraseForObstacle(o);resolvePhraseObstacle(o,false);screenShake=.1;emitDeathExplosion(o.position.x||ship.position.x,1.5,o.position.z);rp(o);aObs.splice(i,1);const pts=awardStyle(25);showBonus('+'+pts+' SMASH!');playSFXSample('boost_smash',0.8);pgBoostSmashes++;continue;}
     if(shieldActive){failPhraseForObstacle(o);resolvePhraseObstacle(o,false);shieldActive=false;shieldTimer=0;shieldBubble.visible=false;screenShake=.15;emitPUBurst(ship.position.x,1,SHIP_Z,C.shield);rp(o);aObs.splice(i,1);document.getElementById('pu-shield').classList.remove('active');setPURing(puRingShield,0);playShieldHitSFX();registerShieldHit();continue;}
     failPhraseForObstacle(o);return die();
@@ -3307,6 +3471,7 @@ function collide(){
       if(newMult>comboMultiplier){comboMultiplier=newMult;showBonus('x'+comboMultiplier+' COMBO!');if(comboMultiplier>pgMaxCombo){pgMaxCombo=comboMultiplier;checkInstantAch();}}
       coinsCollected++;
       coinPoints+=10;
+      riskBonusScore+=riskBonusFor(10,activeRiskModifier);
       awardStyle(10*(comboMultiplier-1));
       flashTimer=.1;emitCoinSparkle(c.position.x,1,c.position.z);rp(c);aCol.splice(i,1);
     }
@@ -3417,9 +3582,11 @@ function updateJump(){
   if(jumpY>6) jumpY=6;
 }
 function updateDuck(){
-  if(!ducking) return;
-  if(keyDuckHeld||touchDuckHeld||gamepadDuckHeld){duckTimer=DUCK_DUR;return;}
-  duckTimer-=dt;if(duckTimer<=0){ducking=false;duckTimer=0;}
+  if(ducking){
+    if(keyDuckHeld||touchDuckHeld||gamepadDuckHeld) duckTimer=DUCK_DUR;
+    else{duckTimer-=dt;if(duckTimer<=0){ducking=false;duckTimer=0;}}
+  }
+  duckScaleRatio=advanceDuckScale(duckScaleRatio,ducking,dt);
 }
 
 // ═══════════════════════════════════════════════════
@@ -3488,7 +3655,7 @@ function togglePause(){
           const want=v>0;
           if(want!==musicEnabled){
             musicEnabled=want;
-            localStorage.setItem('hd_music',musicEnabled?'1':'0');
+            safeStorageSet('hd_music',musicEnabled?'1':'0');
             const btn=document.getElementById('music-btn');
             btn.textContent=musicEnabled?'ON':'OFF';
             btn.classList.toggle('on',musicEnabled);
@@ -3498,7 +3665,7 @@ function togglePause(){
           const want=v>0;
           if(want!==sfxEnabled){
             sfxEnabled=want;
-            localStorage.setItem('hd_sfx',sfxEnabled?'1':'0');
+            safeStorageSet('hd_sfx',sfxEnabled?'1':'0');
             const btn=document.getElementById('sfx-btn');
             btn.textContent=sfxEnabled?'ON':'OFF';
             btn.classList.toggle('on',sfxEnabled);
@@ -3540,7 +3707,7 @@ function getStatValue(s){
     case 'meters':return Math.floor(meters);case 'coinsCollected':return coinsCollected;
     case 'coinPoints':return coinPoints;case 'styleScore':return getStylePoints();
     case 'finalScore':return getFinalScore();
-    case 'waveNum':return waveNum;case 'spd':return spd;
+    case 'waveNum':return waveNum;case 'clearedWaveNum':return clearedWaveNum;case 'spd':return spd;
     case 'pgNearMisses':return pgNearMisses;case 'pgBarrelRolls':return pgBarrelRolls;
     case 'pgBoostSmashes':return pgBoostSmashes;case 'pgSweepDodges':return pgSweepDodges;
     case 'pgShieldsUsed':return pgShieldsUsed;case 'pgMagnetsUsed':return pgMagnetsUsed;
@@ -3594,7 +3761,7 @@ function checkEndgameAch(){
 }
 
 function die(){
-  gs='dead';screenShake=.4;
+  gs='dead';screenShake=.4;closeRiskChoice();
   document.body.classList.add('menu-visible');
   document.body.classList.remove('game-active');
   if(activeTunnelSound) stopTunnelWhoosh();if(activeGrindSound) stopGrindSFX();
@@ -3602,11 +3769,12 @@ function die(){
   emitDeathExplosion(ship.position.x,ship.position.y,SHIP_Z);
   const m=Math.floor(meters);
   const finalScore=getFinalScore();
+  const previousBest=Number(hdData.bestScore)||0;
   checkEndgameAch();
   saveScore(finalScore,m);
   bestScore=hdData.bestScore;
-  const isNewBest=finalScore>=bestScore;
-  gvPost('game_over',{score:finalScore,mode:'vx9',stats:{meters:m,coins:coinsCollected,coin_points:coinPoints,style_points:getStylePoints()}});
+  const isNewBest=isNewHighScore(finalScore,previousBest);
+  gvPost('game_over',{score:finalScore,mode:'vx9',stats:{meters:m,coins:coinsCollected,coin_points:coinPoints,style_points:getStylePoints(),risk_points:Math.floor(riskBonusScore)}});
   GameVoltTracker.end({score:finalScore,outcome:'lose'});
   if(isNewBest) gvPost('high_score',{score:finalScore,mode:'vx9'});
   if(window.GameVolt){GameVolt.leaderboard.submit(finalScore,{mode:'vx9'});_lbCache=null;}
@@ -3615,7 +3783,7 @@ function die(){
   switchTab('play');
   document.getElementById('game-title').textContent='GAME OVER';document.getElementById('game-subtitle').textContent='';
   document.getElementById('final-score').style.display='block';document.getElementById('final-score').textContent='SCORE: '+finalScore;
-  document.getElementById('final-coins').style.display='block';document.getElementById('final-coins').textContent=m+'m  +  \u{1FA99}'+coinsCollected+' ('+coinPoints+')  +  STYLE '+getStylePoints();
+  document.getElementById('final-coins').style.display='block';document.getElementById('final-coins').textContent=m+'m  +  \u{1FA99}'+coinsCollected+' ('+coinPoints+')  +  STYLE '+getStylePoints()+(riskBonusScore>=1?'  +  RISK '+Math.floor(riskBonusScore):'');
   document.getElementById('best-score').style.display='block';document.getElementById('best-score').textContent='BEST: '+bestScore;
   document.getElementById('start-btn').textContent='RETRY';
   document.getElementById('menu-btn').style.display='inline-block';
@@ -3627,8 +3795,8 @@ function start(){
   aObs.forEach(o=>rp(o));aCol.forEach(c=>rp(c));aPU.forEach(p=>rp(p));
   aObs=[];aCol=[];aPU=[];score=0;meters=0;spd=SPD0;curLane=1;targetX=0;
   comboCount=0;comboTimer=0;comboMultiplier=1;
-  coinsCollected=0;coinPoints=0;styleScore=0;
-  jumping=false;jumpY=0;jumpVelY=0;jumpPhase='none';ducking=false;duckTimer=0;fastFalling=false;diveDuckQueued=false;
+  coinsCollected=0;coinPoints=0;styleScore=0;riskBonusScore=0;
+  jumping=false;jumpY=0;jumpVelY=0;jumpPhase='none';ducking=false;duckTimer=0;duckScaleRatio=1;fastFalling=false;diveDuckQueued=false;
   onRamp=false;rampRef=null;
   keyJumpHeld=false;touchJumpHeld=false;gamepadJumpHeld=false;
   keyDuckHeld=false;touchDuckHeld=false;gamepadDuckHeld=false;
@@ -3637,7 +3805,8 @@ function start(){
   for(const key in effectStepAcc) effectStepAcc[key]=0;
   hasDoubleJump=false;spinActive=false;spinTimer=0;spinAngle=0;
   colTimer=0;puTimer=8;flashTimer=0;screenShake=0;diff=0;
-  waveTimer=0;wavePhase='action';waveRestDur=0;
+  waveTimer=0;wavePhase='action';waveRestDur=0;clearedWaveNum=0;
+  activeRiskModifier=null;pendingRiskModifier=null;riskChoiceOptions=[];riskChoiceIndex=0;closeRiskChoice();
   currentWaveTheme=WAVE_THEMES[0];phraseQueue=[];phraseDelay=0;phraseCooldown=0;
   phraseCounter=0;wavePhrasesSpawned=0;wavePhraseTarget=2;phraseRuns.clear();
   perfectDodgeStreak=0;overdriveMeter=0;overdriveActive=false;overdriveTimer=0;
@@ -3699,11 +3868,11 @@ function sLane(d){
   if(gs!=='playing'&&gs!=='countdown') return;
   const n=curLane+d;
   if(n<0||n>=LANES) return;
-  // Wall gate bounce: only lock when wall is close (within 35 units ahead) and not yet passed
+  // Keep lane input locked until the ship has cleared the same buffered depth used by collision.
   for(const o of aObs){
     if(o.userData.type===OT.WALL_GATE&&o.userData.active
        &&o.position.z>SHIP_Z-35          // wall must be close (approaching)
-       &&o.position.z<SHIP_Z+15          // and not fully passed
+       &&o.position.z<=SHIP_Z+WALL_GATE_COLLISION_HALF_DEPTH
        &&o.userData.lanes.includes(n)){
       targetX=(curLane-1)*LW;screenShake=.06;return;
     }
@@ -3890,6 +4059,12 @@ document.addEventListener('keydown',e=>{
     if(action){e.preventDefault();handleMenuAction(action);}
     return;
   }
+  if(riskChoiceOpen){
+    const riskKeys={ArrowLeft:-1,a:-1,A:-1,ArrowRight:1,d:1,D:1};
+    if(riskKeys[e.key]){e.preventDefault();moveRiskChoice(riskKeys[e.key]);return;}
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();confirmRiskChoice();return;}
+    if(e.key==='1'||e.key==='2'){e.preventDefault();confirmRiskChoice(Number(e.key)-1);return;}
+  }
   switch(e.key){
     case 'a':case 'A':case 'ArrowLeft':sLane(-1);break;
     case 'd':case 'D':case 'ArrowRight':sLane(1);break;
@@ -3925,14 +4100,35 @@ document.addEventListener('touchend',e=>{
 },{passive:false});
 document.addEventListener('touchcancel',()=>{touchJumpHeld=false;touchDuckHeld=false;syncJumpHold();touchActive=false;});
 
-let previousGamepad={};
+let previousGamepad={},preferredGamepadIndex=null,activeGamepadIndex=null;
 function gamepadButton(gp,index){return!!gp.buttons[index]?.pressed;}
+function isHoverDashController(gp){
+  if(!gp||gp.connected===false) return false;
+  const id=String(gp.id||'').toLowerCase();
+  if(['audio','headset','headphone','speaker','microphone'].some(word=>id.includes(word))) return false;
+  return !!(gp.buttons&&gp.buttons.length>=10&&gp.axes&&gp.axes.length>=2);
+}
+function hoverDashGamepadHasActivity(gp){
+  return Array.from(gp.buttons||[]).some(button=>button&&(button.pressed||button.value>.6))
+    ||Array.from(gp.axes||[]).some(axis=>Math.abs(Number(axis)||0)>.55);
+}
+function selectHoverDashGamepad(pads){
+  const list=Array.from(pads||[]);
+  const active=list.find(gp=>isHoverDashController(gp)&&hoverDashGamepadHasActivity(gp));
+  const preferred=preferredGamepadIndex===null?null:list[preferredGamepadIndex];
+  const selected=active||(isHoverDashController(preferred)?preferred:list.find(isHoverDashController))||null;
+  if(selected) preferredGamepadIndex=list.indexOf(selected);
+  return selected;
+}
 function pollGamepad(){
-  const pads=navigator.getGamepads?navigator.getGamepads():[];
-  const gp=Array.from(pads).find(Boolean);
+  let pads=[];
+  try{pads=navigator.getGamepads?navigator.getGamepads():[];}catch(e){pads=[];}
+  const gp=selectHoverDashGamepad(pads);
   if(!gp){
-    previousGamepad={};gamepadJumpHeld=false;gamepadDuckHeld=false;syncJumpHold();return;
+    previousGamepad={};activeGamepadIndex=null;gamepadJumpHeld=false;gamepadDuckHeld=false;syncJumpHold();return;
   }
+  const selectedIndex=Array.from(pads).indexOf(gp);
+  if(selectedIndex!==activeGamepadIndex){previousGamepad={};activeGamepadIndex=selectedIndex;}
   const state={
     left:gamepadButton(gp,14)||(gp.axes[0]||0)<-.55,
     right:gamepadButton(gp,15)||(gp.axes[0]||0)>.55,
@@ -3960,6 +4156,11 @@ function pollGamepad(){
     if(pressed('right')) handleMenuAction('right');
     if(pressed('accept')) handleMenuAction('activate');
     if(pressed('back')) handleMenuAction('back');
+  } else if(riskChoiceOpen){
+    gamepadJumpHeld=false;gamepadDuckHeld=false;syncJumpHold();
+    if(pressed('left')) moveRiskChoice(-1);
+    if(pressed('right')) moveRiskChoice(1);
+    if(pressed('accept')) confirmRiskChoice();
   } else {
     if(pressed('start')) togglePause();
     else{
@@ -4642,7 +4843,7 @@ function toggleMusic(){
   if(!audioCtx) initAudio();
   playSFXSample('menu_click',0.5);
   musicEnabled=!musicEnabled;
-  localStorage.setItem('hd_music',musicEnabled?'1':'0');
+  safeStorageSet('hd_music',musicEnabled?'1':'0');
   const btn=document.getElementById('music-btn');
   if(musicEnabled){
     if(!musicPlaying){musicPlaying=true;startEmbeddedMusic();}
@@ -4655,7 +4856,7 @@ function toggleMusic(){
 function toggleSFX(){
   playSFXSample('menu_click',0.5);
   sfxEnabled=!sfxEnabled;
-  localStorage.setItem('hd_sfx',sfxEnabled?'1':'0');
+  safeStorageSet('hd_sfx',sfxEnabled?'1':'0');
   const btn=document.getElementById('sfx-btn');
   btn.textContent=sfxEnabled?'ON':'OFF';
   btn.classList.toggle('on',sfxEnabled);
@@ -4725,7 +4926,7 @@ function cycleEffects(){
   playSFXSample('menu_click',0.5);
   effectsMode=EFFECT_MODES[(EFFECT_MODES.indexOf(effectsMode)+1)%EFFECT_MODES.length];
   if(effectsMode==='auto') adaptiveTier=recommendedAutoTier();
-  localStorage.setItem('hd_effects',effectsMode);
+  safeStorageSet('hd_effects',effectsMode);
   perfWindow=0;perfFrameTotal=0;perfFrameCount=0;perfSlowWindows=0;perfFastWindows=0;
   applyEffectsQuality(true);
 }
@@ -4821,27 +5022,30 @@ function loop(){
   }
 
   if(gs==='playing'){
-    const eSpd=effectiveSpeed();const spdInc=spd>=SPD_SLOW?SPD_INC*.4:SPD_INC;spd=Math.min(spd+spdInc*dt,SPD_MAX);meters+=eSpd*dt*.5;
+    const eSpd=effectiveSpeed(),distanceGain=eSpd*dt*.5;const spdInc=spd>=SPD_SLOW?SPD_INC*.4:SPD_INC;spd=Math.min(spd+spdInc*dt,SPD_MAX);meters+=distanceGain;riskBonusScore+=riskBonusFor(distanceGain,activeRiskModifier);
     if(spd>=SPD_MAX) checkInstantAch();
     const tp=elapsed-gameT0;diff=tp>40?4:tp>28?3:tp>16?2:tp>8?1:0;
     waveTimer+=dt;
     if(wavePhase==='action'){
       updatePhraseSpawner();
       if(waveTimer>=6&&wavePhrasesResolved()){
+        clearedWaveNum=Math.max(clearedWaveNum,waveNum);checkInstantAch();
         wavePhase='rest';waveTimer=0;
-        waveRestDur=WAVE_REST_MIN+Math.random()*(WAVE_REST_MAX-WAVE_REST_MIN);
+        activeRiskModifier=null;waveRestDur=RISK_CHOICE_TIMEOUT+.9;openRiskChoice(waveNum+1);
         showBonus('★ CLEAR ★');flashTimer=.3;screenShake=.08;playSFXSample('wave_clear',0.8);
         if(comboTimer>0) comboTimer=Math.min(COMBO_DUR,comboTimer+1.5);
       }
     } else {
       // REST — coin shower
+      updateRiskChoiceTimer();
+      if(riskChoiceOpen&&waveTimer>=RISK_CHOICE_TIMEOUT) confirmRiskChoice();
       if(waveTimer>=waveRestDur){
-        beginWave(waveNum+1);flashTimer=.2;playSFXSample('wave_start',0.8);checkInstantAch();
+        beginWave(waveNum+1);flashTimer=.2;playSFXSample('wave_start',0.8);
       }
     }
     // Coins: normal rate in action, 4x in rest
     colTimer-=dt;
-    if(colTimer<=0){spawnC();colTimer=wavePhase==='rest'?(.2+Math.random()*.15):(.8+Math.random()*.4);}
+    if(colTimer<=0){spawnC();const riskCoinRate=activeRiskModifier?.coinIntervalMultiplier||1;colTimer=wavePhase==='rest'?(.2+Math.random()*.15):(.8+Math.random()*.4)*riskCoinRate;}
     puTimer-=dt;if(puTimer<=0){spawnPU();puTimer=8+Math.random()*6;}
     updateJump();updateDuck();updatePU();updateOverdrive();updateZones();
     // Rest phase: less fog = more visibility, feels open
@@ -4865,9 +5069,7 @@ function loop(){
       const o=aObs[i],prevObsZ=o.position.z;
       o.userData.prevZ=prevObsZ;o.position.z+=eSpd*dt;
       const movingSaw=o.userData.type===OT.LOW_SAW||o.userData.type===OT.HIGH_SAW;
-      o.userData.sawCrossedContact=movingSaw
-        &&prevObsZ<=SHIP_Z+.65
-        &&o.position.z>=SHIP_Z-.75;
+      o.userData.sawCrossedContact=movingSaw&&prevObsZ<SHIP_Z&&o.position.z>=SHIP_Z;
       // Animate vertical laser rings
       if(o.userData.type===OT.V_LASER){
         // Animate scan rings: they drift upward and reset
@@ -5027,18 +5229,15 @@ function loop(){
         const isInObstaclePath=closestX<hitWidth;
         const isAdjacent=!isInObstaclePath&&closestX<LW*1.35;
         // Jumping/ducking through the same physical path also earns the dodge.
-        const dodgedInLane=isInObstaclePath&&(
-          (t2===OT.LOW_SAW&&jumpY>=SAW_MIN_JUMP_CLEARANCE)||
-          (t2===OT.HIGH_SAW&&ducking&&jumpY<.35)
-        );
+        const dodgedInLane=isInObstaclePath&&sawActionClears(t2,jumpY,duckScaleRatio);
         if(isAdjacent||dodgedInLane){
           const pts=5*comboMultiplier;
           const awarded=awardStyle(pts);showBonus('+'+awarded+' CLOSE!');
           playNearMissSFX();screenShake=.03;pgNearMisses++;chargeOverdrive(5);checkInstantAch();
         }
       }
-      const passZ=SHIP_Z+(o.userData.type===OT.WALL_GATE?20.25:2.1);
-      const sawAwaitingCollision=movingSaw&&(o.userData.sawPendingHit||o.userData.sawCrossedContact);
+      const passZ=SHIP_Z+(o.userData.type===OT.WALL_GATE?WALL_GATE_COLLISION_HALF_DEPTH+.25:2.1);
+      const sawAwaitingCollision=movingSaw&&o.userData.sawCrossedContact;
       if(!sawAwaitingCollision&&!o.userData.phrasePassed&&o.position.z>=passZ) resolvePhraseObstacle(o,true);
       const dz=o.userData.type===OT.RAMP?DESPAWN_Z+RAMP_LEN+2:o.userData.type===OT.WALL_GATE?DESPAWN_Z+22:DESPAWN_Z;
       if(o.position.z>dz&&!sawAwaitingCollision){resolvePhraseObstacle(o,true);if(onRamp&&rampRef===o){onRamp=false;rampRef=null;jumping=true;jumpPhase='fall';jumpVelY=0;stopGrindSFX();}rp(o);aObs.splice(i,1);}
@@ -5066,7 +5265,7 @@ function loop(){
     }
     // Combo timer
     if(comboTimer>0&&!overdriveActive){comboTimer-=dt;if(comboTimer<=0){comboCount=0;comboMultiplier=1;comboTimer=0;}}
-    // Score = distance + real coin points + style points.
+    // Score = distance + real coin points + style points + the chosen wave-risk bonus.
     score=getFinalScore();
     document.getElementById('score-val').textContent=score;document.getElementById('meter-val').textContent=Math.floor(meters);
     document.getElementById('speed-val').textContent=Math.max(1,Math.round((eSpd-SPD0)/(SPD_MAX-SPD0)*24+1));
@@ -5087,9 +5286,9 @@ function loop(){
       cWrap.classList.remove('active');
     }
     const wInd=document.getElementById('wave-ind');
-    if(wavePhase==='rest'){wInd.textContent='— BREATHER · NEXT '+themeForWave(waveNum+1).name+' —';wInd.className='rest';wInd.style.color='';}
-    else{wInd.textContent='WAVE '+waveNum+' · '+currentWaveTheme.name;wInd.className='action';wInd.style.color=currentWaveTheme.color;}
-    targetFov=BASE_FOV+((eSpd-SPD0)/(SPD_MAX+BOOST_SPD+OVERDRIVE_SPEED-SPD0))*(MAX_FOV-BASE_FOV);
+    if(wavePhase==='rest'){wInd.textContent='— CHOOSE RISK · NEXT '+themeForWave(waveNum+1).name+' —';wInd.className='rest';wInd.style.color='';}
+    else{wInd.textContent='WAVE '+waveNum+' · '+currentWaveTheme.name+(activeRiskModifier?' · '+activeRiskModifier.name+' '+activeRiskModifier.reward.replace(' ALL POINTS',''):'');wInd.className='action';wInd.style.color=currentWaveTheme.color;}
+    targetFov=BASE_FOV+Math.min(1,(eSpd-SPD0)/(SPD_MAX+BOOST_SPD+OVERDRIVE_SPEED+RISK_MAX_SPEED_BONUS-SPD0))*(MAX_FOV-BASE_FOV);
     const tl=NSEGS*SEG;for(const seg of tSegs){seg.position.z+=eSpd*dt;if(seg.position.z>SEG*1.5) seg.position.z-=tl;}
   }
 
@@ -5114,7 +5313,10 @@ function loop(){
       ship.position.x=rampX+(dx>=0?1:-1)*(rampHalfW+.1);
     }
   }
-  ship.position.y=SHIP_Y0+jumpY+Math.sin(elapsed*3.5)*.04;
+  const duckProgress=Math.max(0,Math.min(1,(1-duckScaleRatio)/(1-.45)));
+  const duckEase=duckProgress*duckProgress*(3-2*duckProgress);
+  const hoverBob=Math.sin(elapsed*3.5)*.04*(1-duckEase*.8);
+  ship.position.y=SHIP_Y0+jumpY+hoverBob-duckEase*.10;
   // Barrel roll spin update
   if(spinActive){
     spinTimer-=dt;
@@ -5130,9 +5332,13 @@ function loop(){
     ship.rotation.z+=((targetX-ship.position.x)*.18-ship.rotation.z)*dt*10;
   }
   const shipBaseScale=ship.userData.baseScale||1;
-  ship.scale.y+=((shipBaseScale*(ducking?.45:1))-ship.scale.y)*dt*12;
+  ship.scale.set(
+    shipBaseScale*(1+duckEase*.08),
+    shipBaseScale*duckScaleRatio,
+    shipBaseScale*(1+duckEase*.04)
+  );
   let pitch=0;
-  if(onRamp) pitch=-.08;else if(jumping){pitch=jumpPhase==='rise'?-.2:jumpPhase==='float'?-.05:.15;}else if(ducking) pitch=.1;
+  if(onRamp) pitch=-.08;else if(jumping){pitch=jumpPhase==='rise'?-.2:jumpPhase==='float'?-.05:.15;}else if(duckEase>.01) pitch=.18*duckEase;
   if(!spinActive) ship.rotation.x+=(pitch-ship.rotation.x)*dt*8;
   if(landWobble>0){landWobble-=dt*4;if(landWobble<0)landWobble=0;ship.rotation.x+=Math.sin(landWobble*12)*landWobble*.15;ship.rotation.z+=Math.sin(landWobble*15+1)*landWobble*.08;}
   // Emit engine trail particles (from world position of engines)
@@ -5204,8 +5410,8 @@ function loop(){
   const musicPulse=.35+vizAudioEnergy*.75+vizAudioPeak*.25;
   if(ship.userData.underGlow){
     ship.userData.underGlow.visible=auraEnabled;
-    ship.userData.underGlow.material.opacity=.065*auraQuality*(1+musicPulse*.82);
-    ship.userData.underGlow.scale.setScalar(1+musicPulse*.09);
+    ship.userData.underGlow.material.opacity=.065*auraQuality*(1+musicPulse*.82)*(1+duckEase*1.4);
+    ship.userData.underGlow.scale.setScalar(1+musicPulse*.09+duckEase*.18);
     ship.userData.underGlow.material.color.setHex(boostActive||overdriveActive?C.gold:C.cyan);
   }
   if(ship.userData.auraGlow){
@@ -5288,7 +5494,7 @@ function loop(){
   renderGaragePreview(rawFrameDt);
 }
 (function loadSettings(){
-  const m=localStorage.getItem('hd_music'),s=localStorage.getItem('hd_sfx');
+  const m=safeStorageGet('hd_music'),s=safeStorageGet('hd_sfx');
   if(m!==null){musicEnabled=m==='1';const b=document.getElementById('music-btn');b.textContent=musicEnabled?'ON':'OFF';b.classList.toggle('on',musicEnabled);}
   if(s!==null){sfxEnabled=s==='1';const b=document.getElementById('sfx-btn');b.textContent=sfxEnabled?'ON':'OFF';b.classList.toggle('on',sfxEnabled);}
 })();

@@ -96,6 +96,60 @@ path (migrated 2026-07-24); every game leaderboard is on Supabase.
 
 ---
 
+## Big Picture controller library
+
+`/big-picture/` is the controller collection, linked from the homepage navigation
+and category pills. Its catalog in `big-picture/app.js` includes the seven games
+with Gamepad API handlers: HoverDash, Axeluga, Snake Neo, BlockStorm, Asteroid
+Storm, Gridburn and Manny the Mole. Keep this list aligned with actual game support;
+controller gameplay does not guarantee every in-game menu works without a mouse.
+
+The library supports keyboard, touch and standard-mapped gamepads. It embeds
+the existing `/play/` player with `big-picture=1` and `from=big_picture`, preserving
+the usual SDK and gameplay attribution. The outer shell owns fullscreen and unloads
+the player on return. Hold View / Share for one second to return using a controller.
+Holding Menu / Options for 1.5 seconds is the fallback for pads without View / Share;
+View + Menu / Share + Options returns faster. The shell polls the controller outside
+the nested game iframe, so return works regardless of the game's own menus or focus.
+X / Square opens a simplified Big Picture profile. It reuses the site's active SDK
+session and shows the player's avatar, trophy progress and best scores for controller
+games; D-pad scrolls and B / Circle returns to the library. Logged-out players see a
+guest state explaining that they can sign in on the standard site before entering
+Big Picture. In the library, D-pad Up moves focus from the game row to Profile;
+Left / Right then moves through the top menu, Down returns to the selected game and
+A / Cross activates the focused item.
+On the guest profile, Down moves from Back to Sign in and A / Cross opens the SDK
+login dialog with QR sign-in focused first. Up / Down moves through the dialog controls,
+A / Cross activates a control and B / Circle closes the dialog. Email and verification
+code entry still require a physical or operating-system keyboard.
+Tests: `node --test big-picture/*.test.js`.
+
+The homepage loads `js/gv-big-picture-prompt.js`. When it detects a connected,
+standard-mapped gamepad, it reveals the Big Picture invitation below the header.
+A / Cross opens Big Picture and B / Circle dismisses the invitation for seven days.
+The first sampled button state is treated as already held, preventing the button used
+to wake or connect a controller from launching Big Picture by accident.
+Tests: `node --test js/gv-big-picture-prompt.test.js`.
+
+### QR device sign-in
+
+The standard SDK login modal and Big Picture both offer QR sign-in. The TV calls
+the `device-auth` Edge Function to create a five-minute request. Its QR URL contains
+the request id and a strong approval token, while a separate polling token remains
+only in the TV's memory. `/auth/device/` verifies the request on the phone, displays
+the server-provided six-digit comparison code and requires an authenticated user to
+press **Approve this screen**. The Edge Function then creates a short-lived Supabase
+email token hash; the TV retrieves it with its polling token and calls `verifyOtp` to
+establish the local session. Access and refresh tokens are never placed in the QR or
+the device-auth table.
+
+Before release, apply `sql/device-auth.sql`, then deploy the function with
+`supabase functions deploy device-auth`. `supabase/config.toml` deliberately sets
+`verify_jwt = false` because request creation and TV polling start anonymously; the
+approval action separately validates the phone's bearer token with `getUser()`.
+The QR renderer is the vendored MIT-licensed qrcode.js in `js/qrcode.min.js`.
+Tests: `node --test js/gv-device-auth.test.js`.
+
 ## GameVolt SDK
 
 The SDK is a lightweight JavaScript library that every game on GameVolt.io includes. It handles auth, cloud saves, leaderboards, and achievements.

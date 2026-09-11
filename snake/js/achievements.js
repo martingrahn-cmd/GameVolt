@@ -6,6 +6,8 @@
 // Grid UI mirrors Asteroid Storm. Cloud sync via the optional GameVolt SDK.
 // ============================================================
 
+import { claimSnakeGamepad, getSnakeGamepad, readSnakeGamepadState, releaseSnakeGamepadWhenNeutral, snakeGamepadIsNeutral } from "./gamepad.js?v=1.9";
+
 const GAME_ID = "snake";
 const STATS_KEY = "snake_stats";
 const TROPHIES_KEY = "snake_trophies";
@@ -231,7 +233,13 @@ export function initSnakeAchievements() {
 // Achievements grid screen (DOM overlay, Asteroid-Storm style)
 // ============================================================
 export class AchievementsScreen {
-    constructor() { this.element = null; this._keyHandler = null; }
+    constructor() {
+        this.element = null;
+        this._keyHandler = null;
+        this._gamepadPollId = null;
+        this._lastGamepad = {};
+        this._gamepadReady = false;
+    }
 
     show(onClose) {
         this.onClose = onClose || null;
@@ -247,15 +255,45 @@ export class AchievementsScreen {
 
         div.querySelector(".sn-ach-close").addEventListener("click", () => this.hide());
         div.addEventListener("click", (e) => { if (e.target === div) this.hide(); });
-        this._keyHandler = (e) => { if (e.key === "Escape") { e.preventDefault(); this.hide(); } };
+        this._keyHandler = (e) => {
+            if (e.key === "Escape" || e.key === "Backspace") { e.preventDefault(); this.hide(); return; }
+            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                e.preventDefault();this._scroll(e.key === "ArrowUp" ? -1 : 1);
+            }
+        };
         window.addEventListener("keydown", this._keyHandler);
+        claimSnakeGamepad(this);this._lastGamepad = {};this._gamepadReady = false;this._pollGamepad();
     }
 
     hide() {
         if (this._keyHandler) window.removeEventListener("keydown", this._keyHandler);
         this._keyHandler = null;
+        if (this._gamepadPollId) cancelAnimationFrame(this._gamepadPollId);
+        this._gamepadPollId = null;releaseSnakeGamepadWhenNeutral(this);
         if (this.element) { this.element.remove(); this.element = null; }
         if (this.onClose) this.onClose();
+    }
+
+    _scroll(direction) {
+        const body = this.element?.querySelector(".sn-ach-body");
+        if (!body) return;
+        body.scrollBy({ top: direction * Math.max(120, body.clientHeight * 0.55), behavior: "smooth" });
+        if (window.audioNeoSFX) window.audioNeoSFX.menuClick();
+    }
+
+    _pollGamepad() {
+        if (!this.element) return;
+        const gamepad = getSnakeGamepad();
+        const state = gamepad ? readSnakeGamepadState(gamepad) : {};
+        if (!this._gamepadReady) {
+            if (snakeGamepadIsNeutral(state)) this._gamepadReady = true;
+        } else {
+            if (state.up && !this._lastGamepad.up) this._scroll(-1);
+            if (state.down && !this._lastGamepad.down) this._scroll(1);
+            if (state.back && !this._lastGamepad.back) { this.hide(); return; }
+        }
+        this._lastGamepad = { ...state };
+        this._gamepadPollId = requestAnimationFrame(() => this._pollGamepad());
     }
 
     _render(got, total, unlocked) {
@@ -295,6 +333,7 @@ export class AchievementsScreen {
                     color:#0ff;font-family:inherit;font-size:9px;padding:8px 12px;border-radius:6px;cursor:pointer}
                 #snakeAchievements .sn-ach-close:hover{background:rgba(0,255,255,0.2)}
                 #snakeAchievements .sn-ach-body{overflow-y:auto;padding:14px 18px;-webkit-overflow-scrolling:touch}
+                #snakeAchievements .sn-ach-hint{padding:10px 18px;border-top:1px solid rgba(0,255,255,0.12);color:#66708a;font-size:7px;text-align:center;letter-spacing:1px}
                 #snakeAchievements .sn-ach-tier-h{font-size:9px;font-weight:700;letter-spacing:3px;margin:14px 0 8px;
                     padding-bottom:5px;border-bottom:1px solid}
                 #snakeAchievements .sn-ach-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -317,6 +356,7 @@ export class AchievementsScreen {
                     <button class="sn-ach-close">BACK</button>
                 </div>
                 <div class="sn-ach-body">${sections}</div>
+                <div class="sn-ach-hint">D-PAD ↑↓ SCROLL · B BACK</div>
             </div>`;
     }
 
@@ -339,6 +379,11 @@ export class HighScoresScreen {
     constructor() {
         this.element = null;
         this._keyHandler = null;
+        this._gamepadPollId = null;
+        this._lastGamepad = {};
+        this._gamepadReady = false;
+        this._padRow = 1;
+        this._padColumn = 0;
         this.tab = "local";
         this.board = 0;
         this.offset = 0;
@@ -384,6 +429,8 @@ export class HighScoresScreen {
                 #snakeHighScores .sn-hs-act{background:rgba(0,20,40,0.6);border:1px solid rgba(0,255,255,0.15);
                     color:#a0a4c0;font-family:inherit;font-size:7px;padding:7px 9px;border-radius:6px;cursor:pointer;letter-spacing:1px}
                 #snakeHighScores .sn-hs-act:hover{color:#0ff;border-color:rgba(0,255,255,0.4)}
+                #snakeHighScores .sn-hs-act:disabled{opacity:.35;cursor:default;color:#626580;border-color:rgba(0,255,255,.1)}
+                #snakeHighScores button.pad-selected{outline:2px solid #0ff;outline-offset:2px;color:#fff;box-shadow:0 0 16px rgba(0,255,255,0.4)}
                 #snakeHighScores .sn-hs-body{overflow-y:auto;padding:10px 18px 14px;min-height:220px;-webkit-overflow-scrolling:touch}
                 #snakeHighScores .sn-hs-row{display:flex;justify-content:space-between;align-items:center;gap:8px;
                     padding:7px 10px;border-radius:6px;background:rgba(0,20,40,0.5);margin-bottom:5px}
@@ -395,6 +442,14 @@ export class HighScoresScreen {
                 #snakeHighScores .sn-hs-score{color:#0ff;font-size:9px;flex-shrink:0}
                 #snakeHighScores .sn-hs-empty{color:#626580;font-size:8px;padding:14px 10px;line-height:1.6;text-align:center}
                 #snakeHighScores .sn-hs-total{color:#626580;font-size:7px;padding:0 18px 14px;text-align:center;letter-spacing:1px}
+                #snakeHighScores .sn-hs-hint{padding:10px 18px;border-top:1px solid rgba(0,255,255,0.12);color:#66708a;font-size:7px;text-align:center;letter-spacing:1px}
+                @media(max-width:380px){
+                    #snakeHighScores{padding:8px}
+                    #snakeHighScores .sn-hs-top{padding:12px;gap:8px}
+                    #snakeHighScores .sn-hs-title{font-size:10px;letter-spacing:0;white-space:nowrap}
+                    #snakeHighScores .sn-hs-close{font-size:7px;padding:7px 8px}
+                    #snakeHighScores .sn-hs-hint{font-size:6px;line-height:1.7;padding:8px 12px}
+                }
             </style>
             <div class="sn-hs-panel">
                 <div class="sn-hs-top">
@@ -418,6 +473,7 @@ export class HighScoresScreen {
                 </div>
                 <div class="sn-hs-body"></div>
                 <div class="sn-hs-total"></div>
+                <div class="sn-hs-hint">D-PAD NAVIGATE · A SELECT · B BACK</div>
             </div>`;
         document.body.appendChild(div);
         this.element = div;
@@ -430,15 +486,24 @@ export class HighScoresScreen {
             b.addEventListener("click", () => this._moveBoard(parseInt(b.dataset.nav, 10))));
         div.querySelectorAll(".sn-hs-act").forEach(b =>
             b.addEventListener("click", () => this._act(b.dataset.act)));
-        this._keyHandler = (e) => { if (e.key === "Escape") { e.preventDefault(); this.hide(); } };
+        this._keyHandler = (e) => {
+            if (e.key === "Escape" || e.key === "Backspace") { e.preventDefault(); this.hide(); return; }
+            const directions = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+            if (directions[e.key]) { e.preventDefault();this._moveGamepad(...directions[e.key]);return; }
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault();this._activateGamepadControl(); }
+        };
         window.addEventListener("keydown", this._keyHandler);
 
         this._setTab("local");
+        this._padRow = 1;this._padColumn = 0;this._lastGamepad = {};this._gamepadReady = false;
+        claimSnakeGamepad(this);this._updateGamepadFocus();this._pollGamepad();
     }
 
     hide() {
         if (this._keyHandler) window.removeEventListener("keydown", this._keyHandler);
         this._keyHandler = null;
+        if (this._gamepadPollId) cancelAnimationFrame(this._gamepadPollId);
+        this._gamepadPollId = null;releaseSnakeGamepadWhenNeutral(this);
         this.reqId++; // invalidate in-flight leaderboard requests
         if (this.element) { this.element.remove(); this.element = null; }
         if (this.onClose) this.onClose();
@@ -454,7 +519,68 @@ export class HighScoresScreen {
             b.classList.toggle("sel", b.dataset.tab === t));
         this.element.querySelector(".sn-hs-acts").style.display = t === "global" ? "flex" : "none";
         this.offset = 0;
+        this.total = 0;
         this._refresh();
+        this._updateGamepadFocus();
+    }
+
+    _gamepadRows() {
+        if (!this.element) return [];
+        const rows = [
+            [this.element.querySelector(".sn-hs-close")],
+            Array.from(this.element.querySelectorAll(".sn-hs-tab")),
+            Array.from(this.element.querySelectorAll(".sn-hs-arrow"))
+        ];
+        if (this.tab === "global") rows.push(Array.from(this.element.querySelectorAll(".sn-hs-act:not(:disabled)")));
+        const bodyControls = Array.from(this.element.querySelectorAll(".sn-hs-body button, .sn-hs-body [role=button]"));
+        if (bodyControls.length) rows.push(bodyControls);
+        return rows.filter(row => row.length);
+    }
+
+    _updateGamepadFocus() {
+        if (!this.element) return;
+        this.element.querySelectorAll("button.pad-selected").forEach(button => button.classList.remove("pad-selected"));
+        const rows = this._gamepadRows();if (!rows.length) return;
+        this._padRow = Math.max(0, Math.min(rows.length - 1, this._padRow));
+        this._padColumn = Math.max(0, Math.min(rows[this._padRow].length - 1, this._padColumn));
+        rows[this._padRow][this._padColumn].classList.add("pad-selected");
+    }
+
+    _moveGamepad(rowDelta, columnDelta) {
+        const rows = this._gamepadRows();if (!rows.length) return;
+        if (rowDelta) {
+            this._padRow = (this._padRow + rowDelta + rows.length) % rows.length;
+            this._padColumn = Math.min(this._padColumn, rows[this._padRow].length - 1);
+        } else if (columnDelta) {
+            const length = rows[this._padRow].length;
+            this._padColumn = (this._padColumn + columnDelta + length) % length;
+        }
+        this._updateGamepadFocus();
+        if (window.audioNeoSFX) window.audioNeoSFX.menuClick();
+    }
+
+    _activateGamepadControl() {
+        const rows = this._gamepadRows();
+        const button = rows[this._padRow]?.[this._padColumn];
+        if (button) button.click();
+    }
+
+    _pollGamepad() {
+        if (!this.element) return;
+        const gamepad = getSnakeGamepad();
+        const state = gamepad ? readSnakeGamepadState(gamepad) : {};
+        if (!this._gamepadReady) {
+            if (snakeGamepadIsNeutral(state)) this._gamepadReady = true;
+        } else {
+            if (state.up && !this._lastGamepad.up) this._moveGamepad(-1, 0);
+            if (state.down && !this._lastGamepad.down) this._moveGamepad(1, 0);
+            if (state.left && !this._lastGamepad.left) this._moveGamepad(0, -1);
+            if (state.right && !this._lastGamepad.right) this._moveGamepad(0, 1);
+            if (state.confirm && !this._lastGamepad.confirm) this._activateGamepadControl();
+            if (state.back && !this._lastGamepad.back) { this.hide(); return; }
+        }
+        this._lastGamepad = { ...state };
+        this._gamepadPollId = requestAnimationFrame(() => this._pollGamepad());
     }
 
     _moveBoard(d) {
@@ -500,10 +626,21 @@ export class HighScoresScreen {
         }
         const mode = HS_BOARDS[this.board].mode;
         const req = ++this.reqId;
+        this._updatePager();
         window.GameVolt.leaderboard.count({ mode }).then(n => {
             if (req !== this.reqId || !this.element) return;
             this.total = n | 0;
             totalEl.textContent = n > 0 ? n.toLocaleString() + " PLAYERS" : "";
+            const lastPage = n > 0 ? Math.floor((n - 1) / HS_PAGE) * HS_PAGE : 0;
+            if (this.offset > lastPage) this.offset = lastPage;
+            this._updatePager();
+            this._updateGamepadFocus();
+        }).catch(() => {
+            if (req !== this.reqId || !this.element) return;
+            this.total = 0;
+            totalEl.textContent = "LEADERBOARD UNAVAILABLE · TRY AGAIN";
+            this._updatePager();
+            this._updateGamepadFocus();
         });
         // Standardized GameVolt leaderboard, mounted inline. The windowed fetch
         // keeps this game's pager (top / around-me / page±) working.
@@ -514,9 +651,17 @@ export class HighScoresScreen {
                 mode,
                 accent: "#0ff",
                 scoreLabel: "pts",
-                fetch: m => window.GameVolt.leaderboard.page({ mode: m, offset, limit: HS_PAGE })
+                fetch: m => Promise.resolve(window.GameVolt.leaderboard.page({ mode: m, offset, limit: HS_PAGE })).catch(() => [])
             });
         }
+    }
+
+    _updatePager() {
+        if (!this.element) return;
+        const prev = this.element.querySelector('[data-act="prev"]');
+        const next = this.element.querySelector('[data-act="next"]');
+        if (prev) prev.disabled = this.offset <= 0;
+        if (next) next.disabled = this.total <= 0 || this.offset + HS_PAGE >= this.total;
     }
 
     _act(a) {
@@ -527,11 +672,14 @@ export class HighScoresScreen {
                 if (!this.element) return;
                 this.offset = r ? Math.max(0, r.rank - Math.floor(HS_PAGE / 2)) : 0;
                 this._loadGlobal();
+            }).catch(() => {
+                if (!this.element) return;
+                this.element.querySelector(".sn-hs-total").textContent = "RANK UNAVAILABLE · TRY AGAIN";
             });
         }
         else if (a === "prev") { this.offset = Math.max(0, this.offset - HS_PAGE); this._loadGlobal(); }
         else if (a === "next") {
-            const max = this.total > 0 ? Math.max(0, this.total - 1) : this.offset + HS_PAGE;
+            const max = this.total > 0 ? Math.floor((this.total - 1) / HS_PAGE) * HS_PAGE : 0;
             this.offset = Math.min(this.offset + HS_PAGE, max);
             this._loadGlobal();
         }

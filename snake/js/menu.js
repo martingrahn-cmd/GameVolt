@@ -3,7 +3,8 @@
 // With Gamepad Support + Background Images
 // ============================================================
 
-import { AchievementsScreen, HighScoresScreen } from "./achievements.js";
+import { AchievementsScreen, HighScoresScreen } from "./achievements.js?v=1.9";
+import { getSnakeGamepad, readSnakeGamepadState, snakeGamepadIsNeutral } from "./gamepad.js?v=1.9";
 
 export class MenuScreen {
     constructor() {
@@ -13,6 +14,7 @@ export class MenuScreen {
         this.resolve = null;
         this.lastDpad = { up: false, down: false };
         this.lastConfirm = false;
+        this.gamepadReady = false;
         this.pollId = null;
         
         // Background images per mode
@@ -226,28 +228,22 @@ export class MenuScreen {
         const poll = () => {
             this.pollId = requestAnimationFrame(poll);
             if (this._subOpen) {
-                // A sub-screen owns input, but still let the Back button (B) close it.
-                const pads = navigator.getGamepads ? navigator.getGamepads() : [];
-                for (const gp of pads) {
-                    if (!gp) continue;
-                    const back = gp.buttons[1]?.pressed;
-                    if (back && !this._lastBack && this._activeSub) this._activeSub.hide();
-                    this._lastBack = back;
-                    break;
-                }
+                // Trophy and high-score overlays own their complete controller flow.
+                this.lastDpad = { up: false, down: false };
+                this.lastConfirm = false;
                 return;
             }
 
-            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            
-            for (const gp of gamepads) {
-                if (!gp) continue;
+            const gp = getSnakeGamepad();
+            if (gp) {
+                const state = readSnakeGamepadState(gp);
+                const dpad = { up: state.up, down: state.down };
 
-                // D-pad
-                const dpad = {
-                    up:   gp.buttons[12]?.pressed || gp.axes[1] < -0.5,
-                    down: gp.buttons[13]?.pressed || gp.axes[1] > 0.5
-                };
+                if (!this.gamepadReady) {
+                    if (snakeGamepadIsNeutral(state)) this.gamepadReady = true;
+                    this.lastDpad = { ...dpad };this.lastConfirm = state.confirm;
+                    return;
+                }
 
                 if (dpad.up && !this.lastDpad.up) {
                     this._highlightButton(this.selectedIndex - 1, true); // Sound on gamepad
@@ -259,13 +255,16 @@ export class MenuScreen {
                 this.lastDpad = { ...dpad };
 
                 // Confirm (X / A)
-                const confirm = gp.buttons[0]?.pressed;
+                const confirm = state.confirm;
                 if (confirm && !this.lastConfirm) {
                     this._confirm(this.buttons[this.selectedIndex]);
                 }
                 this.lastConfirm = confirm;
 
-                break; // Only first gamepad
+            } else {
+                this.lastDpad = { up: false, down: false };
+                this.lastConfirm = false;
+                this.gamepadReady = true;
             }
         };
 

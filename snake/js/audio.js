@@ -46,7 +46,7 @@ export class AudioNeo {
             this.timeDomainData = new Uint8Array(bufferLength);
             
             console.log("🎵 Audio context initialized");
-            this.isUnlocked = true;
+            this.isUnlocked = this.ctx.state === "running";
         } catch (e) {
             console.error("❌ Audio init failed:", e);
         }
@@ -54,13 +54,12 @@ export class AudioNeo {
 
     // Unlock audio on iOS (call from user gesture)
     async unlock() {
-        if (this.isUnlocked) return;
-        
         await this.init();
         
         if (this.ctx && this.ctx.state === "suspended") {
             await this.ctx.resume();
         }
+        this.isUnlocked = this.ctx?.state === "running";
     }
 
     // Load and play music

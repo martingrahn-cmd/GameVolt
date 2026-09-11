@@ -2,7 +2,7 @@
 (function () {
     'use strict';
 
-    var landscape = ['breakout', 'asteroid-storm', 'type-or-die'];
+    var landscape = ['slipstream-vector', 'breakout', 'asteroid-storm', 'type-or-die'];
     function requiresLandscape(id) { return landscape.indexOf(id) !== -1; }
 
     function decorate(root) {

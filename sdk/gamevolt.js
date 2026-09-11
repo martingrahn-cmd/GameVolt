@@ -16,7 +16,7 @@
   // footer so you can tell at a glance whether a browser has the latest SDK
   // (Cloudflare caches this file, so an old copy can linger). Also on
   // GameVolt.version and logged to the console on init.
-  var SDK_VERSION = '2026.09.06-1';
+  var SDK_VERSION = '2026.09.08-1';
 
   var sb = null; // Supabase client
   var currentUser = null;
@@ -52,6 +52,11 @@
 
   var modal = null;
   var pendingEmail = ''; // email the OTP code was sent to (for verifyOtp)
+  var deviceLoginRequest = null;
+  var devicePollTimer = null;
+  var deviceLoginAttempt = 0;
+  var qrLibraryPromise = null;
+  var socialProviders = { google: true, apple: false };
 
   function createModal() {
     if (modal) return;
@@ -63,6 +68,10 @@
         '<button class="gv-close" aria-label="Close">&times;</button>' +
         '<div class="gv-logo">GAMEVOLT</div>' +
         '<p class="gv-sub">Sign in to save your progress</p>' +
+        '<button class="gv-apple-btn" type="button" style="display:none">' +
+          '<span class="gv-apple-icon" aria-hidden="true">&#63743;</span>' +
+          'Sign in with Apple' +
+        '</button>' +
         '<button class="gv-google-btn" type="button">' +
           '<svg class="gv-google-icon" viewBox="0 0 24 24" width="20" height="20">' +
             '<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/>' +
@@ -72,6 +81,17 @@
           '</svg>' +
           'Sign in with Google' +
         '</button>' +
+        '<button class="gv-qr-btn" type="button">' +
+          '<span class="gv-qr-icon" aria-hidden="true">▦</span> Sign in with QR code' +
+        '</button>' +
+        '<div class="gv-qr-panel" style="display:none">' +
+          '<div class="gv-qr-box"></div>' +
+          '<p class="gv-qr-label">Confirm this code on your phone</p>' +
+          '<strong class="gv-device-code">—— ——</strong>' +
+          '<p class="gv-qr-status">Preparing secure sign-in…</p>' +
+          '<button class="gv-qr-retry" type="button" style="display:none">TRY AGAIN</button>' +
+          '<button class="gv-qr-cancel" type="button">Use another sign-in method</button>' +
+        '</div>' +
         '<div class="gv-divider"><span>or</span></div>' +
         '<form class="gv-form">' +
           '<input type="email" class="gv-email" placeholder="your@email.com" required autocomplete="email">' +
@@ -83,7 +103,7 @@
           '<button type="button" class="gv-code-back">Use a different email</button>' +
         '</form>' +
         '<p class="gv-msg"></p>' +
-        '<p class="gv-note">No password needed. Sign in with Google, or we\'ll email you a code (and a link).</p>' +
+        '<p class="gv-note">No password needed. Use a connected account, or we\'ll email you a code (and a link).</p>' +
         '<p class="gv-note" style="opacity:0.5;font-size:11px">SDK v' + SDK_VERSION + '</p>' +
       '</div>';
 
@@ -110,6 +130,20 @@
       '.gv-google-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px;border-radius:8px;border:1px solid #444;background:#fff;color:#333;font-weight:600;font-size:14px;cursor:pointer;transition:background 0.2s}' +
       '.gv-google-btn:hover{background:#f0f0f0}' +
       '.gv-google-icon{flex-shrink:0}' +
+      '.gv-apple-btn{align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:10px;padding:12px;border-radius:8px;border:1px solid #555;background:#000;color:#fff;font-weight:600;font-size:14px;cursor:pointer;transition:background 0.2s}' +
+      '.gv-apple-btn:hover{background:#181818}' +
+      '.gv-apple-icon{font:22px/1 -apple-system,BlinkMacSystemFont,sans-serif}' +
+      '.gv-qr-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:10px;padding:12px;border-radius:8px;border:1px solid #00e5ff88;background:#00e5ff12;color:#8ff6ff;font-weight:700;font-size:14px;cursor:pointer}' +
+      '.gv-qr-btn:hover{background:#00e5ff22}' +
+      '.gv-qr-icon{font-size:22px;line-height:1}' +
+      '.gv-qr-panel{text-align:center}' +
+      '.gv-qr-box{display:grid;place-items:center;width:196px;height:196px;margin:0 auto 12px;padding:8px;border-radius:10px;background:#fff}' +
+      '.gv-qr-box img,.gv-qr-box canvas{display:block;max-width:100%;height:auto}' +
+      '.gv-qr-label{margin:8px 0 3px;color:#aaa;font-size:12px}' +
+      '.gv-device-code{display:block;color:#00e5ff;font-size:25px;letter-spacing:5px}' +
+      '.gv-qr-status{min-height:36px;margin:10px 0;color:#aaa;font-size:12px;line-height:1.45}' +
+      '.gv-qr-retry{width:100%;padding:10px;border:0;border-radius:7px;background:#00e5ff;color:#001;font-weight:800;cursor:pointer}' +
+      '.gv-qr-cancel{margin-top:8px;padding:6px;border:0;background:none;color:#999;text-decoration:underline;cursor:pointer}' +
       '.gv-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:#666;font-size:12px}' +
       '.gv-divider::before,.gv-divider::after{content:"";flex:1;height:1px;background:#333}' +
       '.gv-msg{color:#4caf50;font-size:13px;margin:12px 0 0;min-height:20px}' +
@@ -121,7 +155,11 @@
     // Events
     modal.querySelector('.gv-backdrop').onclick = closeModal;
     modal.querySelector('.gv-close').onclick = closeModal;
-    modal.querySelector('.gv-google-btn').onclick = signInWithGoogle;
+    modal.querySelector('.gv-apple-btn').onclick = function() { signInWithProvider('apple'); };
+    modal.querySelector('.gv-google-btn').onclick = function() { signInWithProvider('google'); };
+    modal.querySelector('.gv-qr-btn').onclick = startQrLogin;
+    modal.querySelector('.gv-qr-retry').onclick = startQrLogin;
+    modal.querySelector('.gv-qr-cancel').onclick = function() { stopDeviceLogin(true); showEmailStep(); };
     modal.querySelector('.gv-form').onsubmit = function(e) {
       e.preventDefault();
       var email = modal.querySelector('.gv-email').value.trim();
@@ -135,6 +173,25 @@
       verifyCode(code);
     };
     modal.querySelector('.gv-code-back').onclick = showEmailStep;
+    refreshSocialButtons();
+  }
+
+  function refreshSocialButtons() {
+    if (!modal) return;
+    modal.querySelector('.gv-apple-btn').style.display = socialProviders.apple ? 'flex' : 'none';
+    modal.querySelector('.gv-google-btn').style.display = socialProviders.google ? 'flex' : 'none';
+  }
+
+  function loadSocialProviders() {
+    return fetch(SUPABASE_URL + '/auth/v1/settings', { headers: { apikey: SUPABASE_KEY } })
+      .then(function(response) { return response.ok ? response.json() : null; })
+      .then(function(settings) {
+        if (!settings || !settings.external) return;
+        socialProviders.google = !!settings.external.google;
+        socialProviders.apple = !!settings.external.apple;
+        refreshSocialButtons();
+      })
+      .catch(function() {});
   }
 
   // Toggle the modal between the email step and the code-entry step.
@@ -148,6 +205,10 @@
   }
   function showEmailStep() {
     if (!modal) return;
+    modal.querySelector('.gv-qr-panel').style.display = 'none';
+    refreshSocialButtons();
+    modal.querySelector('.gv-qr-btn').style.display = 'flex';
+    modal.querySelector('.gv-divider').style.display = 'flex';
     modal.querySelector('.gv-code-form').style.display = 'none';
     modal.querySelector('.gv-form').style.display = 'flex';
     var msg = modal.querySelector('.gv-msg');
@@ -168,17 +229,114 @@
   }
 
   function closeModal() {
+    stopDeviceLogin(true);
     if (modal) modal.classList.remove('open');
   }
 
-  function signInWithGoogle() {
+  function loadQrLibrary() {
+    if (window.QRCode) return Promise.resolve();
+    if (qrLibraryPromise) return qrLibraryPromise;
+    qrLibraryPromise = new Promise(function(resolve, reject) {
+      var script = document.createElement('script');
+      script.src = '/js/qrcode.min.js';
+      script.onload = resolve;
+      script.onerror = function() { qrLibraryPromise = null; reject(new Error('QR renderer unavailable')); };
+      document.head.appendChild(script);
+    });
+    return qrLibraryPromise;
+  }
+
+  function qrScanOrigin() {
+    return /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)
+      ? 'https://gamevolt.io' : window.location.origin;
+  }
+
+  function qrStatus(text, failed) {
+    if (!modal) return;
+    var status = modal.querySelector('.gv-qr-status');
+    status.textContent = text;
+    status.style.color = failed ? '#ff7b86' : '#aaa';
+    modal.querySelector('.gv-qr-retry').style.display = failed ? 'block' : 'none';
+  }
+
+  function stopDeviceLogin(cancel) {
+    deviceLoginAttempt++;
+    if (devicePollTimer) { clearTimeout(devicePollTimer); devicePollTimer = null; }
+    var request = deviceLoginRequest;
+    deviceLoginRequest = null;
+    if (cancel && request) deviceAuth.cancel(request.requestId, request.pollToken).catch(function() {});
+  }
+
+  function pollDeviceLogin(request) {
+    if (!deviceLoginRequest || deviceLoginRequest.requestId !== request.requestId) return;
+    deviceAuth.status(request.requestId, request.pollToken).then(function(result) {
+      if (!deviceLoginRequest || deviceLoginRequest.requestId !== request.requestId) return;
+      if (result.status === 'ready') {
+        qrStatus('Approved. Signing this screen in…');
+        return deviceAuth.complete(result.email, result.tokenHash).then(function() {
+          deviceAuth.consume(request.requestId, request.pollToken).catch(function() {});
+          deviceLoginRequest = null;
+          if (devicePollTimer) clearTimeout(devicePollTimer);
+          devicePollTimer = null;
+        });
+      }
+      qrStatus(result.status === 'approved' ? 'Approved on phone. Preparing login…' : 'Scan with your phone and approve the matching code.');
+      devicePollTimer = setTimeout(function() { pollDeviceLogin(request); }, 1800);
+    }).catch(function(error) {
+      if (!deviceLoginRequest || deviceLoginRequest.requestId !== request.requestId) return;
+      stopDeviceLogin(false);
+      qrStatus(error && error.status === 410 ? 'This QR code expired. Create a new one.' : 'QR sign-in is unavailable. Try again.', true);
+    });
+  }
+
+  function startQrLogin() {
+    if (!modal) return;
+    stopDeviceLogin(true);
+    var attempt = ++deviceLoginAttempt;
+    modal.querySelector('.gv-google-btn').style.display = 'none';
+    modal.querySelector('.gv-apple-btn').style.display = 'none';
+    modal.querySelector('.gv-qr-btn').style.display = 'none';
+    modal.querySelector('.gv-divider').style.display = 'none';
+    modal.querySelector('.gv-form').style.display = 'none';
+    modal.querySelector('.gv-code-form').style.display = 'none';
+    modal.querySelector('.gv-qr-panel').style.display = 'block';
+    modal.querySelector('.gv-qr-box').textContent = '';
+    modal.querySelector('.gv-device-code').textContent = '—— ——';
+    qrStatus('Preparing secure sign-in…');
+    Promise.all([deviceAuth.create(), loadQrLibrary()]).then(function(results) {
+      var request = results[0];
+      if (attempt !== deviceLoginAttempt || !modal.classList.contains('open')) {
+        deviceAuth.cancel(request.requestId, request.pollToken).catch(function() {});
+        return;
+      }
+      deviceLoginRequest = request;
+      var url = qrScanOrigin() + '/auth/device/?request=' + encodeURIComponent(request.requestId) +
+        '&approve=' + encodeURIComponent(request.approvalToken) + '&code=' + encodeURIComponent(request.displayCode);
+      var box = modal.querySelector('.gv-qr-box');
+      box.textContent = '';
+      new window.QRCode(box, { text: url, width: 180, height: 180,
+        colorDark: '#080a12', colorLight: '#ffffff', correctLevel: window.QRCode.CorrectLevel.M });
+      modal.querySelector('.gv-device-code').textContent = request.displayCode.slice(0, 3) + ' ' + request.displayCode.slice(3);
+      qrStatus('Scan with your phone and approve the matching code.');
+      modal.querySelector('.gv-qr-cancel').focus();
+      pollDeviceLogin(request);
+    }).catch(function() {
+      stopDeviceLogin(false);
+      qrStatus('QR sign-in is unavailable. Try again.', true);
+    });
+  }
+
+  function signInWithProvider(provider) {
     if (!sb) return;
     var redirectTo = window.location.origin + '/auth/callback/';
+    var options = { redirectTo: redirectTo };
+    if (provider === 'google') options.queryParams = { prompt: 'select_account' };
     // In iframe: navigate the top window so Safari ITP doesn't block OAuth
     if (window.self !== window.top) {
+      options.skipBrowserRedirect = true;
       sb.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: redirectTo, skipBrowserRedirect: true }
+        provider: provider,
+        options: options
       }).then(function(res) {
         if (res.data && res.data.url) {
           try { window.top.sessionStorage.setItem('gv_return_to', window.top.location.href); } catch (e) {}
@@ -190,8 +348,8 @@
     // Standalone: normal OAuth flow
     sessionStorage.setItem('gv_return_to', window.location.href);
     sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: redirectTo }
+      provider: provider,
+      options: options
     });
   }
 
@@ -570,6 +728,64 @@
       })
       .catch(function() { cloudUnlocked = cloudUnlocked || new Set(); return cloudUnlocked; });
   }
+
+  // --------------------------------------------------------
+  // DEVICE AUTH module — QR handoff for TVs and shared screens
+  // --------------------------------------------------------
+
+  function deviceCall(action, payload, accessToken) {
+    var body = payload || {};
+    body.action = action;
+    return fetch(SUPABASE_URL + '/functions/v1/device-auth', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'authorization': 'Bearer ' + (accessToken || SUPABASE_KEY)
+      },
+      body: JSON.stringify(body)
+    }).then(function(response) {
+      return response.json().catch(function() { return {}; }).then(function(data) {
+        if (!response.ok) {
+          var error = new Error(data.error || 'Device sign-in failed');
+          error.status = response.status;
+          throw error;
+        }
+        return data;
+      });
+    });
+  }
+
+  var deviceAuth = {
+    create: function() { return deviceCall('create'); },
+    inspect: function(requestId, approvalToken) {
+      return deviceCall('inspect', { requestId: requestId, approvalToken: approvalToken });
+    },
+    status: function(requestId, pollToken) {
+      return deviceCall('status', { requestId: requestId, pollToken: pollToken });
+    },
+    cancel: function(requestId, pollToken) {
+      return deviceCall('cancel', { requestId: requestId, pollToken: pollToken });
+    },
+    consume: function(requestId, pollToken) {
+      return deviceCall('consume', { requestId: requestId, pollToken: pollToken });
+    },
+    approve: function(requestId, approvalToken) {
+      if (!sb) return Promise.reject(new Error('Sign in first'));
+      return sb.auth.getSession().then(function(result) {
+        var accessToken = result.data && result.data.session && result.data.session.access_token;
+        if (!accessToken) throw new Error('Sign in first');
+        return deviceCall('approve', { requestId: requestId, approvalToken: approvalToken }, accessToken);
+      });
+    },
+    complete: function(email, tokenHash) {
+      if (!sb) return Promise.reject(new Error('GameVolt is not ready'));
+      return sb.auth.verifyOtp({ email: email, token_hash: tokenHash, type: 'email' }).then(function(result) {
+        if (result.error) throw result.error;
+        return result.data;
+      });
+    }
+  };
 
   // --------------------------------------------------------
   // AUTH module
@@ -2078,6 +2294,7 @@
       sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: { flowType: 'implicit' }
       });
+      loadSocialProviders();
 
       // Listen for auth state changes
       sb.auth.onAuthStateChange(function(event, session) {
@@ -2426,6 +2643,7 @@
     rating: rating,
     streak: streak,
     challenge: challenge,
+    deviceAuth: deviceAuth,
     ui: ui,
     avatar: {
       render: renderAvatar,

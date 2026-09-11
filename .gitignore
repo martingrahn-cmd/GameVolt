@@ -16,3 +16,6 @@ axeluga/axeluga-standalone.zip
 **/IMPROVEMENTS.md
 one-stroke/CHANGELOG.md
 snake/readme.txt
+
+# Supabase CLI machine-local project metadata
+supabase/.temp/

@@ -4,6 +4,12 @@
     'use strict';
 
     var guides = {
+        'slipstream-vector': {
+            goal: 'Race across four worlds, master the airbrake and finish ahead of eight rivals. Higher difficulties make the rivals drive better without changing their ships\' speed.',
+            touch: 'Slipstream Vector is designed for a keyboard or gamepad and plays in landscape.',
+            desktop: 'Steer with Arrow keys / WASD. Shift uses the airbrake, Space fires, R respawns and P pauses. A gamepad is fully supported.',
+            tip: 'Start with Single Race on Sunset Circuit. Use the airbrake through tight corners and tuck into a rival\'s wake to gain speed.'
+        },
         ink: {
             goal: 'Draw strokes to bounce the ball higher. Collect ink, break blocks and avoid red spikes or falling off the page.',
             touch: 'Drag a finger below the ball to draw a stroke. Each stroke can bounce the ball once.',
@@ -51,7 +57,7 @@
         blockstorm: {
             goal: 'Fit falling blocks into complete rows before the stack reaches the top.',
             touch: 'Swipe sideways to move, down for a soft drop, up for a hard drop. Tap to rotate.',
-            desktop: 'Arrows / A and D move; Up / W / X rotates, Z rotates back, Space drops. P / Esc pauses.'
+            desktop: 'Keyboard: arrows / A and D move, Space drops and P / Esc pauses. Controller: D-pad or left stick moves, A rotates, B / X rotates back, Up / Y drops and Menu pauses.'
         },
         hoverdash: {
             goal: 'Survive the run, dodge obstacles and collect coins and boosts.',

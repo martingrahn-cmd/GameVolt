@@ -1046,6 +1046,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/slipstream-vector/">Slipstream Vector</a>
                         <a href="/short-circuit/">Short Circuit</a>
                         <a href="/manny-the-mole/">Manny the Mole</a>
                         <a href="/hoverdash/">HoverDash</a>
@@ -1096,13 +1097,14 @@
     <script src="/js/gv-tracker.js"></script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
-    <script src="/js/gv-search.js"></script>
-    <script src="/sdk/gamevolt.js"></script>
+    <script src="/js/gv-search.js?v=3"></script>
+    <script src="/sdk/gamevolt.js?v=2026.09.08-1"></script>
     <script>
     (function() {
         'use strict';
 
         var GAME_NAMES = {
+            'slipstream-vector': 'Slipstream Vector',
             ink: 'INK', gridburn: 'Gridburn', spinburn: 'Spinburn',
             'short-circuit': 'Short Circuit',
             'manny-the-mole': 'Manny the Mole',
@@ -1128,6 +1130,7 @@
         };
 
         var GAME_THUMBS = {
+            'slipstream-vector': '/assets/thumbnails/slipstream-vector.png',
             ink: '/assets/thumbnails/ink.webp', gridburn: '/gridburn/og-image.png', spinburn: '/spinburn/og-image.png',
             'short-circuit': '/assets/thumbnails/short-circuit.webp',
             'manny-the-mole': '/manny-the-mole/og-image.png',
@@ -1154,6 +1157,39 @@
 
         // Full trophy catalog — all definitions from all games
         var TROPHY_CATALOG = {
+            'slipstream-vector': [
+                {"id": "slipstream-vector-first_race", "name": "Off the Line", "desc": "Finish your first race", "icon": "🏁", "tier": "bronze"},
+                {"id": "slipstream-vector-first_win", "name": "Top Step", "desc": "Win a race", "icon": "🥇", "tier": "bronze"},
+                {"id": "slipstream-vector-first_boost", "name": "Pad Runner", "desc": "Hit a boost pad", "icon": "⚡", "tier": "bronze"},
+                {"id": "slipstream-vector-first_drift", "name": "Sideways", "desc": "Land a drift mini-boost", "icon": "🌀", "tier": "bronze"},
+                {"id": "slipstream-vector-airbrake", "name": "Air Brake", "desc": "Use the airbrake", "icon": "✋", "tier": "bronze"},
+                {"id": "slipstream-vector-perfect_start", "name": "Reflexes", "desc": "Nail a PERFECT START", "icon": "🚦", "tier": "bronze"},
+                {"id": "slipstream-vector-top_speed", "name": "Terminal Velocity", "desc": "Reach top speed", "icon": "🚀", "tier": "bronze"},
+                {"id": "slipstream-vector-pad_chain", "name": "Pad Chain", "desc": "Hit 3 boost pads in one race", "icon": "🔗", "tier": "bronze"},
+                {"id": "slipstream-vector-overtake", "name": "Overtake", "desc": "Pass an opponent", "icon": "↗️", "tier": "bronze"},
+                {"id": "slipstream-vector-loop", "name": "Gravity Optional", "desc": "Clear a full loop", "icon": "🔄", "tier": "bronze"},
+                {"id": "slipstream-vector-race_3", "name": "Regular", "desc": "Finish three races", "icon": "🔂", "tier": "bronze"},
+                {"id": "slipstream-vector-tt_play", "name": "Solo Run", "desc": "Finish a time trial", "icon": "⏲️", "tier": "bronze"},
+                {"id": "slipstream-vector-champ_play", "name": "Contender", "desc": "Enter a championship", "icon": "🎟️", "tier": "bronze"},
+                {"id": "slipstream-vector-all_tracks", "name": "Grand Tour", "desc": "Race on all twelve circuits", "icon": "🗺️", "tier": "bronze"},
+                {"id": "slipstream-vector-all_teams", "name": "Free Agent", "desc": "Race for all four teams", "icon": "🛠️", "tier": "bronze"},
+                {"id": "slipstream-vector-record", "name": "Record Holder", "desc": "Set a track lap record", "icon": "⏱️", "tier": "silver"},
+                {"id": "slipstream-vector-clean_win", "name": "Not a Scratch", "desc": "Win without touching a wall", "icon": "✨", "tier": "silver"},
+                {"id": "slipstream-vector-comeback", "name": "Through the Pack", "desc": "Win after a wall hit", "icon": "💥", "tier": "silver"},
+                {"id": "slipstream-vector-surge_win", "name": "Up to Speed", "desc": "Win a race on SURGE", "icon": "🔵", "tier": "silver"},
+                {"id": "slipstream-vector-cup", "name": "Silverware", "desc": "Win a championship", "icon": "🏆", "tier": "silver"},
+                {"id": "slipstream-vector-wins_5", "name": "On a Roll", "desc": "Win five races", "icon": "🔥", "tier": "silver"},
+                {"id": "slipstream-vector-wins_10", "name": "Veteran", "desc": "Win ten races", "icon": "🎖️", "tier": "silver"},
+                {"id": "slipstream-vector-record_3", "name": "Pace Setter", "desc": "Hold the lap record on three circuits", "icon": "📊", "tier": "silver"},
+                {"id": "slipstream-vector-loop_master", "name": "Loop the Loop", "desc": "Clear both loop circuits", "icon": "🌐", "tier": "silver"},
+                {"id": "slipstream-vector-clean_3", "name": "Spotless", "desc": "Win three races without a wall hit", "icon": "🧼", "tier": "silver"},
+                {"id": "slipstream-vector-overdrive_win", "name": "Redline", "desc": "Win a race on OVERDRIVE", "icon": "🟣", "tier": "gold"},
+                {"id": "slipstream-vector-overdrive_cup", "name": "Untamed", "desc": "Win the OVERDRIVE championship", "icon": "👑", "tier": "gold"},
+                {"id": "slipstream-vector-sweep", "name": "Clean Sweep", "desc": "Win every round of a championship", "icon": "🧹", "tier": "gold"},
+                {"id": "slipstream-vector-untouchable", "name": "Untouchable", "desc": "Win with no wall or ship contact", "icon": "🛡️", "tier": "gold"},
+                {"id": "slipstream-vector-all_records", "name": "Benchmark", "desc": "Hold the lap record on every circuit", "icon": "📈", "tier": "gold"},
+                {"id": "slipstream-vector-legend", "name": "Slipstream Legend", "desc": "Unlock every other trophy", "icon": "💎", "tier": "platinum"}
+            ],
             'ink': [
                 {"id": "ink-first-stroke", "name": "First Stroke", "desc": "Draw your first line", "icon": "✏️", "tier": "bronze"},
                 {"id": "ink-contact", "name": "Contact", "desc": "Bounce the ball off a stroke", "icon": "✒️", "tier": "bronze"},

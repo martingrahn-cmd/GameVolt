@@ -2,6 +2,8 @@
 // Input.js — Keyboard, Touch & Gamepad Support
 // ============================================================
 
+import { getSnakeGamepad, readSnakeGamepadState, snakeGamepadOwnedByOther } from "./gamepad.js?v=1.9";
+
 export class Input {
     constructor(onDir, onAction) {
         this.onDir = onDir;
@@ -104,37 +106,26 @@ export class Input {
     // --------------------------------------------------------
     _pollGamepad() {
         const poll = () => {
-            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-            
-            for (const gp of gamepads) {
-                if (!gp) continue;
-                
-                // D-pad detection - multiple methods for compatibility
-                // Method 1: Standard d-pad buttons (12-15)
-                // Method 2: Left analog stick (axes 0-1)
-                // Method 3: Some controllers use axes 9 for d-pad (PS5 on some browsers)
-                
-                const dpadButtons = {
-                    up:    gp.buttons[12]?.pressed,
-                    down:  gp.buttons[13]?.pressed,
-                    left:  gp.buttons[14]?.pressed,
-                    right: gp.buttons[15]?.pressed
-                };
-                
-                const leftStick = {
-                    up:    gp.axes[1] < -0.5,
-                    down:  gp.axes[1] > 0.5,
-                    left:  gp.axes[0] < -0.5,
-                    right: gp.axes[0] > 0.5
-                };
-                
-                // Combine all methods
-                const dpad = {
-                    up:    dpadButtons.up || leftStick.up,
-                    down:  dpadButtons.down || leftStick.down,
-                    left:  dpadButtons.left || leftStick.left,
-                    right: dpadButtons.right || leftStick.right
-                };
+            const gp = getSnakeGamepad();
+            if (gp) {
+                const selectedIndex = Number.isInteger(gp.index) ? gp.index : 0;
+                if (selectedIndex !== this.gamepadIndex) {
+                    this.gamepadIndex = selectedIndex;
+                    this.lastDpad = { up: false, down: false, left: false, right: false };
+                    this.lastButtons = { confirm: false, back: false, start: false };
+                }
+                const state = readSnakeGamepadState(gp);
+                const dpad = { up: state.up, down: state.down, left: state.left, right: state.right };
+
+                // Modal screens poll the same controller themselves. Keep edge state
+                // current while they own it so their closing B/A press cannot leak
+                // into gameplay, pause or game-over actions.
+                if (snakeGamepadOwnedByOther(this)) {
+                    this.lastDpad = { ...dpad };
+                    this.lastButtons = { confirm: state.confirm, back: state.back, start: state.start };
+                    requestAnimationFrame(poll);
+                    return;
+                }
 
                 // Detect NEW presses (not held)
                 if (dpad.up && !this.lastDpad.up) this.onDir("up");
@@ -147,11 +138,7 @@ export class Input {
                 // Action buttons
                 // PS5: X = 0, O = 1  |  Xbox: A = 0, B = 1
                 // Start/Options = 9
-                const buttons = {
-                    confirm: gp.buttons[0]?.pressed,  // X / A
-                    back:    gp.buttons[1]?.pressed,  // O / B
-                    start:   gp.buttons[9]?.pressed   // Start / Options
-                };
+                const buttons = { confirm: state.confirm, back: state.back, start: state.start };
 
                 if (buttons.confirm && !this.lastButtons.confirm) {
                     this.onAction("confirm");
@@ -164,9 +151,10 @@ export class Input {
                 }
 
                 this.lastButtons = { ...buttons };
-                
-                // Only use first connected gamepad
-                break;
+            } else {
+                this.gamepadIndex = null;
+                this.lastDpad = { up: false, down: false, left: false, right: false };
+                this.lastButtons = { confirm: false, back: false, start: false };
             }
 
             requestAnimationFrame(poll);

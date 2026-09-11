@@ -2,6 +2,8 @@
 // LevelComplete.js — Level transition screen with ad slot
 // ============================================================
 
+import { claimSnakeGamepad, getSnakeGamepad, readSnakeGamepadState, releaseSnakeGamepadWhenNeutral } from "./gamepad.js?v=1.9";
+
 export class LevelCompleteScreen {
     constructor() {
         this.overlay = null;
@@ -110,7 +112,7 @@ export class LevelCompleteScreen {
                     transition: all 0.5s ease-out 0.9s;
                     animation: pulse 1.5s infinite;
                 ">
-                    <span class="lc-continue-text">PRESS ENTER TO CONTINUE</span>
+                    <span class="lc-continue-text">PRESS ENTER / A TO CONTINUE</span>
                 </div>
             </div>
             
@@ -154,6 +156,7 @@ export class LevelCompleteScreen {
         // Gamepad polling
         this._gamepadPollId = null;
         this._lastButtonState = false;
+        this._gamepadReady = false;
     }
 
     _handleKey(e) {
@@ -173,20 +176,15 @@ export class LevelCompleteScreen {
     _pollGamepad() {
         if (!this.isShowing) return;
         
-        const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-        for (const gp of gamepads) {
-            if (!gp) continue;
-            
-            // A/X button (index 0) or Start button (index 9)
-            const buttonPressed = gp.buttons[0]?.pressed || gp.buttons[9]?.pressed;
-            
-            // Only trigger on button down (not held)
-            if (buttonPressed && !this._lastButtonState) {
-                this._continue();
-            }
-            this._lastButtonState = buttonPressed;
-            break;
+        const gp = getSnakeGamepad();
+        const state = gp ? readSnakeGamepadState(gp) : null;
+        const buttonPressed = !!(state?.confirm || state?.start);
+        if (!this._gamepadReady) {
+            if (!buttonPressed) this._gamepadReady = true;
+        } else if (buttonPressed && !this._lastButtonState) {
+            this._continue();
         }
+        this._lastButtonState = buttonPressed;
         
         this._gamepadPollId = requestAnimationFrame(() => this._pollGamepad());
     }
@@ -233,16 +231,17 @@ export class LevelCompleteScreen {
             
             // Allow continue after ad duration
             setTimeout(() => {
-                this.overlay.querySelector(".lc-continue-text").textContent = "PRESS ENTER TO CONTINUE";
+                this.overlay.querySelector(".lc-continue-text").textContent = "PRESS ENTER / A TO CONTINUE";
             }, this.adDuration);
         } else {
             adSlot.style.display = "none";
-            this.overlay.querySelector(".lc-continue-text").textContent = "PRESS ENTER TO CONTINUE";
+            this.overlay.querySelector(".lc-continue-text").textContent = "PRESS ENTER / A TO CONTINUE";
         }
         
         // Show overlay
         this.overlay.style.display = "flex";
         this.isShowing = true;
+        claimSnakeGamepad(this);
         
         // Trigger animation
         requestAnimationFrame(() => {
@@ -255,12 +254,14 @@ export class LevelCompleteScreen {
         
         // Start gamepad polling
         this._lastButtonState = false;
+        this._gamepadReady = false;
         this._pollGamepad();
     }
 
     hide() {
         const container = this.overlay.querySelector(".lc-container");
         container.classList.remove("show");
+        releaseSnakeGamepadWhenNeutral(this);
         
         setTimeout(() => {
             this.overlay.style.display = "none";
@@ -310,6 +311,6 @@ export class LevelCompleteScreen {
     
     // Call this when ad finishes (for video ads)
     onAdComplete() {
-        this.overlay.querySelector(".lc-continue-text").textContent = "PRESS ENTER TO CONTINUE";
+        this.overlay.querySelector(".lc-continue-text").textContent = "PRESS ENTER / A TO CONTINUE";
     }
 }

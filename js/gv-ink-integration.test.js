@@ -8,14 +8,18 @@ const vm = require('node:vm');
 test('portal and INK service workers only remove their own older caches', async () => {
   for (const [file, removed] of [['sw.js', 'gamevolt-old'], ['ink/sw.js', 'ink-old']]) {
     const handlers = {}, deleted = [];
+    const source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
+    const directCache = source.match(/const CACHE_NAME = ["']([^"']+)/);
+    const inkVersion = source.match(/const VERSION = ["']([^"']+)/);
+    const currentCache = directCache ? directCache[1] : 'ink-' + inkVersion[1];
     const scope = {
       self: { addEventListener: (name, fn) => handlers[name] = fn, clients: {claim() {}} },
       caches: {
-        keys: async () => ['gamevolt-v17', 'gamevolt-old', 'ink-v3', 'ink-old', 'another-game'],
+        keys: async () => [currentCache, 'gamevolt-old', 'ink-old', 'another-game'],
         delete: async key => deleted.push(key)
       }
     };
-    vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), scope);
+    vm.runInNewContext(source, scope);
     let work;
     handlers.activate({waitUntil: promise => work = promise});
     await work;

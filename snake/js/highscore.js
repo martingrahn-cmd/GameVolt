@@ -1,4 +1,6 @@
 // ============================================================
+
+import { safeStorageGet, safeStorageSet } from "./storage.js?v=1.9";
 // Highscore.js — Local + Firebase-ready highscore system
 // ============================================================
 
@@ -25,9 +27,12 @@ export class HighscoreManager {
     
     getLocalScores() {
         try {
-            const data = localStorage.getItem(this.storageKey);
+            const data = safeStorageGet(this.storageKey);
             if (data) {
-                return JSON.parse(data);
+                const scores = JSON.parse(data);
+                return Array.isArray(scores)
+                    ? scores.filter(entry => entry && Number.isFinite(Number(entry.score)))
+                    : [];
             }
         } catch (e) {
             console.log("Could not load highscores");
@@ -37,7 +42,7 @@ export class HighscoreManager {
 
     saveLocalScores(scores) {
         try {
-            localStorage.setItem(this.storageKey, JSON.stringify(scores));
+            safeStorageSet(this.storageKey, JSON.stringify(scores));
         } catch (e) {
             console.log("Could not save highscores");
         }

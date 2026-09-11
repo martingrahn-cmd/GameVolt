@@ -8,26 +8,26 @@ if (window.__snakeLoopId) {
     window.__snakeLoopId = null;
 }
 
-import { Game } from "./game.js";
-import { MenuScreen } from "./menu.js";
-import { recordRun, initSnakeAchievements } from "./achievements.js";
-import { Input } from "./input.js";
+import { Game } from "./game.js?v=1.9";
+import { MenuScreen } from "./menu.js?v=1.9";
+import { recordRun, initSnakeAchievements } from "./achievements.js?v=1.9";
+import { Input } from "./input.js?v=1.9";
 
-import { audioNokia }     from "./nokia/audio_nokia.js";
-import { SnakeNokia }     from "./nokia/snake_nokia.js";
-import { RendererNokia }  from "./nokia/renderer_nokia.js";
-import { HudNokia }       from "./nokia/hud_nokia.js";
+import { audioNokia }     from "./nokia/audio_nokia.js?v=1.9";
+import { SnakeNokia }     from "./nokia/snake_nokia.js?v=1.9";
+import { RendererNokia }  from "./nokia/renderer_nokia.js?v=1.9";
+import { HudNokia }       from "./nokia/hud_nokia.js?v=1.9";
 import { ScoringNokia }   from "./nokia/scoring_nokia.js";
 
 import { Snake16bit }     from "./16bit/snake_16bit.js";
 import { Renderer16bit }  from "./16bit/renderer_16bit.js";
-import { Hud16bit }       from "./16bit/hud_16bit.js";
+import { Hud16bit }       from "./16bit/hud_16bit.js?v=1.9";
 import { Scoring16bit }   from "./16bit/scoring_16bit.js";
-import { Food16bit }      from "./16bit/food_16bit.js";
-import { Tutorial16bit }  from "./16bit/tutorial_16bit.js";
-import { GameOver16bit }  from "./16bit/gameover_16bit.js";
+import { Food16bit }      from "./16bit/food_16bit.js?v=1.9";
+import { Tutorial16bit }  from "./16bit/tutorial_16bit.js?v=1.9";
+import { GameOver16bit }  from "./16bit/gameover_16bit.js?v=1.9";
 
-import { audioNeo }       from "./audio.js";
+import { audioNeo }       from "./audio.js?v=1.9";
 import { audioNeoSFX }    from "./audio_neo_sfx.js";
 
 import { Themes } from "./themes.js";
@@ -35,17 +35,12 @@ import { Themes } from "./themes.js";
 // ------------------------------------------------------------
 // AUDIO UNLOCK FOR iOS (first touch/click)
 // ------------------------------------------------------------
-let audioUnlocked = false;
-
 async function unlockAudio(mode) {
-    if (audioUnlocked) return;
-    audioUnlocked = true;
-    
     if (mode === "neo") {
         await audioNeo.unlock();
         console.log("🔓 Neo audio unlocked");
     } else {
-        audioNokia.unlock();
+        await audioNokia.unlock();
         console.log("🔓 Nokia audio unlocked");
     }
 }
@@ -90,6 +85,7 @@ function patchGameForMode(mode) {
         Game.prototype.init = async function(canvas) {
             await originalInit.call(this, canvas);
             this.endlessMode = true;
+            this.gameMode = "nokia";
             this.highscoreManager.setMode("nokia");
             
             // Play Nokia ringtone at game start!
@@ -140,6 +136,7 @@ function patchGameForMode(mode) {
         Game.prototype.init = async function(canvas) {
             this.canvas = canvas;
             this.mode16bit = true;
+            this.gameMode = "16bit";
             
             // Responsive grid based on screen orientation
             const vw = window.innerWidth;
@@ -161,6 +158,7 @@ function patchGameForMode(mode) {
                 walls: [],
                 foodNeeded: 999
             };
+            this.initialLevel = JSON.parse(JSON.stringify(this.level));
 
             // Grid
             this.grid = { w: this.level.gridWidth, h: this.level.gridHeight };
@@ -310,6 +308,11 @@ function patchGameForMode(mode) {
                         this.renderer.addFloatingMessage(`-${scoreResult.lostChain} chain`, fruitX, fruitY - 30, '#ff8844');
                     }
                 }
+
+                if (result.boardFull) {
+                    this._gameOver16bit(true);
+                    return;
+                }
             }
         };
 
@@ -333,7 +336,10 @@ function patchGameForMode(mode) {
             }
             
             // Reset for new round
-            this.food.resetForNewRound(this.snake);
+            if (!this.food.resetForNewRound(this.snake)) {
+                this._gameOver16bit(true);
+                return;
+            }
             
             // Update snake speed for new round
             this.snake.stepTime = this.scoring.getBaseSpeed();
@@ -348,12 +354,13 @@ function patchGameForMode(mode) {
         };
 
         // Game over for 16-bit
-        Game.prototype._gameOver16bit = function() {
+        Game.prototype._gameOver16bit = function(boardCleared = false) {
             this.state = "gameover";
 
             if (window.audioNeoSFX) window.audioNeoSFX.gameOver();
 
             const stats = this.scoring.getFinalStats();
+            stats.boardCleared = boardCleared;
 
             // Trophies + global leaderboard (Fruit Chain / 16-bit mode)
             try { recordRun("16bit", stats); } catch (e) { /* ignore */ }
@@ -572,19 +579,16 @@ window._snakeAudioNeo = audioNeo;
 window._snakeMusicVolume = 0.7; // default music volume
 
 // Global audio unlock on any user interaction (for stubborn browsers)
-let globalUnlockDone = false;
 function globalAudioUnlock() {
-    if (globalUnlockDone) return;
-    globalUnlockDone = true;
-    
-    audioNeo.unlock();
-    audioNokia.unlock();
+    // Keep these listeners installed: a gamepad selection is not a browser
+    // activation, so a later keyboard/touch gesture may be the first one that
+    // is allowed to resume audio.
+    Promise.resolve(audioNeo.unlock()).then(() => {
+        if (!audioNeo.isPlaying && currentGameMode === "neo") startNeoMusic();
+        if (!audioNeo.isPlaying && currentGameMode === "16bit") start16bitMusic();
+    }).catch(() => {});
+    Promise.resolve(audioNokia.unlock()).catch(() => {});
     console.log("🔓 Global audio unlock triggered");
-    
-    // Remove listeners after unlock
-    document.removeEventListener("click", globalAudioUnlock);
-    document.removeEventListener("touchstart", globalAudioUnlock);
-    document.removeEventListener("keydown", globalAudioUnlock);
 }
 
 document.addEventListener("click", globalAudioUnlock);
@@ -616,11 +620,9 @@ window.addEventListener("load", async () => {
         // Unlock audio on menu selection (user gesture). A ?mode= deep link skips the
         // menu, so there may be no gesture yet and the browser can refuse — that must
         // not stop the game from starting.
-        try {
-            await unlockAudio(mode);
-        } catch (e) {
-            console.warn("🔇 Audio unlock deferred:", e);
-        }
+        // Gamepad input and deep links do not satisfy browser autoplay rules.
+        // Audio may remain pending, but engine startup must never wait for it.
+        unlockAudio(mode).catch(e => console.warn("🔇 Audio unlock deferred:", e));
 
         // Configure engine
         patchGameForMode(mode);
