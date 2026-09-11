@@ -16,7 +16,7 @@
   // footer so you can tell at a glance whether a browser has the latest SDK
   // (Cloudflare caches this file, so an old copy can linger). Also on
   // GameVolt.version and logged to the console on init.
-  var SDK_VERSION = '2026.09.08-1';
+  var SDK_VERSION = '2026.09.11-2';
 
   var sb = null; // Supabase client
   var currentUser = null;
@@ -273,7 +273,7 @@
       if (!deviceLoginRequest || deviceLoginRequest.requestId !== request.requestId) return;
       if (result.status === 'ready') {
         qrStatus('Approved. Signing this screen in…');
-        return deviceAuth.complete(result.email, result.tokenHash).then(function() {
+        return deviceAuth.complete(result.tokenHash).then(function() {
           deviceAuth.consume(request.requestId, request.pollToken).catch(function() {});
           deviceLoginRequest = null;
           if (devicePollTimer) clearTimeout(devicePollTimer);
@@ -285,7 +285,10 @@
     }).catch(function(error) {
       if (!deviceLoginRequest || deviceLoginRequest.requestId !== request.requestId) return;
       stopDeviceLogin(false);
-      qrStatus(error && error.status === 410 ? 'This QR code expired. Create a new one.' : 'QR sign-in is unavailable. Try again.', true);
+      try { console.error('[GameVolt] QR sign-in failed', error); } catch (e) {}
+      qrStatus(error && error.status === 410
+        ? 'This QR code expired. Create a new one.'
+        : 'The phone approved this screen, but the final sign-in failed. Create a new QR code and try again.', true);
     });
   }
 
@@ -778,9 +781,9 @@
         return deviceCall('approve', { requestId: requestId, approvalToken: approvalToken }, accessToken);
       });
     },
-    complete: function(email, tokenHash) {
+    complete: function(tokenHash) {
       if (!sb) return Promise.reject(new Error('GameVolt is not ready'));
-      return sb.auth.verifyOtp({ email: email, token_hash: tokenHash, type: 'email' }).then(function(result) {
+      return sb.auth.verifyOtp({ token_hash: tokenHash, type: 'email' }).then(function(result) {
         if (result.error) throw result.error;
         return result.data;
       });

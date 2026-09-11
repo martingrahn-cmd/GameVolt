@@ -81,3 +81,11 @@ test('device auth keeps the polling secret out of QR links and locks its table f
     assert.match(edge, /auth\.admin\.generateLink/);
     assert.ok(fs.existsSync(path.join(__dirname, 'qrcode.LICENSE')));
 });
+
+test('desktop exchanges the generated token hash without resubmitting the account email', () => {
+    const sdk = fs.readFileSync(path.join(__dirname, '..', 'sdk/gamevolt.js'), 'utf8');
+    const complete = sdk.slice(sdk.indexOf('complete: function(tokenHash)'), sdk.indexOf('// --------------------------------------------------------\n  // AUTH module'));
+    assert.match(complete, /verifyOtp\(\{ token_hash: tokenHash, type: 'email' \}\)/);
+    assert.doesNotMatch(complete, /verifyOtp\(\{ email:/);
+    assert.match(sdk, /deviceAuth\.complete\(result\.tokenHash\)/);
+});
