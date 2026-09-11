@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Wed, 19 Aug 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 11 Sep 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>GameVolt goes Big Picture — with QR sign-in</title>
+      <link>https://gamevolt.io/news/big-picture-qr-sign-in/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/big-picture-qr-sign-in/</guid>
+      <pubDate>Fri, 11 Sep 2026 12:00:00 GMT</pubDate>
+      <description>GameVolt Big Picture is live: browse eight controller-ready browser games around a 3D ring, launch them from the couch and sign in on the big screen by scanning a QR code with your phone. HoverDash and Snake Neo have received a fresh round of controller and gameplay polish too.</description>
+    </item>
 
     <item>
       <title>New game: Short Circuit — close the route before the current does</title>

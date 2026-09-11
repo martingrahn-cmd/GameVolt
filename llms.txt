@@ -44,7 +44,7 @@ Games run in a modern browser. Most support phones, tablets and desktop; some, s
 
 ## About
 
-- [GameVolt News](https://gamevolt.io/news/) — Game launches and major updates (RSS: https://gamevolt.io/news/feed.xml). Latest: [Short Circuit launch](https://gamevolt.io/news/short-circuit-launch/) (2026-08-19), [Manny the Mole launch](https://gamevolt.io/news/manny-the-mole-launch/) (2026-08-14) and [Spinburn launch](https://gamevolt.io/news/spinburn-launch/) (2026-07-23).
+- [GameVolt News](https://gamevolt.io/news/) — Game launches and major updates (RSS: https://gamevolt.io/news/feed.xml). Latest: [Big Picture mode and QR sign-in](https://gamevolt.io/news/big-picture-qr-sign-in/) (2026-09-11), [Short Circuit launch](https://gamevolt.io/news/short-circuit-launch/) (2026-08-19) and [Manny the Mole launch](https://gamevolt.io/news/manny-the-mole-launch/) (2026-08-14).
 - [About GameVolt](https://gamevolt.io/about/) — Independent game studio from Sweden
 - [Privacy policy](https://gamevolt.io/privacy/)
 - [Contact](https://gamevolt.io/contact/)
