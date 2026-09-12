@@ -65,6 +65,7 @@ export const ACHIEVEMENTS = [
 
 const KEY = 'sv-ach';
 const STATKEY = 'sv-achstats';
+const ACHIEVEMENT_IDS = new Set(ACHIEVEMENTS.map((achievement) => achievement.id));
 
 export class Achievements {
   constructor(audio) {
@@ -74,6 +75,40 @@ export class Achievements {
     this.queue = [];
     this.showing = false;
     this.toast = document.getElementById('trophy-toast');
+    this.connectGameVolt();
+  }
+
+  // Keep the live cabinet in step with cloud trophies after a QR/login event.
+  // portal.js merges them into storage during boot, but an already-running
+  // game also needs its in-memory set updated. This merge is deliberately
+  // silent so an achievement earned on another device never replays a toast.
+  connectGameVolt() {
+    if (!window.GameVolt?.achievements) return;
+    try {
+      const backfill = () => { this.syncCloud(); };
+      window.GameVolt.auth?.onStateChange?.((user) => { if (user) backfill(); });
+      if (window.GameVolt.auth?.getUser?.()) backfill();
+    } catch { /* local trophies still work without the portal */ }
+  }
+
+  async syncCloud() {
+    try {
+      const ids = await window.GameVolt?.achievements?.getUnlockedIds?.();
+      if (!ids?.forEach) return false;
+      let changed = false;
+      const earnedAt = Date.now();
+      ids.forEach((fullId) => {
+        const id = String(fullId).replace(/^slipstream-vector-/, '');
+        if (ACHIEVEMENT_IDS.has(id) && !this.unlocked[id]) {
+          this.unlocked[id] = earnedAt;
+          changed = true;
+        }
+      });
+      if (changed) localStorage.setItem(KEY, JSON.stringify(this.unlocked));
+      return changed;
+    } catch {
+      return false;
+    }
   }
 
   isUnlocked(id) { return !!this.unlocked[id]; }

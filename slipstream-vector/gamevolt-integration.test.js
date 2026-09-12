@@ -45,3 +45,57 @@ test('cloud merge keeps earned trophies, career maxima and fastest records', () 
   assert.equal(merged['sv-unlocked'], '2');
   assert.equal(localStorage.getItem('sv-ach'), JSON.stringify(merged['sv-ach']));
 });
+
+test('QR sign-in silently refreshes the live trophy cabinet from the cloud', async () => {
+  const source = read('slipstream-vector/src/ui/achievements.js')
+    .replace(/^import .*;$/gm, '')
+    .replace(/export const /g, 'const ')
+    .replace(/export class /g, 'class ');
+  const data = new Map();
+  let onAuthChange;
+  const localStorage = {
+    getItem(k) { return data.has(k) ? data.get(k) : null; },
+    setItem(k, v) { data.set(k, String(v)); },
+  };
+  const window = {
+    GameVolt: {
+      auth: {
+        getUser: () => null,
+        onStateChange: (callback) => { onAuthChange = callback; },
+      },
+      achievements: {
+        getUnlockedIds: async () => new Set([
+          'first_race',
+          'slipstream-vector-first_win',
+          'not-a-real-trophy',
+        ]),
+      },
+    },
+  };
+  const env = {
+    window,
+    localStorage,
+    document: { getElementById: () => ({}) },
+    TrophyBaker: class {},
+    setTimeout,
+    clearTimeout,
+    cancelAnimationFrame() {},
+    requestAnimationFrame() {},
+    performance,
+  };
+  vm.runInNewContext(`${source}\nthis.Achievements = Achievements;`, env);
+  const cabinet = new env.Achievements(null);
+  assert.equal(typeof onAuthChange, 'function');
+
+  onAuthChange({ id: 'signed-in-user' });
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.equal(cabinet.isUnlocked('first_race'), true);
+  assert.equal(cabinet.isUnlocked('first_win'), true);
+  assert.equal(cabinet.isUnlocked('not-a-real-trophy'), false);
+  assert.equal(cabinet.queue.length, 0, 'cloud trophies must not replay unlock toasts');
+  assert.deepEqual(Object.keys(JSON.parse(localStorage.getItem('sv-ach'))).sort(), [
+    'first_race',
+    'first_win',
+  ]);
+});
