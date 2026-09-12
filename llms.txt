@@ -6,7 +6,7 @@ Games run in a modern browser. Most support phones, tablets and desktop; some, s
 
 ## Experimental demos
 
-- [New Dollarton](https://gamevolt.io/demos/new-dollarton/) — A playable 3D browser city-builder demo and a 100+ hour experiment in autonomous AI development. SimBuild grew from an empty folder into a simulation with roads, zoning, buildings, traffic, public transport, services, economy, day/night, save/load and a populated city of more than 8,000 residents. The agent worked through repeated build, measurement, screenshot, critic, acceptance and rollback loops. This is an experimental desktop demo rather than a finished GameVolt release; the populated city launches at https://gamevolt.io/simbuild/?mode=demo.
+- [New Dollarton](https://gamevolt.io/demos/new-dollarton/) — A playable 3D browser city-builder demo and a 100+ hour experiment in autonomous AI development. New Dollarton grew from an empty folder into a simulation with roads, zoning, buildings, traffic, public transport, services, economy, day/night, save/load and a populated city of more than 8,000 residents. The agent worked through repeated build, measurement, screenshot, critic, acceptance and rollback loops. This is an experimental desktop demo rather than a finished GameVolt release; the populated city launches at https://gamevolt.io/simbuild/?mode=demo.
 
 ## Original games
 
