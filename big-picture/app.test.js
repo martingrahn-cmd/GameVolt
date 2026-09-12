@@ -71,6 +71,14 @@ test('controller repeats directions at a controlled rate and wraps the eight-gam
     assert.equal(env.elements.selectedTitle.textContent, 'Manny the Mole');
 });
 
+test('controller browsing only moves the horizontal shelf and never scrolls the page', () => {
+    const source = fs.readFileSync(path.join(__dirname, 'app.js'), 'utf8');
+    assert.doesNotMatch(source, /scrollIntoView/);
+    const env = setup();
+    env.pad([15]); env.step(0);
+    assert.equal(env.elements.gameShelf.scrollTop, 0);
+});
+
 test('visible previous and next controls browse the collection and wrap at both ends', () => {
     const env = setup();
     env.elements.prevGame.click();

@@ -109,7 +109,10 @@
         animateHero(direction);
         if (focus) {
             cards[selected].focus({ preventScroll: true });
-            cards[selected].scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'instant' : 'smooth' });
+            var shelf = $('gameShelf');
+            var left = cards[selected].offsetLeft - Math.max(0, (shelf.clientWidth - cards[selected].offsetWidth) / 2);
+            if (shelf.scrollTo) shelf.scrollTo({ left: left, behavior: reducedMotion ? 'auto' : 'smooth' });
+            else shelf.scrollLeft = left;
         }
         try { sessionStorage.setItem('gv_big_picture_selected', game.id); } catch (e) {}
     }
