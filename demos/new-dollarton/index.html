@@ -26,7 +26,8 @@
         <h1><span>The experiment is called</span>New Dollarton</h1>
         <p class="hero-lead">What happens when an AI agent gets an overambitious city-builder brief and days, rather than minutes, to build, test, criticise and improve it?</p>
         <div class="status">Experimental demo</div>
-        <div class="actions"><a class="button" href="/simbuild/?mode=demo">Explore the demo city ↗</a><a class="button secondary" href="/simbuild/?mode=play">Start with an empty map</a></div>
+        <div class="actions"><a class="button" href="/simbuild/?mode=demo&amp;from=demo_story" data-demo-choice="populated_city">Explore the city ↗</a><a class="button secondary" href="/simbuild/?mode=play&amp;from=demo_story" data-demo-choice="new_city">Start a new city</a></div>
+        <p class="choice-note"><strong>Explore the city</strong> opens Lindham with 8,000+ residents and its systems running. <strong>Start a new city</strong> gives you an untouched map and the full starting budget.</p>
       </div>
     </section>
 
@@ -51,9 +52,10 @@
 
       <section class="copy-grid"><h2>Where the human still matters</h2><div class="copy"><p>AI can take measurable work surprisingly far. It can compare performance, repeat a seeded scene, inspect a screenshot and prove that a save restores correctly. It is much weaker when the answer lives in taste and feel.</p><p>Someone still has to say that a city looks wrong, an optimisation made the trees ugly, or a game is simply not fun. That person does not have to know how to implement a shader, a traffic model or a level-of-detail system. They do need a clear goal and the judgement to decide whether the result is actually good.</p><div class="quote">After 100+ hours, the most important test remains: is this something anyone actually wants to play?</div></div></section>
 
-      <section class="end-cta"><div class="eyebrow">Current verified build</div><h2>Visit Lindham</h2><p>Open the populated demonstration city to inspect the systems already working, or start with an empty map and build your own.</p><div class="actions"><a class="button" href="/simbuild/?mode=demo">Explore the demo city ↗</a><a class="button secondary" href="/simbuild/?mode=play">Build from scratch</a></div></section>
+      <section class="end-cta"><div class="eyebrow">Current verified build</div><h2>Visit Lindham</h2><p>Explore the populated city with its simulation already running, or begin on an untouched map with the full starting budget.</p><div class="actions"><a class="button" href="/simbuild/?mode=demo&amp;from=demo_story" data-demo-choice="populated_city">Explore the city ↗</a><a class="button secondary" href="/simbuild/?mode=play&amp;from=demo_story" data-demo-choice="new_city">Start a new city</a></div></section>
     </article>
   </main>
   <footer class="site-footer"><div class="footer-inner"><span>New Dollarton is an experimental GameVolt demo.</span><span><a href="/demos/">Demos</a><a href="/">GameVolt</a><a href="/about/">About</a></span></div></footer>
+  <script src="/js/gv-demo-analytics.js?v=1" defer></script>
 </body>
 </html>

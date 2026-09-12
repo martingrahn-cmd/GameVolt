@@ -66,6 +66,15 @@ jobs:
         run: |
           mkdir -p simbuild
           rsync -a --delete .simbuild-source/dist/ simbuild/
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("simbuild/index.html")
+          html = path.read_text()
+          tag = '  <script src="/js/gv-demo-analytics.js?v=1" data-demo="simbuild" defer></script>\n'
+          if tag not in html:
+              html = html.replace('</head>', tag + '</head>')
+              path.write_text(html)
+          PY
           jq -n \
             --arg sourceCommit "$SOURCE_SHA" \
             --arg sourceRepository "martingrahn-cmd/SimBuild" \
@@ -79,6 +88,7 @@ jobs:
           test -f simbuild/index.html
           test -f simbuild/assets/manifest.json
           grep -q '/simbuild/assets/' simbuild/index.html
+          grep -q '/js/gv-demo-analytics.js' simbuild/index.html
 
       - name: Commit published build
         if: steps.version.outputs.changed == 'true'

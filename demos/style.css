@@ -71,6 +71,8 @@ a { color: inherit; }
 .button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 50px; padding: 0 22px; border-radius: 7px; text-decoration: none; font-weight: 800; background: var(--blue); color: #07121b; box-shadow: 0 10px 35px rgba(66, 163, 222, .2); transition: transform .18s, background .18s; }
 .button:hover { transform: translateY(-2px); background: #a1dcff; }
 .button.secondary { color: var(--text); background: rgba(255,255,255,.06); border: 1px solid var(--line); box-shadow: none; }
+.choice-note { max-width: 720px; margin-top: 15px; color: #9babb9; font-size: .9rem; line-height: 1.5; }
+.choice-note strong { color: #dce8f0; }
 
 .page, .demo-copy { width: min(1080px, calc(100% - 40px)); margin: 0 auto; padding: 76px 0 100px; }
 .demo-note { padding: 20px 22px; border-left: 3px solid var(--orange); background: rgba(246,184,115,.07); color: #d8c4ac; border-radius: 0 8px 8px 0; margin-bottom: 60px; }

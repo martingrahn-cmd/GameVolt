@@ -1833,6 +1833,38 @@
             color: var(--text-bright); font-weight: 700; font-size: 0.95rem; line-height: 1.35;
         }
 
+        /* ── From the lab ── */
+        .demo-lab { margin-bottom: 46px; }
+        .demo-lab-card {
+            display: grid;
+            grid-template-columns: minmax(260px, .82fr) 1.18fr;
+            min-height: 230px;
+            overflow: hidden;
+            color: inherit;
+            text-decoration: none;
+            background: linear-gradient(120deg, rgba(13, 24, 34, .98), rgba(17, 31, 43, .9));
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            transition: border-color .25s, transform .25s, background .25s;
+        }
+        .demo-lab-card:hover {
+            border-color: rgba(103, 207, 255, .42);
+            transform: translateY(-2px);
+            background: linear-gradient(120deg, rgba(16, 29, 41, .98), rgba(22, 39, 53, .94));
+        }
+        .demo-lab-card img { width: 100%; height: 100%; object-fit: cover; }
+        .demo-lab-body { align-self: center; padding: 30px 34px; }
+        .demo-lab-kicker { color: var(--accent); font-size: .7rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+        .demo-lab-title { margin: 7px 0 9px; color: var(--text-bright); font-size: clamp(1.45rem, 3vw, 2.15rem); line-height: 1.05; }
+        .demo-lab-copy { max-width: 650px; color: var(--text-medium); line-height: 1.55; }
+        .demo-lab-read { display: inline-block; margin-top: 16px; color: var(--accent); font-size: .88rem; font-weight: 750; }
+
+        @media (max-width: 680px) {
+            .demo-lab-card { grid-template-columns: 1fr; }
+            .demo-lab-card img { aspect-ratio: 16 / 8; }
+            .demo-lab-body { padding: 24px; }
+        }
+
         /* ── Top Players + Activity Feed ── */
         .community-row {
             display: grid;
@@ -2794,6 +2826,22 @@
             </div>
         </div>
 
+        <section class="demo-lab" aria-labelledby="demoLabTitle">
+            <div class="section-header">
+                <h2 class="section-title" id="demoLabTitle">From the lab</h2>
+                <a href="/demos/" class="section-link" style="font-size:0.85rem;color:var(--text-muted);text-decoration:none;">View all demos &rarr;</a>
+            </div>
+            <a href="/demos/new-dollarton/?from=homepage_demo" class="demo-lab-card" data-demo-entry="homepage">
+                <img src="/assets/experiments/new-dollarton-hero.webp" alt="Aerial view of Lindham in the New Dollarton city-building demo" loading="lazy">
+                <div class="demo-lab-body">
+                    <div class="demo-lab-kicker">Playable experiment · Desktop</div>
+                    <h3 class="demo-lab-title">New Dollarton</h3>
+                    <p class="demo-lab-copy">A living 3D city and a 100+ hour experiment in autonomous AI development. Read the story, explore Lindham or build a city of your own.</p>
+                    <span class="demo-lab-read">Discover the demo &rarr;</span>
+                </div>
+            </a>
+        </section>
+
         <section class="features-section">
             <h2 class="section-title">Why GameVolt?</h2>
             <div class="features-grid">
@@ -3442,5 +3490,6 @@
     </script>
     <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
     <script src="/js/gv-game-hints.js?v=1" defer></script>
+    <script src="/js/gv-demo-analytics.js?v=1" defer></script>
 </body>
 </html>
