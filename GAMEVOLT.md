@@ -96,6 +96,19 @@ path (migrated 2026-07-24); every game leaderboard is on Supabase.
 
 ---
 
+## Experimental demos
+
+`/demos/` is a deliberately low-profile section for playable experiments and
+works in progress that should not appear in the regular game catalog. The first
+entry is `/demos/new-dollarton/`, the presentation page for the SimBuild city
+builder experiment.
+
+The playable build lives at `/simbuild/` and is replaced in full by
+`.github/workflows/sync-simbuild.yml` whenever the external SimBuild repository
+changes. Keep all editorial pages and permanent media outside that directory.
+Use `/simbuild/?mode=demo` for the populated Lindham demo city and
+`/simbuild/?mode=play` for an empty map.
+
 ## Big Picture controller library
 
 `/big-picture/` is the controller collection, linked from the homepage navigation

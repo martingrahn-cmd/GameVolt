@@ -4,6 +4,10 @@
 
 Games run in a modern browser. Most support phones, tablets and desktop; some, such as Type or Die, require a keyboard. Playing without an account is supported. A free GameVolt account enables global leaderboards and account trophies; cloud-save support varies by game. Most games carry 31 unlockable trophies (15 bronze, 10 silver, 5 gold, 1 platinum) and global leaderboards.
 
+## Experimental demos
+
+- [New Dollarton](https://gamevolt.io/demos/new-dollarton/) — A playable 3D browser city-builder demo and a 100+ hour experiment in autonomous AI development. SimBuild grew from an empty folder into a simulation with roads, zoning, buildings, traffic, public transport, services, economy, day/night, save/load and a populated city of more than 8,000 residents. The agent worked through repeated build, measurement, screenshot, critic, acceptance and rollback loops. This is an experimental desktop demo rather than a finished GameVolt release; the populated city launches at https://gamevolt.io/simbuild/?mode=demo.
+
 ## Original games
 
 - [Slipstream Vector](https://gamevolt.io/slipstream-vector/) — GameVolt’s flagship anti-gravity arcade racer with a bright retro-futurist look: sunset megacities, neon coastlines, glowing tunnels and storm-lit industrial circuits. Race twelve tracks across four worlds with rival pilots, weapons, slipstream drafting, loops, corkscrews and multiple speed classes. Championship, single race and time trial modes, with trophies and records. Full gamepad and keyboard support plus touch driving controls; also available in GameVolt Big Picture. Free in a modern browser with no download or signup required.
