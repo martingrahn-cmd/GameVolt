@@ -55,6 +55,9 @@ jobs:
       - name: Install and build SimBuild
         if: steps.version.outputs.changed == 'true'
         working-directory: .simbuild-source
+        env:
+          VITE_APP_VERSION: 0.1.0
+          VITE_BUILD_ID: ${{ steps.version.outputs.source_sha }}
         run: |
           npm ci
           npm run build -- --base=/simbuild/
@@ -84,11 +87,14 @@ jobs:
 
       - name: Verify portal build
         if: steps.version.outputs.changed == 'true'
+        env:
+          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
         run: |
           test -f simbuild/index.html
           test -f simbuild/assets/manifest.json
           grep -q '/simbuild/assets/' simbuild/index.html
           grep -q '/js/gv-demo-analytics.js' simbuild/index.html
+          grep -Rq "build ${SOURCE_SHA:0:7}" simbuild/assets
 
       - name: Commit published build
         if: steps.version.outputs.changed == 'true'
