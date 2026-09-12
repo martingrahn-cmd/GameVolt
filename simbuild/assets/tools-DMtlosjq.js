@@ -1,4 +1,4 @@
-import{F as e,J as t,Nt as n,O as r,Pt as i,R as a,U as o,a as s,at as c,b as l,c as u,g as d,h as f,ht as p,m,vt as h,xt as g,z as _}from"./index-FmxxAIMi.js";import{n as v}from"./palette-DorxfWyM.js";var y=.7;function b(){return new h({uniforms:{uFill:{value:new l(.615,.618,.625)},uEdge:{value:new l(y,y,y)},uFillA:{value:.97},uOpacity:{value:1},uWidth:{value:16},uTime:{value:0}},vertexShader:`
+import{F as e,J as t,Nt as n,O as r,Pt as i,R as a,U as o,a as s,at as c,b as l,c as u,g as d,h as f,ht as p,m,vt as h,xt as g,z as _}from"./index-DAXEVkoa.js";import{n as v}from"./palette-C2dAPbWB.js";var y=.7;function b(){return new h({uniforms:{uFill:{value:new l(.615,.618,.625)},uEdge:{value:new l(y,y,y)},uFillA:{value:.97},uOpacity:{value:1},uWidth:{value:16},uTime:{value:0}},vertexShader:`
       varying vec2 vUv;
       void main() {
         vUv = uv;
