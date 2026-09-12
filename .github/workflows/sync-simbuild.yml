@@ -1,0 +1,96 @@
+name: Sync SimBuild
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17,47 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-simbuild
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish SimBuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out GameVolt
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check out SimBuild main
+        uses: actions/checkout@v7
+        with:
+          repository: martingrahn-cmd/SimBuild
+          ref: main
+          path: .simbuild-source
+
+      - name: Check whether SimBuild changed
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_sha="$(git -C .simbuild-source rev-parse HEAD)"
+          published_sha="$(jq -r '.sourceCommit // empty' simbuild/version.json 2>/dev/null || true)"
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          if [ "$source_sha" = "$published_sha" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node.js
+        if: steps.version.outputs.changed == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install and build SimBuild
+        if: steps.version.outputs.changed == 'true'
+        working-directory: .simbuild-source
+        run: |
+          npm ci
+          npm run build -- --base=/simbuild/
+
+      - name: Copy build into GameVolt
+        if: steps.version.outputs.changed == 'true'
+        env:
+          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+        run: |
+          mkdir -p simbuild
+          rsync -a --delete .simbuild-source/dist/ simbuild/
+          jq -n \
+            --arg sourceCommit "$SOURCE_SHA" \
+            --arg sourceRepository "martingrahn-cmd/SimBuild" \
+            --arg builtAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{sourceRepository: $sourceRepository, sourceCommit: $sourceCommit, builtAt: $builtAt}' \
+            > simbuild/version.json
+
+      - name: Verify portal build
+        if: steps.version.outputs.changed == 'true'
+        run: |
+          test -f simbuild/index.html
+          test -f simbuild/assets/manifest.json
+          grep -q '/simbuild/assets/' simbuild/index.html
+
+      - name: Commit published build
+        if: steps.version.outputs.changed == 'true'
+        env:
+          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add simbuild
+          if git diff --cached --quiet; then
+            echo "The portal build is already current."
+            exit 0
+          fi
+          git commit -m "Publish SimBuild ${SOURCE_SHA:0:7}"
+          git push
