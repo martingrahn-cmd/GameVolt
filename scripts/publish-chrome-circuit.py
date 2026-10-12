@@ -51,6 +51,7 @@ def patch_page(html):
         if pattern.startswith('<title') and n != 1:
             fail(f'expected one {pattern} in the game page, found {n}')
     html = re.sub(r'[ \t]*<!-- What a shared link shows:.*?-->\n', '', html, flags=re.S)
+    html = re.sub(r'[ \t]*<!-- The game\'s home is GameVolt;.*?-->\n', '', html, flags=re.S)
     head = (TEMPLATES / 'head.html').read_text()
     if html.count('<meta charset="utf-8">') != 1:
         fail('the game page has no single <meta charset="utf-8"> to put the head after')
