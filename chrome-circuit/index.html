@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- GameVolt: added by scripts/publish-chrome-circuit.py. Edit it there, not in /chrome-circuit/. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  // The portal player records the visit when this page runs in its iframe.
+  gtag('config', 'G-PY073ZX38N', window.parent !== window ? { send_page_view: false } : {});
+</script>
+<title>Chrome Circuit — Free Isometric Arcade Racing Game | GameVolt</title>
+<meta name="description" content="A bright isometric arcade racer with chunky low-poly cars, in the spirit of Rock 'n Roll Racing and Super Off Road. Race 12 circuits across four worlds free — keyboard, touch or gamepad.">
+<meta name="keywords" content="isometric racing game, arcade racer, top-down racing game, free browser racing game, micro machines style game, gamepad browser game">
+<meta name="author" content="GameVolt">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://gamevolt.io/chrome-circuit/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="GameVolt">
+<meta property="og:url" content="https://gamevolt.io/chrome-circuit/">
+<meta property="og:title" content="Chrome Circuit — Free Isometric Arcade Racing Game">
+<meta property="og:description" content="A bright isometric arcade racer with chunky low-poly cars: sunlit city streets, blossom hills, snowy alpine passes and red rock canyons. Twelve circuits, drift boosts, rockets and ghost challenges, free in your browser.">
+<meta property="og:image" content="https://gamevolt.io/assets/thumbnails/chrome-circuit.webp">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta property="og:image:alt" content="A pack of low-poly cars racing toward a stone arch bridge in a red rock canyon at sundown, with the Chrome Circuit title.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Chrome Circuit — Free Isometric Arcade Racing Game">
+<meta name="twitter:description" content="Race chunky low-poly cars through city streets, blossom hills, alpine snow and red rock canyons. 12 circuits, drift boosts, rockets, ghost challenges and full gamepad support.">
+<meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/chrome-circuit.webp">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Chrome Circuit",
+  "description": "A bright isometric arcade racer with chunky low-poly cars, in the spirit of Rock 'n Roll Racing and Super Off Road. Race twelve circuits across four worlds with drift boosts, rockets, oil drums, a career of cups and time trials against your own ghost.",
+  "url": "https://gamevolt.io/chrome-circuit/",
+  "image": "https://gamevolt.io/assets/thumbnails/chrome-circuit.webp",
+  "genre": ["Racing", "Arcade"],
+  "gamePlatform": "Web Browser",
+  "operatingSystem": "Any",
+  "applicationCategory": "Game",
+  "playMode": "SinglePlayer",
+  "numberOfPlayers": { "@type": "QuantitativeValue", "value": 1 },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "publisher": { "@type": "Organization", "@id": "https://gamevolt.io/#organization", "name": "GameVolt", "url": "https://gamevolt.io" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gamevolt.io/" },
+    { "@type": "ListItem", "position": 2, "name": "Action Games", "item": "https://gamevolt.io/action-games/" },
+    { "@type": "ListItem", "position": 3, "name": "Chrome Circuit", "item": "https://gamevolt.io/chrome-circuit/" }
+  ]
+}
+</script>
+<!-- Loaded before the game so window.GameVolt exists when it starts. -->
+<script src="/sdk/gamevolt.js?v=2026.09.12-1" data-game="chrome-circuit"></script>
+<!-- /GameVolt -->
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#14161f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<!-- iOS has no manifest: installing is Share -> Add to Home Screen, and these
+     are what it reads for the icon, the name and the full-screen shell. -->
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chrome Circuit">
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/three.module.min.js",
+    "three/": "./vendor/three/"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<!-- ------------------------------------------------------------------ HUD -->
+<div id="hud" class="hidden">
+  <div class="hud-corner hud-tl">
+    <div class="stat">
+      <span class="stat-label">Lap</span>
+      <span class="stat-value" id="hud-lap">1/3</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label" id="hud-pos-name">Pos</span>
+      <span class="stat-value" id="hud-pos">6th</span>
+      <span class="stat-sub" id="hud-pos-label">of 6</span>
+    </div>
+  </div>
+
+  <div class="hud-corner hud-tr">
+    <div class="stat stat--right">
+      <span class="stat-label">Lap time</span>
+      <span class="stat-value stat-value--mono" id="hud-time">0:00.00</span>
+    </div>
+    <div class="stat stat--right">
+      <span class="stat-label">Best</span>
+      <span class="stat-value stat-value--mono stat-value--dim" id="hud-best">--:--.--</span>
+    </div>
+    <canvas id="hud-map" width="168" height="168"></canvas>
+  </div>
+
+  <div class="hud-corner hud-bl">
+    <div id="hud-item" class="item-slot">
+      <svg class="item-icon" aria-hidden="true"><use id="hud-item-icon" href=""></use></svg>
+      <span class="item-label" id="hud-item-label">—</span>
+      <span class="item-hint">Space</span>
+    </div>
+  </div>
+
+  <div class="hud-corner hud-br">
+    <div class="speedo">
+      <span class="speedo-value" id="hud-speed">0</span>
+      <span class="speedo-unit" id="hud-unit">km/h</span>
+      <div class="boost-track"><div class="boost-fill" id="hud-boost"></div></div>
+      <span class="draft" id="hud-draft">Slipstream</span>
+    </div>
+  </div>
+
+  <!-- Item icons, drawn in the slot's colour. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="ico-boost" viewBox="0 0 24 24"><path d="M13.5 2 5 13.5h6L9.5 22 19 9.5h-6z" fill="currentColor"/></symbol>
+    <symbol id="ico-missile" viewBox="0 0 24 24"><path d="M12 1.5c3 2.6 4.5 6.3 4.5 10.5v3h-9v-3c0-4.2 1.5-7.9 4.5-10.5z" fill="currentColor"/><path d="M7.5 12 4 17.5h3.5zM16.5 12 20 17.5h-3.5z" fill="currentColor"/><path d="M9.5 16.5h5L12 22.5z" fill="currentColor" opacity="0.7"/><circle cx="12" cy="9" r="1.7" fill="#0e1017"/></symbol>
+    <symbol id="ico-mine" viewBox="0 0 24 24"><rect x="5.5" y="2.5" width="13" height="19" rx="2.2" fill="currentColor"/><path d="M5.5 8h13M5.5 16h13" stroke="#0e1017" stroke-width="1.8"/><ellipse cx="12" cy="4.6" rx="4.5" ry="1.3" fill="#0e1017" opacity="0.35"/></symbol>
+  </svg>
+  <div id="hud-countdown" class="countdown"></div>
+  <div id="hud-messages" class="messages"></div>
+
+  <div id="touch" class="touch hidden">
+    <div class="touch-zone touch-zone--steer" data-touch="steer" aria-label="Steer: slide a thumb"></div>
+    <div class="touch-zone touch-zone--drift" data-touch="handbrake" aria-label="Handbrake: hold"></div>
+    <div class="touch-stick hidden" id="touch-stick"><i></i></div>
+    <button class="touch-btn touch-btn--item" data-touch="item" aria-label="Use item">★</button>
+    <button class="touch-btn touch-btn--pause" id="touch-pause" aria-label="Pause">❚❚</button>
+    <p class="touch-hint">Slide left to steer · hold right to drift, let go to boost · ★ fires</p>
+  </div>
+</div>
+
+<!-- -------------------------------------------------------------- Screens -->
+<div id="screens">
+
+  <section class="screen show" id="screen-loading">
+    <div class="loading">
+      <div class="loading-mark">CC</div>
+      <h1 class="loading-title">Chrome Circuit</h1>
+      <div class="loading-bar"><div class="loading-fill" id="loading-fill"></div></div>
+      <p class="loading-text" id="loading-text">Warming up the grid…</p>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-menu">
+    <div class="menu">
+      <p class="eyebrow">Isometric arcade racing</p>
+      <h1 class="title">Chrome<span>Circuit</span></h1>
+      <p class="tagline">Six cars. Three laps. Rockets optional.</p>
+      <div class="menu-buttons">
+        <!-- The career is the cups, one world after another. -->
+        <button class="btn btn--primary" data-action="champ" id="menu-champ">Career</button>
+        <div class="menu-row">
+          <button class="btn" data-action="single">Single race</button>
+          <button class="btn" data-action="trial">Time trial</button>
+        </div>
+        <div class="menu-row">
+          <button class="btn" data-action="garage">Garage</button>
+          <button class="btn" data-action="trophies">Trophies</button>
+        </div>
+        <div class="menu-row">
+          <button class="btn" data-action="howto">How to play</button>
+          <button class="btn" data-action="settings">Settings</button>
+        </div>
+        <!-- Shown where the browser can go full screen and the game is not already. -->
+        <button class="btn btn--ghost btn--fullscreen hidden" id="menu-fullscreen" data-action="fullscreen">Full screen</button>
+        <!-- Revealed by pwa.js only when the browser offers to install. -->
+        <button class="btn btn--install hidden" id="install-btn" data-action="install">Install</button>
+      </div>
+      <p class="credits">Models by <strong>Kenney</strong> (CC0) — Car Kit, City Kit Roads, City Kit, Suburban, Toy Car Kit, Holiday Kit, Nature Kit, Racing Kit. <span class="version" id="version-badge"></span></p>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-tracks">
+    <div class="panel">
+      <header class="panel-head">
+        <h2 id="tracks-title">Career</h2>
+        <div class="worlds" id="track-worlds" role="group" aria-label="World"></div>
+        <button class="btn btn--ghost" data-action="back-menu">Back</button>
+      </header>
+      <div class="levels" id="difficulty" data-group="race" role="group" aria-label="Difficulty"></div>
+      <!-- The circuit under the cursor or the pad, from the air. -->
+      <div class="track-hero" id="track-hero" aria-hidden="true"></div>
+      <div class="card-grid" id="track-list"></div>
+      <footer class="panel-foot">
+        <button class="btn btn--primary" data-action="to-cars">Next: pick a car</button>
+      </footer>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-cars">
+    <div class="panel">
+      <header class="panel-head">
+        <h2>Pick your car</h2>
+        <button class="btn btn--ghost" data-action="back-tracks">Back</button>
+      </header>
+      <div class="card-grid card-grid--cars" id="car-list"></div>
+      <footer class="panel-foot">
+        <span class="foot-note" id="car-note"></span>
+        <button class="btn btn--primary" data-action="go">Race</button>
+      </footer>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-champ">
+    <div class="panel">
+      <header class="panel-head">
+        <div>
+          <h2 id="champ-title">Career</h2>
+          <p class="champ-sub" id="champ-sub"></p>
+        </div>
+        <button class="btn btn--ghost" data-action="back-menu">Back</button>
+      </header>
+      <ol class="champ-rounds" id="champ-rounds"></ol>
+      <table class="standings hidden" id="champ-standings"></table>
+      <div class="worlds worlds--wide" id="champ-worlds" role="group" aria-label="World"></div>
+      <div class="levels" id="champ-difficulty" data-group="champ" role="group" aria-label="Difficulty"></div>
+      <footer class="panel-foot">
+        <button class="btn" data-action="champ-abandon" id="champ-abandon">Abandon</button>
+        <button class="btn btn--primary" data-action="champ-next" id="champ-next">Pick your car</button>
+        <button class="btn btn--primary hidden" data-action="ending" id="champ-ending">You won it all ▸</button>
+      </footer>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-results">
+    <div class="panel panel--narrow">
+      <header class="panel-head">
+        <div>
+          <h2 id="results-title">Race result</h2>
+          <p class="results-sub" id="results-sub"></p>
+        </div>
+      </header>
+      <ol class="results" id="results-list"></ol>
+      <div class="unlocks hidden" id="results-unlocks"></div>
+      <footer class="panel-foot">
+        <button class="btn" data-action="back-menu">Menu</button>
+        <button class="btn" data-action="retry" id="results-retry">Rematch</button>
+        <button class="btn hidden" data-action="share-ghost" id="results-share">Challenge a friend</button>
+        <button class="btn btn--primary" data-action="next-track" id="results-next">Next circuit</button>
+        <button class="btn btn--primary hidden" data-action="champ-standings" id="results-standings">Standings</button>
+      </footer>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-howto">
+    <div class="panel panel--narrow">
+      <header class="panel-head">
+        <h2>How to play</h2>
+        <button class="btn btn--ghost" data-action="back-menu">Back</button>
+      </header>
+      <div class="howto">
+        <!-- Filled in for whatever is in the player's hands (controls.js). -->
+        <dl class="control-list" id="howto-controls"></dl>
+        <p id="howto-other"></p>
+        <h3>Career</h3>
+        <p>The career is a cup in each world: its three circuits in turn against the same five rivals, points
+        for every place. Finish the cup in the top three and the next world opens, and so do new cars. Win every
+        world's cup on Pro or harder and you have beaten the game. Single race and time trial open every circuit.</p>
+        <h3>Drift boost</h3>
+        <p>Hold the handbrake into a corner with the wheel turned and the car commits to the slide: steering now only
+        tightens or widens the arc. Sparks at the back wheels turn <b style="color:#5cb8ff">blue</b>, then
+        <b style="color:#ff9f26">orange</b> — let go and you get a kick of speed, bigger for orange. Run onto the snow
+        or the grass and the charge drains away.</p>
+        <h3>Rocket start</h3>
+        <p>Hit the gas just as the lights go green for a turbo off the line. Too early and the wheels just spin.</p>
+        <h3>On a phone</h3>
+        <p>The car drives itself. Slide a thumb anywhere on the left to steer — the further it slides, the harder
+        you turn. Hold anywhere on the right to drift; let go for the kick. <strong>★</strong>, bottom left above
+        your item, fires it — a drift holds its line while your left thumb taps it. Touch the right side as the
+        lights go green for a rocket start.</p>
+        <h3>Items</h3>
+        <ul class="item-legend">
+          <li><b style="--c:#4ade80">TURBO</b> A short, glorious overdose of speed.</li>
+          <li><b style="--c:#f87171">ROCKET</b> Fires forward and nudges toward whoever is ahead.</li>
+          <li><b style="--c:#fbbf24">OIL DRUM</b> Drops behind you. Whoever hits it, spins.</li>
+        </ul>
+        <p class="muted">Grass and dirt will slow you down and steal your grip. Barriers hurt more.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-settings">
+    <div class="panel panel--narrow">
+      <header class="panel-head">
+        <h2>Settings</h2>
+        <button class="btn btn--ghost" data-action="back-settings">Back</button>
+      </header>
+      <div class="settings" id="settings-list"></div>
+    </div>
+  </section>
+
+  <!-- Every way to play, not only the one in hand: reached from Settings. -->
+  <section class="screen" id="screen-controls">
+    <div class="panel panel--narrow">
+      <header class="panel-head">
+        <h2>Controls</h2>
+        <button class="btn btn--ghost" data-action="back-controls">Back</button>
+      </header>
+      <div class="trophy-tabs controls-tabs" role="tablist">
+        <button type="button" class="choice" role="tab" data-action="controls-tab" data-tab="keys">Keyboard</button>
+        <button type="button" class="choice" role="tab" data-action="controls-tab" data-tab="xbox">Xbox</button>
+        <button type="button" class="choice" role="tab" data-action="controls-tab" data-tab="playstation">PlayStation</button>
+        <button type="button" class="choice" role="tab" data-action="controls-tab" data-tab="nintendo">Switch</button>
+        <button type="button" class="choice" role="tab" data-action="controls-tab" data-tab="touch">Touch</button>
+      </div>
+      <dl class="control-list" id="controls-list"></dl>
+      <p class="controls-note" id="controls-note"></p>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-trophies">
+    <div class="panel">
+      <header class="panel-head">
+        <div>
+          <h2>Trophies</h2>
+          <p class="champ-sub" id="trophy-sub"></p>
+        </div>
+        <button class="btn btn--ghost" data-action="back-menu">Back</button>
+      </header>
+      <div class="trophy-tally" id="trophy-tally"></div>
+      <div class="trophy-tabs" role="tablist">
+        <button type="button" class="choice" role="tab" data-action="trophy-tab" data-tab="list" aria-pressed="true">Trophies</button>
+        <button type="button" class="choice" role="tab" data-action="trophy-tab" data-tab="records" aria-pressed="false">Records</button>
+      </div>
+      <div class="trophy-list" id="trophy-list"></div>
+      <div class="trophy-worlds hidden" id="trophy-worlds"></div>
+      <footer class="panel-foot hidden" id="trophy-foot">
+        <button class="btn btn--primary" data-action="ending">Roll the credits</button>
+      </footer>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-intro" aria-hidden="true">
+    <div class="intro-bar intro-bar--top"></div>
+    <div class="intro-bar intro-bar--bottom"></div>
+    <div class="intro-card"></div>
+    <h1 class="intro-title">Chrome<span>Circuit</span></h1>
+    <div class="intro-flash"></div>
+    <p class="intro-skip">Any button skips</p>
+  </section>
+
+  <section class="screen" id="screen-challenge">
+    <div class="panel panel--narrow">
+      <header class="panel-head">
+        <h2>Ghost challenge</h2>
+        <button class="btn btn--ghost" data-action="back-menu">Not now</button>
+      </header>
+      <div id="challenge-body"></div>
+      <footer class="panel-foot">
+        <button class="btn btn--primary" data-action="challenge-go">Race the ghost</button>
+      </footer>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-ending">
+    <div class="ending">
+      <div class="ending-roll" id="ending-roll"></div>
+      <button class="btn ending-back" data-action="back-menu">Menu</button>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-paused">
+    <div class="panel panel--narrow">
+      <header class="panel-head"><h2>Paused</h2></header>
+      <dl class="control-list" id="pause-controls"></dl>
+      <footer class="panel-foot">
+        <button class="btn" data-action="back-menu">Quit to menu</button>
+        <button class="btn" data-action="settings">Settings</button>
+        <button class="btn" data-action="retry">Restart</button>
+        <button class="btn btn--primary" data-action="resume">Resume</button>
+      </footer>
+    </div>
+  </section>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="ico-cup" viewBox="0 0 24 24"><path d="M7 3h10v5a5 5 0 0 1-10 0zM10.6 12.6h2.8V17h-2.8zM7.5 17h9v3.6h-9z" fill="currentColor"/><path d="M7 5H4.2v1.6A3.4 3.4 0 0 0 7.6 10M17 5h2.8v1.6a3.4 3.4 0 0 1-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+</svg>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- With a pad in hand: what its buttons do in the menus. -->
+<div id="pad-hints" class="pad-hints" aria-hidden="true"></div>
+
+<!-- Trophy unlocked: GameVolt's own toast when the SDK is there, this one when not. -->
+<div id="trophy-toast" role="status" aria-live="polite">
+  <div id="trophy-toast-icon"></div>
+  <div>
+    <div id="trophy-toast-label">Trophy unlocked</div>
+    <div id="trophy-toast-tier" class="bronze"></div>
+    <div id="trophy-toast-name"></div>
+  </div>
+</div>
+
+<button id="update-chip" class="update-chip hidden">New version available — tap to update</button>
+
+<button id="sound-toggle" class="sound-toggle" aria-label="Toggle sound">♪</button>
+<button id="fullscreen-toggle" class="sound-toggle fullscreen-toggle" aria-label="Full screen">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path class="fs-in" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><path class="fs-out" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg>
+</button>
+
+<script type="module" src="src/main.js"></script>
+<!-- GameVolt: added by scripts/publish-chrome-circuit.py. Edit it there, not in /chrome-circuit/. -->
+<div id="seo-content">
+  <style>
+    #seo-content { position:absolute; top:100vh; left:0; width:100%; z-index:60; background:#0e1017; color:#c3cad8; font-family:Arial,sans-serif; line-height:1.7; user-select:text; -webkit-user-select:text; }
+    #seo-content .seo-inner { max-width:900px; margin:0 auto; padding:56px 24px 34px; }
+    #seo-content .breadcrumb-nav { color:#7d869b; font-size:.86rem; margin-bottom:24px; }
+    #seo-content a { color:#ffcc32; text-decoration:none; }
+    #seo-content a:hover { text-decoration:underline; }
+    #seo-content h1, #seo-content h2 { color:#fff; font-family:Arial,sans-serif; line-height:1.2; }
+    #seo-content h1 { font-size:clamp(2rem,5vw,3.25rem); margin:0 0 18px; }
+    #seo-content h2 { font-size:1.5rem; margin:32px 0 10px; }
+    #seo-content p { margin:0 0 16px; }
+    #seo-content .seo-lead { color:#f2f5fb; font-size:1.12rem; }
+    #seo-content .related-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:16px; }
+    #seo-content .related-card { overflow:hidden; border:1px solid rgba(255,204,50,.2); border-radius:12px; background:rgba(255,255,255,.04); }
+    #seo-content .related-card img { display:block; width:100%; aspect-ratio:16/9; object-fit:cover; }
+    #seo-content .related-card span { display:block; padding:12px 14px; color:#fff; font-weight:700; }
+    #seo-content .seo-footer { border-top:1px solid rgba(255,255,255,.08); padding:22px 24px 34px; text-align:center; color:#7d869b; font-size:.88rem; }
+    html.seo-standalone, body.seo-standalone { height:auto; min-height:100%; overflow-x:hidden; overflow-y:auto; }
+    @media(max-width:680px){ #seo-content .related-grid { grid-template-columns:1fr; } }
+  </style>
+
+  <div class="seo-inner">
+    <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+      <a href="/">Home</a> / <a href="/action-games/">Action Games</a> / Chrome Circuit
+    </nav>
+
+    <section>
+      <h1>Chrome Circuit — Free Online Isometric Racing Game</h1>
+      <p class="seo-lead">Chrome Circuit is a bright isometric arcade racer with chunky low-poly cars, in the spirit of Rock 'n Roll Racing and Super Off Road. Six cars to a race tear through sunlit city streets, blossom-lined country roads, snowy alpine passes and red rock canyons, seen from above like a toy box come to life.</p>
+
+      <h2>Twelve circuits across four worlds</h2>
+      <p>City Lights, Country Roads, Alpine Winter and Red Rock Canyon each hold three circuits, from the friendly Downtown Loop to Neon Speedway's long straights, the ice on Glacier Pass, the gravel of Dust Bowl Rally and Mesa Eight, which crosses over itself on a stone arch bridge. Some climb and fall, some have crests to fly off, and most have no barriers to save you.</p>
+
+      <h2>Drift, boost and fire</h2>
+      <p>Hold the handbrake into a corner and the car commits to a slide; sparks at the back wheels turn blue, then orange, and letting go kicks you out of the turn with a burst of speed. Hit the gas just as the lights go green for a rocket start. Item boxes hand out turbos, homing rockets and oil drums to drop behind you.</p>
+
+      <h2>A career of cups, single races and time trials</h2>
+      <p>The career is a cup in each world: its three circuits against the same five rivals, with points for every place, on Rookie, Pro, Ace or Legend. Finish a cup on the podium to open the next world and new cars. Single race opens every circuit at once, and time trial puts you against the ghost of your own best lap, with bronze, silver and gold medals to win — and a link to send your ghost to a friend to beat.</p>
+
+      <h2>Play with gamepad, keyboard or touch</h2>
+      <p>Chrome Circuit has full controller support, from the menus to the race, and shows the buttons of the pad in your hands — Xbox, PlayStation or Switch — with rumble on pads that have it. Keyboard works too, and on a phone the car drives itself while you steer and drift with your thumbs. Launch it from <a href="/big-picture/">GameVolt Big Picture</a> for a controller-first living-room session.</p>
+
+      <h2>Free in your browser</h2>
+      <p>No download, purchase or signup: Chrome Circuit runs in any modern browser and can be installed as an app. Play as a guest, or sign in to GameVolt to keep your 31 trophies on your profile. The soundtrack is <em>Somewhat Good: Karts</em> by flowerhead.</p>
+    </section>
+
+    <section>
+      <h2>You might also like</h2>
+      <div class="related-grid">
+        <a class="related-card" href="/slipstream-vector/"><img src="/assets/thumbnails/slipstream-vector.webp" alt="Play Slipstream Vector free online" loading="lazy"><span>Slipstream Vector · Anti-gravity racing</span></a>
+        <a class="related-card" href="/hoverdash/"><img src="/assets/thumbnails/hoverdash.webp" alt="Play HoverDash free online" loading="lazy"><span>HoverDash · Neon lane runner</span></a>
+        <a class="related-card" href="/gridburn/"><img src="/gridburn/og-image.png" alt="Play Gridburn free online" loading="lazy"><span>Gridburn · Light-cycle duels</span></a>
+      </div>
+    </section>
+  </div>
+
+  <footer class="seo-footer">
+    <a href="/">GameVolt</a> · <a href="/action-games/">Action Games</a> · <a href="/big-picture/">Big Picture</a> · <a href="/news/">News</a> · <a href="/about/">About</a>
+  </footer>
+</div>
+<script>
+  // Inside the GameVolt player the page is only the game; on its own it is
+  // also the page search engines read, scrolled to below the game.
+  if (window.parent !== window) {
+    document.getElementById('seo-content').style.display = 'none';
+  } else {
+    document.documentElement.classList.add('seo-standalone');
+    document.body.classList.add('seo-standalone');
+  }
+</script>
+<!-- /GameVolt -->
+</body>
+</html>

@@ -1,0 +1,268 @@
+// Pickups (item boxes) and the three things you can do with them.
+import * as THREE from 'three';
+import { instance } from './assets.js';
+
+export const ITEMS = {
+  boost: { label: 'TURBO', colour: '#4ade80', rgb: [0.29, 0.87, 0.5] },
+  missile: { label: 'ROCKET', colour: '#f87171', rgb: [0.97, 0.44, 0.44] },
+  mine: { label: 'OIL DRUM', colour: '#fbbf24', rgb: [0.98, 0.75, 0.14] },
+};
+
+// What a box hands out depends on where you are running: backmarkers draw
+// comeback speed, the leader mostly draws things to defend with. `comeback`
+// (0..1) is how much of that tilt applies; it fades with difficulty like every
+// other catch-up lever, and at Legend every box deals the same odds. Starting
+// last, the player drew turbos half the time, and that — not pace — was how a
+// good driver kept winning at Legend.
+const ODDS = {           // [P(boost), P(boost or rocket)]
+  back: [0.5, 0.82],
+  mid: [0.34, 0.68],
+  front: [0.16, 0.48],
+  even: [0.3, 0.65],
+};
+function deal(rng, racePosition, comeback = 1) {
+  const pos = racePosition ?? 4;
+  const tilt = ODDS[pos >= 5 ? 'back' : pos >= 3 ? 'mid' : 'front'];
+  const [b, m] = tilt.map((v, i) => ODDS.even[i] + (v - ODDS.even[i]) * comeback);
+  const r = rng();
+  return r < b ? 'boost' : r < m ? 'missile' : 'mine';
+}
+
+export class ItemField {
+  constructor(track, scene, rng, comeback = 1) {
+    this.track = track;
+    this.scene = scene;
+    this.rng = rng;
+    this.comeback = comeback;
+    this.boxes = [];
+    this.build();
+  }
+
+  build() {
+    const line = this.track.line;
+    const group = new THREE.Group();
+    // Rows of three boxes on the straights — but none on the grid or the
+    // launch run just past the line: the start is for racing off the lights,
+    // and a row of boxes between the grid slots only reads as a mistake.
+    const n = line.n, start = this.track.startIndex;
+    const fromLine = (i) => ((((i - start) % n) + n + n / 2) % n - n / 2) * line.spacing;
+    const spacing = Math.max(28, line.length / 7);
+    for (let d = spacing * 0.5; d < line.length; d += spacing) {
+      const i = Math.round(d / line.spacing);
+      if (line.curveAt(i) > 0.025) continue;
+      const a = fromLine(i);
+      if (a > -32 && a < 14) continue;
+      // Nor on a ramp or crest, where a car would fly over the row.
+      if (this.track.featureNear(i, 14)) continue;
+      const p = line.point(i), t = line.tangent(i);
+      for (let k = -1; k <= 1; k++) {
+        const off = k * this.track.roadHalf * 0.62;
+        const mesh = instance('items', 'item-box');
+        mesh.scale.setScalar(4.4);
+        const y = line.heightOf(i) + 0.2;
+        mesh.position.set(p.x + t.z * off, y, p.z - t.x * off);
+        mesh.userData.baseY = y;
+        group.add(mesh);
+        this.boxes.push({ mesh, x: mesh.position.x, z: mesh.position.z, cooldown: 0, blocked: 0, phase: this.rng() * 6.28 });
+      }
+    }
+    this.group = group;
+    this.scene.add(group);
+  }
+
+  update(dt, cars, onPickup, onBlocked) {
+    for (const box of this.boxes) {
+      // A box that was driven through with a full slot hops and is left
+      // alone for a moment, so it does not rattle every frame of the pass.
+      if (box.blocked > 0) {
+        box.blocked -= dt;
+        const t = Math.max(0, box.blocked / 0.5);
+        box.mesh.position.y = box.mesh.userData.baseY + Math.sin(t * Math.PI) * 1.1;
+        box.mesh.rotation.y += dt * 14;
+        continue;
+      }
+      if (box.cooldown > 0) {
+        box.cooldown -= dt;
+        if (box.cooldown <= 0) { box.mesh.visible = true; box.mesh.scale.setScalar(4.4); }
+        else {
+          const t = 1 - box.cooldown / 4;
+          box.mesh.visible = true;
+          box.mesh.scale.setScalar(4.4 * Math.max(0, t * t));
+        }
+        continue;
+      }
+      box.phase += dt * 2.4;
+      box.mesh.rotation.y += dt * 1.8;
+      box.mesh.position.y = box.mesh.userData.baseY + Math.sin(box.phase) * 0.28;
+
+      for (const car of cars) {
+        if (car.finished) continue;
+        if (Math.hypot(car.x - box.x, car.z - box.z) > 2.1 || Math.abs(car.y + 0.2 - box.mesh.userData.baseY) > 2.5) continue;
+        if (car.item) {
+          box.blocked = 0.5;
+          onBlocked && onBlocked(car);
+          break;
+        }
+        box.cooldown = 4;
+        box.mesh.visible = false;
+        const kind = deal(this.rng, car.racePosition, this.comeback);
+        car.item = kind;
+        onPickup && onPickup(car, kind);
+        break;
+      }
+    }
+  }
+}
+
+export class Projectile {
+  constructor(owner, scene) {
+    this.owner = owner;
+    this.x = owner.x; this.z = owner.z;
+    const f = owner.forward;
+    this.heading = owner.heading;
+    this.speed = Math.max(30, owner.vLong + 22);
+    this.life = 3.2;
+    this.dead = false;
+    this.mesh = instance('cars', 'debris-bolt');
+    this.mesh.scale.setScalar(3.2);
+    this.y = owner.y;
+    this.lineIndex = owner.lineIndex;
+    this.mesh.position.set(this.x + f.x * 2, this.y + 0.5, this.z + f.z * 2);
+    scene.add(this.mesh);
+    this.x = this.mesh.position.x; this.z = this.mesh.position.z;
+  }
+
+  update(dt, cars, track) {
+    this.life -= dt;
+    if (this.life <= 0) { this.dead = true; return; }
+
+    // Gentle homing onto the nearest car ahead keeps rockets satisfying.
+    const target = this.findTarget(cars);
+    if (target) {
+      let want = Math.atan2(target.x - this.x, target.z - this.z) - this.heading;
+      while (want > Math.PI) want -= Math.PI * 2;
+      while (want < -Math.PI) want += Math.PI * 2;
+      this.heading += Math.max(-2.6 * dt, Math.min(2.6 * dt, want));
+    }
+    this.x += Math.sin(this.heading) * this.speed * dt;
+    this.z += Math.cos(this.heading) * this.speed * dt;
+    // Searched near where it was, so at a crossing it stays on its own deck.
+    const loc = track.line.locate(this.x, this.z, this.lineIndex, 14);
+    this.lineIndex = loc.index;
+    this.y = track.line.heightAt(loc.progress);
+    this.mesh.position.set(this.x, this.y + 0.5, this.z);
+    this.mesh.rotation.y = this.heading;
+    this.mesh.rotation.x += dt * 14;
+
+    for (const car of cars) {
+      if (car === this.owner || car.finished || Math.abs(car.y - this.y) > 2.2) continue;
+      if (Math.hypot(car.x - this.x, car.z - this.z) < car.radius + 0.8) {
+        car.spinOut(1.25);
+        this.dead = true;
+        this.hitCar = car;
+        return;
+      }
+    }
+    if (loc.dist > track.wallHalf + 3) this.dead = true;
+  }
+
+  findTarget(cars) {
+    let best = null, bestD = 42;
+    for (const car of cars) {
+      if (car === this.owner || car.finished || Math.abs(car.y - this.y) > 3) continue;
+      const dx = car.x - this.x, dz = car.z - this.z;
+      const ahead = dx * Math.sin(this.heading) + dz * Math.cos(this.heading);
+      if (ahead < 1) continue;
+      const d = Math.hypot(dx, dz);
+      if (d < bestD) { bestD = d; best = car; }
+    }
+    return best;
+  }
+
+  dispose(scene) { scene.remove(this.mesh); }
+}
+
+// None of the Kenney kits ship a barrel, so the oil drum is built here: a
+// yellow drum with two dark hoops, at a real drum's proportions against the
+// cars (a third of a car's width, a little over half its height), lying in a
+// spill that is exactly as wide as the hazard reaches — so what you see is
+// what catches you. One set of geometry serves every drum.
+export const SPILL = 0.75;   // reach beyond the car's own radius (was 1.0 with the big drum)
+const DRUM = {
+  body: new THREE.CylinderGeometry(0.32, 0.32, 0.82, 14),
+  hoop: new THREE.CylinderGeometry(0.35, 0.35, 0.07, 14),
+  lid: new THREE.CylinderGeometry(0.27, 0.27, 0.05, 14),
+  blob: new THREE.CircleGeometry(1, 20),
+  yellow: new THREE.MeshLambertMaterial({ color: 0xe8ac1f }),
+  dark: new THREE.MeshLambertMaterial({ color: 0x2b3145 }),
+  oil: new THREE.MeshBasicMaterial({ color: 0x141a26, transparent: true, opacity: 0.42, depthWrite: false }),
+};
+
+function oilDrum(reach) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(DRUM.body, DRUM.yellow);
+  body.position.y = 0.41;
+  body.castShadow = true;
+  g.add(body);
+  for (const y of [0.2, 0.62]) {
+    const hoop = new THREE.Mesh(DRUM.hoop, DRUM.dark);
+    hoop.position.y = y;
+    g.add(hoop);
+  }
+  const lid = new THREE.Mesh(DRUM.lid, DRUM.dark);
+  lid.position.y = 0.83;
+  g.add(lid);
+  // The spill: a few overlapping blobs rather than one clean disc, so it
+  // reads as oil on the road and not as a shadow painted under the drum.
+  const spill = new THREE.Group();
+  // Offsets and radii as fractions of the reach; every blob stays inside it.
+  const blobs = [[0, 0, 0.62], [0.3, 0.2, 0.4], [-0.35, 0.1, 0.38], [0.08, -0.36, 0.38], [-0.18, -0.26, 0.32]];
+  for (const [bx, bz, r] of blobs) {
+    const m = new THREE.Mesh(DRUM.blob, DRUM.oil);
+    m.rotation.x = -Math.PI / 2;
+    m.position.set(bx * reach, 0.13, bz * reach);
+    m.scale.setScalar(r * reach);
+    m.renderOrder = 2;
+    spill.add(m);
+  }
+  g.add(spill);
+  return g;
+}
+
+export class Hazard {
+  constructor(owner, scene) {
+    const f = owner.forward;
+    this.x = owner.x - f.x * 3.4;
+    this.z = owner.z - f.z * 3.4;
+    this.owner = owner;
+    this.arm = 0.8;
+    // Twelve seconds, not twenty-two: long enough to catch whoever is
+    // following, short enough that a lap later the road is clear again.
+    this.life = 12;
+    this.dead = false;
+    this.mesh = oilDrum(owner.radius + SPILL);
+    // Dropped behind the car, on the same slope it is driving up or down.
+    this.y = owner.y + Math.tan(owner.pitch) * 3.4;
+    this.mesh.position.set(this.x, this.y + 0.02, this.z);
+    this.mesh.rotation.set(owner.pitch, owner.heading, 0, 'YXZ');
+    scene.add(this.mesh);
+  }
+
+  update(dt, cars) {
+    this.arm -= dt;
+    this.life -= dt;
+    if (this.life <= 0) { this.dead = true; return; }
+    this.mesh.position.y = this.y + 0.02 + Math.sin(this.life * 6) * 0.015;
+    for (const car of cars) {
+      if ((this.arm > 0 && car === this.owner) || car.finished || Math.abs(car.y - this.y) > 2.2) continue;
+      if (Math.hypot(car.x - this.x, car.z - this.z) < car.radius + SPILL) {
+        car.spinOut(1.0);
+        this.dead = true;
+        this.hitCar = car;
+        return;
+      }
+    }
+  }
+
+  dispose(scene) { scene.remove(this.mesh); }
+}
