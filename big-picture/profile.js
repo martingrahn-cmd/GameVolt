@@ -3,6 +3,7 @@
 
     var games = [
         { id: 'slipstream-vector', name: 'Slipstream Vector' },
+        { id: 'chrome-circuit', name: 'Chrome Circuit' },
         { id: 'hoverdash', name: 'HoverDash' },
         { id: 'axeluga', name: 'Axeluga' },
         { id: 'snake', name: 'Snake Neo' },

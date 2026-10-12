@@ -1046,6 +1046,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/chrome-circuit/">Chrome Circuit</a>
                         <a href="/slipstream-vector/">Slipstream Vector</a>
                         <a href="/short-circuit/">Short Circuit</a>
                         <a href="/manny-the-mole/">Manny the Mole</a>
@@ -1104,6 +1105,7 @@
         'use strict';
 
         var GAME_NAMES = {
+            'chrome-circuit': 'Chrome Circuit',
             'slipstream-vector': 'Slipstream Vector',
             ink: 'INK', gridburn: 'Gridburn', spinburn: 'Spinburn',
             'short-circuit': 'Short Circuit',
@@ -1130,6 +1132,7 @@
         };
 
         var GAME_THUMBS = {
+            'chrome-circuit': '/assets/thumbnails/chrome-circuit.webp',
             'slipstream-vector': '/assets/thumbnails/slipstream-vector.png',
             ink: '/assets/thumbnails/ink.webp', gridburn: '/gridburn/og-image.png', spinburn: '/spinburn/og-image.png',
             'short-circuit': '/assets/thumbnails/short-circuit.webp',
@@ -1157,6 +1160,39 @@
 
         // Full trophy catalog — all definitions from all games
         var TROPHY_CATALOG = {
+            'chrome-circuit': [
+                {"id": "chrome-circuit-first_race", "name": "Green Light", "desc": "Finish your first race", "icon": "🚦", "tier": "bronze"},
+                {"id": "chrome-circuit-first_podium", "name": "On the Box", "desc": "Finish a race in the top three", "icon": "🥉", "tier": "bronze"},
+                {"id": "chrome-circuit-first_win", "name": "Chequered Flag", "desc": "Win a race", "icon": "🏁", "tier": "bronze"},
+                {"id": "chrome-circuit-rocket_start", "name": "Rocket Start", "desc": "Hit the gas as the lights go green", "icon": "🚀", "tier": "bronze"},
+                {"id": "chrome-circuit-drift_boost", "name": "Sideways", "desc": "Earn a drift boost", "icon": "💨", "tier": "bronze"},
+                {"id": "chrome-circuit-orange_sparks", "name": "Orange Sparks", "desc": "Hold a drift long enough for an orange boost", "icon": "🔥", "tier": "bronze"},
+                {"id": "chrome-circuit-big_air", "name": "Big Air", "desc": "Fly for more than half a second", "icon": "🪂", "tier": "bronze"},
+                {"id": "chrome-circuit-direct_hit", "name": "Direct Hit", "desc": "Hit a rival with a rocket", "icon": "🎯", "tier": "bronze"},
+                {"id": "chrome-circuit-slippery", "name": "Slippery", "desc": "Spin a rival with your oil drum", "icon": "🛢️", "tier": "bronze"},
+                {"id": "chrome-circuit-close_call", "name": "Close Call", "desc": "Shave past a rival without touching", "icon": "😬", "tier": "bronze"},
+                {"id": "chrome-circuit-overtakes_25", "name": "Through the Field", "desc": "Overtake 25 cars", "icon": "⏩", "tier": "bronze"},
+                {"id": "chrome-circuit-ghost_rider", "name": "Ghost Rider", "desc": "Set a lap in time trial", "icon": "👻", "tier": "bronze"},
+                {"id": "chrome-circuit-bronze_medal", "name": "Medalist", "desc": "Earn a time trial medal", "icon": "🎖️", "tier": "bronze"},
+                {"id": "chrome-circuit-snow_chains", "name": "Snow Chains", "desc": "Finish a race in Alpine Winter", "icon": "❄️", "tier": "bronze"},
+                {"id": "chrome-circuit-red_dust", "name": "Red Dust", "desc": "Finish a race in Red Rock Canyon", "icon": "🌵", "tier": "bronze"},
+                {"id": "chrome-circuit-wins_10", "name": "Winning Habit", "desc": "Win 10 races", "icon": "🏆", "tier": "silver"},
+                {"id": "chrome-circuit-hat_trick", "name": "Hat Trick", "desc": "Win 3 races in a row", "icon": "🎩", "tier": "silver"},
+                {"id": "chrome-circuit-runaway", "name": "Runaway", "desc": "Win a race by 5 seconds or more", "icon": "🏃", "tier": "silver"},
+                {"id": "chrome-circuit-ace_win", "name": "Ace Driver", "desc": "Win a race on Ace or Legend", "icon": "♠️", "tier": "silver"},
+                {"id": "chrome-circuit-champion", "name": "Champion", "desc": "Win a championship", "icon": "🥇", "tier": "silver"},
+                {"id": "chrome-circuit-gold_medal", "name": "Gold Standard", "desc": "Earn a gold medal in time trial", "icon": "🌟", "tier": "silver"},
+                {"id": "chrome-circuit-medal_every", "name": "Full Set", "desc": "Earn a medal on every circuit", "icon": "🗺️", "tier": "silver"},
+                {"id": "chrome-circuit-full_garage", "name": "Full Garage", "desc": "Unlock every car", "icon": "🚗", "tier": "silver"},
+                {"id": "chrome-circuit-open_road", "name": "Open Road", "desc": "Open every world in the career", "icon": "🛣️", "tier": "silver"},
+                {"id": "chrome-circuit-drift_king", "name": "Drift King", "desc": "Earn 100 drift boosts", "icon": "👑", "tier": "silver"},
+                {"id": "chrome-circuit-grand_champion", "name": "Grand Champion", "desc": "Win every world's championship on Pro or harder", "icon": "🏆", "tier": "gold"},
+                {"id": "chrome-circuit-clean_sweep", "name": "Clean Sweep", "desc": "Win every round of a championship on Pro or harder", "icon": "🧹", "tier": "gold"},
+                {"id": "chrome-circuit-legend_title", "name": "Living Legend", "desc": "Win a championship on Legend", "icon": "🔱", "tier": "gold"},
+                {"id": "chrome-circuit-gold_rush", "name": "Gold Rush", "desc": "Earn gold on every circuit", "icon": "💰", "tier": "gold"},
+                {"id": "chrome-circuit-legend_tour", "name": "Legend of the Road", "desc": "Win on Legend on every circuit", "icon": "🛞", "tier": "gold"},
+                {"id": "chrome-circuit-master", "name": "Chrome Circuit Master", "desc": "Unlock all 30 other trophies", "icon": "💎", "tier": "platinum"}
+            ],
             'slipstream-vector': [
                 {"id": "slipstream-vector-first_race", "name": "Off the Line", "desc": "Finish your first race", "icon": "🏁", "tier": "bronze"},
                 {"id": "slipstream-vector-first_win", "name": "Top Step", "desc": "Win a race", "icon": "🥇", "tier": "bronze"},

@@ -54,18 +54,18 @@ function setup(options = {}) {
         get fullscreenRequests() { return fullscreenRequests; } };
 }
 
-test('controller repeats directions at a controlled rate and wraps the eight-game collection', () => {
+test('controller repeats directions at a controlled rate and wraps the nine-game collection', () => {
     const env = setup();
     env.pad([15]); env.step(0);
-    assert.equal(env.elements.selectedTitle.textContent, 'HoverDash');
+    assert.equal(env.elements.selectedTitle.textContent, 'Chrome Circuit');
     assert.equal(env.elements.gameShelf.children[0].attributes['data-side'], 'left');
     assert.equal(env.elements.gameShelf.children[1].attributes['data-side'], 'active');
     assert.equal(env.elements.gameShelf.children[2].attributes['data-side'], 'right');
     assert.equal(env.elements.gameShelf.children[2].attributes['data-distance'], '1');
-    env.step(100); assert.equal(env.elements.selectedTitle.textContent, 'HoverDash');
-    env.step(350); assert.equal(env.elements.selectedTitle.textContent, 'Axeluga');
+    env.step(100); assert.equal(env.elements.selectedTitle.textContent, 'Chrome Circuit');
+    env.step(350); assert.equal(env.elements.selectedTitle.textContent, 'HoverDash');
     env.pad(); env.step(400);
-    env.pad([14]); env.step(410); assert.equal(env.elements.selectedTitle.textContent, 'HoverDash');
+    env.pad([14]); env.step(410); assert.equal(env.elements.selectedTitle.textContent, 'Chrome Circuit');
     env.pad(); env.step(420); env.pad([14]); env.step(430);
     env.pad(); env.step(440); env.pad([14]); env.step(450);
     assert.equal(env.elements.selectedTitle.textContent, 'Manny the Mole');
@@ -86,7 +86,7 @@ test('visible previous and next controls browse the collection and wrap at both 
     env.elements.nextGame.click();
     assert.equal(env.elements.selectedTitle.textContent, 'Slipstream Vector');
     env.elements.nextGame.click();
-    assert.equal(env.elements.selectedTitle.textContent, 'HoverDash');
+    assert.equal(env.elements.selectedTitle.textContent, 'Chrome Circuit');
 });
 
 test('featured carousel swaps gameplay videos including Gridburn', () => {
@@ -95,17 +95,19 @@ test('featured carousel swaps gameplay videos including Gridburn', () => {
     assert.equal(env.elements.selectedStill.hidden, false);
     assert.equal(env.elements.selectedStill.src, '/assets/thumbnails/slipstream-vector-tall.png');
     assert.equal(env.elements.previousPeekName.textContent, 'Manny the Mole');
-    assert.equal(env.elements.nextPeekName.textContent, 'HoverDash');
+    assert.equal(env.elements.nextPeekName.textContent, 'Chrome Circuit');
     assert.equal(env.elements.farPreviousPeekName.textContent, 'Gridburn');
+    assert.equal(env.elements.farNextPeekName.textContent, 'HoverDash');
+    assert.equal(env.elements.carouselRail.children.length, 9);
+    env.elements.nextGame.click();
+    assert.equal(env.elements.selectedVideo.src, '/chrome-circuit/preview.mp4');
+    assert.equal(env.elements.previousPeekName.textContent, 'Slipstream Vector');
+    assert.equal(env.elements.nextPeekName.textContent, 'HoverDash');
+    assert.equal(env.elements.farPreviousPeekName.textContent, 'Manny the Mole');
     assert.equal(env.elements.farNextPeekName.textContent, 'Axeluga');
-    assert.equal(env.elements.carouselRail.children.length, 8);
     env.elements.nextGame.click();
     assert.equal(env.elements.selectedVideo.src, '/hoverdash/preview.mp4');
-    assert.equal(env.elements.previousPeekName.textContent, 'Slipstream Vector');
-    assert.equal(env.elements.nextPeekName.textContent, 'Axeluga');
-    assert.equal(env.elements.farPreviousPeekName.textContent, 'Manny the Mole');
-    assert.equal(env.elements.farNextPeekName.textContent, 'Snake Neo');
-    env.elements.gameShelf.children[6].click();
+    env.elements.gameShelf.children[7].click();
     assert.equal(env.elements.selectedVideo.hidden, false);
     assert.equal(env.elements.selectedStill.hidden, true);
     assert.equal(env.elements.selectedVideo.src, '/gridburn/preview.mp4');
@@ -164,11 +166,11 @@ test('blocked gamepad and storage APIs preserve keyboard, touch and return navig
     const env = setup({ blockGamepads: true, blockStorage: true });
     assert.doesNotThrow(() => env.step(0));
     assert.equal(env.key('ArrowRight').prevented, true);
-    assert.equal(env.elements.selectedTitle.textContent, 'HoverDash');
+    assert.equal(env.elements.selectedTitle.textContent, 'Chrome Circuit');
     env.key('Enter');
     assert.equal(env.elements.playerMount.children.length, 1);
     env.elements.back.click();
-    env.elements.gameShelf.children[4].click();
+    env.elements.gameShelf.children[5].click();
     env.elements.play.click();
     assert.ok(env.elements.playerMount.children[0].src.includes('blockstorm'));
 });
@@ -213,7 +215,7 @@ test('blocked browser fullscreen falls back to TV view and B returns to the libr
         assert.ok(fs.existsSync(path.join(__dirname, '..', url.searchParams.get('game'), 'index.html')));
         env.elements.back.click();
     }
-    for (const preview of ['hoverdash', 'axeluga', 'snake', 'blockstorm', 'asteroid-storm', 'gridburn', 'manny-the-mole']) {
+    for (const preview of ['chrome-circuit', 'hoverdash', 'axeluga', 'snake', 'blockstorm', 'asteroid-storm', 'gridburn', 'manny-the-mole']) {
         assert.ok(fs.existsSync(path.join(__dirname, '..', preview, 'preview.mp4')), preview + ' preview');
     }
 });

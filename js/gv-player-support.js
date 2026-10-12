@@ -4,6 +4,12 @@
     'use strict';
 
     var guides = {
+        'chrome-circuit': {
+            goal: 'Race five rivals across twelve circuits in four worlds. Win each world\'s cup to open the next, and beat the game by taking every cup on Pro or harder.',
+            touch: 'The car drives itself: slide a thumb on the left to steer, hold on the right to drift, and tap ★ to use your item.',
+            desktop: 'W / S or Arrow keys to drive, A / D to steer, Shift to drift, Space for items and Esc or P to pause. A gamepad is fully supported, with its own buttons shown in the game.',
+            tip: 'Hold the drift into a corner until the sparks turn orange, then let go for a burst of speed. Hit the gas as the lights go green for a rocket start.'
+        },
         'slipstream-vector': {
             goal: 'Race across four worlds, master the airbrake and finish ahead of eight rivals. Higher difficulties make the rivals drive better without changing their ships\' speed.',
             touch: 'Slipstream Vector is designed for a keyboard or gamepad and plays in landscape.',

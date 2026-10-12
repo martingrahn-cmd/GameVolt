@@ -3,6 +3,7 @@
     // Only games with existing Gamepad API input handlers belong here.
     var games = [
         { id: 'slipstream-vector', name: 'Slipstream Vector', genre: 'Anti-gravity racing', art: '/assets/thumbnails/slipstream-vector-tall.png', description: 'Race twelve circuits across four worlds. Master loops, corkscrews, weapons and a rival field that never cheats.' },
+        { id: 'chrome-circuit', name: 'Chrome Circuit', genre: 'Isometric arcade racing', art: '/assets/thumbnails/chrome-circuit-tall.webp', preview: '/chrome-circuit/preview.mp4', description: 'Drift, boost and fire across twelve circuits in four worlds, from neon city streets to red rock canyons.' },
         { id: 'hoverdash', name: 'HoverDash', genre: 'Neon lane runner', art: '/assets/thumbnails/hoverdash.webp', preview: '/hoverdash/preview.mp4', description: 'Find your rhythm in the neon rush. Switch lanes, jump obstacles and keep the run alive.' },
         { id: 'axeluga', name: 'Axeluga', genre: 'Space shooter', art: '/assets/thumbnails/axeluga.webp', preview: '/axeluga/preview.mp4', description: 'Take the controls, dodge enemy fire and blast your way through the next wave.' },
         { id: 'snake', name: 'Snake Neo', genre: 'Arcade classic', art: '/assets/thumbnails/snake.webp', preview: '/snake/preview.mp4', description: 'An arcade classic with three ways to play. Chase the next bite and leave yourself a way out.' },
