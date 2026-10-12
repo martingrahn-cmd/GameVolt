@@ -13,7 +13,7 @@
  * and then the shell is served network-first, so editing a file and reloading
  * shows the edit instead of last week's cache.
  */
-const BUILD = '9c7a54a';
+const BUILD = 'fb8c40a';
 const DEV = BUILD.startsWith('__');
 
 const SHELL = `chrome-circuit-shell-${BUILD}`;
