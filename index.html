@@ -294,7 +294,8 @@
                 "gamePlatform": "Web Browser"
             },
             {"@type": "VideoGame", "position": 22, "name": "INK", "description": "Draw blue ink strokes to bounce the ball up a squared-paper pinball course. Free climb and daily challenges.", "url": "https://gamevolt.io/ink/", "genre": ["Arcade", "Physics"], "gamePlatform": "Web Browser"},
-            {"@type": "VideoGame", "position": 23, "name": "Slipstream Vector", "description": "Anti-gravity arcade racing across four worlds and twelve circuits, with weapons, rivals, loops, corkscrews and full gamepad support.", "url": "https://gamevolt.io/slipstream-vector/", "genre": ["Racing", "Arcade", "Action"], "gamePlatform": "Web Browser"}
+            {"@type": "VideoGame", "position": 23, "name": "Slipstream Vector", "description": "Anti-gravity arcade racing across four worlds and twelve circuits, with weapons, rivals, loops, corkscrews and full gamepad support.", "url": "https://gamevolt.io/slipstream-vector/", "genre": ["Racing", "Arcade", "Action"], "gamePlatform": "Web Browser"},
+            {"@type": "VideoGame", "position": 24, "name": "Chrome Circuit", "description": "Isometric arcade racing with chunky low-poly cars across twelve circuits in four worlds, with drift boosts, rockets, a career of cups, ghost challenges and full gamepad support.", "url": "https://gamevolt.io/chrome-circuit/", "genre": ["Racing", "Arcade"], "gamePlatform": "Web Browser"}
         ]
     }
     </script>
@@ -769,25 +770,26 @@
         }
 
         /* Compact introduction: keep the first games in the first viewport. */
-        /* INK's graph-paper key art stays true to the game in every portal theme. */
-        .ink-feature { margin: 0 0 32px; }
-        .ink-feature-link { position: relative; display: block; overflow: hidden; min-height: 310px; border-radius: 20px; background: #eef2f5; color: #1e3a8f; text-decoration: none; border: 1px solid #c3d3de; }
-        .ink-feature-link:focus-visible { outline: 3px solid var(--primary); outline-offset: 5px; }
-        .ink-feature-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
-        .ink-feature-copy { position: relative; width: 43%; padding: 30px 0 30px 36px; }
-        .ink-feature-label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
-        .ink-feature-copy h2 { font-family: Georgia, serif; font-style: italic; font-size: clamp(54px, 6vw, 80px); line-height: 1; margin: 12px 0 4px; letter-spacing: -.06em; }
-        .ink-feature-tagline { font-size: clamp(18px, 2.3vw, 27px); font-weight: 700; }
-        .ink-feature-description { font-size: 14px; line-height: 1.5; max-width: 270px; margin: 10px 0 18px; color: #2a3138; }
-        .ink-feature-cta { display: inline-flex; align-items: center; gap: 28px; background: #1e3a8f; color: white; border-radius: 8px; padding: 12px 20px; font-weight: 700; transition: background .15s; }
-        .ink-feature-link:hover .ink-feature-cta { background: #142865; }
-        .ink-feature-detail { display: block; font-size: 11px; margin-top: 10px; color: #455569; }
+        /* Just added: Chrome Circuit, on its key art, copy on the right like the flagship. */
+        .chrome-feature { margin: 0 0 32px; }
+        .chrome-feature-link { position: relative; display: block; min-height: 420px; overflow: hidden; border: 1px solid rgba(255,204,50,.35); border-radius: 20px; background: #160d08; color: #fff; text-decoration: none; box-shadow: 0 24px 70px rgba(0,0,0,.3), 0 0 42px rgba(255,170,40,.08); }
+        .chrome-feature-link:focus-visible { outline: 3px solid #ffcc32; outline-offset: 5px; }
+        .chrome-feature-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: left center; transition: transform .7s cubic-bezier(.2,.75,.2,1); }
+        .chrome-feature-link::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0 50%, rgba(18,10,6,.7) 66%, rgba(18,10,6,.97) 100%); pointer-events: none; }
+        .chrome-feature-copy { position: relative; z-index: 1; width: 40%; min-height: 420px; margin-left: auto; padding: 44px 44px 36px 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
+        .chrome-feature-label { display: inline-flex; padding: 7px 10px; border: 1px solid rgba(255,204,50,.5); color: #ffcc32; background: rgba(255,204,50,.08); font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+        .chrome-feature-copy h2 { margin: 16px 0 8px; font-family: 'Fredoka', sans-serif; font-size: clamp(38px, 4.4vw, 60px); line-height: .92; letter-spacing: -.03em; text-transform: uppercase; }
+        .chrome-feature-tagline { margin: 0; color: #ffcc32; font-size: clamp(17px, 1.9vw, 24px); font-weight: 700; }
+        .chrome-feature-description { max-width: 400px; margin: 14px 0 22px; color: #e6dccf; font-size: 14px; line-height: 1.6; }
+        .chrome-feature-cta { display: inline-flex; align-items: center; gap: 20px; padding: 13px 20px; border-radius: 8px; background: linear-gradient(135deg, #ffcc32, #ff8a3d); color: #1b1006; font-weight: 800; box-shadow: 0 10px 30px rgba(255,170,40,.22); }
+        .chrome-feature-detail { margin-top: 12px; color: #c2b6a6; font-size: 11px; letter-spacing: .04em; }
+        .chrome-feature-link:hover .chrome-feature-art { transform: scale(1.025); }
         @media (max-width: 640px) {
-            .ink-feature-link { min-height: 0; }
-            .ink-feature-art { position: relative; display: block; height: auto; aspect-ratio: 16/9; }
-            .ink-feature-copy { width: 100%; padding: 20px 24px 24px; }
-            .ink-feature-copy h2 { font-size: 52px; margin-top: 8px; }
-            .ink-feature-description { max-width: 100%; }
+            .chrome-feature-link { min-height: 0; }
+            .chrome-feature-art { position: relative; display: block; height: auto; aspect-ratio: 16/9; }
+            .chrome-feature-link::after { background: linear-gradient(0deg, #160d08 0 42%, transparent 72%); }
+            .chrome-feature-copy { width: 100%; min-height: 0; margin-top: -40px; padding: 22px 24px 26px; }
+            .chrome-feature-description { max-width: 100%; }
         }
 
         .hero {
@@ -2112,7 +2114,7 @@
             <h1 id="portal-title">Original browser games.</h1>
             <p>Made by Martin in Sweden. No install or account needed.</p>
             <ul class="hero-stats" aria-label="About GameVolt">
-                <li><strong>25</strong> free games</li>
+                <li><strong>26</strong> free games</li>
                 <li><strong>0</strong> ads</li>
                 <li><strong>1</strong> maker</li>
             </ul>
@@ -2141,16 +2143,16 @@
             </a>
         </section>
 
-        <section class="ink-feature" data-selection-source="new_games" aria-labelledby="ink-feature-title">
-            <a class="ink-feature-link" href="/play/?game=ink">
-                <img class="ink-feature-art" src="/assets/thumbnails/ink-hero.webp" alt="" width="1280" height="720" fetchpriority="high">
-                <div class="ink-feature-copy">
-                    <span class="ink-feature-label">Just added · A GameVolt original</span>
-                    <h2 id="ink-feature-title">INK</h2>
-                    <p class="ink-feature-tagline">Draw your way up.</p>
-                    <p class="ink-feature-description">Your pen is the flipper. Draw a bounce, collect ink and keep climbing.</p>
-                    <span class="ink-feature-cta">Play INK <span aria-hidden="true">↗</span></span>
-                    <span class="ink-feature-detail">Touch or mouse · Free to play</span>
+        <section class="chrome-feature" data-selection-source="new_games" aria-labelledby="chrome-feature-title">
+            <a class="chrome-feature-link" href="/play/?game=chrome-circuit">
+                <img class="chrome-feature-art" src="/assets/thumbnails/chrome-circuit-hero.webp" alt="" width="1920" height="1080" fetchpriority="high">
+                <div class="chrome-feature-copy">
+                    <span class="chrome-feature-label">Just added · A GameVolt original</span>
+                    <h2 id="chrome-feature-title">Chrome Circuit</h2>
+                    <p class="chrome-feature-tagline">Rockets optional.</p>
+                    <p class="chrome-feature-description">Isometric arcade racing with chunky low-poly cars. Drift, boost and fire through twelve circuits in four worlds, from neon city streets to red rock canyons.</p>
+                    <span class="chrome-feature-cta">Start racing <span aria-hidden="true">▶</span></span>
+                    <span class="chrome-feature-detail">Gamepad, keyboard or touch · 12 circuits · Free to play</span>
                 </div>
             </a>
         </section>
@@ -2158,7 +2160,7 @@
         <section data-selection-source="martins_picks" class="starter-picks" aria-labelledby="picks-title">
             <div class="section-header">
                 <h2 class="section-title" id="picks-title">Martin's picks</h2>
-                <a class="section-link" href="#games">All 25 games &rarr;</a>
+                <a class="section-link" href="#games">All 26 games &rarr;</a>
             </div>
             <div class="picks-grid">
                 <a class="pick-card" href="/play/?game=short-circuit">
@@ -2234,11 +2236,11 @@
         </div>
 
         <div class="category-filters" id="categoryFilters">
-            <a href="/big-picture/" class="category-pill" data-big-picture><span class="pill-icon" aria-hidden="true">🎮</span> Big Picture <span class="pill-count">8</span></a>
+            <a href="/big-picture/" class="category-pill" data-big-picture><span class="pill-icon" aria-hidden="true">🎮</span> Big Picture <span class="pill-count">9</span></a>
             <button class="category-pill active" data-filter="all" aria-pressed="true">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
-                <span class="pill-count">25</span>
+                <span class="pill-count">26</span>
             </button>
             <button class="category-pill" data-filter="coffee-break" aria-pressed="false">
                 <span class="pill-icon">☕</span>
@@ -2253,7 +2255,7 @@
             <button class="category-pill" data-filter="action" aria-pressed="false">
                 <span class="pill-icon">🔥</span>
                 <span>Action</span>
-                <span class="pill-count">10</span>
+                <span class="pill-count">11</span>
             </button>
             <button class="category-pill" data-filter="word" aria-pressed="false">
                 <span class="pill-icon">⌨️</span>
@@ -2296,6 +2298,19 @@
                     <span class="play-btn">▶ Play Now</span>
                 </div>
             </a>
+            <a href="/play/?game=chrome-circuit" class="game-card" data-category="action arcade">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/chrome-circuit.webp" alt="Play Chrome Circuit isometric racing online free" width="480" height="270" loading="lazy">
+                    <span class="game-badge new">NEW</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Chrome Circuit</h3>
+                    <p class="game-description">Isometric arcade racing: drift, boost and fire across twelve circuits.</p>
+                    <div class="game-tags"><span class="tag">Racing</span><span class="tag">3D</span><span class="tag">Gamepad</span></div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
+
             <a href="/play/?game=ink" class="game-card" data-category="coffee-break arcade">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/ink.webp" alt="INK: a ball bouncing off a blue pen stroke on graph paper" width="480" height="270" loading="lazy">
@@ -2802,6 +2817,13 @@
                 <a href="/news/" class="section-link" style="font-size:0.85rem;color:var(--text-muted);text-decoration:none;">View all &rarr;</a>
             </div>
             <div class="news-strip-grid">
+                <a href="/news/chrome-circuit-launch/" class="news-strip-card">
+                    <img src="/assets/thumbnails/chrome-circuit.webp" alt="New game: Chrome Circuit" loading="lazy">
+                    <div>
+                        <div class="news-strip-date">Oct 12, 2026 · New Game</div>
+                        <div class="news-strip-title">New game: Chrome Circuit — isometric arcade racing, rockets optional</div>
+                    </div>
+                </a>
                 <a href="/news/big-picture-qr-sign-in/" class="news-strip-card">
                     <img src="/assets/news/big-picture-qr-sign-in.webp" alt="GameVolt Big Picture with QR sign-in" loading="lazy">
                     <div>
@@ -2814,13 +2836,6 @@
                     <div>
                         <div class="news-strip-date">Aug 19, 2026 · New Game</div>
                         <div class="news-strip-title">New game: Short Circuit — close the route before the current does</div>
-                    </div>
-                </a>
-                <a href="/news/manny-the-mole-launch/" class="news-strip-card">
-                    <img src="/manny-the-mole/og-image.png" alt="New game: Manny the Mole" loading="lazy">
-                    <div>
-                        <div class="news-strip-date">Aug 14, 2026 · New Game</div>
-                        <div class="news-strip-title">New game: Manny the Mole — dig deep, crack the vault</div>
                     </div>
                 </a>
             </div>
@@ -2882,6 +2897,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/chrome-circuit/">Chrome Circuit</a>
                         <a href="/slipstream-vector/">Slipstream Vector</a>
                         <a href="/ink/">INK</a>
                         <a href="/short-circuit/">Short Circuit</a>
@@ -3165,6 +3181,7 @@
         if (!window.GVTracker) return;
 
         var GAME_META = {
+            "chrome-circuit": { name: "Chrome Circuit", thumb: "/assets/thumbnails/chrome-circuit.webp" },
             "slipstream-vector": { name: "Slipstream Vector", thumb: "/assets/thumbnails/slipstream-vector.png" },
             "ink": { name: "INK", thumb: "/assets/thumbnails/ink.webp" },
             "short-circuit": { name: "Short Circuit", thumb: "/assets/thumbnails/short-circuit.webp" },
@@ -3241,6 +3258,7 @@
     // localStorage when guest). Hidden when empty; refreshes on auth state change.
     (function() {
         var FAV_META = {
+            "chrome-circuit": { name: "Chrome Circuit", thumb: "/assets/thumbnails/chrome-circuit.webp" },
             "slipstream-vector": { name: "Slipstream Vector", thumb: "/assets/thumbnails/slipstream-vector.png" },
             "ink": { name: "INK", thumb: "/assets/thumbnails/ink.webp" },
             "short-circuit": { name: "Short Circuit", thumb: "/assets/thumbnails/short-circuit.webp" },

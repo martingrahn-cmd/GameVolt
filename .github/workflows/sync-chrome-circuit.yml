@@ -1,0 +1,87 @@
+name: Sync Chrome Circuit
+
+# Chrome Circuit is developed in its own repository and deployed there to
+# GitHub Pages. This keeps /chrome-circuit/ on GameVolt in step with its main
+# branch: the game's files, GameVolt's head and SEO block on top
+# (scripts/publish-chrome-circuit.py). Edit those templates here, never the
+# published copy, which the next sync replaces.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23,53 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-chrome-circuit
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish Chrome Circuit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out GameVolt
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check out Chrome Circuit main
+        uses: actions/checkout@v7
+        with:
+          repository: martingrahn-cmd/chrome-circuit
+          ref: main
+          path: .chrome-circuit-source
+
+      - name: Check whether Chrome Circuit changed
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_sha="$(git -C .chrome-circuit-source rev-parse HEAD)"
+          published_sha="$(jq -r '.sourceCommit // empty' chrome-circuit/version.json 2>/dev/null || true)"
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          if [ "$source_sha" = "$published_sha" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish into GameVolt
+        if: steps.version.outputs.changed == 'true'
+        run: python3 scripts/publish-chrome-circuit.py .chrome-circuit-source "${{ steps.version.outputs.source_sha }}"
+
+      - name: Verify the published page
+        if: steps.version.outputs.changed == 'true'
+        env:
+          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+        run: |
+          test -f chrome-circuit/index.html
+          test -f chrome-circuit/src/main.js
+          test -f chrome-circuit/preview.mp4
+          grep -q 'https://gamevolt.io/chrome-circuit/' chrome-circuit/index.html
+          grep -q '/sdk/gamevolt.js' chrome-circuit/index.html
+          grep -q 'id="seo-content"' chrome-circuit/index.html
+          # The game's own GitHub Pages links must all have been replaced.
+          if grep -q 'github.io' chrome-circuit/index.html; then exit 1; fi
+          grep -q "const BUILD = '${SOURCE_SHA:0:7}'" chrome-circuit/sw.js
+
+      - name: Commit published build
+        if: steps.version.outputs.changed == 'true'
+        env:
+          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add chrome-circuit
+          if git diff --cached --quiet; then
+            echo "The portal build is already current."
+            exit 0
+          fi
+          git commit -m "Publish Chrome Circuit ${SOURCE_SHA:0:7}"
+          git pull --rebase origin main
+          git push

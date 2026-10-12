@@ -47,12 +47,12 @@ When writing code for this project, follow these rules:
 
 ## Game Catalog
 
-**Canonical game count: 24 live portal games.** The table below has 25 numbered
+**Canonical game count: 26 live portal games.** The table below has 27 numbered
 rows, but row #7 (Flappy Bird) is the hidden 404-page easter egg — NOT a portal
 game. So the count shown on the site (homepage hero stat + "All Games" pill,
-about-page copy) = catalog rows − Flappy Bird = **24**. Cross-check: 24 game
-folders at repo root, 24 `.game-card` entries on the homepage, 24 `.game-item`
-entries in the about lineup. When you add a game, bump all of these together.
+about-page copy) = catalog rows − Flappy Bird = **26**. Cross-check: 26
+`.game-card` entries on the homepage, 26 `.game-item` entries in the about
+lineup. When you add a game, bump all of these together.
 
 > Adding the game to the about page's *footer* link column is not the same as
 > adding it to the `.game-list` lineup. Short Circuit shipped in the footer only,
@@ -90,6 +90,8 @@ Last verified by auditing the code on 2026-07-09.
 | 24 | Short Circuit | ✅ Live | ✅ Full (31 trophies, 'daily-streak' leaderboard; circuit-lock puzzle from Manny the Mole built out into its own game with a 24-lock campaign, Daily Lock and live 1v1 duels; added 2026-08-19) |
 
 | 25 | INK | ✅ Live | ✅ Full (optional SDK, 31 trophies, migration; game and trophy definitions registered in Supabase 2026-09-06, free and daily-streak boards verified). Imported from `martingrahn-cmd/Black` on 2026-09-06. |
+| 26 | Slipstream Vector | ✅ Live | ✅ Full (flagship anti-gravity racer, 31 trophies, `sql/slipstream-vector-achievements.sql`). Row added 2026-10-12; the game was live but missing from this table. |
+| 27 | Chrome Circuit | ✅ Live | ⚠️ init + 31 trophies + registerMigration + cloud backfill; no leaderboard (races rank by place, time trials by medal). Synced from `martingrahn-cmd/chrome-circuit` by `sync-chrome-circuit.yml` — see "Chrome Circuit" below. Trophy SQL in `sql/chrome-circuit-achievements.sql`, to run in Supabase. Added 2026-10-12. |
 
 **Remaining work:** none for database registration — INK and its 31 trophies were registered on 2026-09-06. The Solitaire leaderboard is on the Supabase SDK
 path (migrated 2026-07-24); every game leaderboard is on Supabase.
@@ -109,12 +111,30 @@ changes. Keep all editorial pages and permanent media outside that directory.
 Use `/simbuild/?mode=demo` for the populated Lindham demo city and
 `/simbuild/?mode=play` for an empty map.
 
+## Chrome Circuit (synced from its own repository)
+
+Chrome Circuit is developed in `martingrahn-cmd/chrome-circuit` and deployed there to
+GitHub Pages. `/chrome-circuit/` here is a published copy that
+`.github/workflows/sync-chrome-circuit.yml` replaces whenever the game's `main` branch
+moves (it checks twice an hour, and can be run by hand). The workflow runs
+`scripts/publish-chrome-circuit.py`, which copies the game's runtime files and its
+`preview.mp4`, swaps the game's own head for GameVolt's (`scripts/chrome-circuit/head.html`:
+analytics, title, canonical, Open Graph, JSON-LD and the SDK) and adds the `#seo-content`
+block (`scripts/chrome-circuit/seo-content.html`). **Edit those templates, never the
+published copy** — the next sync overwrites it. The script stamps the build into the
+game's `sw.js` and `version.json`, so its offline cache and update chip work here too.
+
+The game loads the SDK only on gamevolt.io, calls `init('chrome-circuit')`, registers a
+migration for its trophies and stats, and back-fills cloud trophies on sign-in. Its 31
+trophy definitions are generated from the game's own list into
+`sql/chrome-circuit-achievements.sql`; run that once in the Supabase SQL editor.
+
 ## Big Picture controller library
 
 `/big-picture/` is the controller collection, linked from the homepage navigation
-and category pills. Its catalog in `big-picture/app.js` includes the seven games
-with Gamepad API handlers: HoverDash, Axeluga, Snake Neo, BlockStorm, Asteroid
-Storm, Gridburn and Manny the Mole. Keep this list aligned with actual game support;
+and category pills. Its catalog in `big-picture/app.js` includes the nine games
+with Gamepad API handlers: Slipstream Vector, Chrome Circuit, HoverDash, Axeluga,
+Snake Neo, BlockStorm, Asteroid Storm, Gridburn and Manny the Mole. Keep this list aligned with actual game support;
 controller gameplay does not guarantee every in-game menu works without a mouse.
 
 The library supports keyboard, touch and standard-mapped gamepads. It embeds
@@ -321,7 +341,7 @@ normal score run retains its UUID across retries, using INSERT ON CONFLICT DO
 NOTHING. Existing SDK clients keep working without the new field. Never drop
 this column while the new SDK is in use.
 
-Profile definitions include all 24 games; additions must also update the profile
+Profile definitions include all 26 trophy games; additions must also update the profile
 catalog. `js/gv-reliability.test.js` compares INK/Gridburn/Spinburn IDs to SQL and
 checks the catalog size. Primary portal leaderboard modes and score formatting
 live in `js/gv-leaderboard-config.js`; update it when a game's scoring changes.
