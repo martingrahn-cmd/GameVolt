@@ -48,7 +48,15 @@ CREATE POLICY ratings_update_own ON ratings
 
 -- Belt and braces: with no policy for anon, RLS already denies it, but the
 -- table-level grant is what shows up in the API surface.
-REVOKE SELECT ON ratings FROM anon;
+REVOKE ALL ON ratings FROM anon;
+
+-- The three policies above need a table-level grant to sit on. Until now that
+-- came from Supabase granting every new `public` table automatically, which
+-- stops on 30 October 2026 — so a rebuilt database would apply these policies
+-- to a table `authenticated` could not open at all, and the star widget would
+-- fail with 42501 rather than showing a rating. Stated explicitly:
+GRANT SELECT, INSERT, UPDATE ON ratings TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ratings TO service_role;
 
 -- The aggregate functions are SECURITY DEFINER and keep working regardless.
 GRANT EXECUTE ON FUNCTION get_rating_aggregates() TO anon, authenticated;
