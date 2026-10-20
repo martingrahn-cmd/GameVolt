@@ -1,0 +1,42 @@
+# GitHub Pages already builds this repository with Jekyll — there is no
+# .nojekyll file — and deploys whatever ends up in the site. Until now that
+# meant everything in the repo, including things that were never meant to be
+# read by visitors:
+#
+#   https://gamevolt.io/sql/schema.sql  ->  200, 95 kB
+#
+# That served the whole database schema, every row-level policy and every
+# comment explaining how access is granted. It opens no door on its own —
+# the anon key is public by necessity and RLS is the real control — but it is
+# a map, and on 2026-10-20 that map still said which tables had no policies
+# at all. This file stops those paths being published. Nothing the browser
+# actually loads is affected: no page or script fetches a .md or /sql/ path.
+#
+# Naming `exclude` REPLACES Jekyll's built-in list rather than adding to it,
+# so the defaults are restated at the bottom. They are relative to the
+# repository root, which is why a game's own vendor/ directory is untouched.
+
+exclude:
+  # Database definition: schema, policies, grants, migrations run by hand.
+  - sql/
+  # Publishing and maintenance scripts, and the Supabase CLI project.
+  - scripts/
+  - supabase/
+  # Internal documentation, audits and analyses.
+  - docs/
+  - reports/
+  - "*.md"
+  - "**/*.md"
+  # Unit tests that ship beside the code they cover.
+  - "**/*.test.js"
+  - "**/*.test.cjs"
+  - "*.cjs"
+
+  # --- Jekyll's defaults, restated because the key above replaces them ---
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
