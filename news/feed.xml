@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Mon, 12 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 22 Oct 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>Mini Mayhem Tees Off: 3D Mini Golf, Just in Time for Halloween</title>
+      <link>https://gamevolt.io/news/mini-mayhem-launch/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/mini-mayhem-launch/</guid>
+      <pubDate>Thu, 22 Oct 2026 12:00:00 GMT</pubDate>
+      <description>Mini Mayhem is live — a new GameVolt original. Toy-like 3D mini golf over 24 holes in four worlds: Clockwork City, Cloud Forest, Moon Carnival and the Halloween world Haunted Harbour, with its ghost ship finale. A three-tap swing, stars on every hole, 31 trophies, a leaderboard for every world and online play for up to four friends with a room code. In English, Swedish and Spanish. Free in your browser.</description>
+    </item>
 
     <item>
       <title>New game: Chrome Circuit — isometric arcade racing, rockets optional</title>

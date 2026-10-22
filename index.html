@@ -296,7 +296,8 @@
             },
             {"@type": "VideoGame", "position": 22, "name": "INK", "description": "Draw blue ink strokes to bounce the ball up a squared-paper pinball course. Free climb and daily challenges.", "url": "https://gamevolt.io/ink/", "genre": ["Arcade", "Physics"], "gamePlatform": "Web Browser"},
             {"@type": "VideoGame", "position": 23, "name": "Slipstream Vector", "description": "Anti-gravity arcade racing across four worlds and twelve circuits, with weapons, rivals, loops, corkscrews and full gamepad support.", "url": "https://gamevolt.io/slipstream-vector/", "genre": ["Racing", "Arcade", "Action"], "gamePlatform": "Web Browser"},
-            {"@type": "VideoGame", "position": 24, "name": "Chrome Circuit", "description": "Isometric arcade racing with chunky low-poly cars across twelve circuits in four worlds, with drift boosts, rockets, a career of cups, ghost challenges and full gamepad support.", "url": "https://gamevolt.io/chrome-circuit/", "genre": ["Racing", "Arcade"], "gamePlatform": "Web Browser"}
+            {"@type": "VideoGame", "position": 24, "name": "Chrome Circuit", "description": "Isometric arcade racing with chunky low-poly cars across twelve circuits in four worlds, with drift boosts, rockets, a career of cups, ghost challenges and full gamepad support.", "url": "https://gamevolt.io/chrome-circuit/", "genre": ["Racing", "Arcade"], "gamePlatform": "Web Browser"},
+            {"@type": "VideoGame", "position": 25, "name": "Mini Mayhem", "description": "Toy-like 3D mini golf across four worlds — loops, cannons, a Ferris wheel and a ghost ship — solo or online with up to four friends.", "url": "https://gamevolt.io/mini-mayhem/", "genre": ["Sports", "Mini golf", "Arcade", "Multiplayer"], "gamePlatform": "Web Browser"}
         ]
     }
     </script>
@@ -771,24 +772,24 @@
         }
 
         /* Compact introduction: keep the first games in the first viewport. */
-        /* Just added: Chrome Circuit, on its key art, copy on the right like the flagship. */
+        /* Just added: Mini Mayhem (Haunted Harbour art for Halloween), on its key art, copy on the right like the flagship. */
         .chrome-feature { margin: 0 0 32px; }
-        .chrome-feature-link { position: relative; display: block; min-height: 420px; overflow: hidden; border: 1px solid rgba(255,204,50,.35); border-radius: 20px; background: #160d08; color: #fff; text-decoration: none; box-shadow: 0 24px 70px rgba(0,0,0,.3), 0 0 42px rgba(255,170,40,.08); }
+        .chrome-feature-link { position: relative; display: block; min-height: 420px; overflow: hidden; border: 1px solid rgba(255,204,50,.35); border-radius: 20px; background: #140b1d; color: #fff; text-decoration: none; box-shadow: 0 24px 70px rgba(0,0,0,.3), 0 0 42px rgba(255,170,40,.08); }
         .chrome-feature-link:focus-visible { outline: 3px solid #ffcc32; outline-offset: 5px; }
         .chrome-feature-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: left center; transition: transform .7s cubic-bezier(.2,.75,.2,1); }
-        .chrome-feature-link::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0 50%, rgba(18,10,6,.7) 66%, rgba(18,10,6,.97) 100%); pointer-events: none; }
+        .chrome-feature-link::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 0 50%, rgba(20,11,29,.7) 66%, rgba(20,11,29,.97) 100%); pointer-events: none; }
         .chrome-feature-copy { position: relative; z-index: 1; width: 40%; min-height: 420px; margin-left: auto; padding: 44px 44px 36px 20px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
         .chrome-feature-label { display: inline-flex; padding: 7px 10px; border: 1px solid rgba(255,204,50,.5); color: #ffcc32; background: rgba(255,204,50,.08); font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
         .chrome-feature-copy h2 { margin: 16px 0 8px; font-family: 'Fredoka', sans-serif; font-size: clamp(38px, 4.4vw, 60px); line-height: .92; letter-spacing: -.03em; text-transform: uppercase; }
         .chrome-feature-tagline { margin: 0; color: #ffcc32; font-size: clamp(17px, 1.9vw, 24px); font-weight: 700; }
-        .chrome-feature-description { max-width: 400px; margin: 14px 0 22px; color: #e6dccf; font-size: 14px; line-height: 1.6; }
+        .chrome-feature-description { max-width: 400px; margin: 14px 0 22px; color: #e4dcea; font-size: 14px; line-height: 1.6; }
         .chrome-feature-cta { display: inline-flex; align-items: center; gap: 20px; padding: 13px 20px; border-radius: 8px; background: linear-gradient(135deg, #ffcc32, #ff8a3d); color: #1b1006; font-weight: 800; box-shadow: 0 10px 30px rgba(255,170,40,.22); }
-        .chrome-feature-detail { margin-top: 12px; color: #c2b6a6; font-size: 11px; letter-spacing: .04em; }
+        .chrome-feature-detail { margin-top: 12px; color: #bfb4cc; font-size: 11px; letter-spacing: .04em; }
         .chrome-feature-link:hover .chrome-feature-art { transform: scale(1.025); }
         @media (max-width: 640px) {
             .chrome-feature-link { min-height: 0; }
             .chrome-feature-art { position: relative; display: block; height: auto; aspect-ratio: 16/9; }
-            .chrome-feature-link::after { background: linear-gradient(0deg, #160d08 0 42%, transparent 72%); }
+            .chrome-feature-link::after { background: linear-gradient(0deg, #140b1d 0 42%, transparent 72%); }
             .chrome-feature-copy { width: 100%; min-height: 0; margin-top: -40px; padding: 22px 24px 26px; }
             .chrome-feature-description { max-width: 100%; }
         }
@@ -2115,7 +2116,7 @@
             <h1 id="portal-title">Original browser games.</h1>
             <p>Made by Martin in Sweden. No install or account needed.</p>
             <ul class="hero-stats" aria-label="About GameVolt">
-                <li><strong>26</strong> free games</li>
+                <li><strong>27</strong> free games</li>
                 <li><strong>0</strong> ads</li>
                 <li><strong>1</strong> maker</li>
             </ul>
@@ -2145,15 +2146,16 @@
         </section>
 
         <section class="chrome-feature" data-selection-source="new_games" aria-labelledby="chrome-feature-title">
-            <a class="chrome-feature-link" href="/play/?game=chrome-circuit">
-                <img class="chrome-feature-art" src="/assets/thumbnails/chrome-circuit-hero.webp" alt="" width="1920" height="1080" fetchpriority="high">
+            <a class="chrome-feature-link" href="/play/?game=mini-mayhem">
+                <!-- Halloween art. After Halloween (2026-10-31), swap the image to /assets/thumbnails/mini-mayhem-hero.webp (same 1920×1080 size). -->
+                <img class="chrome-feature-art" src="/assets/thumbnails/mini-mayhem-hero-halloween.webp" alt="" width="1920" height="1080" fetchpriority="high">
                 <div class="chrome-feature-copy">
                     <span class="chrome-feature-label">Just added · A GameVolt original</span>
-                    <h2 id="chrome-feature-title">Chrome Circuit</h2>
-                    <p class="chrome-feature-tagline">Rockets optional.</p>
-                    <p class="chrome-feature-description">Isometric arcade racing with chunky low-poly cars. Drift, boost and fire through twelve circuits in four worlds, from neon city streets to red rock canyons.</p>
-                    <span class="chrome-feature-cta">Start racing <span aria-hidden="true">▶</span></span>
-                    <span class="chrome-feature-detail">Gamepad, keyboard or touch · 12 circuits · Free to play</span>
+                    <h2 id="chrome-feature-title">Mini Mayhem</h2>
+                    <p class="chrome-feature-tagline">Haunted Harbour is open for Halloween.</p>
+                    <p class="chrome-feature-description">Toy-like 3D mini golf over 24 holes in four worlds, from brass clockwork towns to a carnival on the moon. Play solo or online with up to four friends.</p>
+                    <span class="chrome-feature-cta">Tee off <span aria-hidden="true">▶</span></span>
+                    <span class="chrome-feature-detail">Touch, mouse or keyboard · 24 holes · Free to play</span>
                 </div>
             </a>
         </section>
@@ -2161,7 +2163,7 @@
         <section data-selection-source="martins_picks" class="starter-picks" aria-labelledby="picks-title">
             <div class="section-header">
                 <h2 class="section-title" id="picks-title">Martin's picks</h2>
-                <a class="section-link" href="#games">All 26 games &rarr;</a>
+                <a class="section-link" href="#games">All 27 games &rarr;</a>
             </div>
             <div class="picks-grid">
                 <a class="pick-card" href="/play/?game=short-circuit">
@@ -2241,12 +2243,12 @@
             <button class="category-pill active" data-filter="all" aria-pressed="true">
                 <span class="pill-icon">🎮</span>
                 <span>All Games</span>
-                <span class="pill-count">26</span>
+                <span class="pill-count">27</span>
             </button>
             <button class="category-pill" data-filter="coffee-break" aria-pressed="false">
                 <span class="pill-icon">☕</span>
                 <span>Coffee Break</span>
-                <span class="pill-count">13</span>
+                <span class="pill-count">14</span>
             </button>
             <button class="category-pill" data-filter="brain-challenge" aria-pressed="false">
                 <span class="pill-icon">🧠</span>
@@ -2266,7 +2268,7 @@
             <button class="category-pill" data-filter="multiplayer" aria-pressed="false">
                 <span class="pill-icon">🌐</span>
                 <span>Multiplayer</span>
-                <span class="pill-count">4</span>
+                <span class="pill-count">5</span>
             </button>
             <span class="category-pill-sep" aria-hidden="true"></span>
             <button class="category-pill" data-filter="most-played" aria-pressed="false">
@@ -2296,6 +2298,20 @@
                     <h3 class="game-title">Slipstream Vector</h3>
                     <p class="game-description">Anti-gravity racing across four worlds and twelve circuits.</p>
                     <div class="game-tags"><span class="tag">Racing</span><span class="tag">3D</span><span class="tag">Gamepad</span></div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
+            <a href="/play/?game=mini-mayhem" class="game-card" data-category="coffee-break arcade multiplayer" data-preview="/mini-mayhem/preview.mp4">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/mini-mayhem.webp" alt="A golf ball at the loop beside a giant tree on a floating island in Mini Mayhem's Cloud Forest, under a pink sky" width="480" height="270" loading="lazy">
+                    <video class="preview-video" muted loop playsinline preload="none"></video>
+                    <span class="game-badge new">NEW</span>
+                    <span class="game-bolt">⚡</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Mini Mayhem</h3>
+                    <p class="game-description">Toy-like 3D mini golf across four worlds — loops, cannons, a Ferris wheel and a ghost ship — solo or online with up to four friends.</p>
+                    <div class="game-tags"><span class="tag">Mini Golf</span><span class="tag">3D</span><span class="tag">Multiplayer</span></div>
                     <span class="play-btn">▶ Play Now</span>
                 </div>
             </a>
@@ -2818,6 +2834,13 @@
                 <a href="/news/" class="section-link" style="font-size:0.85rem;color:var(--text-muted);text-decoration:none;">View all &rarr;</a>
             </div>
             <div class="news-strip-grid">
+                <a href="/news/mini-mayhem-launch/" class="news-strip-card">
+                    <img src="/assets/thumbnails/mini-mayhem-halloween.webp" alt="New game: Mini Mayhem" loading="lazy">
+                    <div>
+                        <div class="news-strip-date">Oct 22, 2026 · New Game</div>
+                        <div class="news-strip-title">Mini Mayhem Tees Off: 3D Mini Golf, Just in Time for Halloween</div>
+                    </div>
+                </a>
                 <a href="/news/chrome-circuit-launch/" class="news-strip-card">
                     <img src="/assets/thumbnails/chrome-circuit.webp" alt="New game: Chrome Circuit" loading="lazy">
                     <div>
@@ -2830,13 +2853,6 @@
                     <div>
                         <div class="news-strip-date">Sep 11, 2026 · Major Update</div>
                         <div class="news-strip-title">GameVolt goes Big Picture — with QR sign-in</div>
-                    </div>
-                </a>
-                <a href="/news/short-circuit-launch/" class="news-strip-card">
-                    <img src="/assets/thumbnails/short-circuit.webp" alt="New game: Short Circuit" loading="lazy">
-                    <div>
-                        <div class="news-strip-date">Aug 19, 2026 · New Game</div>
-                        <div class="news-strip-title">New game: Short Circuit — close the route before the current does</div>
                     </div>
                 </a>
             </div>
@@ -2898,6 +2914,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/mini-mayhem/">Mini Mayhem</a>
                         <a href="/chrome-circuit/">Chrome Circuit</a>
                         <a href="/slipstream-vector/">Slipstream Vector</a>
                         <a href="/ink/">INK</a>
@@ -2959,7 +2976,7 @@
     <script src="/js/gv-install.js" defer></script>
     <script src="/js/gv-big-picture-prompt.js?v=2" defer></script>
     <script src="/js/gv-card-ratings.js?v=2" defer></script>
-    <script src="/js/gv-search.js?v=4"></script>
+    <script src="/js/gv-search.js?v=5"></script>
     <script src="/sdk/gamevolt.js?v=2026.09.08-1"></script>
     <script>
     if (window.GameVolt) {
@@ -3182,6 +3199,7 @@
         if (!window.GVTracker) return;
 
         var GAME_META = {
+            "mini-mayhem": { name: "Mini Mayhem", thumb: "/assets/thumbnails/mini-mayhem.webp", preview: "/mini-mayhem/preview.mp4" },
             "chrome-circuit": { name: "Chrome Circuit", thumb: "/assets/thumbnails/chrome-circuit.webp" },
             "slipstream-vector": { name: "Slipstream Vector", thumb: "/assets/thumbnails/slipstream-vector.png" },
             "ink": { name: "INK", thumb: "/assets/thumbnails/ink.webp" },
@@ -3259,6 +3277,7 @@
     // localStorage when guest). Hidden when empty; refreshes on auth state change.
     (function() {
         var FAV_META = {
+            "mini-mayhem": { name: "Mini Mayhem", thumb: "/assets/thumbnails/mini-mayhem.webp", preview: "/mini-mayhem/preview.mp4" },
             "chrome-circuit": { name: "Chrome Circuit", thumb: "/assets/thumbnails/chrome-circuit.webp" },
             "slipstream-vector": { name: "Slipstream Vector", thumb: "/assets/thumbnails/slipstream-vector.png" },
             "ink": { name: "INK", thumb: "/assets/thumbnails/ink.webp" },

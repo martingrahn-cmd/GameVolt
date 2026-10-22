@@ -1046,6 +1046,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/mini-mayhem/">Mini Mayhem</a>
                         <a href="/chrome-circuit/">Chrome Circuit</a>
                         <a href="/slipstream-vector/">Slipstream Vector</a>
                         <a href="/short-circuit/">Short Circuit</a>
@@ -1098,13 +1099,14 @@
     <script src="/js/gv-tracker.js"></script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
-    <script src="/js/gv-search.js?v=4"></script>
+    <script src="/js/gv-search.js?v=5"></script>
     <script src="/sdk/gamevolt.js?v=2026.09.08-1"></script>
     <script>
     (function() {
         'use strict';
 
         var GAME_NAMES = {
+            'mini-mayhem': 'Mini Mayhem',
             'chrome-circuit': 'Chrome Circuit',
             'slipstream-vector': 'Slipstream Vector',
             ink: 'INK', gridburn: 'Gridburn', spinburn: 'Spinburn',
@@ -1132,6 +1134,7 @@
         };
 
         var GAME_THUMBS = {
+            'mini-mayhem': '/assets/thumbnails/mini-mayhem.webp',
             'chrome-circuit': '/assets/thumbnails/chrome-circuit.webp',
             'slipstream-vector': '/assets/thumbnails/slipstream-vector.png',
             ink: '/assets/thumbnails/ink.webp', gridburn: '/gridburn/og-image.png', spinburn: '/spinburn/og-image.png',
@@ -1160,6 +1163,39 @@
 
         // Full trophy catalog — all definitions from all games
         var TROPHY_CATALOG = {
+            'mini-mayhem': [
+                { id:'mini-mayhem-first_hole', icon:'⛳', name:'Holed Out!', desc:'Sink the ball for the first time', tier:'bronze' },
+                { id:'mini-mayhem-first_par', icon:'🏌️', name:'On Par', desc:'Finish a hole on par or better', tier:'bronze' },
+                { id:'mini-mayhem-first_birdie', icon:'🐦', name:'Birdie!', desc:'Make a birdie, one under par', tier:'bronze' },
+                { id:'mini-mayhem-perfect_hit', icon:'🎯', name:'Bullseye', desc:'Hit the middle of the green zone', tier:'bronze' },
+                { id:'mini-mayhem-putt_in', icon:'🕳️', name:'The Short Putt', desc:'Sink the ball with a short putt', tier:'bronze' },
+                { id:'mini-mayhem-cannon', icon:'💥', name:'Cannonball', desc:'Fly out of a cannon', tier:'bronze' },
+                { id:'mini-mayhem-tube', icon:'📮', name:'Tube Mail', desc:'Ride through a tube', tier:'bronze' },
+                { id:'mini-mayhem-root_loop', icon:'🌀', name:'Round the Root', desc:'Make it all the way round the Root Loop', tier:'bronze' },
+                { id:'mini-mayhem-ferris', icon:'🎡', name:'Gondolier', desc:'Ride the Ferris wheel up to the green', tier:'bronze' },
+                { id:'mini-mayhem-rescue', icon:'🐾', name:'A Helping Paw', desc:'Get the ball tapped in from the lip', tier:'bronze' },
+                { id:'mini-mayhem-splash', icon:'💦', name:'Splash!', desc:'Take your first penalty stroke', tier:'bronze' },
+                { id:'mini-mayhem-strokes_100', icon:'💯', name:'A Hundred Strokes', desc:'Take 100 strokes', tier:'bronze' },
+                { id:'mini-mayhem-clockwork_done', icon:'⚙️', name:'Clockmaker\'s Apprentice', desc:'Clear every hole in Clockwork City', tier:'bronze' },
+                { id:'mini-mayhem-forest_done', icon:'🌳', name:'Forest Wanderer', desc:'Clear every hole in Cloud Forest', tier:'bronze' },
+                { id:'mini-mayhem-friends', icon:'👋', name:'Party Game', desc:'Play a hole in a match with friends', tier:'bronze' },
+                { id:'mini-mayhem-moon_done', icon:'🚀', name:'Space Tourist', desc:'Clear every hole in Moon Carnival', tier:'silver' },
+                { id:'mini-mayhem-halloween_done', icon:'🎃', name:'Ghost Hunter', desc:'Clear every hole in Haunted Harbour', tier:'silver' },
+                { id:'mini-mayhem-eagle', icon:'🦅', name:'Eagle Eye', desc:'Make an eagle, two under par', tier:'silver' },
+                { id:'mini-mayhem-birdies_10', icon:'🔭', name:'Birdwatcher', desc:'Make 10 birdies', tier:'silver' },
+                { id:'mini-mayhem-hat_trick', icon:'🎩', name:'Hat Trick', desc:'Birdie or better on three holes in a row', tier:'silver' },
+                { id:'mini-mayhem-strike', icon:'🎳', name:'Strike!', desc:'Knock down every pin in Sky Bowling', tier:'silver' },
+                { id:'mini-mayhem-under_par_run', icon:'📉', name:'Under Par', desc:'Play a whole world in a row under par', tier:'silver' },
+                { id:'mini-mayhem-world_stars', icon:'🌟', name:'Star World', desc:'Three stars on every hole in a world', tier:'silver' },
+                { id:'mini-mayhem-stars_36', icon:'⭐', name:'Halfway to Heaven', desc:'Collect 36 stars', tier:'silver' },
+                { id:'mini-mayhem-match_win', icon:'🥇', name:'Match Winner', desc:'Win a match against friends', tier:'silver' },
+                { id:'mini-mayhem-hole_in_one', icon:'💫', name:'Hole in One', desc:'Sink the ball with your first stroke', tier:'gold' },
+                { id:'mini-mayhem-campaign', icon:'🏆', name:'Tournament Champion', desc:'Clear all 18 holes of the campaign', tier:'gold' },
+                { id:'mini-mayhem-perfect_run', icon:'✨', name:'Flawless World', desc:'Play a whole world in a row with three stars on every hole', tier:'gold' },
+                { id:'mini-mayhem-all_stars', icon:'🌌', name:'Starry Sky', desc:'Collect all 72 stars', tier:'gold' },
+                { id:'mini-mayhem-eagles_3', icon:'👑', name:'King of the Eagles', desc:'Make three eagles', tier:'gold' },
+                { id:'mini-mayhem-master', icon:'💎', name:'Mini Mayhem Master', desc:'Unlock all 30 other trophies', tier:'platinum' },
+            ],
             'chrome-circuit': [
                 {"id": "chrome-circuit-first_race", "name": "Green Light", "desc": "Finish your first race", "icon": "🚦", "tier": "bronze"},
                 {"id": "chrome-circuit-first_podium", "name": "On the Box", "desc": "Finish a race in the top three", "icon": "🥉", "tier": "bronze"},
