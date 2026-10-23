@@ -373,7 +373,8 @@
             border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,210,63,0.3);
         }
         .online-code-box.hidden { display: none; }
-        .online-code-label { color: #a0a4c0; font-size: 0.8rem; }
+        .online-code-label { color: #a0a4c0; font-size: 0.8rem; text-align: center; }
+        .online-link-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
         .online-code {
             font-size: 2.4rem; font-weight: 800; letter-spacing: 10px; color: #ffd23f;
             font-family: 'Courier New', monospace; padding-left: 10px;
@@ -2305,9 +2306,13 @@
                     <button class="online-btn secondary" id="online-join-btn">Join</button>
                 </div>
                 <div class="online-code-box hidden" id="online-code-box">
-                    <div class="online-code-label">Share this code with a friend</div>
+                    <div class="online-code-label">Share this code with a friend — or just send the link</div>
                     <div class="online-code" id="online-code-value">----</div>
-                    <button class="online-btn tiny" id="online-copy-btn">Copy code</button>
+                    <div class="online-link-row">
+                        <button class="online-btn tiny" id="online-copy-link-btn">🔗 Copy invite link</button>
+                        <button class="online-btn tiny" id="online-share-btn" style="display:none">📤 Share</button>
+                        <button class="online-btn tiny secondary" id="online-copy-btn">Copy code</button>
+                    </div>
                 </div>
                 <div class="online-status" id="online-status"></div>
             </div>
@@ -3968,8 +3973,13 @@
             el.classList.toggle('error', !!isError);
         }
 
+        let inviteLink = '';
+
         function resetOnlineLobby() {
             try { if (window.C4Net) C4Net.leave(); } catch (e) {}
+            inviteLink = '';
+            const shareBtn = document.getElementById('online-share-btn');
+            if (shareBtn) shareBtn.style.display = 'none';
             const box = document.getElementById('online-code-box');
             if (box) box.classList.add('hidden');
             setOnlineStatus('');
@@ -4167,6 +4177,10 @@
             setOnlineStatus('Creating room…');
             C4Net.host().then((code) => {
                 document.getElementById('online-code-value').textContent = code;
+                // The link carries the code, so a friend taps once instead of
+                // reading four letters aloud and typing them.
+                inviteLink = location.origin + location.pathname + '?join=' + code;
+                if (navigator.share) document.getElementById('online-share-btn').style.display = '';
                 document.getElementById('online-code-box').classList.remove('hidden');
                 setOnlineStatus('Waiting for a friend to join…');
             }).catch(() => {
@@ -4202,6 +4216,23 @@
             } catch (e) {}
         });
 
+        document.getElementById('online-copy-link-btn').addEventListener('click', () => {
+            if (!inviteLink) return;
+            const done = () => setOnlineStatus('Link copied! Send it to your friend.');
+            // A prompt is the fallback: clipboard access needs a secure context
+            // and permission, and failing silently would look like a dead button.
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(inviteLink).then(done).catch(() => window.prompt('Copy this link:', inviteLink));
+            } else {
+                window.prompt('Copy this link:', inviteLink);
+            }
+        });
+
+        document.getElementById('online-share-btn').addEventListener('click', () => {
+            if (!inviteLink || !navigator.share) return;
+            navigator.share({ title: 'Connect 4', text: 'Play me — join my room!', url: inviteLink }).catch(() => {});
+        });
+
         // ===== EVENT LISTENERS =====
         document.querySelectorAll('.difficulty-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -4219,6 +4250,18 @@
                 setGameMode(btn.dataset.mode);
             });
         });
+
+        // Invite links: /connect4/?join=CODE drops you straight into the room.
+        try {
+            const joinCode = (new URLSearchParams(location.search).get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (joinCode.length === 4) {
+                // Drop the parameter so a refresh doesn't knock on a dead room.
+                history.replaceState(null, '', location.pathname);
+                setGameMode('online');
+                document.getElementById('online-join-input').value = joinCode;
+                onlineJoin();
+            }
+        } catch (e) {}
         
         // 2 Player start
         document.getElementById('start-2p-btn').addEventListener('click', (e) => {
