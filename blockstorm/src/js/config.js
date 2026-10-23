@@ -28,6 +28,10 @@ export const CONFIG = {
     pieceS: "#5dd87a",   // Stark grön
     pieceZ: "#e85b6c",   // Stark rosa/röd
     pieceO: "#f5d63d",   // Stark gul
+
+    // Skräprader i versus. Avsiktligt färglös: en spelare ska kunna se
+    // på en rad om den är egen eller påtvingad, utan att läsa texten.
+    garbage: "#6b7280",  // Dämpad grå
   },
 
   FONT: {

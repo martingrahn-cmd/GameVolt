@@ -87,6 +87,45 @@ export class Grid {
     return { count: cleared, rows: rowsCleared };
   }
 
+  // ------------------------------------------------------------
+  // Skjut upp brädet och lägg skräprader underst (versus).
+  //
+  // `hole` är kolumnen som lämnas tom, och den bestäms av avsändaren och
+  // följer med i meddelandet — den härleds medvetet INTE ur det delade
+  // seedet, eftersom det skulle koppla ihop klienternas slumpordning och
+  // göra en desync i den enes skräprader till en desync i den andres
+  // pjäser. Se docs/blockstorm-versus.md.
+  //
+  // Returnerar true om något trängdes ut ovanför brädet, dvs. top out.
+  //
+  // Anropas inte från enspelarläget.
+  // ------------------------------------------------------------
+  addGarbage(lines, hole) {
+    const n = Math.max(0, Math.min(lines | 0, this.rows));
+    if (n === 0) return false;
+
+    const col = ((hole | 0) % this.cols + this.cols) % this.cols;
+
+    // Allt som ligger i de översta n raderna åker ut när brädet skjuts upp.
+    let toppedOut = false;
+    for (let r = 0; r < n; r++) {
+      if (this.cells[r].some((cell) => cell !== null)) { toppedOut = true; break; }
+    }
+
+    // n rader skräp underst är samma sak som att hela brädet flyttas upp.
+    const rows = this.cells.slice(n);
+    for (let r = 0; r < n; r++) {
+      const row = new Array(this.cols);
+      for (let c = 0; c < this.cols; c++) {
+        row[c] = c === col ? null : { color: CONFIG.COLORS.garbage, garbage: true };
+      }
+      rows.push(row);
+    }
+    this.cells = rows;
+
+    return toppedOut;
+  }
+
   // Layout-hjälp till Game
   computeLayout(canvas) {
     const boardCols = CONFIG.BOARD_COLS;
