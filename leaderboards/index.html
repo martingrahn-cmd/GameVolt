@@ -565,6 +565,7 @@
             <button class="filter-pill" data-game="manny-the-mole">Manny the Mole</button>
             <button class="filter-pill" data-game="ink">INK</button>
             <button class="filter-pill" data-game="short-circuit">Short Circuit</button>
+            <button class="filter-pill" data-game="mini-mayhem">Mini Mayhem</button>
         </div>
 
         <!-- Leaderboard content -->
@@ -590,6 +591,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/mini-mayhem/">Mini Mayhem</a>
                         <a href="/ink/">INK</a>
                         <a href="/short-circuit/">Short Circuit</a>
                         <a href="/manny-the-mole/">Manny the Mole</a>
@@ -639,7 +641,7 @@
     </footer>
 
     <!-- SDK (optional) -->
-    <script src="/js/gv-leaderboard-config.js?v=1"></script>
+    <script src="/js/gv-leaderboard-config.js?v=2"></script>
     <script src="/sdk/gamevolt.js" defer></script>
 
     <script>
@@ -817,6 +819,7 @@
         });
 
         var GAME_NAMES = {
+            'mini-mayhem': 'Mini Mayhem',
             'ink': 'INK',
             'asteroid-storm': 'Asteroid Storm', 'axeluga': 'Axeluga', 'blockstorm': 'BlockStorm',
             'breakout': 'Breakout', 'chain-reaction': 'Chain Reaction', 'connect4': 'Connect 4',
@@ -835,7 +838,7 @@
         // Type or Die (own board) are deliberately excluded — they have no rows
         // in the Supabase scores table.
         var LEADERBOARD_GAMES = [
-            'ink',
+            'mini-mayhem', 'ink',
             'hoverdash', 'vector-hexagon', 'gridburn', 'spinburn', 'asteroid-storm', 'snake', 'breakout',
             'blockstorm', 'gravitywell', 'connect4', 'sudoku', 'minesweeper',
             'chain-reaction', 'manga-match3', 'golden-glyphs', 'axeluga',
@@ -925,7 +928,7 @@
     </script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
-    <script src="/js/gv-search.js?v=4"></script>
+    <script src="/js/gv-search.js?v=5"></script>
     <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
 </body>
 </html>

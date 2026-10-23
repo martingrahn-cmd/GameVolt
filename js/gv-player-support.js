@@ -4,6 +4,12 @@
     'use strict';
 
     var guides = {
+        'mini-mayhem': {
+            goal: 'Play toy-like 3D mini golf across 24 holes in four worlds and sink each ball in as few strokes as you can. Birdie or better earns 3 stars, par 2 and bogey 1.',
+            touch: 'Swing in three taps: drag over the course to aim, tap to set the power, then tap to stop the needle in the green zone for a straight shot.',
+            desktop: 'Drag over the course with the mouse to aim; A / D fine-tune and Shift gives precision. Space or Enter takes each step of the swing and Esc cancels.',
+            tip: 'Most holes offer a daring shortcut and a safer way round with rails. Near the hole, the putt meter counts the distance in metres.'
+        },
         'chrome-circuit': {
             goal: 'Race five rivals across twelve circuits in four worlds. Win each world\'s cup to open the next, and beat the game by taking every cup on Pro or harder.',
             touch: 'The car drives itself: slide a thumb on the left to steer, hold on the right to drift, and tap ★ to use your item.',

@@ -47,11 +47,11 @@ When writing code for this project, follow these rules:
 
 ## Game Catalog
 
-**Canonical game count: 26 live portal games.** The table below has 27 numbered
+**Canonical game count: 27 live portal games.** The table below has 28 numbered
 rows, but row #7 (Flappy Bird) is the hidden 404-page easter egg — NOT a portal
 game. So the count shown on the site (homepage hero stat + "All Games" pill,
-about-page copy) = catalog rows − Flappy Bird = **26**. Cross-check: 26
-`.game-card` entries on the homepage, 26 `.game-item` entries in the about
+about-page copy) = catalog rows − Flappy Bird = **27**. Cross-check: 27
+`.game-card` entries on the homepage, 27 `.game-item` entries in the about
 lineup. When you add a game, bump all of these together.
 
 > Adding the game to the about page's *footer* link column is not the same as
@@ -92,6 +92,7 @@ Last verified by auditing the code on 2026-07-09.
 | 25 | INK | ✅ Live | ✅ Full (optional SDK, 31 trophies, migration; game and trophy definitions registered in Supabase 2026-09-06, free and daily-streak boards verified). Imported from `martingrahn-cmd/Black` on 2026-09-06. |
 | 26 | Slipstream Vector | ✅ Live | ✅ Full (flagship anti-gravity racer, 31 trophies, `sql/slipstream-vector-achievements.sql`). Row added 2026-10-12; the game was live but missing from this table. |
 | 27 | Chrome Circuit | ✅ Live | ⚠️ init + 31 trophies + registerMigration + cloud backfill; no leaderboard (races rank by place, time trials by medal). Synced from `martingrahn-cmd/chrome-circuit` by `sync-chrome-circuit.yml` — see "Chrome Circuit" below. Trophy SQL in `sql/chrome-circuit-achievements.sql`, to run in Supabase. Added 2026-10-12. |
+| 28 | Mini Mayhem | ✅ Live | ✅ Full (31 trophies, four world-run leaderboards ranked by strokes then time, registerMigration + cloud backfill; online multiplayer up to 4 via Supabase Realtime). Synced from `martingrahn-cmd/minigolf-3d` by `sync-mini-mayhem.yml` — see "Mini Mayhem" below. Trophy SQL in `sql/mini-mayhem-achievements.sql`. Added 2026-10-22. |
 
 **Remaining work:** none for database registration — INK and its 31 trophies were registered on 2026-09-06. The Solitaire leaderboard is on the Supabase SDK
 path (migrated 2026-07-24); every game leaderboard is on Supabase.
@@ -128,6 +129,49 @@ The game loads the SDK only on gamevolt.io, calls `init('chrome-circuit')`, regi
 migration for its trophies and stats, and back-fills cloud trophies on sign-in. Its 31
 trophy definitions are generated from the game's own list into
 `sql/chrome-circuit-achievements.sql`; run that once in the Supabase SQL editor.
+
+## Mini Mayhem (synced from its own repository)
+
+Mini Mayhem is developed in `martingrahn-cmd/minigolf-3d` (a Vite + Three.js game,
+not single-file) and deployed there to GitHub Pages. `/mini-mayhem/` here is a
+published copy that `.github/workflows/sync-mini-mayhem.yml` replaces whenever the
+game's `main` branch moves (it checks twice an hour, and can be run by hand). The
+workflow builds the game (`npm ci`, `npm test`, `npm run build`) and runs
+`scripts/publish-mini-mayhem.py`, which:
+
+- copies the build as it is; it uses relative paths, so it runs under `/mini-mayhem/`;
+- copies the game's `promo/preview.mp4`;
+- swaps the game's own title and description for GameVolt's head
+  (`scripts/mini-mayhem/head.html`: analytics, title, canonical, Open Graph, JSON-LD
+  and the SDK) and adds the `#seo-content` block (`scripts/mini-mayhem/seo-content.html`).
+
+**Edit those templates, never the published copy** — the next sync overwrites it.
+The game keeps its own `version.json` for its update chip; `source.json` records the
+commit the copy was built from.
+
+The game finds the SDK on the page, calls `init('mini-mayhem')`, registers a migration
+for its trophies, stats and best rounds, and back-fills cloud trophies on sign-in. It
+posts `game_start`, `game_over` (per hole) and `high_score` (a new best world run) to
+the player.
+
+Its leaderboards are one per world, modes `clockwork-run`, `forest-run`, `moon-run` and
+`halloween-run`. A round is the world played in a row: the fewest strokes wins and the
+faster time breaks a tie, stored as `(1000 − strokes) · 100000 + (99999 − tenths of a
+second)`. The portal shows `clockwork-run`; the game's own board has a tab per world.
+
+Its online multiplayer (up to four players) runs on GameVolt's Supabase project over
+Realtime broadcast and presence, with the public anon key in the game.
+
+The game generates its own GameVolt files (`scripts/gamevolt-export.mjs` there):
+- the 31 trophy definitions, kept here as `sql/mini-mayhem-achievements.sql`;
+- the `TROPHY_CATALOG` entry;
+- the leaderboard format.
+
+Run the SQL once in the Supabase SQL editor; scores need the `games` row.
+
+The homepage "Just added" banner shows the Halloween art
+(`mini-mayhem-hero-halloween.webp`) until Halloween; after that it swaps to
+`mini-mayhem-hero.webp`.
 
 ## Big Picture controller library
 
@@ -341,7 +385,7 @@ normal score run retains its UUID across retries, using INSERT ON CONFLICT DO
 NOTHING. Existing SDK clients keep working without the new field. Never drop
 this column while the new SDK is in use.
 
-Profile definitions include all 26 trophy games; additions must also update the profile
+Profile definitions include all 27 trophy games; additions must also update the profile
 catalog. `js/gv-reliability.test.js` compares INK/Gridburn/Spinburn IDs to SQL and
 checks the catalog size. Primary portal leaderboard modes and score formatting
 live in `js/gv-leaderboard-config.js`; update it when a game's scoring changes.

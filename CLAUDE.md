@@ -8,7 +8,7 @@ This is **GameVolt.io** — a curated HTML5 game portal with original games buil
 
 It redirects to gamevolt.io, but with an HTML page rather than a 301. Every visitor arriving that way therefore loses their original source and lands in GA4 as a referral from pulsegames.eu: 62 of the 94 new users on 2026-10-19, averaging two seconds. Treat referral traffic from our own old domain as unattributed, not as discovery, until that redirect becomes a 301 at the Cloudflare level.
 
-**Game count: 26 live portal games**. The GAMEVOLT.md catalog has 27 rows but #7 Flappy Bird is the 404 easter egg, not a portal game. See the note under "Game Catalog" in GAMEVOLT.md before quoting or changing any game count.
+**Game count: 27 live portal games**. The GAMEVOLT.md catalog has 28 rows but #7 Flappy Bird is the 404 easter egg, not a portal game. See the note under "Game Catalog" in GAMEVOLT.md before quoting or changing any game count.
 
 ## Rules
 

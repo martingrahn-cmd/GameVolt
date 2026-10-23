@@ -6,6 +6,7 @@
   'use strict';
 
   var GAMES = [
+    { id: 'mini-mayhem', name: 'Mini Mayhem', cat: 'Arcade', thumb: '/assets/thumbnails/mini-mayhem.webp', tags: 'mini golf minigolf putt putt crazy golf 3d sports arcade multiplayer online halloween haunted harbour clockwork city cloud forest moon carnival mini mayhem' },
     { id: 'chrome-circuit', name: 'Chrome Circuit', cat: 'Racing', thumb: '/assets/thumbnails/chrome-circuit.webp', tags: 'racing race isometric top down arcade cars drift kart micro machines rock n roll racing controller gamepad chrome circuit' },
     { id: 'slipstream-vector', name: 'Slipstream Vector', cat: 'Racing', thumb: '/assets/thumbnails/slipstream-vector.png', tags: 'racing race anti gravity antigrav futuristic arcade 3d controller gamepad wipeout slipstream' },
     { id: 'ink', name: 'INK', cat: 'Arcade', thumb: '/assets/thumbnails/ink.webp', tags: 'ink black bläck drawing pen paper pinball bounce climb daily arcade' },

@@ -135,7 +135,8 @@
                 },
             {"@type": "VideoGame", "position": 12, "name": "INK", "description": "Draw blue ink strokes to bounce the ball up a squared-paper pinball course. Free climb and daily challenges.", "url": "https://gamevolt.io/ink/", "genre": ["Arcade", "Physics"], "gamePlatform": "Web Browser"},
             {"@type": "VideoGame", "position": 13, "name": "Slipstream Vector", "description": "A complete anti-gravity racing game with twelve circuits, weapons and rivals that never use rubber-banding.", "url": "https://gamevolt.io/slipstream-vector/", "genre": ["Arcade", "Racing", "Action"], "gamePlatform": "Web Browser", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }},
-            {"@type": "VideoGame", "position": 14, "name": "Chrome Circuit", "description": "Isometric arcade racing with chunky low-poly cars across twelve circuits in four worlds, with drift boosts, rockets and ghost challenges.", "url": "https://gamevolt.io/chrome-circuit/", "genre": ["Racing", "Arcade"], "gamePlatform": "Web Browser"}
+            {"@type": "VideoGame", "position": 14, "name": "Chrome Circuit", "description": "Isometric arcade racing with chunky low-poly cars across twelve circuits in four worlds, with drift boosts, rockets and ghost challenges.", "url": "https://gamevolt.io/chrome-circuit/", "genre": ["Racing", "Arcade"], "gamePlatform": "Web Browser"},
+            {"@type": "VideoGame", "position": 15, "name": "Mini Mayhem", "description": "Toy-like 3D mini golf across four worlds — loops, cannons, a Ferris wheel and a ghost ship — solo or online with up to four friends.", "url": "https://gamevolt.io/mini-mayhem/", "genre": ["Sports", "Mini golf", "Arcade", "Multiplayer"], "gamePlatform": "Web Browser", "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }}
         ]
         }
     }
@@ -395,6 +396,18 @@
                     <span class="play-btn">▶ Play Full Game</span>
                 </div>
             </a>
+            <a href="/play/?game=mini-mayhem" class="game-card">
+                <div class="game-thumbnail">
+                    <img src="/assets/thumbnails/mini-mayhem.webp" alt="A golf ball at the loop beside a giant tree on a floating island in Mini Mayhem's Cloud Forest, under a pink sky">
+                    <span class="game-badge new">NEW</span>
+                </div>
+                <div class="game-info">
+                    <h3 class="game-title">Mini Mayhem</h3>
+                    <p class="game-description">Toy-like 3D mini golf across four worlds — loops, cannons, a Ferris wheel and a ghost ship — solo or online with up to four friends.</p>
+                    <div class="game-tags"><span class="tag">Mini Golf</span><span class="tag">3D</span><span class="tag">Multiplayer</span></div>
+                    <span class="play-btn">▶ Play Now</span>
+                </div>
+            </a>
             <a href="/play/?game=chrome-circuit" class="game-card">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/chrome-circuit.webp" alt="Play Chrome Circuit isometric arcade racing">
@@ -648,6 +661,7 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Games</h4>
+                        <a href="/mini-mayhem/">Mini Mayhem</a>
                         <a href="/manny-the-mole/">Manny the Mole</a>
                         <a href="/spinburn/">Spinburn</a>
                         <a href="/gridburn/">Gridburn</a>
@@ -706,7 +720,7 @@
     </script>
     <script src="/js/gv-theme.js" defer></script>
     <script src="/js/gv-install.js" defer></script>
-    <script src="/js/gv-search.js?v=4"></script>
+    <script src="/js/gv-search.js?v=5"></script>
     <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}</script>
     <script src="/js/gv-game-hints.js?v=1" defer></script>
 </body>
