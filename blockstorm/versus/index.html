@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BlockStorm Versus</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0f1221">
+<!-- Not linked from anywhere and not finished: keep it out of search until it is. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<style>
+  :root { --ink: #c8e6e3; --dim: #7ab5b0; --line: #2d5a5a; --bg: #0f1221; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
+  canvas#gameCanvas { display: block; }
+
+  .overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(8, 10, 20, 0.86); z-index: 20; padding: 20px; }
+  .overlay.hidden { display: none; }
+  .panel { width: min(460px, 100%); background: rgba(255,255,255,0.04); border: 1px solid var(--line);
+    border-radius: 16px; padding: 26px 24px; text-align: center; }
+  .panel h1 { margin: 0 0 4px; font-size: 1.5rem; letter-spacing: 1px; }
+  .panel .sub { color: var(--dim); font-size: 0.85rem; margin-bottom: 20px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
+  .btn { font: inherit; font-weight: 700; cursor: pointer; padding: 11px 18px; border-radius: 10px;
+    border: 1px solid var(--line); background: rgba(255,255,255,0.06); color: var(--ink); }
+  .btn:hover:not(:disabled) { border-color: var(--ink); }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  .btn.tiny { padding: 8px 13px; font-size: 0.8rem; }
+  #codeInput { font: inherit; font-weight: 700; font-size: 1.1rem; letter-spacing: 6px; width: 132px;
+    text-align: center; text-transform: uppercase; color: #fff; background: rgba(255,255,255,0.05);
+    border: 1px solid var(--line); border-radius: 10px; padding: 11px 8px; outline: none; }
+  #codeBox { margin: 18px 0 8px; }
+  #codeBox.hidden { display: none; }
+  #code { font-size: 2.4rem; font-weight: 800; letter-spacing: 10px; padding-left: 10px; color: #f5d63d;
+    font-family: 'Courier New', monospace; }
+  .hint { color: var(--dim); font-size: 0.78rem; margin: 6px 0 12px; line-height: 1.5; }
+  #status { min-height: 1.2em; color: var(--dim); font-size: 0.85rem; margin-top: 14px; }
+  #status.error { color: #e85b6c; }
+
+  /* Opponent board, laid over the full-screen game canvas rather than
+     sharing its layout — the renderer owns that canvas entirely. */
+  #hud { position: fixed; top: 14px; right: 14px; z-index: 10; text-align: center; display: none; }
+  #hud.on { display: block; }
+  #oppCanvas { background: rgba(0,0,0,0.35); border: 1px solid var(--line); border-radius: 8px; display: block; }
+  #oppLabel { font-size: 0.7rem; letter-spacing: 2px; color: var(--dim); margin-bottom: 5px; }
+  #pending { margin-top: 8px; font-size: 0.78rem; color: var(--dim); }
+  #pending b { color: #e85b6c; font-size: 1.1rem; }
+  #sent { font-size: 0.72rem; color: var(--dim); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<div id="hud">
+  <div id="oppLabel">OPPONENT</div>
+  <canvas id="oppCanvas" width="120" height="240"></canvas>
+  <div id="pending">incoming <b id="pendingN">0</b></div>
+  <div id="sent">sent <span id="sentN">0</span></div>
+</div>
+
+<div class="overlay" id="lobby">
+  <div class="panel">
+    <h1>BlockStorm Versus</h1>
+    <div class="sub">Two players, one bag of pieces. Clear lines, bury the other one.</div>
+
+    <div class="row">
+      <button class="btn" id="createBtn">Create room</button>
+      <span style="color:var(--dim)">or</span>
+      <input id="codeInput" maxlength="4" autocomplete="off" spellcheck="false" placeholder="CODE">
+      <button class="btn" id="joinBtn">Join</button>
+    </div>
+
+    <div id="codeBox" class="hidden">
+      <div id="code">----</div>
+      <div class="hint">Share the code — or just send the link.<br>Keep this page open: the room lives in this tab.</div>
+      <div class="row">
+        <button class="btn tiny" id="copyLinkBtn">🔗 Copy invite link</button>
+        <button class="btn tiny" id="shareBtn" style="display:none">📤 Share</button>
+        <button class="btn tiny" id="copyCodeBtn">Copy code</button>
+      </div>
+    </div>
+
+    <div id="status"></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="result">
+  <div class="panel">
+    <h1 id="resultTitle">—</h1>
+    <div class="sub" id="resultSub"></div>
+    <div class="row">
+      <button class="btn" id="rematchBtn">Rematch</button>
+      <a class="btn" href="/blockstorm/">Back to BlockStorm</a>
+    </div>
+    <div id="resultStatus" class="hint" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<script src="../vs-net.js"></script>
+<!-- Boots the same Game as single-player and exposes window.PULSE_TETRIS. -->
+<script type="module" src="../src/js/game.js"></script>
+
+<script type="module">
+  import { VersusMatch } from '../src/js/versus.js';
+
+  const $ = (id) => document.getElementById(id);
+  const game = window.PULSE_TETRIS;
+  let match = null;
+  let inviteLink = '';
+  let started = false;
+
+  const setStatus = (msg, isError) => {
+    $('status').textContent = msg || '';
+    $('status').classList.toggle('error', !!isError);
+  };
+
+  // ---- opponent board ------------------------------------------------
+  // The wire format is one character per cell: '.' empty, 'g' garbage,
+  // '#' anything else. 200 characters for a 10x20 board.
+  const COLS = 10;
+  let oppRows = [];
+
+  function serializeBoard() {
+    return game.grid.cells.map((row) =>
+      row.map((c) => (c ? (c.garbage ? 'g' : '#') : '.')).join('')
+    ).join('/');
+  }
+
+  function drawOpponent() {
+    const cv = $('oppCanvas');
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    if (!oppRows.length) return;
+    const cw = cv.width / COLS;
+    const ch = cv.height / oppRows.length;
+    for (let r = 0; r < oppRows.length; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const ch0 = oppRows[r][c];
+        if (!ch0 || ch0 === '.') continue;
+        ctx.fillStyle = ch0 === 'g' ? '#6b7280' : '#45d9c8';
+        ctx.fillRect(c * cw + 0.5, r * ch + 0.5, cw - 1, ch - 1);
+      }
+    }
+  }
+
+  function refreshHud() {
+    $('pendingN').textContent = match ? match.pendingLines : 0;
+    $('sentN').textContent = match ? match.sentLines : 0;
+  }
+
+  // ---- the match -----------------------------------------------------
+  function beginMatch(seed) {
+    match = new VersusMatch({
+      grid: game.grid,
+      send: (type, payload) => {
+        if (type === 'attack') VSNet.attack(payload);
+        else if (type === 'topout') VSNet.topout(payload);
+      },
+    });
+
+    game.bagSeed = seed || null;
+    game.onLock = (info) => {
+      match.handleLock(info);
+      VSNet.board({ b: serializeBoard() });
+      refreshHud();
+    };
+
+    // The engine's own game-over path: my stack reached the ceiling.
+    window.showGameOver = () => { if (match) match.lose('topout'); showResult(false, 'Your stack hit the ceiling.'); };
+
+    game.setGameMode('marathon');
+    game.setStartLevel(0);
+    game.restart();
+
+    started = true;
+    $('lobby').classList.add('hidden');
+    $('result').classList.add('hidden');
+    $('hud').classList.add('on');
+    oppRows = [];
+    drawOpponent();
+    refreshHud();
+  }
+
+  function showResult(won, why) {
+    game.running = false;
+    game.gameOver = true;
+    $('resultTitle').textContent = won ? 'You win' : 'You lose';
+    $('resultSub').textContent = why || '';
+    $('resultStatus').textContent = '';
+    $('result').classList.remove('hidden');
+  }
+
+  // ---- transport wiring ----------------------------------------------
+  VSNet.on('opponentJoined', (d) => {
+    setStatus('Opponent joined — starting…');
+    beginMatch(d && d.seed);
+  });
+
+  VSNet.on('attack', (d) => { if (match) { match.receive('attack', d); refreshHud(); } });
+
+  VSNet.on('board', (d) => {
+    if (!d || typeof d.b !== 'string') return;
+    oppRows = d.b.split('/');
+    drawOpponent();
+  });
+
+  VSNet.on('topout', () => {
+    if (match) match.opponentLost();
+    showResult(true, 'They topped out.');
+  });
+
+  VSNet.on('rematch', (d) => {
+    if (d && d.seed) beginMatch(d.seed);
+  });
+
+  VSNet.on('left', () => {
+    if (!started) { setStatus('The other player left.', true); return; }
+    showResult(true, 'They left the match.');
+  });
+
+  // ---- lobby ----------------------------------------------------------
+  if (window.VSNet && VSNet.preload) VSNet.preload();
+
+  $('createBtn').addEventListener('click', function () {
+    this.disabled = true; $('joinBtn').disabled = true;
+    setStatus('Creating room…');
+    VSNet.host().then((code) => {
+      $('code').textContent = code;
+      inviteLink = location.origin + location.pathname + '?join=' + code;
+      if (navigator.share) $('shareBtn').style.display = '';
+      $('codeBox').classList.remove('hidden');
+      setStatus('Waiting for a friend to join…');
+    }).catch(() => {
+      setStatus('Could not create a room — try again.', true);
+      this.disabled = false; $('joinBtn').disabled = false;
+    });
+  });
+
+  function doJoin() {
+    const code = ($('codeInput').value || '').trim().toUpperCase();
+    if (code.length < 4) { setStatus('Enter the 4-character code.', true); return; }
+    $('createBtn').disabled = true; $('joinBtn').disabled = true;
+    setStatus('Connecting…');
+    VSNet.join(code).then(() => setStatus('Joined — waiting for the host…')).catch(() => {
+      setStatus('Could not join — check the code.', true);
+      $('createBtn').disabled = false; $('joinBtn').disabled = false;
+    });
+  }
+  $('joinBtn').addEventListener('click', doJoin);
+  $('codeInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') doJoin(); });
+
+  $('copyLinkBtn').addEventListener('click', () => {
+    if (!inviteLink) return;
+    const done = () => setStatus('Link copied — send it to a friend!');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(inviteLink).then(done).catch(() => window.prompt('Copy this link:', inviteLink));
+    } else {
+      window.prompt('Copy this link:', inviteLink);
+    }
+  });
+
+  $('copyCodeBtn').addEventListener('click', () => {
+    const code = $('code').textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText(code).then(() => setStatus('Code copied!')).catch(() => {});
+  });
+
+  $('shareBtn').addEventListener('click', () => {
+    if (inviteLink && navigator.share) {
+      navigator.share({ title: 'BlockStorm Versus', text: 'Play me — join my room!', url: inviteLink }).catch(() => {});
+    }
+  });
+
+  // Only the host can set a new seed; the guest waits to be told.
+  $('rematchBtn').addEventListener('click', () => {
+    if (VSNet.role === 'host') {
+      const seed = VSNet.newSeed();
+      VSNet.rematch({ seed });
+      beginMatch(seed);
+    } else {
+      $('resultStatus').textContent = 'Waiting for the host to start another…';
+      VSNet.rematch({});
+    }
+  });
+
+  // Invite links: /blockstorm/versus/?join=CODE drops you straight into the room.
+  try {
+    const joinCode = (new URLSearchParams(location.search).get('join') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (joinCode.length === 4) {
+      history.replaceState(null, '', location.pathname);
+      $('codeInput').value = joinCode;
+      doJoin();
+    }
+  } catch (e) {}
+
+  window.addEventListener('beforeunload', () => { try { VSNet.leave(); } catch (e) {} });
+
+  // Exposed for the smoke test, which has no route to Supabase and drives
+  // the match through a fake transport instead.
+  window.__versus = {
+    beginMatch,
+    get match() { return match; },
+    serializeBoard,
+    setOpponentBoard: (s) => { oppRows = s.split('/'); drawOpponent(); },
+  };
+</script>
+</body>
+</html>
