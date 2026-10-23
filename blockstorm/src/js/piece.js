@@ -2,6 +2,30 @@ console.log("PIECE SAFE 1.0 LOADED");
 
 import { CONFIG } from "./config.js";
 
+// ------------------------------------------------------------
+// Seedad slump för 7-bagen
+//
+// Två spelare i ett versus-rum måste få samma pjäser i samma ordning,
+// och Math.random går inte att dela. mulberry32 har ingen state utöver
+// ett heltal och räcker gott för att blanda sju pjäser.
+//
+// Utan seed används Math.random precis som förut — enspelarläget är
+// därmed orört, och det är avsiktligt: resetPieceBag() anropas från
+// Game.restart() helt utan argument.
+// ------------------------------------------------------------
+let bagRandom = Math.random;
+
+export function setPieceBagSeed(seed) {
+  if (!seed) { bagRandom = Math.random; return; }
+  let a = seed >>> 0;
+  bagRandom = function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 // SRS Wall Kick Data
 // Testar dessa offsetpar i ordning vid rotation
 // Format: [dx, dy] där positiv dy = nedåt
@@ -235,7 +259,7 @@ class PieceBag {
     // Kopiera alla shapes och shuffla (Fisher-Yates)
     this.bag = [...this.getShapes()];
     for (let i = this.bag.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(bagRandom() * (i + 1));
       [this.bag[i], this.bag[j]] = [this.bag[j], this.bag[i]];
     }
   }
@@ -266,7 +290,9 @@ export function createRandomPiece() {
   return p;
 }
 
-// Reset bag (vid restart)
-export function resetPieceBag() {
+// Reset bag (vid restart). Seed är valfritt: utan det blir bagen
+// slumpmässig som vanligt, med det blir sekvensen delbar med en motståndare.
+export function resetPieceBag(seed) {
+  setPieceBagSeed(seed);
   pieceBag.reset();
 }
