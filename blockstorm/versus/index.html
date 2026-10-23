@@ -62,11 +62,100 @@
   #hud.strip #pending { margin: 0; white-space: nowrap; font-size: 0.68rem; }
   #hud.strip #pending::before { content: '▼ '; color: var(--dim); }
   #hud.strip #pending b { font-size: 0.95rem; }
+
+  /* ---- reactions ----------------------------------------------------
+     Everything below is feedback: the only warning you had before was a
+     number changing. */
+
+  /* Incoming garbage, as a bar down the edge of your own board. It fills
+     while the queue waits out its window and pulses once it is armed —
+     that pulse is your cue to clear something and cancel it. */
+  #dangerBar { position: fixed; z-index: 9; display: none; border-radius: 4px;
+    background: rgba(255,255,255,0.05); overflow: hidden; }
+  #dangerBar.on { display: block; }
+  #dangerFill { position: absolute; left: 0; right: 0; bottom: 0; height: 0;
+    background: linear-gradient(180deg, #ff9f43, #e85b6c);
+    box-shadow: 0 0 12px rgba(232,91,108,0.55); transition: height 0.12s linear; }
+  #dangerBar.armed #dangerFill { animation: danger-pulse 0.34s infinite alternate; }
+  @keyframes danger-pulse { from { opacity: 0.5; } to { opacity: 1; } }
+
+  /* Floating callouts over the board: what you just did, what just hit you. */
+  #log { position: fixed; z-index: 11; pointer-events: none; text-align: center; }
+  .logline { font-weight: 800; letter-spacing: 2px; font-size: 0.95rem; color: #f5d63d;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.75); animation: log-rise 1.35s ease-out forwards; }
+  .logline.inbound { color: #e85b6c; }
+  .logline.cancel { color: #45d9c8; }
+  .logline small { display: block; font-size: 0.6rem; letter-spacing: 3px; color: var(--dim); font-weight: 700; }
+  @keyframes log-rise {
+    0%   { opacity: 0; transform: translateY(12px) scale(0.85); }
+    14%  { opacity: 1; transform: translateY(0) scale(1.08); }
+    28%  { transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-52px); }
+  }
+
+  /* The opponent's board takes the hit you just sent. */
+  #hud.hit { animation: hud-shake 0.36s ease-out; }
+  @keyframes hud-shake {
+    10% { transform: translate(-4px, 2px); }  30% { transform: translate(5px, -2px); }
+    50% { transform: translate(-4px, -2px); } 70% { transform: translate(3px, 2px); }
+    100% { transform: none; }
+  }
+  #oppCanvas.flash { border-color: #f5d63d; box-shadow: 0 0 20px rgba(245,214,61,0.55); }
+
+  /* Taking garbage knocks the whole view. */
+  body.jolt { animation: jolt 0.3s ease-out; }
+  @keyframes jolt {
+    20% { transform: translateY(5px); } 55% { transform: translateY(-3px); } 100% { transform: none; }
+  }
+
+  #flash { position: fixed; inset: 0; z-index: 15; pointer-events: none; opacity: 0; }
+  #flash.go { animation: flash 0.55s ease-out; }
+  @keyframes flash { 0% { opacity: 0.55; } 100% { opacity: 0; } }
+
+  /* ---- the ending --------------------------------------------------- */
+  #result .panel { animation: pop 0.5s cubic-bezier(0.2, 1.35, 0.45, 1) both; }
+  @keyframes pop { from { opacity: 0; transform: scale(0.84) translateY(16px); } to { opacity: 1; transform: none; } }
+  #resultTitle { font-size: 2.4rem; letter-spacing: 4px; text-transform: uppercase; }
+  #result.win #resultTitle { color: #45d9c8; animation: win-glow 1.5s ease-in-out infinite alternate; }
+  #result.lose #resultTitle { color: #e85b6c; animation: lose-drop 0.6s ease-out both; }
+  @keyframes win-glow {
+    from { text-shadow: 0 0 14px rgba(69,217,200,0.35); }
+    to   { text-shadow: 0 0 34px rgba(69,217,200,0.85), 0 0 60px rgba(69,217,200,0.35); }
+  }
+  @keyframes lose-drop {
+    0% { transform: translateY(-14px) rotate(-2deg); opacity: 0; }
+    60% { transform: translateY(4px) rotate(1deg); opacity: 1; }
+    100% { transform: none; }
+  }
+  #stats { color: var(--dim); font-size: 0.78rem; letter-spacing: 1px; margin: 0 0 18px; }
+  #stats b { color: var(--ink); font-size: 1rem; }
+
+  /* Sparks, on a win only. They are absolutely positioned, so without a
+     stacking order of its own the panel's content would sit under them. */
+  #result .panel { position: relative; }
+  #result .panel > *:not(#sparks) { position: relative; z-index: 1; }
+  #sparks { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; border-radius: 16px; }
+  #sparks i { position: absolute; bottom: -12px; width: 8px; height: 8px; border-radius: 2px;
+    background: #45d9c8; animation: spark 1.6s ease-out forwards; }
+  @keyframes spark {
+    0% { opacity: 0; transform: translateY(0) rotate(0deg); }
+    15% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-260px) rotate(300deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logline, #result .panel, #resultTitle, #sparks i, #hud.hit, body.jolt, #flash.go,
+    #dangerBar.armed #dangerFill { animation: none; }
+  }
 </style>
 </head>
 <body>
 
 <canvas id="gameCanvas"></canvas>
+
+<div id="dangerBar"><div id="dangerFill"></div></div>
+<div id="log"></div>
+<div id="flash"></div>
 
 <div id="hud">
   <div id="oppLabel">OPPONENT</div>
@@ -103,8 +192,10 @@
 
 <div class="overlay hidden" id="result">
   <div class="panel">
+    <div id="sparks"></div>
     <h1 id="resultTitle">—</h1>
     <div class="sub" id="resultSub"></div>
+    <div id="stats"></div>
     <div class="row">
       <button class="btn" id="rematchBtn">Rematch</button>
       <a class="btn" href="/blockstorm/">Back to BlockStorm</a>
@@ -119,6 +210,7 @@
 
 <script type="module">
   import { VersusMatch } from '../src/js/versus.js';
+  import { isPerfectClear } from '../src/js/attack.js';
 
   const $ = (id) => document.getElementById(id);
   const game = window.PULSE_TETRIS;
@@ -217,6 +309,21 @@
     hud.style.left = p.left + 'px';
     hud.style.top = p.top + 'px';
     hud.style.width = p.blockW ? p.blockW + 'px' : '';
+    // The danger bar rides the board's edge; the callouts float over its
+    // middle, where the eye already is.
+    const bw = Math.max(5, Math.round(L.cellSize * 0.22));
+    const bar = $('dangerBar');
+    const outside = L.boardX - bw - 5;
+    bar.style.left = (outside >= 2 ? outside : L.boardX + 3) + 'px';
+    bar.style.top = Math.round(L.boardY) + 'px';
+    bar.style.width = bw + 'px';
+    bar.style.height = Math.round(L.boardHeight) + 'px';
+
+    const log = $('log');
+    log.style.left = Math.round(L.boardX) + 'px';
+    log.style.width = Math.round(L.boardWidth) + 'px';
+    log.style.top = Math.round(L.boardY + L.boardHeight * 0.34) + 'px';
+
     if (cv.width !== p.w || cv.height !== p.h) {
       cv.width = p.w;
       cv.height = p.h;
@@ -234,6 +341,85 @@
     $('sentN').textContent = match ? match.sentLines : 0;
   }
 
+  // ---- reactions -----------------------------------------------------
+  // A versus board is read at a glance, so what matters has to be visible
+  // without reading a number: how much is coming, whether it is armed,
+  // and whether the last thing you did landed.
+
+  const NAMES = ['', 'SINGLE', 'DOUBLE', 'TRIPLE', 'TETRIS'];
+
+  function clearLabel(info, wasB2B, perfect) {
+    const n = info.lines | 0;
+    if (n <= 0) return null;
+    if (perfect) return { text: 'PERFECT CLEAR', note: '' };
+    let text = info.tSpin === 'full' ? 'T-SPIN ' + NAMES[n] : NAMES[n];
+    const notes = [];
+    if (wasB2B && (n === 4 || info.tSpin === 'full')) notes.push('BACK-TO-BACK');
+    if ((info.combo | 0) > 1) notes.push('COMBO ' + info.combo);
+    return { text: text, note: notes.join(' · ') };
+  }
+
+  function pushLog(text, note, kind) {
+    const el = document.createElement('div');
+    el.className = 'logline' + (kind ? ' ' + kind : '');
+    el.textContent = text;
+    if (note) {
+      const s = document.createElement('small');
+      s.textContent = note;
+      el.appendChild(s);
+    }
+    const log = $('log');
+    log.appendChild(el);
+    // Three at a time is plenty; a fast combo would otherwise stack a wall.
+    while (log.children.length > 3) log.removeChild(log.firstChild);
+    setTimeout(() => el.remove(), 1400);
+  }
+
+  function replay(el, cls, ms) {
+    el.classList.remove(cls);
+    void el.offsetWidth;                // restart the animation
+    el.classList.add(cls);
+    setTimeout(() => el.classList.remove(cls), ms);
+  }
+
+  function flash(color) {
+    const f = $('flash');
+    f.style.background = color;
+    replay(f, 'go', 600);
+  }
+
+  // Your attack landing on them.
+  function reactSent(lines) {
+    replay($('hud'), 'hit', 380);
+    replay($('oppCanvas'), 'flash', 380);
+    pushLog('▲ ' + lines, 'SENT', null);
+  }
+
+  // Garbage standing up on your own board.
+  function reactHit(lines) {
+    replay(document.body, 'jolt', 320);
+    flash('rgba(232,91,108,0.45)');
+    pushLog('▼ ' + lines, 'GARBAGE', 'inbound');
+  }
+
+  // The danger bar is driven by a frame loop rather than by events,
+  // because what it shows is time passing, not something that happened.
+  let fxRunning = false;
+  function fxTick() {
+    const bar = $('dangerBar');
+    if (match && !match.finished) {
+      const p = match.pendingLines;
+      const frac = Math.min(1, p / 10);
+      $('dangerFill').style.height = (frac * 100) + '%';
+      const armed = match.incoming.length > 0 && match.incoming[0].readyAt <= Date.now();
+      bar.classList.toggle('armed', armed);
+    } else {
+      $('dangerFill').style.height = '0%';
+      bar.classList.remove('armed');
+    }
+    requestAnimationFrame(fxTick);
+  }
+
   // ---- the match -----------------------------------------------------
   function beginMatch(seed) {
     match = new VersusMatch({
@@ -246,7 +432,21 @@
 
     game.bagSeed = seed || null;
     game.onLock = (info) => {
-      match.handleLock(info);
+      // Read these before handleLock: it flips back-to-back and may stand
+      // garbage up on the board, which changes both answers.
+      const wasB2B = match.backToBack;
+      const perfect = (info.lines | 0) > 0 && isPerfectClear(game.grid.cells);
+      const pendingBefore = match.pendingLines;
+
+      const res = match.handleLock(info);
+
+      const label = clearLabel(info, wasB2B, perfect);
+      if (label) pushLog(label.text, label.note, null);
+      if (res.sent > 0) reactSent(res.sent);
+      const cancelled = Math.max(0, pendingBefore - match.pendingLines - res.applied);
+      if (cancelled > 0) pushLog('✕ ' + cancelled, 'CANCELLED', 'cancel');
+      if (res.applied > 0) reactHit(res.applied);
+
       VSNet.board({ b: serializeBoard() });
       refreshHud();
     };
@@ -262,7 +462,12 @@
     $('lobby').classList.add('hidden');
     $('result').classList.add('hidden');
     $('hud').classList.add('on');
+    $('dangerBar').classList.add('on');
+    $('result').classList.remove('win', 'lose');
+    $('log').innerHTML = '';
+    $('sparks').innerHTML = '';
     placeHud();
+    if (!fxRunning) { fxRunning = true; requestAnimationFrame(fxTick); }
     oppRows = [];
     drawOpponent();
     refreshHud();
@@ -271,9 +476,35 @@
   function showResult(won, why) {
     game.running = false;
     game.gameOver = true;
+    $('dangerBar').classList.remove('on', 'armed');
+
     $('resultTitle').textContent = won ? 'You win' : 'You lose';
     $('resultSub').textContent = why || '';
     $('resultStatus').textContent = '';
+
+    const sent = match ? match.sentLines : 0;
+    const took = match ? match.receivedLines : 0;
+    $('stats').innerHTML = 'sent <b>' + sent + '</b> &nbsp;·&nbsp; took <b>' + took + '</b>';
+
+    $('result').classList.remove('win', 'lose');
+    $('result').classList.add(won ? 'win' : 'lose');
+    flash(won ? 'rgba(69,217,200,0.4)' : 'rgba(232,91,108,0.5)');
+    if (!won) replay(document.body, 'jolt', 340);
+
+    const sparks = $('sparks');
+    sparks.innerHTML = '';
+    if (won) {
+      const colors = ['#45d9c8', '#f5d63d', '#9b8cff', '#ff8da1'];
+      for (let i = 0; i < 22; i++) {
+        const s = document.createElement('i');
+        s.style.left = Math.round(Math.random() * 96) + '%';
+        s.style.background = colors[i % colors.length];
+        s.style.animationDelay = (Math.random() * 0.7).toFixed(2) + 's';
+        s.style.animationDuration = (1.3 + Math.random() * 0.8).toFixed(2) + 's';
+        sparks.appendChild(s);
+      }
+    }
+
     $('result').classList.remove('hidden');
   }
 
@@ -283,7 +514,14 @@
     beginMatch(d && d.seed);
   });
 
-  VSNet.on('attack', (d) => { if (match) { match.receive('attack', d); refreshHud(); } });
+  VSNet.on('attack', (d) => {
+    if (!match) return;
+    const before = match.pendingLines;
+    match.receive('attack', d);
+    const queued = match.pendingLines - before;
+    if (queued > 0) pushLog('▼ ' + queued, 'INCOMING', 'inbound');
+    refreshHud();
+  });
 
   VSNet.on('board', (d) => {
     if (!d || typeof d.b !== 'string') return;
