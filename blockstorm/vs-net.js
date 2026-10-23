@@ -119,6 +119,7 @@
       return;
     }
 
+    if (p.t === 'react')   { emit('react', p.d || {}); return; }
     if (p.t === 'attack')  { emit('attack', p.d || {}); return; }
     if (p.t === 'board')   { emit('board', p.d || {}); return; }
     if (p.t === 'topout')  { emit('topout', p.d || {}); return; }
@@ -167,6 +168,8 @@
     attack: function (d) { send('attack', d); },
     board: function (d) { send('board', d); },
     topout: function (d) { send('topout', d || {}); },
+    // One emoji after the match. Purely cosmetic — nothing reads it back.
+    react: function (d) { send('react', d || {}); },
     rematch: function (d) { send('rematch', d || {}); },
 
     // A rematch needs a new seed, or both players replay the same game.

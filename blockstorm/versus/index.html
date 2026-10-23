@@ -127,8 +127,38 @@
     60% { transform: translateY(4px) rotate(1deg); opacity: 1; }
     100% { transform: none; }
   }
-  #stats { color: var(--dim); font-size: 0.78rem; letter-spacing: 1px; margin: 0 0 18px; }
+  #stats { color: var(--dim); font-size: 0.78rem; letter-spacing: 1px; margin: 0 0 6px; }
   #stats b { color: var(--ink); font-size: 1rem; }
+  #series { color: var(--dim); font-size: 0.72rem; letter-spacing: 2px; margin: 0 0 16px; }
+  #series b { color: #f5d63d; font-size: 0.95rem; }
+  #series.hidden { display: none; }
+
+  /* Emoji after the whistle: the only thing you can say to each other. */
+  #reactRow { display: flex; gap: 6px; justify-content: center; margin: 0 0 16px; }
+  #reactRow button { font-size: 1.3rem; line-height: 1; cursor: pointer; padding: 6px 9px;
+    border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,0.05); }
+  #reactRow button:hover:not(:disabled) { border-color: var(--ink); transform: translateY(-2px); }
+  #reactRow button:disabled { opacity: 0.35; cursor: default; }
+  #reactions { min-height: 46px; margin: 6px 0 12px; display: flex; gap: 14px;
+    justify-content: center; align-items: center; }
+  .reaction { font-size: 1.9rem; animation: react-pop 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both; }
+  .reaction.theirs { filter: drop-shadow(0 0 10px rgba(245,214,61,0.5)); }
+  .reaction small { display: block; font-size: 0.52rem; letter-spacing: 2px; color: var(--dim);
+    text-align: center; margin-top: 2px; }
+  @keyframes react-pop { from { opacity: 0; transform: scale(0.3) rotate(-18deg); } to { opacity: 1; transform: none; } }
+
+  /* Countdown: both boards are seeded identically, so they should also
+     start at the same moment rather than whenever each page got the news. */
+  #countdown { position: fixed; inset: 0; z-index: 16; display: none; pointer-events: none;
+    align-items: center; justify-content: center; }
+  #countdown.on { display: flex; }
+  #countdown span { font-size: 6rem; font-weight: 800; letter-spacing: 6px; color: #f5d63d;
+    text-shadow: 0 0 40px rgba(245,214,61,0.55), 0 6px 30px rgba(0,0,0,0.6); }
+  #countdown span.tick { animation: count-tick 0.65s ease-out; }
+  @keyframes count-tick {
+    0% { opacity: 0; transform: scale(1.9); } 25% { opacity: 1; transform: scale(1); }
+    75% { opacity: 1; } 100% { opacity: 0; transform: scale(0.85); }
+  }
 
   /* Sparks, on a win only. They are absolutely positioned, so without a
      stacking order of its own the panel's content would sit under them. */
@@ -145,7 +175,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .logline, #result .panel, #resultTitle, #sparks i, #hud.hit, body.jolt, #flash.go,
-    #dangerBar.armed #dangerFill { animation: none; }
+    #dangerBar.armed #dangerFill, .reaction { animation: none; }
+    #countdown span.tick { animation: none; opacity: 1; }
   }
 </style>
 </head>
@@ -156,6 +187,7 @@
 <div id="dangerBar"><div id="dangerFill"></div></div>
 <div id="log"></div>
 <div id="flash"></div>
+<div id="countdown"><span id="countNum"></span></div>
 
 <div id="hud">
   <div id="oppLabel">OPPONENT</div>
@@ -196,6 +228,9 @@
     <h1 id="resultTitle">—</h1>
     <div class="sub" id="resultSub"></div>
     <div id="stats"></div>
+    <div id="series" class="hidden"></div>
+    <div id="reactions"></div>
+    <div id="reactRow"></div>
     <div class="row">
       <button class="btn" id="rematchBtn">Rematch</button>
       <a class="btn" href="/blockstorm/">Back to BlockStorm</a>
@@ -420,6 +455,85 @@
     requestAnimationFrame(fxTick);
   }
 
+  // ---- reactions -----------------------------------------------------
+  // The only thing two strangers in a room code can say to each other.
+  // Winner and loser get different offers: gloating and conceding are not
+  // the same gesture.
+  const EMOJI = {
+    win:  ['🏆', '😎', '🔥', '👏', '🤝'],
+    lose: ['😤', '😭', '👏', '🤝', '🔁'],
+  };
+  const series = { me: 0, them: 0 };
+  let resultCounted = false;
+
+  function showReaction(emoji, mine) {
+    const box = $('reactions');
+    const el = document.createElement('div');
+    el.className = 'reaction' + (mine ? ' mine' : ' theirs');
+    el.textContent = emoji;
+    const tag = document.createElement('small');
+    tag.textContent = mine ? 'YOU' : 'THEM';
+    el.appendChild(tag);
+    // One each: a second from the same side replaces the first.
+    const existing = box.querySelector(mine ? '.mine' : '.theirs');
+    if (existing) existing.remove();
+    if (mine) box.appendChild(el); else box.insertBefore(el, box.firstChild);
+  }
+
+  function buildReactions(won) {
+    const row = $('reactRow');
+    row.innerHTML = '';
+    EMOJI[won ? 'win' : 'lose'].forEach((e) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = e;
+      b.setAttribute('aria-label', 'react ' + e);
+      b.addEventListener('click', () => {
+        showReaction(e, true);
+        try { VSNet.react({ e: e }); } catch (err) {}
+        [...row.children].forEach((c) => { c.disabled = true; });
+      });
+      row.appendChild(b);
+    });
+  }
+
+  // ---- countdown -----------------------------------------------------
+  // Both sides hear about the start a round trip apart, and the engine
+  // would otherwise begin dropping the moment each page found out. Three
+  // seconds of nothing is the cheapest way to make the two boards start
+  // together — and it gives you a moment to look at the first piece.
+  let countTimer = null;
+
+  function runCountdown() {
+    clearTimeout(countTimer);
+    const box = $('countdown');
+    const num = $('countNum');
+    game.paused = true;                 // input.js already bails while paused
+    box.classList.add('on');
+
+    let n = 3;
+    const step = () => {
+      if (n > 0) {
+        num.textContent = n;
+        replay(num, 'tick', 650);
+        n--;
+        countTimer = setTimeout(step, 700);
+        return;
+      }
+      num.textContent = 'GO';
+      replay(num, 'tick', 650);
+      countTimer = setTimeout(() => box.classList.remove('on'), 520);
+      resumeEngine();
+    };
+    step();
+  }
+
+  function resumeEngine() {
+    game.paused = false;
+    game.lastTime = performance.now();  // or gravity jumps by the whole pause
+    requestAnimationFrame(game.loop);
+  }
+
   // ---- the match -----------------------------------------------------
   function beginMatch(seed) {
     match = new VersusMatch({
@@ -466,8 +580,12 @@
     $('result').classList.remove('win', 'lose');
     $('log').innerHTML = '';
     $('sparks').innerHTML = '';
+    $('reactions').innerHTML = '';
+    $('reactRow').innerHTML = '';
+    resultCounted = false;
     placeHud();
     if (!fxRunning) { fxRunning = true; requestAnimationFrame(fxTick); }
+    runCountdown();
     oppRows = [];
     drawOpponent();
     refreshHud();
@@ -484,7 +602,26 @@
 
     const sent = match ? match.sentLines : 0;
     const took = match ? match.receivedLines : 0;
-    $('stats').innerHTML = 'sent <b>' + sent + '</b> &nbsp;·&nbsp; took <b>' + took + '</b>';
+    const best = game.stats ? (game.stats.maxCombo | 0) : 0;
+    $('stats').innerHTML =
+      'sent <b>' + sent + '</b> &nbsp;·&nbsp; took <b>' + took + '</b>' +
+      ' &nbsp;·&nbsp; cleared <b>' + (game.lines | 0) + '</b>' +
+      (best > 1 ? ' &nbsp;·&nbsp; best combo <b>' + best + '</b>' : '');
+
+    // A single match says little; the series is what people play for.
+    if (!resultCounted) {
+      resultCounted = true;
+      if (won) series.me++; else series.them++;
+    }
+    const s = $('series');
+    if (series.me + series.them > 1) {
+      s.innerHTML = 'SERIES &nbsp;<b>' + series.me + ' – ' + series.them + '</b>';
+      s.classList.remove('hidden');
+    } else {
+      s.classList.add('hidden');
+    }
+
+    buildReactions(won);
 
     $('result').classList.remove('win', 'lose');
     $('result').classList.add(won ? 'win' : 'lose');
@@ -532,6 +669,13 @@
   VSNet.on('topout', () => {
     if (match) match.opponentLost();
     showResult(true, 'They topped out.');
+  });
+
+  // Only ever rendered as text in a span, and only while the result panel
+  // is up — nothing downstream reads it.
+  VSNet.on('react', (d) => {
+    const e = d && typeof d.e === 'string' ? d.e.slice(0, 4) : '';
+    if (e) showReaction(e, false);
   });
 
   VSNet.on('rematch', (d) => {
