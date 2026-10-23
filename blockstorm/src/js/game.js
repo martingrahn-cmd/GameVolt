@@ -63,6 +63,14 @@ export class Game {
     this.lastAction = null; // 'move', 'rotate', 'drop'
     this.lastKick = false;  // Var senaste rotation en wall kick?
 
+    // Versus-krokar. Båda är null i enspelarläget och gör då ingenting.
+    //   bagSeed  delas av båda spelarna i ett rum så pjäserna blir lika.
+    //   onLock   anropas när en pjäs låsts och eventuella rader rensats,
+    //            men INNAN nästa pjäs spawnar — rätt läge att lägga in
+    //            skräprader. Se docs/blockstorm-versus.md.
+    this.bagSeed = null;
+    this.onLock = null;
+
     this.running = false;
     this.gameOver = false;
     this.gameWon = false;
@@ -182,7 +190,7 @@ export class Game {
   restart() {
     // Reset allt
     this.grid.reset();
-    resetPieceBag();  // Reset 7-bag
+    resetPieceBag(this.bagSeed);  // Reset 7-bag (seedad i versus, annars slumpad)
     this.score = 0;
     this.lines = 0;
     this.level = this.startLevel;  // Återställ till vald startlevel
@@ -623,6 +631,13 @@ export class Game {
     // Notify for live achievement checks
     if (window.onPieceLocked) {
       window.onPieceLocked(this.stats, this.score, this.level, this.lines, this.gameMode);
+    }
+
+    // Versus: null i enspelarläget. Anropas före spawnNewPiece(), så en
+    // lyssnare kan lägga in skräprader utan att flytta brädet under en
+    // pjäs som redan är i spel.
+    if (this.onLock) {
+      this.onLock({ lines: res.count, tSpin: tSpin, combo: this.combo });
     }
   }
 
