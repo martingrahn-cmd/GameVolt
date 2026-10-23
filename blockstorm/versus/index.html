@@ -39,15 +39,29 @@
   #status { min-height: 1.2em; color: var(--dim); font-size: 0.85rem; margin-top: 14px; }
   #status.error { color: #e85b6c; }
 
-  /* Opponent board, laid over the full-screen game canvas rather than
-     sharing its layout — the renderer owns that canvas entirely. */
-  #hud { position: fixed; top: 14px; right: 14px; z-index: 10; text-align: center; display: none; }
+  /* Opponent board. The renderer owns the whole canvas and centres the
+     playfield inside it, so this is positioned from that layout (see
+     placeHud) rather than pinned to a window corner. */
+  #hud { position: fixed; left: 0; top: 0; z-index: 10; text-align: center; display: none; }
   #hud.on { display: block; }
-  #oppCanvas { background: rgba(0,0,0,0.35); border: 1px solid var(--line); border-radius: 8px; display: block; }
+  #oppCanvas { background: rgba(0,0,0,0.35); border: 1px solid var(--line); border-radius: 8px;
+    display: block; margin: 0 auto; }
   #oppLabel { font-size: 0.7rem; letter-spacing: 2px; color: var(--dim); margin-bottom: 5px; }
   #pending { margin-top: 8px; font-size: 0.78rem; color: var(--dim); }
   #pending b { color: #e85b6c; font-size: 1.1rem; }
   #sent { font-size: 0.72rem; color: var(--dim); margin-top: 2px; }
+
+  /* No gutter wide enough: a flat strip over the top of the board, where
+     the stack rarely reaches. */
+  #hud.on.strip { display: flex; flex-direction: column; align-items: center; gap: 4px;
+    background: rgba(8,10,20,0.6); border-radius: 9px; padding: 5px; }
+  /* Narrow enough to stay over the board's left edge: the next piece
+     spawns in the middle columns and must not be hidden. */
+  #hud.strip #oppLabel, #hud.strip #sent, #hud.strip #pending .w { display: none; }
+  #hud.strip #oppCanvas { border-radius: 4px; }
+  #hud.strip #pending { margin: 0; white-space: nowrap; font-size: 0.68rem; }
+  #hud.strip #pending::before { content: '▼ '; color: var(--dim); }
+  #hud.strip #pending b { font-size: 0.95rem; }
 </style>
 </head>
 <body>
@@ -57,7 +71,7 @@
 <div id="hud">
   <div id="oppLabel">OPPONENT</div>
   <canvas id="oppCanvas" width="120" height="240"></canvas>
-  <div id="pending">incoming <b id="pendingN">0</b></div>
+  <div id="pending"><span class="w">incoming</span> <b id="pendingN">0</b></div>
   <div id="sent">sent <span id="sentN">0</span></div>
 </div>
 
@@ -146,6 +160,75 @@
     }
   }
 
+  // ---- placing the opponent board ------------------------------------
+  // The player's own board is wherever the renderer put it: centred, with
+  // the sidebar beside it in landscape and underneath in portrait. So the
+  // mini-board is measured off that rectangle — it sits in the wider of
+  // the two gutters, at a cell size proportional to the real one, and
+  // keeps its relation to the stack at any window size. When neither
+  // gutter can hold it (a phone in portrait, where the board fills the
+  // width) it degrades to a strip across the top of the board instead.
+  const ROWS = 20;
+  const GAP = 12;
+  const MIN_CELL = 3;        // below this the stack is unreadable anyway
+  const MIN_TEXT = 74;       // "incoming 0" has to fit without bleeding out
+
+  function hudPlacement(L) {
+    // The gutter is what is left beside the whole frame — board *and*
+    // sidebar. In landscape the sidebar sits between them, so measuring
+    // from the board alone would put this on top of the score.
+    const frameLeft = Math.min(L.boardX, L.sidebarX);
+    const frameRight = Math.max(L.boardX + L.boardWidth, L.sidebarX + L.sidebarWidth);
+    const leftGutter = frameLeft;
+    const rightGutter = L.width - frameRight;
+    const onLeft = leftGutter >= rightGutter;
+    const gutter = onLeft ? leftGutter : rightGutter;
+
+    // The block claims the whole gutter, not just the width of the
+    // mini-board: the counters underneath are text, and text that doesn't
+    // fit its box runs out over the playfield.
+    const avail = gutter - GAP * 2;
+    const chrome = 60;        // label above, two counters below
+    const cell = Math.min(L.cellSize * 0.45, avail / COLS, (L.boardHeight - chrome) / ROWS);
+
+    if (cell >= MIN_CELL && avail >= MIN_TEXT) {
+      const w = Math.round(cell * COLS);
+      const h = Math.round(cell * ROWS);
+      return {
+        mode: 'gutter', w: w, h: h, blockW: Math.round(avail),
+        left: Math.round(onLeft ? GAP : frameRight + GAP),
+        top: Math.round(L.boardY + 20)
+      };
+    }
+
+    const stripCell = Math.max(2, Math.min((L.boardWidth * 0.42) / COLS, (L.boardHeight * 0.16) / ROWS));
+    const w = Math.round(stripCell * COLS);
+    const h = Math.round(stripCell * ROWS);
+    return { mode: 'strip', w: w, h: h, left: Math.round(L.boardX + 6), top: Math.round(L.boardY + 6) };
+  }
+
+  function placeHud() {
+    const L = game.renderer && game.renderer.layout;
+    if (!L) return;
+    const p = hudPlacement(L);
+    const hud = $('hud');
+    const cv = $('oppCanvas');
+    hud.classList.toggle('strip', p.mode === 'strip');
+    hud.style.left = p.left + 'px';
+    hud.style.top = p.top + 'px';
+    hud.style.width = p.blockW ? p.blockW + 'px' : '';
+    if (cv.width !== p.w || cv.height !== p.h) {
+      cv.width = p.w;
+      cv.height = p.h;
+      drawOpponent();                 // resizing a canvas clears it
+    }
+  }
+
+  // Runs after the engine's own resize handler, so the layout it reads is
+  // the new one.
+  window.addEventListener('resize', placeHud);
+  window.addEventListener('orientationchange', () => setTimeout(placeHud, 60));
+
   function refreshHud() {
     $('pendingN').textContent = match ? match.pendingLines : 0;
     $('sentN').textContent = match ? match.sentLines : 0;
@@ -179,6 +262,7 @@
     $('lobby').classList.add('hidden');
     $('result').classList.add('hidden');
     $('hud').classList.add('on');
+    placeHud();
     oppRows = [];
     drawOpponent();
     refreshHud();
@@ -304,6 +388,8 @@
     get match() { return match; },
     serializeBoard,
     setOpponentBoard: (s) => { oppRows = s.split('/'); drawOpponent(); },
+    placeHud,
+    hudPlacement: () => hudPlacement(game.renderer.layout),
   };
 </script>
 </body>
