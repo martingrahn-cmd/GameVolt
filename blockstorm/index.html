@@ -1471,15 +1471,20 @@
       var trophyCountEl = document.getElementById('trophyCount');
 
       function renderTrophyGrid() {
-        if (!window.ACHIEVEMENTS || !window.bsData) return;
+        // The list is published as BS_ACHIEVEMENTS; this read the name it
+        // does NOT have, so the guard returned every time and the panel
+        // showed nothing at all — not even the locked trophies, which are
+        // most of what there is to look at before you have earned any.
+        var ACH = window.BS_ACHIEVEMENTS || window.ACHIEVEMENTS;
+        if (!ACH || !ACH.length || !window.bsData) return;
         trophyGrid.innerHTML = '';
         var n = 0;
         var tiers = ['bronze', 'silver', 'gold', 'platinum'];
         for (var t = 0; t < tiers.length; t++) {
           var tier = tiers[t];
           var tierAchs = [];
-          for (var i = 0; i < ACHIEVEMENTS.length; i++) {
-            if (ACHIEVEMENTS[i].tier === tier) tierAchs.push(ACHIEVEMENTS[i]);
+          for (var i = 0; i < ACH.length; i++) {
+            if (ACH[i].tier === tier) tierAchs.push(ACH[i]);
           }
           if (tierAchs.length === 0) continue;
           var header = document.createElement('div');
@@ -1504,7 +1509,7 @@
           }
           trophyGrid.appendChild(grid);
         }
-        trophyCountEl.textContent = n + ' / ' + ACHIEVEMENTS.length;
+        trophyCountEl.textContent = n + ' / ' + ACH.length;
       }
       window.renderTrophyGrid = renderTrophyGrid;
 

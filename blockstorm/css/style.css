@@ -926,7 +926,11 @@ kbd {
 .trophy-card.unlocked.silver { border-color: #c0c0c066; background: #c0c0c010; }
 .trophy-card.unlocked.gold { border-color: #ffd70066; background: #ffd70010; }
 .trophy-card.unlocked.platinum { border-color: #b4ffff66; background: #b4ffff0a; }
-.trophy-card.locked { opacity: .4; filter: grayscale(.7); }
+/* Locked trophies are the point of the screen before you have earned any:
+   the padlock says it is locked, so the name and the task still have to be
+   readable rather than faded most of the way out. */
+.trophy-card.locked { opacity: .78; filter: grayscale(.45); border-style: dashed; }
+.trophy-card.locked .t-name { color: #9fc4c0; }
 .trophy-card .t-icon { font-size: 24px; margin-bottom: 4px; }
 .trophy-card .t-name { font-size: 10px; font-weight: 700; color: #c8e6e3; letter-spacing: 0.5px; margin-bottom: 2px; }
 .trophy-card .t-desc { font-size: 9px; color: #7ab5b0; line-height: 1.3; }
