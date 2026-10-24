@@ -44,6 +44,10 @@
   #codeInput { font: inherit; font-weight: 700; font-size: 1.1rem; letter-spacing: 6px; width: 132px;
     text-align: center; text-transform: uppercase; color: #fff; background: rgba(255,255,255,0.05);
     border: 1px solid var(--line); border-radius: 10px; padding: 11px 8px; outline: none; }
+  #nameInput { font: inherit; font-weight: 600; width: 230px; text-align: center; color: #fff;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px; outline: none; }
+  #nameInput:focus { border-color: var(--ink); }
   #codeBox { margin: 18px 0 8px; }
   #codeBox.hidden { display: none; }
   #code { font-size: 2.4rem; font-weight: 800; letter-spacing: 10px; padding-left: 10px; color: #f5d63d;
@@ -221,6 +225,10 @@
     <h1>BlockStorm Versus</h1>
     <div class="sub">Two players, one bag of pieces. Clear lines, bury the other one.</div>
 
+    <div class="row" style="margin-bottom:14px">
+      <input id="nameInput" maxlength="14" autocomplete="nickname" spellcheck="false" placeholder="Your name (optional)">
+    </div>
+
     <div class="row">
       <button class="btn" id="createBtn">Create room</button>
       <span style="color:var(--dim)">or</span>
@@ -285,6 +293,34 @@
     $('status').textContent = msg || '';
     $('status').classList.toggle('error', !!isError);
   };
+
+  // ---- names ---------------------------------------------------------
+  // Kept on this side as well as in vs-net.js: a name arriving from the
+  // other player is their text, and it is only ever written with
+  // textContent, never into markup.
+  const NAME_KEY = 'gv_versus_name';
+  let oppName = '';
+
+  const cleanName = (n) =>
+    String(n == null ? '' : n).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 14);
+
+  const myName = () => cleanName($('nameInput').value);
+  const themLabel = () => (oppName ? oppName.toUpperCase() : 'OPPONENT');
+  const they = () => oppName || 'They';        // for sentences, not labels
+
+  function setOpponentName(n) {
+    oppName = cleanName(n);
+    $('oppLabel').textContent = themLabel();
+  }
+
+  try {
+    const saved = localStorage.getItem(NAME_KEY);
+    if (saved) $('nameInput').value = cleanName(saved);
+  } catch (e) {}
+
+  function rememberName() {
+    try { localStorage.setItem(NAME_KEY, myName()); } catch (e) {}
+  }
 
   // ---- opponent board ------------------------------------------------
   // The wire format is one character per cell: '.' empty, 'g' garbage,
@@ -582,7 +618,7 @@
     el.className = 'reaction' + (mine ? ' mine' : ' theirs');
     el.textContent = emoji;
     const tag = document.createElement('small');
-    tag.textContent = mine ? 'YOU' : 'THEM';
+    tag.textContent = mine ? (myName() ? myName().toUpperCase() : 'YOU') : themLabel();
     el.appendChild(tag);
     // One each: a second from the same side replaces the first.
     const existing = box.querySelector(mine ? '.mine' : '.theirs');
@@ -593,7 +629,7 @@
     // rematch a moment before you reacted, or the reaction is simply
     // late — the emoji would land somewhere nobody can see. Say it over
     // the board instead, so a sent reaction is never silently swallowed.
-    if (!mine && $('result').classList.contains('hidden')) pushLog(emoji, 'THEM', 'inbound');
+    if (!mine && $('result').classList.contains('hidden')) pushLog(emoji, themLabel(), 'inbound');
   }
 
   function buildReactions(outcome) {
@@ -651,6 +687,26 @@
     step();
   }
 
+  // ---- house rules for versus ----------------------------------------
+  // Pause is a single-player idea. Here it stops your own board while the
+  // other one keeps falling, and your queued garbage cannot land either,
+  // since it only rises when you lock a piece — so pausing is a way to
+  // sit out an attack. The key simply does nothing now.
+  game.togglePause = function () {};
+
+  // Garbage rises on your next lock, which is what makes answering with a
+  // clear possible at all. But at level 0 a piece takes the better part
+  // of ten seconds to fall on its own, so an attack could sit in the
+  // queue that long before the board even moved. Versus therefore never
+  // runs slower than level 3's gravity; the engine's own curve still
+  // applies above that as lines are cleared.
+  const VERSUS_MAX_GRAVITY = 0.55;   // seconds per row, = level 3
+  const engineUpdateLevel = game.updateLevel.bind(game);
+  game.updateLevel = function () {
+    engineUpdateLevel();
+    this.gravityInterval = Math.min(this.gravityInterval, VERSUS_MAX_GRAVITY);
+  };
+
   function resumeEngine() {
     game.paused = false;
     game.lastTime = performance.now();  // or gravity jumps by the whole pause
@@ -694,6 +750,7 @@
     game.setGameMode('marathon');
     game.setStartLevel(0);
     game.restart();
+    game.gravityInterval = Math.min(game.gravityInterval, VERSUS_MAX_GRAVITY);
 
     started = true;
     if (window.GameVoltTracker) GameVoltTracker.play();   // a match actually began
@@ -790,7 +847,8 @@
   // ---- transport wiring ----------------------------------------------
   VSNet.on('opponentJoined', (d) => {
     clearJoinTimeout();
-    setStatus('Opponent joined — starting…');
+    setOpponentName(d && d.name);
+    setStatus((oppName ? oppName + ' joined' : 'Opponent joined') + ' — starting…');
     beginMatch(d && d.seed);
   });
 
@@ -810,14 +868,14 @@
   });
 
   VSNet.on('topout', () => {
-    if (!match) { showResult('win', 'They topped out.'); return; }
+    if (!match) { showResult('win', they() + ' topped out.'); return; }
     match.opponentLost();
     // Their news can arrive after we have already lost — the two topouts
     // crossed. Then nobody won, and the panel must not be rewritten into
     // a win on top of the loss we just showed.
     if (match.drew) showResult('draw', 'You both topped out.');
     else if (match.won === false) return;        // we lost; this changes nothing
-    else showResult('win', 'They topped out.');
+    else showResult('win', they() + ' topped out.');
   });
 
   // Only ever rendered as text in a span, and only while the result panel
@@ -835,7 +893,7 @@
     clearJoinTimeout();
     if (!started) { setStatus('The other player left.', true); return; }
     if (match && match.finished) return;         // the match already has a result
-    showResult('win', 'They left the match.');
+    showResult('win', they() + ' left the match.');
   });
 
   // ---- lobby ----------------------------------------------------------
@@ -844,7 +902,8 @@
   $('createBtn').addEventListener('click', function () {
     this.disabled = true; $('joinBtn').disabled = true;
     setStatus('Creating room…');
-    VSNet.host().then((code) => {
+    rememberName();
+    VSNet.host(myName()).then((code) => {
       $('code').textContent = code;
       inviteLink = location.origin + location.pathname + '?join=' + code;
       if (navigator.share) $('shareBtn').style.display = '';
@@ -883,8 +942,9 @@
     $('createBtn').disabled = true; $('joinBtn').disabled = true;
     setStatus('Connecting…');
     clearJoinTimeout();
+    rememberName();
 
-    VSNet.join(code).then(() => {
+    VSNet.join(code, myName()).then(() => {
       setStatus('Joined — waiting for the host…');
       clearJoinTimeout();
       joinTimeout = setTimeout(() => {

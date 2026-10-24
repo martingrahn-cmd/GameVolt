@@ -28,7 +28,13 @@
   var client = null;
   var channel = null;
   var handlers = {};
-  var state = { role: null, code: null, connected: false, seed: null };
+  var state = { role: null, code: null, connected: false, seed: null, name: '', oppName: '' };
+
+  // Names are shown to the other player, so they are trimmed here as well
+  // as on the page: nothing longer than a label, no control characters.
+  function cleanName(n) {
+    return String(n == null ? '' : n).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 14);
+  }
   var joinTimer = null;
 
   function stopJoinRetry() {
@@ -98,10 +104,12 @@
       // Always re-acknowledge: an earlier 'accept' may have been lost while a
       // tab was suspended. Only announce the opponent once, though — 1v1.
       if (state.role === 'host') {
-        send('accept', { seed: state.seed });
+        // Re-send the name too: the guest may have missed the first accept.
+        state.oppName = cleanName(p.d && p.d.name) || state.oppName;
+        send('accept', { seed: state.seed, name: state.name });
         if (!state.connected) {
           state.connected = true;
-          emit('opponentJoined', { seed: state.seed });
+          emit('opponentJoined', { seed: state.seed, name: state.oppName });
         }
       }
       return;
@@ -113,7 +121,8 @@
         if (!state.connected) {
           state.connected = true;
           state.seed = (p.d && p.d.seed) || null;
-          emit('opponentJoined', { seed: state.seed });
+          state.oppName = cleanName(p.d && p.d.name);
+          emit('opponentJoined', { seed: state.seed, name: state.oppName });
         }
       }
       return;
@@ -132,12 +141,14 @@
     get code() { return state.code; },
     get role() { return state.role; },
     get seed() { return state.seed; },
+    get oppName() { return state.oppName; },
     on: on,
 
     // Create a room. Resolves with the 4-char code to share. The host owns
     // the seed, so both players draw the same pieces.
-    host: function () {
+    host: function (name) {
       state.role = 'host'; state.code = randCode(); state.seed = randSeed(); state.connected = false;
+      state.name = cleanName(name); state.oppName = '';
       return ensureLib().then(function () { return subscribe(state.code); }).then(function (ch) {
         channel = ch;
         return state.code;
@@ -146,17 +157,18 @@
 
     // Join a room by code. Resolves once subscribed; the connection is
     // confirmed by the 'opponentJoined' callback when the host accepts.
-    join: function (code) {
+    join: function (code, name) {
       state.role = 'guest';
       state.code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
       state.connected = false; state.seed = null;
+      state.name = cleanName(name); state.oppName = '';
       return ensureLib().then(function () { return subscribe(state.code); }).then(function (ch) {
         channel = ch;
-        send('join', {});
+        send('join', { name: state.name });
         stopJoinRetry();
         joinTimer = setInterval(function () {
           if (state.connected || !channel) { stopJoinRetry(); return; }
-          send('join', {});
+          send('join', { name: state.name });
         }, 1500);
         return state.code;
       });
@@ -182,7 +194,7 @@
         if (channel) { send('bye', {}); getClient().removeChannel(channel); }
       } catch (e) {}
       channel = null;
-      state.role = null; state.code = null; state.connected = false; state.seed = null;
+      state.role = null; state.code = null; state.connected = false; state.seed = null; state.oppName = '';
     }
   };
 
