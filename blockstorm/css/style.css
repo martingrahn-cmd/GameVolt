@@ -97,6 +97,105 @@ body {
   margin: auto;
 }
 
+/* ============================================================
+   Cursor menu
+   Every row of the start screen is one stop on a single cursor, so a
+   controller reaches all of them rather than only the three modes. The
+   marker is drawn outside the row, in the gutter the wider menu leaves,
+   so nothing shifts as it moves.
+   ============================================================ */
+.start-menu {
+  width: min(520px, 94vw);
+  padding-left: 30px;      /* the cursor lives here */
+}
+
+[data-mi] {
+  position: relative;
+  outline: none;
+}
+
+[data-mi].cursor::before {
+  content: '▶';
+  position: absolute;
+  left: -26px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  color: #45d9c8;
+  text-shadow: 0 0 10px rgba(69, 217, 200, 0.8);
+  animation: cursorPulse 0.9s ease-in-out infinite;
+}
+
+@keyframes cursorPulse {
+  0%, 100% { opacity: 1; transform: translateY(-50%) translateX(0); }
+  50%      { opacity: 0.55; transform: translateY(-50%) translateX(-3px); }
+}
+
+/* The menu is already full of teal borders, so the cursor row has to do
+   more than glow: it steps out of the column and lifts off the
+   background, the way a selected line does on a console menu. */
+.mode-btn.cursor,
+.versus-link.cursor,
+.start-btn.cursor,
+.leaderboard-btn.cursor {
+  border-color: #7fffe9;
+  background: rgba(69, 217, 200, 0.22);
+  transform: translateX(6px);
+  box-shadow: 0 0 0 2px rgba(127, 255, 233, 0.45), 0 0 26px rgba(69, 217, 200, 0.35);
+}
+
+.leaderboard-btn.cursor,
+.start-btn.cursor { color: #eafffb; }
+
+[data-mi] { transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease; }
+
+.level-select.cursor {
+  transform: translateX(6px);
+}
+
+.level-select.cursor .level-picker {
+  border-radius: 12px;
+  padding: 4px 10px;
+  background: rgba(69, 217, 200, 0.18);
+  box-shadow: 0 0 0 2px rgba(127, 255, 233, 0.45), 0 0 26px rgba(69, 217, 200, 0.3);
+}
+
+/* The level row is the only one that answers left/right, so it says so
+   while the cursor is on it. */
+.level-select.cursor .level-label::after {
+  content: ' ←  →';
+  color: #45d9c8;
+  letter-spacing: 2px;
+}
+
+.hint-keys { color: #c8e6e3; font-weight: 700; }
+.hint-pad { display: none; }
+.keyboard-hints.controller-connected .hint-pad { display: inline; }
+
+/* A faint scanline wash, for the television the menu is pretending to be
+   shown on. Purely decorative, and never over the game itself. */
+#touchBlocker::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.16) 0px,
+    rgba(0, 0, 0, 0.16) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  opacity: 0.5;
+  z-index: 2;
+}
+
+#touchBlocker.hidden::after { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-mi].cursor::before { animation: none; }
+}
+
 .title {
   text-align: center;
   margin-bottom: 10px;
