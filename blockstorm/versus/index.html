@@ -2,11 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- GA4, same property as the rest of the site. Without this the tracker
+     below has nowhere to send to and would drop every event silently. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PY073ZX38N"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PY073ZX38N', window.parent !== window ? { send_page_view: false } : {});
+</script>
 <title>BlockStorm Versus</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#0f1221">
-<!-- Not linked from anywhere and not finished: keep it out of search until it is. -->
-<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="BlockStorm Versus — play a friend 1v1 in your browser. Same pieces, same order; clear lines to bury the other player. Share a room code or a link, no download, no account.">
+<link rel="canonical" href="https://gamevolt.io/blockstorm/versus/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BlockStorm Versus — 1v1 block battles">
+<meta property="og:description" content="Play a friend 1v1 in your browser. Same pieces, same order; clear lines to bury the other player. Share a link and go.">
+<meta property="og:url" content="https://gamevolt.io/blockstorm/versus/">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <style>
   :root { --ink: #c8e6e3; --dim: #7ab5b0; --line: #2d5a5a; --bg: #0f1221; }
@@ -49,6 +62,11 @@
   #oppLabel { font-size: 0.7rem; letter-spacing: 2px; color: var(--dim); margin-bottom: 5px; }
   #pending { margin-top: 8px; font-size: 0.78rem; color: var(--dim); }
   #pending b { color: #e85b6c; font-size: 1.1rem; }
+
+  #soundBtn { position: fixed; left: 12px; bottom: 12px; z-index: 12; font-size: 1rem;
+    line-height: 1; cursor: pointer; padding: 8px 10px; border-radius: 10px;
+    border: 1px solid var(--line); background: rgba(8,10,20,0.6); color: var(--ink); }
+  #soundBtn:hover { border-color: var(--ink); }
   #sent { font-size: 0.72rem; color: var(--dim); margin-top: 2px; }
 
   /* No gutter wide enough: a flat strip over the top of the board, where
@@ -189,6 +207,7 @@
 <div id="log"></div>
 <div id="flash"></div>
 <div id="countdown"><span id="countNum"></span></div>
+<button id="soundBtn" type="button" title="Sound on/off" aria-label="Sound on or off">🔊</button>
 
 <div id="hud">
   <div id="oppLabel">OPPONENT</div>
@@ -243,6 +262,11 @@
 <!-- The query is a cache buster: the transport gained a message type, and
      a browser holding the previous copy would run a page that cannot send
      it. Bump it whenever vs-net.js changes. -->
+<!-- Same gameplay tracking as every other game: start() arms it, the match
+     beginning is what sends game_start. -->
+<script src="/js/gv-ga4.js"></script>
+<script>window.GameVoltTracker && window.GameVoltTracker.start('BlockStorm Versus');</script>
+
 <script src="../vs-net.js?v=2"></script>
 <!-- Boots the same Game as single-player and exposes window.PULSE_TETRIS. -->
 <script type="module" src="../src/js/game.js"></script>
@@ -439,6 +463,7 @@
     replay(document.body, 'jolt', 320);
     flash('rgba(232,91,108,0.45)');
     pushLog('▼ ' + lines, 'GARBAGE', 'inbound');
+    sfx('hard');                         // garbage standing up had no sound at all
   }
 
   // The danger bar is driven by a frame loop rather than by events,
@@ -458,6 +483,84 @@
     }
     requestAnimationFrame(fxTick);
   }
+
+  // ---- sound ---------------------------------------------------------
+  // The engine builds an AudioSystem but loads nothing into it: the
+  // single-player page does that itself, inside its first tap, from its
+  // own folder. This page never did either — which is why versus has been
+  // silent. Its paths need fixing too: "assets/audio/…" resolves under
+  // /blockstorm/versus/ here and would 404.
+  const AUDIO_BASE = '/blockstorm/';
+  let audioStarted = false;
+
+  const soundOn = () => {
+    try { return localStorage.getItem('tetris_sound') !== 'false'; } catch (e) { return true; }
+  };
+
+  function absoluteAudioPaths(audio) {
+    for (const name in audio.urls) {
+      if (audio.urls[name].charAt(0) !== '/') audio.urls[name] = AUDIO_BASE + audio.urls[name];
+    }
+    if (audio.musicUrl && audio.musicUrl.charAt(0) !== '/') audio.musicUrl = AUDIO_BASE + audio.musicUrl;
+  }
+
+  // Must run inside a real gesture: iOS will not resume a context otherwise.
+  // Nothing here is awaited — a stalled decode must never hold up the game.
+  function startAudio() {
+    if (audioStarted) return;
+    const audio = game && game.audio;
+    if (!audio || !audio.ctx) return;
+    audioStarted = true;
+    absoluteAudioPaths(audio);
+
+    try {
+      audio.ctx.resume();
+      const osc = audio.ctx.createOscillator();
+      const gain = audio.ctx.createGain();
+      gain.gain.value = 0.001;
+      osc.connect(gain).connect(audio.ctx.destination);
+      osc.start();
+      osc.stop(audio.ctx.currentTime + 0.04);
+    } catch (e) {}
+
+    (async () => {
+      for (const name in audio.urls) {
+        try {
+          const res = await fetch(audio.urls[name]);
+          audio.buffers[name] = await audio.ctx.decodeAudioData(await res.arrayBuffer());
+        } catch (e) {}
+      }
+      audio.unlocked = true;
+      try {
+        await audio.initMusic();
+        if (soundOn() && started) audio.playMusic();
+      } catch (e) {}
+    })();
+  }
+
+  const sfx = (name) => { try { if (game.audio) game.audio.play(name); } catch (e) {} };
+
+  function setSound(on) {
+    try {
+      localStorage.setItem('tetris_sound', on);
+      localStorage.setItem('tetris_music', on);
+    } catch (e) {}
+    const audio = game && game.audio;
+    if (audio) {
+      audio.musicEnabled = on;
+      if (on && started) audio.playMusic(); else audio.pauseMusic();
+    }
+    $('soundBtn').textContent = on ? '🔊' : '🔇';
+  }
+
+  $('soundBtn').textContent = soundOn() ? '🔊' : '🔇';
+  $('soundBtn').addEventListener('click', () => setSound(!soundOn()));
+
+  // Any first gesture arms it — including an invite link, where the player
+  // never touches the lobby at all.
+  ['pointerdown', 'keydown', 'touchstart'].forEach((ev) => {
+    window.addEventListener(ev, startAudio, { once: true, passive: true, capture: true });
+  });
 
   // ---- reactions -----------------------------------------------------
   // The only thing two strangers in a room code can say to each other.
@@ -593,6 +696,8 @@
     game.restart();
 
     started = true;
+    if (window.GameVoltTracker) GameVoltTracker.play();   // a match actually began
+    if (game.audio && soundOn()) { try { game.audio.playMusic(); } catch (e) {} }
     $('lobby').classList.add('hidden');
     $('result').classList.add('hidden');
     $('hud').classList.add('on');
@@ -617,6 +722,10 @@
     game.running = false;
     game.gameOver = true;
     $('dangerBar').classList.remove('on', 'armed');
+    // The engine stops its own music when YOU top out; it knows nothing
+    // about the other three ways a versus match can end.
+    if (game.audio) { try { game.audio.stopMusic(); } catch (e) {} }
+    if (window.GameVoltTracker) GameVoltTracker.end({ outcome: outcome });
 
     $('resultTitle').textContent = won ? 'You win' : outcome === 'draw' ? 'Draw' : 'You lose';
     $('resultSub').textContent = why || '';
