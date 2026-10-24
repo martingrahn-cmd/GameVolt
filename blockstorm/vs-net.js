@@ -25,9 +25,21 @@
   var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53a2pheXNldWh2dnBrZGdwaXZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzNzQxMzYsImV4cCI6MjA4Nzk1MDEzNn0.lGCRdYlgxWJlzM6_XpML3f8AKUJG3tLmzNRLTPR0TnU';
   var CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
 
+  // A tab that closes says 'bye'. A tab that crashes, sleeps, or loses the
+  // network says nothing at all, and the other player sits in a match that
+  // can never end. So each side beats quietly and watches the silence:
+  // first a warning, because a few seconds of nothing is usually just a
+  // bad connection, then the match is called.
+  var HEARTBEAT_MS = 3000;
+  var QUIET_MS = 5000;
+  var LOST_MS = 12000;
+
   var client = null;
   var channel = null;
   var handlers = {};
+  var beatTimer = null;
+  var lastSeen = 0;
+  var quiet = false;
   var state = { role: null, code: null, connected: false, seed: null, name: '', oppName: '' };
 
   // Names are shown to the other player, so they are trimmed here as well
@@ -39,6 +51,32 @@
 
   function stopJoinRetry() {
     if (joinTimer) { clearInterval(joinTimer); joinTimer = null; }
+  }
+
+  function stopHeartbeat() {
+    if (beatTimer) { clearInterval(beatTimer); beatTimer = null; }
+    quiet = false;
+  }
+
+  function startHeartbeat() {
+    stopHeartbeat();
+    lastSeen = Date.now();
+    beatTimer = setInterval(function () {
+      if (!channel || !state.connected) return;
+      send('ping', {});
+      var silent = Date.now() - lastSeen;
+      if (silent >= LOST_MS) {
+        stopHeartbeat();
+        state.connected = false;
+        emit('lost', { silentMs: silent });
+      } else if (silent >= QUIET_MS && !quiet) {
+        quiet = true;
+        emit('quiet', { silentMs: silent });
+      } else if (silent < QUIET_MS && quiet) {
+        quiet = false;
+        emit('back', {});
+      }
+    }, HEARTBEAT_MS);
   }
 
   function ensureLib() {
@@ -100,6 +138,11 @@
   function onMsg(p) {
     if (!p || !p.t) return;
 
+    // Anything arriving is proof they are still there, a ping included.
+    lastSeen = Date.now();
+    if (quiet) { quiet = false; emit('back', {}); }
+    if (p.t === 'ping') return;
+
     if (p.t === 'join') {
       // Always re-acknowledge: an earlier 'accept' may have been lost while a
       // tab was suspended. Only announce the opponent once, though — 1v1.
@@ -109,6 +152,7 @@
         send('accept', { seed: state.seed, name: state.name });
         if (!state.connected) {
           state.connected = true;
+          startHeartbeat();
           emit('opponentJoined', { seed: state.seed, name: state.oppName });
         }
       }
@@ -122,6 +166,7 @@
           state.connected = true;
           state.seed = (p.d && p.d.seed) || null;
           state.oppName = cleanName(p.d && p.d.name);
+          startHeartbeat();
           emit('opponentJoined', { seed: state.seed, name: state.oppName });
         }
       }
@@ -133,7 +178,7 @@
     if (p.t === 'board')   { emit('board', p.d || {}); return; }
     if (p.t === 'topout')  { emit('topout', p.d || {}); return; }
     if (p.t === 'rematch') { emit('rematch', p.d || {}); return; }
-    if (p.t === 'bye')     { state.connected = false; emit('left', {}); return; }
+    if (p.t === 'bye')     { stopHeartbeat(); state.connected = false; emit('left', {}); return; }
   }
 
   var VSNet = {
@@ -190,6 +235,7 @@
 
     leave: function () {
       stopJoinRetry();
+      stopHeartbeat();
       try {
         if (channel) { send('bye', {}); getClient().removeChannel(channel); }
       } catch (e) {}

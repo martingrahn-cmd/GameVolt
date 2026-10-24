@@ -67,6 +67,14 @@
   #pending { margin-top: 8px; font-size: 0.78rem; color: var(--dim); }
   #pending b { color: #e85b6c; font-size: 1.1rem; }
 
+  /* Shown while the other side has gone quiet but is not yet called. */
+  #connWarn { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 14;
+    display: none; padding: 7px 14px; border-radius: 10px; font-size: 0.78rem; letter-spacing: 1px;
+    background: rgba(232,91,108,0.16); border: 1px solid #e85b6c; color: #ffc9d0; }
+  #connWarn.on { display: block; animation: warn-pulse 1.1s ease-in-out infinite alternate; }
+  @keyframes warn-pulse { from { opacity: 0.65; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { #connWarn.on { animation: none; } }
+
   #soundBtn { position: fixed; left: 12px; bottom: 12px; z-index: 12; font-size: 1rem;
     line-height: 1; cursor: pointer; padding: 8px 10px; border-radius: 10px;
     border: 1px solid var(--line); background: rgba(8,10,20,0.6); color: var(--ink); }
@@ -211,6 +219,7 @@
 <div id="log"></div>
 <div id="flash"></div>
 <div id="countdown"><span id="countNum"></span></div>
+<div id="connWarn" role="status"></div>
 <button id="soundBtn" type="button" title="Sound on/off" aria-label="Sound on or off">🔊</button>
 
 <div id="hud">
@@ -275,7 +284,7 @@
 <script src="/js/gv-ga4.js"></script>
 <script>window.GameVoltTracker && window.GameVoltTracker.start('BlockStorm Versus');</script>
 
-<script src="../vs-net.js?v=2"></script>
+<script src="../vs-net.js?v=3"></script>
 <!-- Boots the same Game as single-player and exposes window.PULSE_TETRIS. -->
 <script type="module" src="../src/js/game.js"></script>
 
@@ -764,6 +773,7 @@
     $('sparks').innerHTML = '';
     $('reactions').innerHTML = '';
     $('reactRow').innerHTML = '';
+    setConnWarning(false);
     countedAs = null;
     placeHud();
     if (!fxRunning) { fxRunning = true; requestAnimationFrame(fxTick); }
@@ -889,7 +899,30 @@
     if (d && d.seed) beginMatch(d.seed);
   });
 
+  // ---- the other side going quiet -------------------------------------
+  // A closed tab says goodbye. A crashed one, a sleeping phone or a
+  // dropped connection says nothing, and the match used to hang there
+  // forever. A few seconds of silence is usually just a bad connection,
+  // so it is only a warning; twelve means they are gone.
+  function setConnWarning(on) {
+    const el = $('connWarn');
+    el.textContent = on ? (oppName ? oppName + ' is not responding…' : 'Opponent not responding…') : '';
+    el.classList.toggle('on', !!on);
+  }
+
+  VSNet.on('quiet', () => { if (started) setConnWarning(true); });
+  VSNet.on('back', () => setConnWarning(false));
+
+  VSNet.on('lost', () => {
+    setConnWarning(false);
+    clearJoinTimeout();
+    if (!started) { setStatus('Lost contact with the room — try again.', true); return; }
+    if (match && match.finished) return;             // it already has a result
+    showResult('win', they() + ' lost connection.');
+  });
+
   VSNet.on('left', () => {
+    setConnWarning(false);
     clearJoinTimeout();
     if (!started) { setStatus('The other player left.', true); return; }
     if (match && match.finished) return;         // the match already has a result
