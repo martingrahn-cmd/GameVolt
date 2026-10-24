@@ -239,7 +239,10 @@
   </div>
 </div>
 
-<script src="../vs-net.js"></script>
+<!-- The query is a cache buster: the transport gained a message type, and
+     a browser holding the previous copy would run a page that cannot send
+     it. Bump it whenever vs-net.js changes. -->
+<script src="../vs-net.js?v=2"></script>
 <!-- Boots the same Game as single-player and exposes window.PULSE_TETRIS. -->
 <script type="module" src="../src/js/game.js"></script>
 
@@ -478,6 +481,12 @@
     const existing = box.querySelector(mine ? '.mine' : '.theirs');
     if (existing) existing.remove();
     if (mine) box.appendChild(el); else box.insertBefore(el, box.firstChild);
+
+    // The box lives in the result panel. If that panel is down — they hit
+    // rematch a moment before you reacted, or the reaction is simply
+    // late — the emoji would land somewhere nobody can see. Say it over
+    // the board instead, so a sent reaction is never silently swallowed.
+    if (!mine && $('result').classList.contains('hidden')) pushLog(emoji, 'THEM', 'inbound');
   }
 
   function buildReactions(won) {
@@ -490,7 +499,14 @@
       b.setAttribute('aria-label', 'react ' + e);
       b.addEventListener('click', () => {
         showReaction(e, true);
-        try { VSNet.react({ e: e }); } catch (err) {}
+        // Never swallow this. A page left open from an older deploy has
+        // no VSNet.react at all, and the sender would otherwise see their
+        // own emoji appear and assume it went out.
+        let sent = false;
+        try {
+          if (VSNet && typeof VSNet.react === 'function') { VSNet.react({ e: e }); sent = true; }
+        } catch (err) { sent = false; }
+        $('resultStatus').textContent = sent ? '' : "Couldn't send that — reload the page and try again.";
         [...row.children].forEach((c) => { c.disabled = true; });
       });
       row.appendChild(b);
