@@ -171,6 +171,46 @@ test('a finished match stops sending and receiving', async () => {
   assert.equal(b.pendingLines, before, 'nor keep receiving');
 });
 
+test('dying at the same moment is a draw, not two winners', async () => {
+  const { v, g } = await load();
+  // The default pair delivers synchronously, which is precisely what a
+  // simultaneous death is not: both topouts are already in flight before
+  // either arrives. So hold the messages and release them afterwards.
+  const wire = [];
+  const made = {};
+  const mk = (other) => new v.VersusMatch({
+    grid: new g.Grid(),
+    send: (type, payload) => wire.push([other, type, payload]),
+  });
+  made.a = mk('b');
+  made.b = mk('a');
+
+  made.a.lose('topout');
+  made.b.lose('topout');
+  wire.splice(0).forEach(([to, type, payload]) => made[to].receive(type, payload));
+
+  assert.equal(made.a.won, false, 'neither of them won');
+  assert.equal(made.b.won, false);
+  assert.equal(made.a.drew, true, 'and both know it was a draw');
+  assert.equal(made.b.drew, true);
+});
+
+test('an ordinary win is not a draw', async () => {
+  const { a, b } = await makePair();
+  a.lose('topout');
+  assert.equal(b.won, true);
+  assert.equal(b.drew, false);
+  assert.equal(a.drew, false);
+});
+
+test('a late topout cannot overturn a win', async () => {
+  const { a, b } = await makePair();
+  a.lose('topout');                 // B is told they won
+  b.receive('topout', {});          // a stray second message
+  assert.equal(b.won, true, 'B still won');
+  assert.equal(b.drew, false, 'and it is not a draw');
+});
+
 test('a malformed attack is ignored rather than trusted', async () => {
   const { b } = await makePair();
   b.receive('attack', { lines: 0, hole: 3 });

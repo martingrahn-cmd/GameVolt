@@ -33,6 +33,7 @@ export class VersusMatch {
     this.receivedLines = 0;
     this.finished = false;
     this.won = null;         // true/false när matchen är över
+    this.drew = false;       // båda dog innan någons besked hann fram
   }
 
   // Summan som ligger och väntar, oavsett om den hunnit bli redo.
@@ -112,8 +113,17 @@ export class VersusMatch {
   }
 
   // Motståndaren meddelade att de dog.
+  //
+  // Kommer beskedet efter att vi själva redan dött kan det bara betyda
+  // att de dog ungefär samtidigt: en spelare som fått vårt topout har
+  // redan avslutat sin match och skickar inget mer. Det är oavgjort —
+  // utan det här trodde båda att de vann, eftersom varderas sista
+  // meddelande skrev över det egna beskedet.
   opponentLost() {
-    if (this.finished) return;
+    if (this.finished) {
+      if (this.won === false) this.drew = true;
+      return;
+    }
     this.finished = true;
     this.won = true;
   }
