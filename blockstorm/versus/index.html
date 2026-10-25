@@ -11,7 +11,7 @@
   gtag('js', new Date());
   gtag('config', 'G-PY073ZX38N', window.parent !== window ? { send_page_view: false } : {});
 </script>
-<title>BlockStorm Versus</title>
+<title>BlockStorm Versus — Free Online 1v1 Block Puzzle Battles | GameVolt.io</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#0f1221">
 <meta name="description" content="BlockStorm Versus — play a friend 1v1 in your browser. Same pieces, same order; clear lines to bury the other player. Share a room code or a link, no download, no account.">
@@ -20,6 +20,47 @@
 <meta property="og:title" content="BlockStorm Versus — 1v1 block battles">
 <meta property="og:description" content="Play a friend 1v1 in your browser. Same pieces, same order; clear lines to bury the other player. Share a link and go.">
 <meta property="og:url" content="https://gamevolt.io/blockstorm/versus/">
+<meta property="og:site_name" content="GameVolt">
+<meta property="og:image" content="https://gamevolt.io/assets/thumbnails/blockstorm.webp">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="BlockStorm Versus — 1v1 block battles">
+<meta name="twitter:description" content="Play a friend 1v1 in your browser. Same pieces, same order; clear lines to bury the other player. Share a link and go.">
+<meta name="twitter:image" content="https://gamevolt.io/assets/thumbnails/blockstorm.webp">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "BlockStorm Versus",
+  "description": "Free online 1v1 block puzzle battles in the browser. Two players share one bag of pieces, so both get the same sequence in the same order; clearing lines sends garbage to the other board, and an answering clear cancels it. Best of three, no download and no account — one player creates a room and shares a four-character code or a link.",
+  "url": "https://gamevolt.io/blockstorm/versus/",
+  "image": "https://gamevolt.io/assets/thumbnails/blockstorm.webp",
+  "genre": ["Puzzle", "Multiplayer", "Arcade"],
+  "gamePlatform": "Web browser",
+  "playMode": "MultiPlayer",
+  "numberOfPlayers": { "@type": "QuantitativeValue", "value": 2 },
+  "applicationCategory": "Game",
+  "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "isPartOf": { "@type": "VideoGame", "name": "BlockStorm", "url": "https://gamevolt.io/blockstorm/" },
+  "publisher": { "@type": "Organization", "name": "GameVolt", "url": "https://gamevolt.io" }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gamevolt.io/" },
+    { "@type": "ListItem", "position": 2, "name": "Puzzle Games", "item": "https://gamevolt.io/#puzzle" },
+    { "@type": "ListItem", "position": 3, "name": "BlockStorm", "item": "https://gamevolt.io/blockstorm/" },
+    { "@type": "ListItem", "position": 4, "name": "Versus", "item": "https://gamevolt.io/blockstorm/versus/" }
+  ]
+}
+</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <style>
   :root { --ink: #c8e6e3; --dim: #7ab5b0; --line: #2d5a5a; --bg: #0f1221; }
@@ -32,8 +73,23 @@
     background: rgba(8, 10, 20, 0.86); z-index: 20; padding: 20px; }
   .overlay.hidden { display: none; }
   .panel { width: min(460px, 100%); background: rgba(255,255,255,0.04); border: 1px solid var(--line);
-    border-radius: 16px; padding: 26px 24px; text-align: center; }
-  .panel h1 { margin: 0 0 4px; font-size: 1.5rem; letter-spacing: 1px; }
+    border-radius: 16px; padding: 26px 24px; text-align: center;
+    max-height: 92vh; overflow-y: auto; }
+
+  /* The readable half of the lobby: what the game is, for a visitor who
+     landed here from a search and for the crawler that sent them. */
+  #seo-content { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line);
+    text-align: left; font-size: 0.82rem; line-height: 1.65; color: var(--dim); }
+  #seo-content h2 { font-size: 0.78rem; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--ink); margin: 18px 0 6px; }
+  #seo-content h2:first-child { margin-top: 0; }
+  #seo-content strong { color: var(--ink); font-weight: 700; }
+  #seo-content a { color: #45d9c8; }
+  #seo-content p { margin: 0 0 10px; }
+  .panel h1, .panel .panel-title { margin: 0 0 4px; font-size: 1.5rem; letter-spacing: 1px; font-weight: 800; }
+  .h1-main { display: block; }
+  .h1-tail { display: block; font-size: 0.72rem; font-weight: 600; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--dim); margin-top: 4px; }
   .panel .sub { color: var(--dim); font-size: 0.85rem; margin-bottom: 20px; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; }
   .btn { font: inherit; font-weight: 700; cursor: pointer; padding: 11px 18px; border-radius: 10px;
@@ -251,7 +307,9 @@
 
 <div class="overlay" id="lobby">
   <div class="panel">
-    <h1>BlockStorm Versus</h1>
+    <!-- The page's one h1, written to read as a search result rather than
+         as a logo. The tail is styled down so the card still looks right. -->
+    <h1><span class="h1-main">BlockStorm Versus</span><span class="h1-tail">Free online 1v1 block puzzle battles</span></h1>
     <div class="sub">Two players, one bag of pieces. Clear lines, bury the other one.</div>
 
     <div class="row" style="margin-bottom:14px">
@@ -276,13 +334,56 @@
     </div>
 
     <div id="status"></div>
+
+    <!-- Visible in the lobby, which is the state a crawler and a first-time
+         visitor both arrive in — not hidden text. Carries the mood words
+         that AI assistants match on, per GAMEVOLT.md §5b. -->
+    <section id="seo-content">
+      <h2>Tetris-style multiplayer you can start in ten seconds</h2>
+      <p>BlockStorm Versus is a free online 1v1 falling-block battle played in the
+      browser — synthwave neon, CRT glow and a deep teal board, in the lineage of
+      Tetris, Tetrinet and Multris. No download, no account, no install: one player
+      creates a room, sends the link or the four-character code, and the match
+      begins as soon as the other one arrives.</p>
+
+      <h2>How a versus match works</h2>
+      <p>Both boards draw from the <strong>same bag of pieces in the same order</strong>,
+      so nobody gets a luckier sequence — the result is the player's, not the
+      shuffle's. Clearing lines sends <strong>garbage rows</strong> to the other
+      board: a double sends one, a triple two, a tetris four, and a T-spin more
+      again. Back-to-back difficult clears and combos add to it, and a perfect
+      clear sends ten.</p>
+      <p>Incoming garbage does not land straight away. It waits in a queue along
+      the edge of your board, and clearing lines of your own while it waits
+      <strong>cancels it</strong> — so a well-timed tetris turns their attack into
+      nothing instead of into a hole you have to dig out of. Whatever is left
+      rises from the floor on your next placement, with a single gap to clear
+      through.</p>
+
+      <h2>Best of three</h2>
+      <p>A single game ends quickly once lines start crossing, so a match is best
+      of three: first to two wins, and a double top-out is replayed rather than
+      counted. Between games you can send an emoji, see the set score, and start
+      the next one without leaving the room.</p>
+
+      <h2>Controls</h2>
+      <p>Arrow keys or WASD to move and rotate, space to hard drop, and the whole
+      thing also works with a game controller — D-pad or stick to move, A to
+      rotate, up to hard drop — and with touch on a phone. The guideline rules are
+      here: SRS wall kicks, a seven-bag randomiser, lock delay, T-spin detection,
+      combos and back-to-back.</p>
+
+      <p class="seo-links">Back to <a href="/blockstorm/">BlockStorm single player</a>
+      — Marathon, Sprint and Ultra with global leaderboards — or browse
+      <a href="/">all the free games on GameVolt</a>.</p>
+    </section>
   </div>
 </div>
 
 <div class="overlay hidden" id="result">
   <div class="panel">
     <div id="sparks"></div>
-    <h1 id="resultTitle">—</h1>
+    <div id="resultTitle" class="panel-title">—</div>
     <div class="sub" id="resultSub"></div>
     <div id="setRow"></div>
     <div id="stats"></div>

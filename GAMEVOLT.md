@@ -630,6 +630,44 @@ Achievements API + trophy catalog + per-game definitions done (HoverDash, Breako
 
 ---
 
+## Proposals — considered, not committed
+
+Ideas that have been looked at and deliberately parked, with the reasoning,
+so they do not get re-proposed as if they were new.
+
+### BlockStorm: hold piece — PROPOSED, not decided (2026-10-25)
+BlockStorm follows the guideline on nearly everything — SRS kicks with wall
+kicks, 7-bag, lock delay with 15 resets, T-spins, combos, back-to-back — but
+has **no hold**, which has been standard since 2001. It is most missed in
+versus, where you cannot save an I-piece for a tetris while digging out of
+garbage, which is the decision that makes defending possible at all.
+
+Safe for versus if built: hold changes which piece you take from the bag, not
+the bag's order, so the shared seed still produces identical sequences on both
+boards. Needs a key and a pad button, a slot in the sidebar, the once-per-piece
+rule, and a decision about whether a held piece survives a restart.
+
+Martin has not decided he wants it (2026-10-25). Do not build it without asking.
+
+### BlockStorm: next-piece queue of five — PROPOSED, not decided
+The sidebar shows one next piece; the guideline shows five. With one, a player
+reacts rather than builds. Same reasoning as hold on versus safety: the bag
+order is untouched, only how much of it is visible. Tied to the hold decision.
+
+### Daily challenges per game — PROPOSED (Phase 3 carry-over)
+The play streak shipped 2026-07-28 (`GameVolt.streak`, `sql/streaks.sql`); the
+per-game daily is the part still missing. Shape discussed: one seed shared by
+everyone that day, a leaderboard for that day alone, so there is a reason to
+come back tomorrow rather than only 27 games to play once.
+
+### Achievements stay solo — DECIDED (2026-10-25)
+No versus or multiplayer trophies. Martin's call: every trophy must be
+collectable on your own, without needing a second player. BlockStorm Versus
+therefore unlocks nothing, which is also how it is built — the achievement
+code lives in `blockstorm/index.html` and the versus page never loads it.
+
+---
+
 ## Multi-Platform Strategy
 
 HoverDash (and future games) target multiple platforms from one codebase:

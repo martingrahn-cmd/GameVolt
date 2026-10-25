@@ -201,9 +201,15 @@
   </url>
   <url>
     <loc>https://gamevolt.io/blockstorm/</loc>
-    <lastmod>2026-04-17</lastmod>
+    <lastmod>2026-10-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://gamevolt.io/blockstorm/versus/</loc>
+    <lastmod>2026-10-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://gamevolt.io/connect4/</loc>
