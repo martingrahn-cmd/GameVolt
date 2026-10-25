@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Thu, 22 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 25 Oct 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>BlockStorm Versus — send your lines to the other board</title>
+      <link>https://gamevolt.io/news/blockstorm-versus-launch/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/blockstorm-versus-launch/</guid>
+      <pubDate>Sun, 25 Oct 2026 12:00:00 GMT</pubDate>
+      <description>BlockStorm now has 1v1 online versus. Both boards draw from the same bag of pieces in the same order, so no one gets the luckier sequence; clearing lines sends garbage rows to the other board, and clearing again while that garbage waits cancels it. Best of three with a set score, emoji between games, a three-second countdown so both boards start together, and play by sharing a four-character code or a link. Keyboard, gamepad or touch. Free in your browser.</description>
+    </item>
 
     <item>
       <title>Mini Mayhem Tees Off: 3D Mini Golf, Just in Time for Halloween</title>
