@@ -905,7 +905,10 @@
       if (cancelled > 0) pushLog('✕ ' + cancelled, 'CANCELLED', 'cancel');
       if (res.applied > 0) reactHit(res.applied);
 
-      VSNet.board({ b: serializeBoard() });
+      // Stamped with the seed, which is this match's identity: a snapshot
+      // sent on the last lock of the previous game can still be in flight
+      // when the next one begins, and would repaint the dead board.
+      VSNet.board({ b: serializeBoard(), s: game.bagSeed });
       refreshHud();
     };
 
@@ -1053,6 +1056,9 @@
 
   VSNet.on('board', (d) => {
     if (!d || typeof d.b !== 'string') return;
+    // Drop anything belonging to a match that is over. Without this the
+    // old board hangs around well into the next game's countdown.
+    if (d.s && game.bagSeed && d.s !== game.bagSeed) return;
     oppRows = d.b.split('/');
     drawOpponent();
   });

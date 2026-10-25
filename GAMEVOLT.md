@@ -660,6 +660,23 @@ per-game daily is the part still missing. Shape discussed: one seed shared by
 everyone that day, a leaderboard for that day alone, so there is a reason to
 come back tomorrow rather than only 27 games to play once.
 
+### BlockStorm Versus: a fuller match log — PROPOSED (2026-10-25)
+The callouts over the board say what *you* did and what landed on you, but
+nothing about the other player until they top out. Martin wants more of a
+running commentary: "Amandus cleared 2 lines", "Amandus is on a 4 combo" — the
+Tetrinet-style feed that makes a match feel like it is being played against
+someone rather than against incoming numbers.
+
+Needs a message type carrying what the opponent cleared (not just the attack
+that resulted), since a single or a double sends nothing and would otherwise
+never be mentioned. Cheap to send: one line per lock, same channel.
+
+### Menu music — PROPOSED (2026-10-25)
+BlockStorm's music starts when a game starts; the menu is silent. A separate,
+quieter menu track, or the same track at low volume, with the existing sound
+toggle governing it. Worth checking against the SFX/volume split that caused
+the silent-effects bug before adding a third audio switch.
+
 ### Achievements stay solo — DECIDED (2026-10-25)
 No versus or multiplayer trophies. Martin's call: every trophy must be
 collectable on your own, without needing a second player. BlockStorm Versus
