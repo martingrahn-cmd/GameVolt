@@ -327,7 +327,9 @@ export class Game {
       localStorage.setItem("tetris_ghost", this.options.ghostEnabled);
     } else if (option === 'sound') {
       this.options.soundEnabled = !this.options.soundEnabled;
-      localStorage.setItem("tetris_sound", this.options.soundEnabled);
+      // Gå via audio så att volymen och flaggan hålls ihop. Sätts bara
+      // flaggan kan ljudet sägas vara på medan volymen ligger kvar på 0.
+      this.audio.setSfxVolume(this.options.soundEnabled ? (this.audio.sfxVolume || 1) : 0);
     }
     return this.options;
   }

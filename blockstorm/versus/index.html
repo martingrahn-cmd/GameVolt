@@ -79,6 +79,12 @@
     line-height: 1; cursor: pointer; padding: 8px 10px; border-radius: 10px;
     border: 1px solid var(--line); background: rgba(8,10,20,0.6); color: var(--ink); }
   #soundBtn:hover { border-color: var(--ink); }
+
+  /* Where the pad is pointing, in the lobby and on the result panel. */
+  [data-pi].pad-cursor {
+    border-color: #7fffe9 !important;
+    box-shadow: 0 0 0 2px rgba(127,255,233,0.45), 0 0 20px rgba(69,217,200,0.35);
+  }
   #sent { font-size: 0.72rem; color: var(--dim); margin-top: 2px; }
 
   /* No gutter wide enough: a flat strip over the top of the board, where
@@ -239,19 +245,19 @@
     </div>
 
     <div class="row">
-      <button class="btn" id="createBtn">Create room</button>
+      <button class="btn" id="createBtn" data-pi>Create room</button>
       <span style="color:var(--dim)">or</span>
       <input id="codeInput" maxlength="4" autocomplete="off" spellcheck="false" placeholder="CODE">
-      <button class="btn" id="joinBtn">Join</button>
+      <button class="btn" id="joinBtn" data-pi>Join</button>
     </div>
 
     <div id="codeBox" class="hidden">
       <div id="code">----</div>
       <div class="hint">Share the code — or just send the link.<br>Keep this page open: the room lives in this tab.</div>
       <div class="row">
-        <button class="btn tiny" id="copyLinkBtn">🔗 Copy invite link</button>
+        <button class="btn tiny" id="copyLinkBtn" data-pi>🔗 Copy invite link</button>
         <button class="btn tiny" id="shareBtn" style="display:none">📤 Share</button>
-        <button class="btn tiny" id="copyCodeBtn">Copy code</button>
+        <button class="btn tiny" id="copyCodeBtn" data-pi>Copy code</button>
       </div>
     </div>
 
@@ -269,8 +275,8 @@
     <div id="reactions"></div>
     <div id="reactRow"></div>
     <div class="row">
-      <button class="btn" id="rematchBtn">Rematch</button>
-      <a class="btn" href="/blockstorm/">Back to BlockStorm</a>
+      <button class="btn" id="rematchBtn" data-pi>Rematch</button>
+      <a class="btn" href="/blockstorm/" data-pi>Back to BlockStorm</a>
     </div>
     <div id="resultStatus" class="hint" style="margin-top:14px"></div>
   </div>
@@ -284,6 +290,8 @@
 <script src="/js/gv-ga4.js"></script>
 <script>window.GameVoltTracker && window.GameVoltTracker.start('BlockStorm Versus');</script>
 
+<!-- Shared with the single-player menu: polls the pad and reports actions. -->
+<script src="../src/js/gamepad.js"></script>
 <script src="../vs-net.js?v=3"></script>
 <!-- Boots the same Game as single-player and exposes window.PULSE_TETRIS. -->
 <script type="module" src="../src/js/game.js"></script>
@@ -852,6 +860,7 @@
     }
 
     $('result').classList.remove('hidden');
+    padReset();
   }
 
   // ---- transport wiring ----------------------------------------------
@@ -1035,6 +1044,85 @@
   } catch (e) {}
 
   window.addEventListener('beforeunload', () => { try { VSNet.leave(); } catch (e) {} });
+
+  // ---- controller ----------------------------------------------------
+  // Versus never loaded the gamepad module at all: the single-player page
+  // is what wires it up, and this page boots the engine directly. So the
+  // pad did nothing here — not in the game, and not on the panels, where
+  // a pad player could not even reach Rematch.
+  //
+  // In the game the mapping is the single-player one, button for button,
+  // minus pause, which versus does not have. On the lobby and the result
+  // panel a cursor runs over whatever is on screen.
+  let padIndex = 0;
+
+  function padScreen() {
+    if (!$('result').classList.contains('hidden')) return 'result';
+    if (!$('lobby').classList.contains('hidden')) return 'lobby';
+    return 'game';
+  }
+
+  function padStops() {
+    const panel = padScreen() === 'result' ? $('result') : $('lobby');
+    return Array.from(panel.querySelectorAll('[data-pi], #reactRow button'))
+      .filter((el) => el.offsetParent !== null && !el.disabled);
+  }
+
+  function padFocus(i) {
+    const stops = padStops();
+    if (!stops.length) return;
+    padIndex = (i + stops.length) % stops.length;
+    document.querySelectorAll('.pad-cursor').forEach((el) => el.classList.remove('pad-cursor'));
+    stops[padIndex].classList.add('pad-cursor');
+    stops[padIndex].scrollIntoView({ block: 'nearest' });
+  }
+
+  function padMove(d) {
+    const stops = padStops();
+    if (!stops.length) return;
+    const here = stops.findIndex((el) => el.classList.contains('pad-cursor'));
+    padFocus((here < 0 ? 0 : here) + d);
+  }
+
+  function padPress() {
+    const stops = padStops();
+    const el = stops.find((e) => e.classList.contains('pad-cursor')) || stops[0];
+    if (el) el.click();
+  }
+
+  // Whenever a panel appears the cursor should already be somewhere
+  // sensible, so the first press does something.
+  const padReset = () => setTimeout(() => padFocus(0), 30);
+
+  function handlePad(action, repeated) {
+    const screen = padScreen();
+
+    if (screen === 'game') {
+      if (!game.running || game.paused || game.gameOver) return;
+      if (action === 'left') game.moveLeft();
+      else if (action === 'right') game.moveRight();
+      else if (action === 'down') game.softDrop();
+      else if (action === 'up' || action === 'aux') game.hardDrop();
+      else if (action === 'accept') game.rotateCW();
+      else if (action === 'back' || action === 'alt') game.rotateCCW();
+      return;
+    }
+
+    if (repeated) return;                       // panels do not auto-repeat
+    if (action === 'up' || action === 'left') padMove(-1);
+    else if (action === 'down' || action === 'right') padMove(1);
+    else if (action === 'accept') padPress();
+  }
+
+  if (window.BlockStormGamepad) {
+    const pad = new BlockStormGamepad({
+      onAction: handlePad,
+      isHidden: () => document.hidden,
+    });
+    pad.start();
+    window.__pad_versus = pad;
+    padReset();                                 // start on Create room
+  }
 
   // Exposed for the smoke test, which has no route to Supabase and drives
   // the match through a fake transport instead.

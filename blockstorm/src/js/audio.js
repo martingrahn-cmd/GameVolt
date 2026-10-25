@@ -28,7 +28,11 @@ export class AudioSystem {
     this.musicElement = null;
     this.musicGain = null;
     this.musicVolume = 0.4; // 40% volym
-    this.sfxVolume = 1.0;  // SFX master volume multiplier (0-1)
+    // SFX-volymen sparas, till skillnad från förr. Annars kom den tillbaka
+    // som 1.0 vid varje sidladdning medan "tetris_sound" låg kvar på false
+    // — reglaget visade 100 % och ljudet var ändå dött, utan något sätt att
+    // se varför eller ta sig tillbaka.
+    this.sfxVolume = this.readSfxVolume();
     this.musicEnabled = localStorage.getItem("tetris_music") !== "false";
   }
 
@@ -100,11 +104,28 @@ export class AudioSystem {
     }
   }
 
+  // Läser sparad SFX-volym. Är ljudet avstängt men ingen volym sparad är
+  // det en äldre avstängning: visa den som 0 så att reglaget säger sanning.
+  readSfxVolume() {
+    try {
+      const raw = localStorage.getItem("tetris_sfx_volume");
+      const v = raw === null ? null : parseFloat(raw);
+      if (v !== null && isFinite(v)) return Math.max(0, Math.min(1, v));
+      return localStorage.getItem("tetris_sound") === "false" ? 0 : 1.0;
+    } catch (e) {
+      return 1.0;
+    }
+  }
+
   setSfxVolume(v) {
     this.sfxVolume = Math.max(0, Math.min(1, v));
-    // Sync with the sound enabled option
-    const enabled = v > 0;
-    localStorage.setItem("tetris_sound", enabled);
+    // Volymen och av/på-flaggan är samma beslut, så de sparas ihop. Förr
+    // sparades bara flaggan, och de två kunde hamna i otakt för gott.
+    const enabled = this.sfxVolume > 0;
+    try {
+      localStorage.setItem("tetris_sfx_volume", String(this.sfxVolume));
+      localStorage.setItem("tetris_sound", enabled);
+    } catch (e) {}
   }
 
   play(name) {
