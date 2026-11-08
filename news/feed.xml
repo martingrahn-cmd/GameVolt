@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Sun, 25 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 08 Nov 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>LCD Classics is live — three pocket LCD handhelds in an 80s showroom</title>
+      <link>https://gamevolt.io/news/lcd-classics-launch/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/lcd-classics-launch/</guid>
+      <pubDate>Sun, 08 Nov 2026 12:00:00 GMT</pubDate>
+      <description>LCD Classics is live — a new GameVolt original. Three Game &amp; Watch-style LCD handhelds in a neon synthwave showroom, browsed in a 3D cover flow: Dock Drop (catch parcels from three drones, dodge the pirate drone's bombs), Crush Yard (a two-screen clamshell where the whole scrapyard slides one way, then another) and Girder Jack (climb past rolling drums and jump for the swinging hook to drop the Foreman). Game A and B paces, 31 trophies, six leaderboards, keyboard, gamepad and touch. Free in your browser.</description>
+    </item>
 
     <item>
       <title>BlockStorm Versus — send your lines to the other board</title>
