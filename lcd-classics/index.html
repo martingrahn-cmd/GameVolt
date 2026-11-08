@@ -406,6 +406,11 @@ html,body{height:100%;overflow:hidden}
 .kbd :focus{outline:3px solid var(--neon-c)!important;outline-offset:3px}
 .kbd .tc:focus,.kbd .board li:focus{outline-offset:0}
 .tc:focus{outline:none}
+.back{display:inline-flex;align-items:center;gap:8px;font-size:13px;padding:9px 16px 9px 12px;border:2px solid var(--neon-p)!important;color:#fff;
+  box-shadow:0 0 14px rgba(255,63,164,.45),inset 0 0 8px rgba(255,63,164,.25)!important;background:rgba(16,6,32,.78)!important}
+.back .bk-arrow{color:var(--neon-p)}
+.back .bk-key{font-family:var(--f-print);font-size:10px;letter-spacing:.08em;padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.12);color:#e9dff5}
+@media (hover:none){.back .bk-key{display:none}}
 
 /* GameVolt page: standalone visits scroll down to the game guide, the portal iframe stays one screen */
 *,*::before,*::after{box-sizing:border-box}
@@ -453,7 +458,7 @@ html.standalone #seo-content{display:block}
     <div class="dots" id="dots"></div>
   </section>
   <nav class="overlay topbar">
-    <button class="back" id="back" type="button">&#9664;&#xFE0E; COLLECTION</button>
+    <button class="back" id="back" type="button"><span class="bk-arrow">&#9664;&#xFE0E;</span> MENU <kbd class="bk-key" id="bk-key">ESC</kbd></button>
     <div class="tools"><div class="keys" id="keys"></div><button class="pill" type="button" data-hall="trophies">TROPHIES <span class="cnt" data-tcount>0/31</span></button></div>
   </nav>
 </div>
@@ -569,14 +574,49 @@ function lcdBase(W,H){
 
 /* sound: square-wave piezo */
 let ac=null,sound=store.get('lcd-sound',true);
-function audio(){if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ac&&ac.state==='suspended')ac.resume();}
+function audio(){if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ac&&ac.state==='suspended')ac.resume();Music.update();}
+let muteGame=false;                      // set while a demo (attract) or off-screen handheld ticks
 function beep(f,d=0.05,type='square',v=0.05,at=0){
-  if(!sound||!ac||ac.state!=='running')return;
+  if(!sound||muteGame||!ac||ac.state!=='running')return;
   const t=ac.currentTime+at,o=ac.createOscillator(),g=ac.createGain();
   o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(0.0001,t+d);
   o.connect(g).connect(ac.destination);o.start(t);o.stop(t+d+0.02);
 }
 function chirp(fs,d,type='square'){fs.forEach((f,i)=>beep(f,d,type,0.05,i*d));}
+
+/* menu music: track 1 of kontinuum's Free Synthwave Music Pack (royalty free), looped gaplessly through Web Audio.
+   Plays on the shelf only; fades out when the camera dives into a handheld. */
+const MUSIC_SRC={opus:'menu.ogg',aac:'menu.m4a'};
+const Music={buf:null,node:null,gain:null,loading:false,failed:false,VOL:0.16,
+  async bytes(url){
+    if(url.startsWith('data:')){const b=atob(url.slice(url.indexOf(',')+1)),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer;}
+    const r=await fetch(url);if(!r.ok)throw new Error('music '+r.status);return r.arrayBuffer();
+  },
+  async load(){
+    if(this.buf||this.loading||this.failed||!ac)return;
+    this.loading=true;
+    const opus=(()=>{try{return !!new Audio().canPlayType('audio/ogg; codecs=opus');}catch(e){return false;}})();
+    for(const url of opus?[MUSIC_SRC.opus,MUSIC_SRC.aac]:[MUSIC_SRC.aac]){
+      try{this.buf=await ac.decodeAudioData(await this.bytes(url));break;}catch(e){}
+    }
+    this.loading=false;if(!this.buf)this.failed=true;
+    this.update();
+  },
+  target(){return sound&&mode==='shelf'&&document.visibilityState!=='hidden'?this.VOL:0;},
+  update(){
+    if(!ac||ac.state!=='running')return;
+    if(!this.buf){if(this.target()>0)this.load();return;}
+    if(!this.gain){this.gain=ac.createGain();this.gain.gain.value=0;this.gain.connect(ac.destination);}
+    const t=this.target(),now=ac.currentTime;
+    if(t>0&&!this.node){const n=ac.createBufferSource();n.buffer=this.buf;n.loop=true;n.connect(this.gain);n.start();this.node=n;}
+    this.gain.gain.cancelScheduledValues(now);
+    this.gain.gain.setTargetAtTime(t,now,t>0?0.6:0.25);
+    clearTimeout(this.stopT);
+    if(t===0&&this.node){const n=this.node;this.stopT=setTimeout(()=>{if(this.target()===0&&this.node===n){try{n.stop();}catch(e){}this.node=null;}},2500);}
+  }
+};
+document.addEventListener('visibilitychange',()=>Music.update());
+['pointerdown','keydown','touchstart'].forEach(t=>addEventListener(t,()=>audio(),{capture:true,passive:true}));
 
 /* =====================================================================
    GAME 1 — DOCK DROP (wide screen)
@@ -1390,6 +1430,7 @@ function toggleSound(){
   sound=!sound;store.set('lcd-sound',sound);
   document.querySelectorAll('.sl').forEach(e=>e.textContent=sound?'SOUND':'MUTED');
   if(sound){audio();beep(1320,0.05);}
+  Music.update();
 }
 
 function buildSlots(){
@@ -1473,7 +1514,7 @@ function open(i){
   center=i;view=GAMES[i];mode='play';audio();
   scene.classList.remove('shelf');scene.classList.add('play');
   hints();
-  layout();chirp([392,523,784],0.05);
+  layout();chirp([392,523,784],0.05);Music.update();
   try{history.replaceState(null,'','#'+view.id);}catch(e){}
   setTimeout(()=>{const b=slots[i].slot.querySelector('[data-act="A"]');b&&b.focus({preventScroll:true});},1000);
 }
@@ -1481,7 +1522,7 @@ function close(){
   if(!view)return;
   view.abandon();view=null;mode='shelf';
   scene.classList.remove('play');scene.classList.add('shelf');
-  layout();info();chirp([784,523,392],0.05);
+  layout();info();chirp([784,523,392],0.05);Music.update();
   try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
   setTimeout(()=>$('iplay').focus({preventScroll:true}),900);
 }
@@ -1517,6 +1558,7 @@ function hints(){
   $('padhint').innerHTML=pad
     ?'<span><b>D-PAD</b> BROWSE</span><span><b>A</b> PLAY</span><span><b>X</b> HIGH SCORES</span><span><b>Y</b> TROPHIES</span>'
     :'<span><b>← →</b> BROWSE</span><span><b>ENTER</b> PLAY</span><span><b>H</b> HIGH SCORES</span><span><b>T</b> TROPHIES</span>';
+  const bk=$('bk-key');if(bk)bk.textContent=pad?'SELECT':'ESC';
   if(view)$('keys').textContent=pad?`D-pad move · A ${view.actLabel.toLowerCase()} · Start game A · X game B · Y hi-score · B/Select back`:view.keys;
 }
 
@@ -1645,7 +1687,9 @@ function frame(now){
   for(const g of GAMES){
     if(view&&g!==view)continue;
     g.acc+=dt;let t=g.tickMs(),guard=0;
+    muteGame=view!==g||g.S.mode==='attract';
     while(g.acc>=t&&guard++<8){g.acc-=t;if(g.S.mode!=='over')g.step();t=g.tickMs();}
+    muteGame=false;
     if(g.S.mode==='over'&&now-g.S.overT>9000)g.S.mode='attract';
   }
   trophyTick();
@@ -1974,6 +2018,8 @@ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{measure()
   <p>Browse the handhelds with the arrow keys, a swipe or a gamepad, and press Enter or A to pick one up. Inside a game, Game A is the normal pace and Game B is faster. Keyboard: arrow keys move, Space is the action button, 1 and 2 start Game A and B, T shows the high score and Esc returns to the shelf. Gamepad: D-pad or stick to move, A for action, Start for Game A, X for Game B and Select to go back. On a phone, tap the buttons on the handheld or tap the screen.</p>
   <h2>Trophies and Leaderboards</h2>
   <p>The collection has 31 trophies — 15 bronze, 10 silver, 5 gold and one platinum for collecting the rest — and a leaderboard for each handheld in Game A and Game B. Every trophy can be earned solo. Sign in to GameVolt to keep your trophies and post your scores.</p>
+  <h2>Credits</h2>
+  <p>Menu music: “Track 1” from the <a href="https://kontinuum.itch.io/free-synthwave-music" rel="noopener">Free Synthwave Music Pack</a> by kontinuum, used under the pack’s royalty-free terms.</p>
 </section>
 <footer class="seo-footer"><a href="/">GameVolt home</a><a href="/arcade-games/">Arcade games</a><a href="/leaderboards/">Leaderboards</a><a href="/play/?game=lcd-classics">Play LCD Classics</a></footer>
 </div>
