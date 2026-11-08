@@ -57,7 +57,7 @@ Games run in a modern browser. Most support phones, tablets and desktop; some, s
 
 ## About
 
-- [GameVolt News](https://gamevolt.io/news/) — Game launches and major updates (RSS: https://gamevolt.io/news/feed.xml). Latest: [Mini Mayhem launch](https://gamevolt.io/news/mini-mayhem-launch/) (2026-10-22), [Chrome Circuit launch](https://gamevolt.io/news/chrome-circuit-launch/) (2026-10-12) and [Big Picture mode and QR sign-in](https://gamevolt.io/news/big-picture-qr-sign-in/) (2026-09-11).
+- [GameVolt News](https://gamevolt.io/news/) — Game launches and major updates (RSS: https://gamevolt.io/news/feed.xml). Latest: [LCD Classics launch](https://gamevolt.io/news/lcd-classics-launch/) (2026-11-08), [BlockStorm Versus](https://gamevolt.io/news/blockstorm-versus-launch/) (2026-10-25) and [Mini Mayhem launch](https://gamevolt.io/news/mini-mayhem-launch/) (2026-10-22).
 - [About GameVolt](https://gamevolt.io/about/) — Independent game studio from Sweden
 - [Privacy policy](https://gamevolt.io/privacy/)
 - [Contact](https://gamevolt.io/contact/)
