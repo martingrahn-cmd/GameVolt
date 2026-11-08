@@ -28,6 +28,12 @@
             desktop: 'Click and drag below the ball to draw. Use the Pause button to take a break.',
             tip: 'Time slows while you draw. Chain hits without drawing again for a bigger combo. Free climb has checkpoints; the daily course ends at 500 m.'
         },
+        'lcd-classics': {
+            goal: 'Pick a handheld from the shelf and play: catch parcels in Dock Drop, dodge the scrap press in Crush Yard, or climb to the hook in Girder Jack.',
+            touch: 'Swipe the shelf and tap a handheld. In a game, use the buttons on the handheld or tap the screen in the direction you want to go.',
+            desktop: 'Arrow keys move, Space is the action button, 1 / 2 start Game A / B, T shows the high score and Esc returns to the shelf. A gamepad works everywhere.',
+            tip: 'Game B is the fast pace. Five energy cells charge each handheld’s special move: magnet, blast or shield.'
+        },
         'short-circuit': {
             goal: 'Uncover conductors and swap them into a route from IN to OUT before the current catches up.',
             touch: 'Tap to uncover a tile. Tap two revealed conductors to swap them.',
