@@ -307,7 +307,11 @@ html,body{height:100%;overflow:hidden}
 @media (prefers-reduced-motion:reduce){.slot,.world,.upper,.floor,.overlay{transition-duration:.01s!important;transition-delay:0s!important}}
 /* ---------- hall: shared high scores + trophy cabinet ---------- */
 :root{--bronze:#c98a4b;--silver:#c3cbd3;--goldt:#f2c94c;--plat:#8fe3ff;--card:#1b232a}
-.brand-actions{position:absolute;top:0;right:0;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+/* The SDK pins its sign-in widget to the viewport's top-right (#gv-user-widget,
+   right:10px). Signed in it grows to an avatar plus a name capped at 120px, so
+   it can reach ~180px wide — keep the header buttons clear of that band or
+   TROPHIES ends up underneath it. */
+.brand-actions{position:absolute;top:0;right:186px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .pill{background:rgba(22,28,33,.72);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;font-family:var(--f-print);font-size:12px;font-weight:700;letter-spacing:.12em;display:inline-flex;align-items:center;gap:8px}
 .pill:hover{border-color:#5a6872}
 .pill .cnt{color:var(--gold);font-variant-numeric:tabular-nums}

@@ -2306,7 +2306,6 @@
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/mini-mayhem.webp" alt="A golf ball at the loop beside a giant tree on a floating island in Mini Mayhem's Cloud Forest, under a pink sky" width="480" height="270" loading="lazy">
                     <video class="preview-video" muted loop playsinline preload="none"></video>
-                    <span class="game-badge new">NEW</span>
                     <span class="game-bolt">⚡</span>
                 </div>
                 <div class="game-info">
@@ -2319,7 +2318,6 @@
             <a href="/play/?game=chrome-circuit" class="game-card" data-category="action arcade">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/chrome-circuit.webp" alt="Play Chrome Circuit isometric racing online free" width="480" height="270" loading="lazy">
-                    <span class="game-badge new">NEW</span>
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">Chrome Circuit</h3>
@@ -2333,7 +2331,6 @@
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/lcd-classics.webp" alt="LCD Classics: three retro LCD handhelds in front of a neon sunset grid" width="480" height="270" loading="lazy">
                     <span class="game-badge new">NEW</span>
-                    <span class="game-bolt">⚡</span>
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">LCD Classics</h3>
@@ -2345,7 +2342,6 @@
             <a href="/play/?game=ink" class="game-card" data-category="coffee-break arcade">
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/ink.webp" alt="INK: a ball bouncing off a blue pen stroke on graph paper" width="480" height="270" loading="lazy">
-                    <span class="game-badge new">NEW</span>
                 </div>
                 <div class="game-info">
                     <h3 class="game-title">INK</h3>
@@ -2359,7 +2355,6 @@
                 <div class="game-thumbnail">
                     <img src="/assets/thumbnails/short-circuit.webp" alt="Play Short Circuit online free" loading="lazy">
                     <video class="preview-video" muted loop playsinline preload="none"></video>
-                    <span class="game-badge new">NEW</span>
                     <span class="game-bolt">⚡</span>
                 </div>
                 <div class="game-info">
@@ -2378,7 +2373,6 @@
                 <div class="game-thumbnail">
                     <img src="/manny-the-mole/og-image.png" alt="Play Manny the Mole online free" fetchpriority="high">
                     <video class="preview-video" muted loop playsinline preload="none"></video>
-                    <span class="game-badge new">NEW</span>
                     <span class="game-bolt">⚡</span>
                 </div>
                 <div class="game-info">
@@ -2399,7 +2393,6 @@
                 <div class="game-thumbnail">
                     <img src="/spinburn/og-image.png" alt="Play Spinburn online free" fetchpriority="high">
                     <video class="preview-video" muted loop playsinline preload="none"></video>
-                    <span class="game-badge new">NEW</span>
                     <span class="game-bolt">⚡</span>
                 </div>
                 <div class="game-info">
@@ -3128,9 +3121,12 @@
         }
 
         function applyNew() {
-            // Filter to cards that carry a NEW badge in markup.
+            // Filter to cards whose badge actually reads NEW. The class is
+            // shared with FLAGSHIP, which is a standing label rather than a
+            // recent release — matching on the class alone listed it here too.
             cards().forEach(function(card) {
-                var hasNew = !!card.querySelector('.game-badge.new');
+                var badge = card.querySelector('.game-badge.new');
+                var hasNew = !!badge && badge.textContent.trim().toUpperCase() === 'NEW';
                 card.classList.toggle('hidden-by-filter', !hasNew);
             });
             restoreOrder();
