@@ -3,6 +3,7 @@
     // Only games with existing Gamepad API input handlers belong here.
     var games = [
         { id: 'slipstream-vector', name: 'Slipstream Vector', genre: 'Anti-gravity racing', art: '/assets/thumbnails/slipstream-vector-tall.png', description: 'Race twelve circuits across four worlds. Master loops, corkscrews, weapons and a rival field that never cheats.' },
+        { id: 'lcd-classics', name: 'LCD Classics', genre: 'Handheld collection', art: '/assets/thumbnails/lcd-classics.webp', description: 'Three Game & Watch-style handhelds on one shelf. Browse with the d-pad, pick one up and play: catch, dodge and climb.' },
         { id: 'chrome-circuit', name: 'Chrome Circuit', genre: 'Isometric arcade racing', art: '/assets/thumbnails/chrome-circuit-tall.webp', preview: '/chrome-circuit/preview.mp4', description: 'Drift, boost and fire across twelve circuits in four worlds, from neon city streets to red rock canyons.' },
         { id: 'hoverdash', name: 'HoverDash', genre: 'Neon lane runner', art: '/assets/thumbnails/hoverdash.webp', preview: '/hoverdash/preview.mp4', description: 'Find your rhythm in the neon rush. Switch lanes, jump obstacles and keep the run alive.' },
         { id: 'axeluga', name: 'Axeluga', genre: 'Space shooter', art: '/assets/thumbnails/axeluga.webp', preview: '/axeluga/preview.mp4', description: 'Take the controls, dodge enemy fire and blast your way through the next wave.' },
@@ -106,6 +107,8 @@
         $('selectedCategory').textContent = game.genre.toUpperCase();
         $('selectedDescription').textContent = game.description;
         $('selectedIndex').textContent = String(selected + 1).padStart(2, '0') + ' / ' + String(games.length).padStart(2, '0');
+        var countEl = $('collectionCount');
+        if (countEl) countEl.textContent = String(games.length).padStart(2, '0');
         $('play').setAttribute('aria-label', 'Play ' + game.name);
         animateHero(direction);
         if (focus) {

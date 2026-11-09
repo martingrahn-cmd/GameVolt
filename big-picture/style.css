@@ -102,7 +102,7 @@ h2 { margin:0; }
 .shelf-heading { display:flex; justify-content:space-between; align-items:center; gap:16px; margin:28px 0 16px; }
 .shelf-heading h2 { font-size:18px; font-weight:500; }
 .shelf-heading>span { color:var(--muted); font-size:14px; }
-.game-shelf { display:grid; grid-template-columns:repeat(7,minmax(155px,1fr)); align-items:start; gap:14px; padding:22px 26px 28px; margin:-10px 0 -14px; overflow-x:auto; overflow-y:hidden; overscroll-behavior-x:contain; scrollbar-width:none; scroll-snap-type:x proximity; perspective:620px; perspective-origin:50% 42%; }
+.game-shelf { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(155px,1fr); align-items:start; gap:14px; padding:22px 26px 28px; margin:-10px 0 -14px; overflow-x:auto; overflow-y:hidden; overscroll-behavior-x:contain; scrollbar-width:none; scroll-snap-type:x proximity; perspective:620px; perspective-origin:50% 42%; }
 .game-shelf::-webkit-scrollbar { display:none; }
 .game-card { --card-turn:0deg; padding:0; text-align:left; border-radius:12px; background:#171b2a; border:2px solid transparent; min-width:0; overflow:hidden; scroll-snap-align:center; transform:rotateY(var(--card-turn)) translateZ(-76px) scale(.86); transform-style:preserve-3d; transform-origin:center; opacity:.62; filter:saturate(.66) brightness(.7); transition:transform .32s cubic-bezier(.2,.75,.25,1),opacity .28s,filter .28s,border-color .18s,box-shadow .18s; will-change:transform; }
 .game-card[data-side="left"] { --card-turn:28deg; transform-origin:right center; }
@@ -197,7 +197,7 @@ body.controller-fullscreen .notice { position:fixed; right:28px; bottom:22px; z-
   .support-note { margin-top:6px; padding-top:6px; }
   .carousel-rail { top:12px; }
   .shelf-heading { margin:12px 0 7px; }
-  .game-shelf { grid-template-columns:repeat(8,minmax(130px,1fr)); gap:10px; padding:10px 12px 12px; margin:-5px 0 -4px; }
+  .game-shelf { grid-auto-columns:minmax(130px,1fr); gap:10px; padding:10px 12px 12px; margin:-5px 0 -4px; }
   .game-card .card-name { padding:9px 10px; font-size:13px; }
   .hints { flex:0 0 auto; gap:18px; margin-top:8px; padding:10px 0; font-size:12px; }
 }
@@ -223,7 +223,7 @@ body.controller-fullscreen .notice { position:fixed; right:28px; bottom:22px; z-
   .hints { margin-top:2px; padding:5px 0; }
 }
 @media(max-width:1050px) {
-  .topbar { flex-wrap:wrap; padding:20px 0; } .tools { gap:16px; } .game-shelf { grid-template-columns:repeat(3,minmax(0,1fr)); } .footer-brand { display:none; }
+  .topbar { flex-wrap:wrap; padding:20px 0; } .tools { gap:16px; } .game-shelf { grid-auto-flow:row; grid-template-columns:repeat(3,minmax(0,1fr)); } .footer-brand { display:none; }
   .hero-peek { width:145px; top:82px; } .hero-peek-prev { transform:translateX(-170%) rotateY(42deg) translateZ(-105px); } .hero-peek-next { transform:translateX(70%) rotateY(-42deg) translateZ(-105px); }
   .hero-peek-far { width:115px; top:105px; } .hero-peek-far-prev { transform:translateX(-270%) rotateY(57deg) translateZ(-255px); } .hero-peek-far-next { transform:translateX(170%) rotateY(-57deg) translateZ(-255px); }
   .spotlight { min-height:690px; } .spotlight-copy { grid-template-columns:1fr auto; grid-template-areas:'eyebrow play' 'title play' 'description description' 'support support'; gap:4px 20px; }
@@ -239,7 +239,7 @@ body.controller-fullscreen .notice { position:fixed; right:28px; bottom:22px; z-
   .spotlight-art { height:116%; } .spotlight-shade { background:linear-gradient(0deg,#090c19f7 15%,#0b1020e0 75%,#0b102090); }
   .preview-frame { top:58px; width:190px; border-radius:7px 12px 12px 7px; }
   .carousel-rail { left:54px; right:54px; top:20px; gap:5px; } .carousel-dot span { display:none; }
-  .spotlight-index { top:328px; } .game-shelf { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; } .shelf-heading>span { display:none; }
+  .spotlight-index { top:328px; } .game-shelf { grid-auto-flow:row; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; } .shelf-heading>span { display:none; }
   .hints { gap:14px; font-size:12px; } .return-hint { display:none; } .player-toolbar { gap:12px; font-size:14px; }
   .profile-topbar { min-height:84px; } .profile-topbar .brand span { display:none; } .profile-topbar button { padding:10px; }
   .profile-main { padding-top:30px; } .profile-guest { flex-direction:column; align-items:flex-start; min-height:0; }
