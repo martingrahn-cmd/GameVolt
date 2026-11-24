@@ -5,8 +5,16 @@
     <link>https://gamevolt.io/news/</link>
     <description>New game launches, major updates and features from GameVolt — free original browser games.</description>
     <language>en</language>
-    <lastBuildDate>Sun, 08 Nov 2026 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 24 Nov 2026 12:00:00 GMT</lastBuildDate>
     <atom:link href="https://gamevolt.io/news/feed.xml" rel="self" type="application/rss+xml"/>
+
+    <item>
+      <title>Color Gate is live — one tap, four colours, five neon zones</title>
+      <link>https://gamevolt.io/news/color-gate-launch/</link>
+      <guid isPermaLink="true">https://gamevolt.io/news/color-gate-launch/</guid>
+      <pubDate>Tue, 24 Nov 2026 12:00:00 GMT</pubDate>
+      <description>Color Gate is live — a new GameVolt original. A one-tap neon arcade game in the lineage of Color Switch: bounce a glowing ball upward and pass only through the part of each spinning ring, bar or cross that matches its colour. Colour orbs switch your ball mid-run, every fifth clear in a row drops a bonus star, and checkpoints plus a life every fifteen stars keep runs going. Five zones — Neon Grid, Deep Space, Aurora, The Core and Cyber City — 31 trophies and a leaderboard ranked by stars, then by fastest time. Tap, click or Space. Free in your browser.</description>
+    </item>
 
     <item>
       <title>LCD Classics is live — three pocket LCD handhelds in an 80s showroom</title>
