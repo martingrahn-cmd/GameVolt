@@ -545,6 +545,7 @@
         <div class="filter-row" id="score-filters" style="display:none">
             <button class="filter-pill active" data-game="hoverdash">HoverDash</button>
             <button class="filter-pill" data-game="vector-hexagon">Vector Hexagon</button>
+            <button class="filter-pill" data-game="color-gate">Color Gate</button>
             <button class="filter-pill" data-game="gridburn">Gridburn</button>
             <button class="filter-pill" data-game="spinburn">Spinburn</button>
             <button class="filter-pill" data-game="asteroid-storm">Asteroid Storm</button>
@@ -599,6 +600,7 @@
                         <a href="/manny-the-mole/">Manny the Mole</a>
                         <a href="/hoverdash/">HoverDash</a>
                         <a href="/vector-hexagon/">Vector Hexagon</a>
+                        <a href="/color-gate/">Color Gate</a>
                         <a href="/snake/">Snake Neo</a>
                         <a href="/snake/nokia-3310/">Nokia 3310 Snake</a>
                         <a href="/breakout/">Breakout</a>
@@ -643,7 +645,7 @@
     </footer>
 
     <!-- SDK (optional) -->
-    <script src="/js/gv-leaderboard-config.js?v=2"></script>
+    <script src="/js/gv-leaderboard-config.js?v=3"></script>
     <script src="/sdk/gamevolt.js" defer></script>
 
     <script>
@@ -831,7 +833,7 @@
             'sudoku': 'Sudoku', 'taprush': 'Tap Rush', 'type-or-die': 'Type or Die',
             'vector-hexagon': 'Vector Hexagon', 'gridburn': 'Gridburn', 'spinburn': 'Spinburn',
             'manny-the-mole': 'Manny the Mole', 'short-circuit': 'Short Circuit',
-            'lcd-classics': 'LCD Classics'
+            'lcd-classics': 'LCD Classics', 'color-gate': 'Color Gate'
         };
 
         // Every game with a GameVolt (Supabase) leaderboard, in a sensible
@@ -845,7 +847,7 @@
             'hoverdash', 'vector-hexagon', 'gridburn', 'spinburn', 'asteroid-storm', 'snake', 'breakout',
             'blockstorm', 'gravitywell', 'connect4', 'sudoku', 'minesweeper',
             'chain-reaction', 'manga-match3', 'golden-glyphs', 'axeluga',
-            'livewire', 'one-stroke', 'taprush', 'manny-the-mole', 'short-circuit', 'lcd-classics'
+            'livewire', 'one-stroke', 'taprush', 'manny-the-mole', 'short-circuit', 'lcd-classics', 'color-gate'
         ];
 
         function renderGamePills(order) {
