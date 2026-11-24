@@ -190,12 +190,12 @@ test('analytics handles hidden starts, short foreground intervals, pagehide and 
     assert.equal(h.sent.filter(e => e.event === 'game_end')[1].params.play_time_seconds, 10);
 });
 
-test('profile contains all 27 trophy games and exactly mirrors the 186 newly covered SQL definitions', () => {
+test('profile contains all 29 trophy games and exactly mirrors the 217 newly covered SQL definitions', () => {
     const source = read('profile/index.html'); const begin = source.indexOf('        var TROPHY_CATALOG =');
     const end = source.indexOf('\n        };', begin) + 11;
     const env = {}; vm.runInNewContext(source.slice(begin, end) + '\nthis.catalog = TROPHY_CATALOG;', env);
-    assert.equal(Object.keys(env.catalog).length, 27);
-    for (const game of ['mini-mayhem', 'chrome-circuit', 'slipstream-vector', 'ink', 'gridburn', 'spinburn']) {
+    assert.equal(Object.keys(env.catalog).length, 29);
+    for (const game of ['color-gate', 'mini-mayhem', 'chrome-circuit', 'slipstream-vector', 'ink', 'gridburn', 'spinburn']) {
         const sql = read('sql/' + game + '-achievements.sql');
         const ids = [...sql.matchAll(new RegExp("\\('(" + game + "-[^']+)'", 'g'))].map(m => m[1]);
         assert.deepEqual(plain(env.catalog[game].map(t => t.id)), ids);
@@ -205,7 +205,7 @@ test('profile contains all 27 trophy games and exactly mirrors the 186 newly cov
     env.GAME_NAMES = { 'slipstream-vector': 'Slipstream Vector', ink: 'INK', gridburn: 'Gridburn', spinburn: 'Spinburn' };
     vm.runInNewContext(source.slice(source.indexOf('        var TIER_ORDER'), source.indexOf('        // Username editing')), env);
     env.renderTrophies({ unlocked: 4, unlockedSet: { 'ink-first-stroke': 'date', 'gridburn-first-ride': 'date', 'spinburn-first_serve': 'date', 'retired-trophy': 'date' } });
-    assert.match(dom.innerHTML, /3 of 837 trophies unlocked/);
+    assert.match(dom.innerHTML, /3 of 899 trophies unlocked/);
     assert.match(dom.innerHTML, /3 Bronze/);
     for (const game of ['slipstream-vector', 'ink', 'gridburn', 'spinburn']) assert.ok(dom.innerHTML.includes('data-game="' + game + '"'));
 
@@ -228,7 +228,7 @@ test('sidebar chooses current modes, ignores old responses and recovers after a 
     env.loadSidebarLeaderboard('breakout'); queue[2].reject(new Error('offline')); await settle();
     assert.equal(elements.sidebarLbSection.style.display, 'none');
     env.loadSidebarLeaderboard('breakout'); assert.equal(queue[3].body.p_mode, 'neon-drift-v2');
-    for (const [game, mode] of Object.entries({ livewire: 'endless', 'short-circuit': 'daily-streak', gridburn: 'solo', sudoku: 'easy', minesweeper: 'easy-v3', 'vector-hexagon': 'climb-HEXAGON' })) assert.equal(env.GVLeaderboardConfig.mode(game), mode);
+    for (const [game, mode] of Object.entries({ 'color-gate': 'default', livewire: 'endless', 'short-circuit': 'daily-streak', gridburn: 'solo', sudoku: 'easy', minesweeper: 'easy-v3', 'vector-hexagon': 'climb-HEXAGON' })) assert.equal(env.GVLeaderboardConfig.mode(game), mode);
 });
 
 

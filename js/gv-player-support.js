@@ -83,6 +83,12 @@
             desktop: 'A / D or Left / Right steer. W / Up / Space jumps; hold to float. S / Down ducks or dives. P / Esc pauses.',
             tip: 'The game’s Guide tab explains obstacles, boosts and scoring.'
         },
+        'color-gate': {
+            goal: 'Bounce up through spinning rings, bars and crosses — pass only through your own color — and collect stars.',
+            touch: 'Tap anywhere to bounce. Touch a color orb to switch color. After losing a life, tap to continue from the last checkpoint.',
+            desktop: 'Space, Up, W, Enter or a mouse click bounces. Esc closes menus.',
+            tip: 'Rings repeat their colors on opposite sides — line up your color at the bottom and fly straight out the top.'
+        },
         'vector-hexagon': {
             goal: 'Rotate through gaps in the incoming walls for as long as you can.',
             touch: 'Hold the left or right half of the screen to rotate that way.',

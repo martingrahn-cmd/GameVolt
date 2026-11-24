@@ -47,11 +47,11 @@ When writing code for this project, follow these rules:
 
 ## Game Catalog
 
-**Canonical game count: 28 live portal games.** The table below has 29 numbered
+**Canonical game count: 29 live portal games.** The table below has 30 numbered
 rows, but row #7 (Flappy Bird) is the hidden 404-page easter egg — NOT a portal
 game. So the count shown on the site (homepage hero stat + "All Games" pill,
-about-page copy) = catalog rows − Flappy Bird = **28**. Cross-check: 28
-`.game-card` entries on the homepage, 28 `.game-item` entries in the about
+about-page copy) = catalog rows − Flappy Bird = **29**. Cross-check: 29
+`.game-card` entries on the homepage, 29 `.game-item` entries in the about
 lineup. When you add a game, bump all of these together.
 
 > Adding the game to the about page's *footer* link column is not the same as
@@ -94,6 +94,7 @@ Last verified by auditing the code on 2026-07-09.
 | 27 | Chrome Circuit | ✅ Live | ⚠️ init + 31 trophies + registerMigration + cloud backfill; no leaderboard (races rank by place, time trials by medal). Synced from `martingrahn-cmd/chrome-circuit` by `sync-chrome-circuit.yml` — see "Chrome Circuit" below. Trophy SQL in `sql/chrome-circuit-achievements.sql`, to run in Supabase. Added 2026-10-12. |
 | 28 | Mini Mayhem | ✅ Live | ✅ Full (31 trophies, four world-run leaderboards ranked by strokes then time, registerMigration + cloud backfill; online multiplayer up to 4 via Supabase Realtime). Synced from `martingrahn-cmd/minigolf-3d` by `sync-mini-mayhem.yml` — see "Mini Mayhem" below. Trophy SQL in `sql/mini-mayhem-achievements.sql`. Added 2026-10-22. |
 | 29 | LCD Classics | ✅ Live | ✅ Full (three Game & Watch-style handhelds in one game: Dock Drop, Crush Yard, Girder Jack; 31 shared trophies with backfill + registerMigration; six leaderboard modes `{dockdrop,crushyard,girderjack}-{a,b}`; keyboard, gamepad and touch. Menu music `lcd-classics/menu.ogg` (Opus) + `menu.m4a` (AAC fallback) — kontinuum, Free Synthwave Music Pack, royalty free. Trophy SQL in `sql/lcd-classics-achievements.sql`. Added 2026-11-08.) |
+| 30 | Color Gate | ✅ Live | ✅ Full (one-tap Color Switch-style arcade: 8-segment rings/bars/crosses, five background zones, lives + checkpoints, combos; 31 trophies with backfill + registerMigration; one `default` leaderboard that packs stars and run time into one INT — `stars * 100000 + (99999 - tenths)`, decoded in `js/gv-leaderboard-config.js`. Trophy SQL in `sql/color-gate-achievements.sql`. Added 2026-11-24.) |
 
 **Remaining work:** none for database registration — INK and its 31 trophies were registered on 2026-09-06. The Solitaire leaderboard is on the Supabase SDK
 path (migrated 2026-07-24); every game leaderboard is on Supabase.
