@@ -4,9 +4,13 @@
 
 ## Quick Context
 
-This is **GameVolt.io** — a curated HTML5 game portal with original games built by Martin. The site was rebranded from **pulsegames.eu** in 2026, and that domain is still ours: EURid WHOIS on 2026-10-22 shows it Registered through Loopia, registrant martin.grahn@gmail.com, on Cloudflare nameservers, with a renewal notice arriving the same day. An earlier version of this file said it had expired in 2026-09 and belonged to someone else. That was wrong, and it was quoted back as fact more than once before anyone checked the registry — so check WHOIS before repeating any claim about who owns it.
+This is **GameVolt.io** — a curated HTML5 game portal with original games built by Martin. The site was rebranded from **pulsegames.eu** in 2026.
 
-It redirects to gamevolt.io, but with an HTML page rather than a 301. Every visitor arriving that way therefore loses their original source and lands in GA4 as a referral from pulsegames.eu: 62 of the 94 new users on 2026-10-19, averaging two seconds. Treat referral traffic from our own old domain as unattributed, not as discovery, until that redirect becomes a 301 at the Cloudflare level.
+**pulsegames.eu is gone, deliberately.** EURid WHOIS on 2026-11-24 shows it in **Quarantine**, availability date 2026-12-27, registrant still martin.grahn@gmail.com via Loopia. It was registered 2025-11-17 on a one-year term, so it lapsed 2026-11-17; quarantine runs 40 days from there. Martin decided on 2026-11-24 **not to renew it**, so it will be released on 2026-12-27 and anyone may register it. DNS already returns NXDOMAIN from the `.eu` zone — the domain resolves nowhere, and the old HTML redirect to gamevolt.io is dead with it.
+
+This file has twice carried a wrong claim about this domain, in both directions, and each was quoted back as fact before anyone checked. So: **check EURid WHOIS (https://whois.eurid.eu) before repeating any claim about pulsegames.eu**, including this one.
+
+Consequence for analytics: the self-referral that polluted GA4 has stopped at source. Over 2026-10-27–11-23 it was 165 sessions at a 2-second average and 13.9% engagement — it was never real traffic, so nothing of value was lost. Historic referral traffic from pulsegames.eu in any pre-December window is still unattributed noise, not discovery; don't read it as a channel.
 
 **Game count: 29 live portal games**. The GAMEVOLT.md catalog has 30 rows but #7 Flappy Bird is the 404 easter egg, not a portal game. See the note under "Game Catalog" in GAMEVOLT.md before quoting or changing any game count.
 
