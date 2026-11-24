@@ -529,7 +529,7 @@ function spawn(){
     obs.push({type:'bar',y,T:16,S:W/4,off:Math.random()*W*2,spd:dir()*120*s});
     items.push({k:'star',y:y-75});
   }
-  for(let i=obsBefore;i<obs.length;i++){ obs[i].kind=type; obs[i].fin=(i===obs.length-1); }
+  for(let i=obsBefore;i<obs.length;i++){ obs[i].kind=type; obs[i].fin=(i===obs.length-1); obs[i].grp=n; obs[i].boost=1; }
   items.push({k:'sw',y:y-gap/2-extra,cp:n%4===3});
   nextY-=gap+extra*2;
 }
@@ -822,13 +822,47 @@ function barHit(o){
 }
 
 /* ---------- update ---------- */
+/* Wait assist: if the ball is parked under a gate whose opening isn't its colour,
+   spin that obstacle group up (~3x) until the colour arrives, then ease straight
+   back to normal speed. Timing stays the same; dead waiting disappears. */
+function crossFacing(o){
+  const dirA=o.x<W/2?0:Math.PI; let bi=0,bd=9;
+  for(let i=0;i<4;i++){ const d=Math.abs(mod(o.rot+i*Q-dirA+Math.PI,TAU)-Math.PI); if(d<bd){bd=d;bi=i;} }
+  return bi;
+}
+function nextGate(){
+  let best=null,bestD=1e9;
+  const top=ball.y-R_BALL;
+  for(const o of obs){
+    if(Math.abs(o.y-ball.y)>420) continue;
+    if(o.rings){
+      for(const rg of o.rings){
+        const bb=o.y+rg.R, bt=o.y-rg.R;
+        if(top-bb>-2&&top-bb<bestD){bestD=top-bb;best={o,col:Math.floor(mod(Q-rg.rot,TAU)/(Q/2))%4};}
+        if(top-bt>-2&&top-bt<bestD){bestD=top-bt;best={o,col:Math.floor(mod(-Q-rg.rot,TAU)/(Q/2))%4};}
+      }
+    }else if(o.type==='cross'){
+      const d=top-(o.y+o.T); if(d>-2&&d<bestD){bestD=d;best={o,col:crossFacing(o)};}
+    }else{
+      const d=top-(o.y+o.T/2); if(d>-2&&d<bestD){bestD=d;best={o,col:Math.floor(mod(W/2-o.off,4*o.S)/o.S)%4};}
+    }
+  }
+  return best?{o:best.o,col:best.col,d:bestD}:null;
+}
+function updateAssist(dt){
+  let grp=null;
+  if(state==='play'||state==='wait'){ const g=nextGate(); if(g&&g.d<170&&g.col!==ball.c) grp=g.o.grp; }
+  for(const o of obs){ const tg=o.grp===grp?3:1; o.boost+=(tg-o.boost)*Math.min(1,dt*(tg>1?3:10)); }
+}
 function update(dt){
   t+=dt;
+  updateAssist(dt);
   const sp=speed();
   for(const o of obs){
-    if(o.rings) for(const rg of o.rings) rg.rot+=rg.spd*sp*dt;
-    else if(o.type==='cross') o.rot+=o.spd*sp*dt;
-    else o.off+=o.spd*sp*dt;
+    const bs=o.boost||1;
+    if(o.rings) for(const rg of o.rings) rg.rot+=rg.spd*sp*bs*dt;
+    else if(o.type==='cross') o.rot+=o.spd*sp*bs*dt;
+    else o.off+=o.spd*sp*bs*dt;
   }
   if(state==='play'){
     runTime+=dt; checkTime();
